@@ -1,5 +1,6 @@
 const $ = (selector) => document.querySelector(selector);
 const notice = $("#notice");
+const paymentDialog = $("#payment-dialog");
 const dashContent = $(".dash-content");
 const dashboardHome = dashContent.innerHTML;
 
@@ -110,6 +111,11 @@ function showAppointments() {
   setActiveNav("appointments");
 }
 
+function showAppointmentPayment() {
+  $("#payment-confirmation").checked = false;
+  paymentDialog.showModal();
+}
+
 function showEducation() {
   dashContent.innerHTML = pageShell("WEEK BY WEEK", "Learn about week 8", "Educational information to help you prepare for conversations with a qualified healthcare professional.", `<div class="education-grid"><article class="workflow-card"><p class="eyebrow teal">COMMON CHANGES</p><h3>Your body this week</h3><p>Fatigue, nausea, breast tenderness, and changes in appetite can happen in early pregnancy. Each pregnancy is different.</p></article><article class="workflow-card"><p class="eyebrow teal">CARE TIP</p><h3>Questions for your provider</h3><p>Ask which supplements are appropriate for you, when to schedule your first visit, and which symptoms need a call.</p></article><article class="workflow-card warning-card"><p class="eyebrow">WHEN TO SEEK HELP</p><h3>Do not wait with urgent symptoms</h3><p>Seek urgent medical attention or contact your healthcare provider for severe pain, heavy bleeding, fainting, or breathing difficulties.</p><button class="text-button" type="button" data-action="emergency">Open emergency support</button></article></div>`);
   setActiveNav("education");
@@ -140,6 +146,14 @@ document.querySelectorAll("[data-show]").forEach((button) => button.addEventList
 }));
 document.querySelectorAll("[data-message]").forEach((button) => button.addEventListener("click", () => openNotice("Password reset", button.dataset.message)));
 $("#close-notice").addEventListener("click", () => notice.close());
+$("#close-payment").addEventListener("click", () => paymentDialog.close());
+$("#payment-form").addEventListener("submit", (event) => {
+  event.preventDefault();
+  if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
+  paymentDialog.close();
+  updateActiveAccount({ appointmentRequest: { fee: 20000, currency: "UGX", status: "payment-confirmed", requestedAt: new Date().toISOString() } });
+  openNotice("Appointment request submitted", "Your UGX 20,000 appointment fee has been confirmed for this demo. The healthcare facility can now review your request and confirm the visit.");
+});
 
 $("#register-form").addEventListener("submit", (event) => {
   event.preventDefault();
@@ -206,7 +220,7 @@ document.addEventListener("click", (event) => {
   }
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (action === "emergency") openNotice("Seek urgent professional care", "For severe pain, heavy bleeding, fainting, difficulty breathing, or any urgent concern, contact your healthcare provider, local emergency services, or your selected healthcare facility now. BloomCare cannot assess emergencies.");
-  if (action === "appointment") openNotice("Appointment request", "This demo records the appointment workflow. In the production system, your request will be sent securely to your selected healthcare facility for confirmation.");
+  if (action === "appointment") showAppointmentPayment();
 });
 document.addEventListener("submit", (event) => { if (event.target.id === "checkin-form") { event.preventDefault(); if (event.target.checkValidity()) saveCheckin(event.target); else event.target.reportValidity(); } });
 

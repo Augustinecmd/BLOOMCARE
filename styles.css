@@ -636,6 +636,13 @@ cursor:pointer
 line-height:1.55;
 color:#4a6260
 }
+.fee-amount{
+margin:20px 0;
+font-family:"Libre Baskerville",Georgia,serif;
+font-size:28px;
+font-weight:700;
+color:var(--teal)
+}
 @media(max-width:760px){
 .auth-layout{
 grid-template-columns:1fr
