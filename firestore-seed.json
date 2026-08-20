@@ -1,0 +1,34 @@
+{
+  "facilities": {
+    "kampala-womens-health-centre": {
+      "name": "Kampala Women's Health Centre",
+      "address": "Kampala, Uganda",
+      "phone": "+256000000000",
+      "isActive": true
+    },
+    "mulago-national-referral-hospital": {
+      "name": "Mulago National Referral Hospital",
+      "address": "Kampala, Uganda",
+      "phone": "+256000000000",
+      "isActive": true
+    }
+  },
+  "educationContent": {
+    "week-8": {
+      "title": "Pregnancy week 8",
+      "body": "Fatigue, nausea, breast tenderness, and changes in appetite can happen in early pregnancy. Speak with a qualified healthcare professional about your symptoms.",
+      "availableWeeks": [8],
+      "contentType": "pregnancy-week",
+      "isPublished": true,
+      "version": 1
+    },
+    "urgent-warning-signs": {
+      "title": "When to seek urgent help",
+      "body": "Seek urgent medical attention for severe pain, heavy bleeding, fainting, or breathing difficulties.",
+      "availableWeeks": [],
+      "contentType": "safety",
+      "isPublished": true,
+      "version": 1
+    }
+  }
+}

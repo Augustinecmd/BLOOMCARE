@@ -28,5 +28,63 @@
       "reason": "check up"
     },
     "verifiedAt": "2026-08-20T08:08:36.109952+00:00"
+  },
+  "BC-20260820-39767C3B": {
+    "reference": "BC-20260820-39767C3B",
+    "provider": "MTN MoMo",
+    "phone": "0787848489",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-20T14:24:57.868734+00:00",
+    "appointment": {
+      "date": "2026-09-08",
+      "facility": "Other facility",
+      "reason": "check-up"
+    },
+    "verifiedAt": "2026-08-20T14:25:05.469527+00:00"
+  },
+  "BC-20260820-939B0473": {
+    "reference": "BC-20260820-939B0473",
+    "provider": "Airtel Money",
+    "phone": "0743748339",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "pending",
+    "createdAt": "2026-08-20T15:54:07.819119+00:00",
+    "appointment": {
+      "date": "2026-09-08",
+      "facility": "Mulago National Referral Hospital",
+      "reason": "check up"
+    }
+  },
+  "BC-20260820-E333DCC9": {
+    "reference": "BC-20260820-E333DCC9",
+    "provider": "MTN MoMo",
+    "phone": "0785477489",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-20T16:05:32.620909+00:00",
+    "appointment": {
+      "date": "2026-09-03",
+      "facility": "Kampala Women's Health Centre",
+      "reason": "check up"
+    },
+    "verifiedAt": "2026-08-20T16:06:19.845700+00:00"
+  },
+  "BC-20260820-5F5C7CE0": {
+    "reference": "BC-20260820-5F5C7CE0",
+    "provider": "MTN MoMo",
+    "phone": "0776483940",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "pending",
+    "createdAt": "2026-08-20T16:16:36.325408+00:00",
+    "appointment": {
+      "date": "2026-08-20",
+      "facility": "Kampala Women's Health Centre",
+      "reason": "medical check-up"
+    }
   }
 }

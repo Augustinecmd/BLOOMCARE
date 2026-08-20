@@ -30,8 +30,7 @@ service cloud.firestore {
 
     match /users/{uid} {
       allow create: if isSelf(uid)
-        && request.resource.data.role == 'patient'
-        && request.resource.data.email == request.auth.token.email;
+        && request.resource.data.role == 'patient';
       allow read: if isSelf(uid) || isAdmin();
       allow update: if isSelf(uid)
         && request.resource.data.role == resource.data.role

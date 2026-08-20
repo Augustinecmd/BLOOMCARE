@@ -58,3 +58,27 @@ The browser must not write `payments`, set an appointment to `paid`, or generate
 5. Create the receipt and audit log.
 
 The current local-storage prototype remains suitable only for demonstration until Firebase Auth and a trusted backend are connected.
+
+## 5. Create the initial Firestore collections
+
+Firestore creates a collection when its first document is written. The seed
+files create the safe shared collections `facilities` and `educationContent`.
+Patient collections are created when an authenticated patient completes a
+profile or submits a verified appointment.
+
+Install the Admin SDK in a trusted server environment:
+
+```powershell
+npm install firebase-admin
+```
+
+Set `GOOGLE_APPLICATION_CREDENTIALS` to a service-account JSON path outside the
+repository, then run:
+
+```powershell
+$env:FIREBASE_PROJECT_ID = "bloomcare-ee449"
+node scripts/seed-firestore.mjs
+```
+
+Never put the service-account JSON file, private keys, or mobile-money secrets
+in this repository or in the browser bundle.

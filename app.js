@@ -154,9 +154,16 @@ function showProfileEditor() {
   $(".profile-wrap h1").textContent = "Keep your details current";
 }
 
-function saveCheckin(form) {
+async function saveCheckin(form) {
   const record = { date: new Date().toISOString(), weight: $("#weight").value, temperature: $("#temperature").value, systolic: $("#systolic").value, diastolic: $("#diastolic").value, wellbeing: $("#wellbeing").value, symptoms: $("#symptoms").value.trim() };
   updateActiveAccount({ records: [record, ...getRecords()] });
+  if (auth.currentUser) {
+    const pregnancyId = `${auth.currentUser.uid}_current`;
+    const checkinId = `checkin-${Date.now()}`;
+    const shared = { patientUid: auth.currentUser.uid, pregnancyId, recordedAt: serverTimestamp(), createdByUid: auth.currentUser.uid };
+    await setDoc(doc(db, "pregnancies", pregnancyId, "measurements", checkinId), { ...shared, weightKg: record.weight ? Number(record.weight) : null, temperatureC: record.temperature ? Number(record.temperature) : null, systolicBp: record.systolic ? Number(record.systolic) : null, diastolicBp: record.diastolic ? Number(record.diastolic) : null, wellbeing: record.wellbeing, notes: record.symptoms });
+    if (record.symptoms) await setDoc(doc(db, "pregnancies", pregnancyId, "symptoms", checkinId), { ...shared, type: "patient-reported", severity: record.wellbeing, notes: record.symptoms, requiresReview: /heavy bleeding|severe pain|faint|difficulty breathing|trouble breathing/i.test(record.symptoms) });
+  }
   showHome();
   const urgentWords = /heavy bleeding|severe pain|faint|difficulty breathing|trouble breathing/i;
   if (urgentWords.test(record.symptoms)) openNotice("Seek urgent professional care", "Your symptom entry may need urgent attention. Contact your healthcare provider, local emergency services, or your selected healthcare facility now. BloomCare cannot assess emergencies.");
@@ -218,15 +225,31 @@ $("#register-form").addEventListener("submit", async (event) => {
   const password = event.currentTarget.querySelector('input[type="password"]').value;
   const phone = event.currentTarget.querySelector('input[type="tel"]').value.trim();
   const dateOfBirth = event.currentTarget.querySelector('input[type="date"]').value;
+  let firebaseCreated = false;
+  let firebaseUser = null;
   try {
     const credential = await createUserWithEmailAndPassword(auth, email, password);
-    await setDoc(doc(db, "users", credential.user.uid), { role: "patient", fullName: name, email, phone, dateOfBirth, consentedAt: serverTimestamp(), consentVersion: "v1", createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    firebaseCreated = true;
+    firebaseUser = credential.user;
   } catch (error) {
+    if (error.code === "auth/email-already-in-use") {
+      $("#login-card").classList.remove("hidden");
+      $("#register-card").classList.add("hidden");
+      $("#login-email").value = email;
+      return openNotice("Account already exists", "This email is already registered. Sign in with your existing password to continue.");
+    }
     if (error.code !== "auth/operation-not-allowed") return openNotice("Account creation failed", firebaseErrorMessage(error));
   }
+  if (firebaseUser) {
+    try {
+      await setDoc(doc(db, "users", firebaseUser.uid), { role: "patient", fullName: name, email, phone, dateOfBirth, consentedAt: serverTimestamp(), consentVersion: "v1", createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    } catch (error) {
+      openNotice("Account created", `Your account is ready, but your profile database is not available yet. You can continue in demo mode. Firebase says: ${firebaseErrorMessage(error)}`);
+    }
+  }
   const accounts = getAccounts();
-  if (accounts[email]) return openNotice("Account already exists", "Please sign in with this email address instead.");
-  accounts[email] = { name, email, password, profile: null, records: [] };
+  if (accounts[email] && !firebaseCreated) return openNotice("Account already exists", "Please sign in with this email address instead.");
+  accounts[email] = { ...(accounts[email] || {}), name, email, password, phone, dateOfBirth, profile: accounts[email]?.profile || null, records: accounts[email]?.records || [] };
   saveAccounts(accounts);
   localStorage.setItem(SESSION_KEY, email);
   showProfileEditor();
@@ -241,8 +264,13 @@ $("#login-form").addEventListener("submit", async (event) => {
   } catch (error) {
     if (error.code !== "auth/operation-not-allowed") return openNotice("Sign-in failed", firebaseErrorMessage(error));
   }
-  const account = getAccounts()[email];
+  const account = getAccounts()[email] || (auth.currentUser ? { name: auth.currentUser.displayName || email.split("@")[0], email, password, profile: null, records: [] } : null);
   if (!account) return openNotice("Sign-in failed", "The email address or password is incorrect.");
+  if (!getAccounts()[email]) {
+    const accounts = getAccounts();
+    accounts[email] = account;
+    saveAccounts(accounts);
+  }
   if (!account.password) {
     const accounts = getAccounts();
     accounts[email] = { ...account, password };
@@ -255,11 +283,12 @@ $("#lmp").addEventListener("change", (event) => { if (event.target.value) $("#ed
 $("#profile-form").addEventListener("submit", (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
-  const profile = { lmp: $("#lmp").value, edd: $("#edd").value };
+  const profile = { lmp: $("#lmp").value, edd: $("#edd").value, previousPregnancies: $("#previous-pregnancies").value, medicalHistory: $("#medical-history").value.trim(), allergies: "", emergencyContact: $("#emergency-contact").value.trim() };
   updateActiveAccount({ profile });
   if (auth.currentUser) {
     const pregnancyId = `${auth.currentUser.uid}_current`;
-    setDoc(doc(db, "pregnancies", pregnancyId), { patientUid: auth.currentUser.uid, lmpDate: profile.lmp, estimatedDueDate: profile.edd, status: "active", updatedAt: serverTimestamp(), createdAt: serverTimestamp() }, { merge: true }).catch((error) => openNotice("Profile saved locally", `Firebase could not save this profile yet: ${firebaseErrorMessage(error)}`));
+    setDoc(doc(db, "pregnancies", pregnancyId), { patientUid: auth.currentUser.uid, lmpDate: profile.lmp, estimatedDueDate: profile.edd, previousPregnancies: Number(profile.previousPregnancies), medicalHistory: profile.medicalHistory, allergies: profile.allergies, status: "active", updatedAt: serverTimestamp(), createdAt: serverTimestamp() }, { merge: true }).catch((error) => openNotice("Profile saved locally", `Firebase could not save this profile yet: ${firebaseErrorMessage(error)}`));
+    if (profile.emergencyContact) setDoc(doc(db, "emergencyContacts", `${auth.currentUser.uid}_primary`), { patientUid: auth.currentUser.uid, name: profile.emergencyContact, phone: profile.emergencyContact, isPrimary: true, updatedAt: serverTimestamp(), createdAt: serverTimestamp() }, { merge: true }).catch((error) => openNotice("Contact saved locally", `Firebase could not save the emergency contact yet: ${firebaseErrorMessage(error)}`));
   }
   showView("dashboard-view"); showHome();
 });

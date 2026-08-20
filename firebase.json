@@ -7,8 +7,16 @@
     "public": ".",
     "ignore": [
       "firebase.json",
+        ".firebaserc",
       "firestore.rules",
       "firestore.indexes.json",
+        "firestore-seed.json",
+        "FIREBASE_SETUP.md",
+        "SYSTEM_DESIGN.md",
+        "README.md",
+        "server/**",
+        "scripts/**",
+        "pharmacy-management/**",
       "**/.*",
       "**/node_modules/**"
     ],

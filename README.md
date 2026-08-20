@@ -7,7 +7,13 @@ only; it is not suitable for storing real health records.
 
 ## Run it
 
-Open `index.html` in a browser. No installation or web server is required.
+Run the app from a local web server (opening `index.html` directly is not supported because the app uses browser modules). In PowerShell, from this folder, run:
+
+```text
+start-local.cmd
+```
+
+Then open `http://127.0.0.1:8080`. The script also starts the local demo payment API used by appointment payments.
 
 ## Files
 
