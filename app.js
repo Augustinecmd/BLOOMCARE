@@ -1,3 +1,5 @@
+import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged, doc, setDoc, serverTimestamp } from "./firebase-config.js";
+
 const $ = (selector) => document.querySelector(selector);
 const notice = $("#notice");
 const paymentDialog = $("#payment-dialog");
@@ -18,6 +20,16 @@ const ACCOUNTS_KEY = "bloomcareAccounts";
 const SESSION_KEY = "bloomcareSession";
 const PAYMENT_API = "http://127.0.0.1:8787";
 let pendingPayment = null;
+
+function firebaseErrorMessage(error) {
+  const messages = {
+    "auth/email-already-in-use": "An account with this email already exists.",
+    "auth/invalid-credential": "The email address or password is incorrect.",
+    "auth/weak-password": "Use a stronger password with at least 8 characters.",
+    "auth/operation-not-allowed": "Email and password sign-in is not enabled in Firebase Authentication yet."
+  };
+  return messages[error.code] || error.message || "Firebase request failed.";
+}
 
 function getAccounts() { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "{}"); }
 function saveAccounts(accounts) { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); }
@@ -186,19 +198,32 @@ $("#verify-payment").addEventListener("click", async () => {
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Payment verification failed.");
     paymentDialog.close();
-    updateActiveAccount({ appointmentRequest: { date: $("#appointment-date").value, facility: $("#appointment-facility").value, reason: $("#appointment-reason").value.trim(), fee: result.receipt.amount, currency: result.receipt.currency, provider: result.receipt.provider, status: "Pending", paymentStatus: result.receipt.status, paymentReference: result.receipt.reference, receiptNumber: result.receipt.receiptNumber, requestedAt: new Date().toISOString() } });
+    const appointmentRequest = { date: $("#appointment-date").value, facility: $("#appointment-facility").value, reason: $("#appointment-reason").value.trim(), fee: result.receipt.amount, currency: result.receipt.currency, provider: result.receipt.provider, status: "Pending", paymentStatus: result.receipt.status, paymentReference: result.receipt.reference, receiptNumber: result.receipt.receiptNumber, requestedAt: new Date().toISOString() };
+    updateActiveAccount({ appointmentRequest });
+    if (auth.currentUser) {
+      const pregnancyId = `${auth.currentUser.uid}_current`;
+      await setDoc(doc(db, "pregnancies", pregnancyId, "appointments", result.receipt.reference), { ...appointmentRequest, patientUid: auth.currentUser.uid, pregnancyId, status: "pending_facility_confirmation", feeMinorUnits: result.receipt.amount, paymentId: result.receipt.reference, createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+    }
     openNotice("Payment verified", `Receipt ${result.receipt.receiptNumber} issued for UGX 20,000 via ${result.receipt.provider}. Your appointment request is now pending facility confirmation.`);
   } catch (error) {
     openNotice("Payment verification failed", error.message);
   }
 });
 
-$("#register-form").addEventListener("submit", (event) => {
+$("#register-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
   const name = $("#register-name").value.trim();
   const email = normaliseEmail($("#register-email").value);
   const password = event.currentTarget.querySelector('input[type="password"]').value;
+  const phone = event.currentTarget.querySelector('input[type="tel"]').value.trim();
+  const dateOfBirth = event.currentTarget.querySelector('input[type="date"]').value;
+  try {
+    const credential = await createUserWithEmailAndPassword(auth, email, password);
+    await setDoc(doc(db, "users", credential.user.uid), { role: "patient", fullName: name, email, phone, dateOfBirth, consentedAt: serverTimestamp(), consentVersion: "v1", createdAt: serverTimestamp(), updatedAt: serverTimestamp() });
+  } catch (error) {
+    if (error.code !== "auth/operation-not-allowed") return openNotice("Account creation failed", firebaseErrorMessage(error));
+  }
   const accounts = getAccounts();
   if (accounts[email]) return openNotice("Account already exists", "Please sign in with this email address instead.");
   accounts[email] = { name, email, password, profile: null, records: [] };
@@ -206,11 +231,16 @@ $("#register-form").addEventListener("submit", (event) => {
   localStorage.setItem(SESSION_KEY, email);
   showProfileEditor();
 });
-$("#login-form").addEventListener("submit", (event) => {
+$("#login-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
   const email = normaliseEmail($("#login-email").value);
   const password = $("#login-password").value;
+  try {
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch (error) {
+    if (error.code !== "auth/operation-not-allowed") return openNotice("Sign-in failed", firebaseErrorMessage(error));
+  }
   const account = getAccounts()[email];
   if (!account) return openNotice("Sign-in failed", "The email address or password is incorrect.");
   if (!account.password) {
@@ -225,10 +255,15 @@ $("#lmp").addEventListener("change", (event) => { if (event.target.value) $("#ed
 $("#profile-form").addEventListener("submit", (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
-  updateActiveAccount({ profile: { lmp: $("#lmp").value, edd: $("#edd").value } });
+  const profile = { lmp: $("#lmp").value, edd: $("#edd").value };
+  updateActiveAccount({ profile });
+  if (auth.currentUser) {
+    const pregnancyId = `${auth.currentUser.uid}_current`;
+    setDoc(doc(db, "pregnancies", pregnancyId), { patientUid: auth.currentUser.uid, lmpDate: profile.lmp, estimatedDueDate: profile.edd, status: "active", updatedAt: serverTimestamp(), createdAt: serverTimestamp() }, { merge: true }).catch((error) => openNotice("Profile saved locally", `Firebase could not save this profile yet: ${firebaseErrorMessage(error)}`));
+  }
   showView("dashboard-view"); showHome();
 });
-$("#logout").addEventListener("click", () => { localStorage.removeItem(SESSION_KEY); showView("auth-view"); });
+$("#logout").addEventListener("click", async () => { localStorage.removeItem(SESSION_KEY); await signOut(auth).catch(() => {}); showView("auth-view"); });
 
 document.addEventListener("click", (event) => {
   if (event.target.closest("#check-in, #quick-check")) {
@@ -263,4 +298,9 @@ document.addEventListener("click", (event) => {
 document.addEventListener("submit", (event) => { if (event.target.id === "checkin-form") { event.preventDefault(); if (event.target.checkValidity()) saveCheckin(event.target); else event.target.reportValidity(); } });
 
 migrateLegacyData();
-if (getActiveEmail() && getProfile()) { setUserName(); updatePregnancySummary(); }
+onAuthStateChanged(auth, (user) => {
+  if (!user) return;
+  localStorage.setItem(SESSION_KEY, user.email || "");
+  if (getProfile()) { showView("dashboard-view"); setUserName(); updatePregnancySummary(); }
+});
+if (getActiveEmail() && getProfile()) { showView("dashboard-view"); setUserName(); updatePregnancySummary(); }

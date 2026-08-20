@@ -1,0 +1,162 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isSelf(uid) {
+      return signedIn() && request.auth.uid == uid;
+    }
+
+    function hasRole(role) {
+      return signedIn() && request.auth.token.role == role;
+    }
+
+    function isAdmin() {
+      return hasRole('admin');
+    }
+
+    function isProvider() {
+      return hasRole('provider');
+    }
+
+    function assignedToPatient(patientUid) {
+      return isProvider() && exists(
+        /databases/$(database)/documents/providerPatientAssignments/$(request.auth.uid + '_' + patientUid)
+      );
+    }
+
+    match /users/{uid} {
+      allow create: if isSelf(uid)
+        && request.resource.data.role == 'patient'
+        && request.resource.data.email == request.auth.token.email;
+      allow read: if isSelf(uid) || isAdmin();
+      allow update: if isSelf(uid)
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.email == resource.data.email;
+      allow delete: if isAdmin();
+    }
+
+    match /pregnancies/{pregnancyId} {
+      allow create: if signedIn()
+        && request.resource.data.patientUid == request.auth.uid;
+      allow read: if signedIn()
+        && (resource.data.patientUid == request.auth.uid
+          || assignedToPatient(resource.data.patientUid)
+          || isAdmin());
+      allow update: if signedIn()
+        && (resource.data.patientUid == request.auth.uid
+          || isAdmin());
+      allow delete: if isAdmin();
+
+      match /measurements/{measurementId} {
+        allow create: if signedIn()
+          && request.resource.data.patientUid == request.auth.uid
+          && request.resource.data.pregnancyId == pregnancyId;
+        allow read: if signedIn()
+          && (resource.data.patientUid == request.auth.uid
+            || assignedToPatient(resource.data.patientUid)
+            || isAdmin());
+        allow update, delete: if isSelf(resource.data.patientUid) || isAdmin();
+      }
+
+      match /symptoms/{symptomId} {
+        allow create: if signedIn()
+          && request.resource.data.patientUid == request.auth.uid
+          && request.resource.data.pregnancyId == pregnancyId;
+        allow read: if signedIn()
+          && (resource.data.patientUid == request.auth.uid
+            || assignedToPatient(resource.data.patientUid)
+            || isAdmin());
+        allow update, delete: if isSelf(resource.data.patientUid) || isAdmin();
+      }
+
+      match /medications/{medicationId} {
+        allow create: if signedIn()
+          && request.resource.data.patientUid == request.auth.uid
+          && request.resource.data.pregnancyId == pregnancyId;
+        allow read: if signedIn()
+          && (resource.data.patientUid == request.auth.uid
+            || assignedToPatient(resource.data.patientUid)
+            || isAdmin());
+        allow update, delete: if isSelf(resource.data.patientUid) || isAdmin();
+      }
+
+      match /appointments/{appointmentId} {
+        allow create: if signedIn()
+          && request.resource.data.patientUid == request.auth.uid
+          && request.resource.data.pregnancyId == pregnancyId
+          && request.resource.data.status == 'pending_facility_confirmation'
+          && request.resource.data.paymentStatus == 'paid'
+          && request.resource.data.feeMinorUnits == 20000;
+        allow read: if signedIn()
+          && (resource.data.patientUid == request.auth.uid
+            || assignedToPatient(resource.data.patientUid)
+            || isAdmin());
+        allow update: if isAdmin()
+          || (isSelf(resource.data.patientUid)
+            && request.resource.data.patientUid == resource.data.patientUid
+            && request.resource.data.status == resource.data.status);
+        allow delete: if isAdmin();
+      }
+
+      match /medicalNotes/{noteId} {
+        allow read: if signedIn()
+          && (resource.data.patientUid == request.auth.uid
+            || assignedToPatient(resource.data.patientUid)
+            || isAdmin());
+        allow create: if isProvider()
+          && request.resource.data.providerUid == request.auth.uid
+          && assignedToPatient(request.resource.data.patientUid);
+        allow update, delete: if isAdmin();
+      }
+    }
+
+    match /emergencyContacts/{contactId} {
+      allow create: if signedIn() && request.resource.data.patientUid == request.auth.uid;
+      allow read, update, delete: if signedIn()
+        && (resource.data.patientUid == request.auth.uid || isAdmin());
+    }
+
+    match /facilities/{facilityId} {
+      allow read: if signedIn();
+      allow write: if isAdmin();
+    }
+
+    match /providers/{uid} {
+      allow read: if signedIn();
+      allow write: if isAdmin() || isSelf(uid);
+    }
+
+    match /providerPatientAssignments/{assignmentId} {
+      allow read: if signedIn()
+        && (resource.data.providerUid == request.auth.uid
+          || resource.data.patientUid == request.auth.uid
+          || isAdmin());
+      allow write: if isAdmin();
+    }
+
+    match /educationContent/{contentId} {
+      allow read: if signedIn() && resource.data.isPublished == true;
+      allow write: if isAdmin();
+    }
+
+    match /notifications/{notificationId} {
+      allow read, update: if signedIn() && resource.data.userUid == request.auth.uid;
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /payments/{paymentId} {
+      allow read: if signedIn() && resource.data.patientUid == request.auth.uid;
+      allow write: if false;
+    }
+
+    match /auditLogs/{logId} {
+      allow read: if isAdmin();
+      allow write: if false;
+    }
+  }
+}

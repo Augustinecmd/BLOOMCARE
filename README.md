@@ -15,6 +15,11 @@ Open `index.html` in a browser. No installation or web server is required.
 - `styles.css` - responsive visual design
 - `app.js` - client-side navigation, validation, calculations, and demo state
 - `SYSTEM_DESIGN.md` - proposed production architecture and implementation plan
+- `FIREBASE_SETUP.md` - Firebase Auth, Firestore, Hosting, schema, and deployment steps
+- `firestore.rules` - Firestore ownership and role-based security rules
+- `firestore.indexes.json` - Firestore query indexes
 
-For production, replace `app.js` local storage operations with authenticated
-API calls and implement the backend controls in `SYSTEM_DESIGN.md`.
+For production, replace `app.js` local storage operations with Firebase Auth,
+Firestore, and authenticated backend or Cloud Functions calls. Follow
+`FIREBASE_SETUP.md` before deploying. Payment verification must remain on the
+trusted backend; the browser must never mark a payment as paid.
