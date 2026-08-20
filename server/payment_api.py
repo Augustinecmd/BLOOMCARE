@@ -55,6 +55,13 @@ class PaymentHandler(BaseHTTPRequestHandler):
     def do_OPTIONS(self) -> None:
         response_payload(self, 204, {})
 
+    def do_GET(self) -> None:
+        path = urlparse(self.path).path
+        if path in {"/", "/health"}:
+            response_payload(self, 200, {"service": "BloomCare payment API", "status": "ok"})
+            return
+        response_payload(self, 404, {"error": "Payment endpoint not found."})
+
     def do_POST(self) -> None:
         path = urlparse(self.path).path
         try:
