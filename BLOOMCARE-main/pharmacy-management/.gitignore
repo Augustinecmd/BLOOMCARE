@@ -1,0 +1,24 @@
+# Environment and secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.venv/
+coverage.xml
+htmlcov/
+
+# JavaScript
+node_modules/
+dist/
+coverage/
+
+# Tooling and OS
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/

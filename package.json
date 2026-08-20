@@ -1,0 +1,10 @@
+{
+    "name": "bloomcare-wrapper",
+    "version": "1.0.0",
+    "private": true,
+    "scripts": {
+        "dev": "npm --prefix BLOOMCARE-main run dev",
+        "start": "npm --prefix BLOOMCARE-main start",
+        "build": "npm --prefix BLOOMCARE-main run build"
+    }
+}

@@ -1,0 +1,20 @@
+{
+    "name": "bloomcare-early-pregnancy",
+    "version": "1.0.0",
+    "description": "BloomCare Early Pregnancy Monitoring System",
+    "main": "app.js",
+    "type": "module",
+    "scripts": {
+        "dev": "vite --port 8080",
+        "serve": "npx serve -l 8080 .",
+        "start": "vite --port 8080",
+        "build": "vite build",
+        "preview": "vite preview"
+    },
+    "devDependencies": {
+        "vite": "^5.4.0"
+    },
+    "dependencies": {
+        "firebase": "^12.18.0"
+    }
+}
