@@ -1,0 +1,32 @@
+{
+  "BC-20260820-4824DD86": {
+    "reference": "BC-20260820-4824DD86",
+    "provider": "MTN MoMo",
+    "phone": "0772123456",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-20T08:00:05.859470+00:00",
+    "appointment": {
+      "date": "2026-08-25",
+      "reason": "First antenatal visit",
+      "facility": "Kampala Women's Health Centre"
+    },
+    "verifiedAt": "2026-08-20T08:00:05.903075+00:00"
+  },
+  "BC-20260820-758C64B1": {
+    "reference": "BC-20260820-758C64B1",
+    "provider": "Airtel Money",
+    "phone": "0741592069",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-20T08:08:29.901847+00:00",
+    "appointment": {
+      "date": "2027-06-28",
+      "facility": "Kampala Women's Health Centre",
+      "reason": "check up"
+    },
+    "verifiedAt": "2026-08-20T08:08:36.109952+00:00"
+  }
+}

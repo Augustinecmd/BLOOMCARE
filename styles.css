@@ -643,6 +643,18 @@ font-size:28px;
 font-weight:700;
 color:var(--teal)
 }
+.payment-reference{
+padding:12px;
+border:1px dashed #9bc5b9;
+border-radius:6px;
+background:var(--pale);
+color:var(--teal-dark);
+font-weight:700
+}
+button:disabled{
+cursor:wait;
+opacity:.65
+}
 @media(max-width:760px){
 .auth-layout{
 grid-template-columns:1fr

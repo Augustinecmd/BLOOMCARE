@@ -16,6 +16,8 @@ function openNotice(title, message) {
 
 const ACCOUNTS_KEY = "bloomcareAccounts";
 const SESSION_KEY = "bloomcareSession";
+const PAYMENT_API = "http://127.0.0.1:8787";
+let pendingPayment = null;
 
 function getAccounts() { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "{}"); }
 function saveAccounts(accounts) { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); }
@@ -107,12 +109,21 @@ function showCheckin() {
 }
 
 function showAppointments() {
-  dashContent.innerHTML = pageShell("YOUR CARE PLAN", "Appointments", "Keep planned visits together so you can prepare questions for your care team.", `<div class="workflow-card"><div class="appointment-list"><div class="appointment-item"><span class="calendar-square">24<small>AUG</small></span><div><strong>First antenatal visit</strong><p>10:30 AM &middot; Kampala Women's Health Centre</p></div><span class="status">Upcoming</span></div></div><hr><h3>Prepare for your visit</h3><p class="muted">Write down changes you have noticed, any medicines or supplements you take, and questions you want to ask.</p><button class="primary-button" type="button" data-action="appointment">Request an appointment</button></div>`);
+  const request = getActiveAccount()?.appointmentRequest;
+  const requestStatus = request ? `<p class="request-status"><strong>Request status:</strong> ${request.status}</p>` : "";
+  dashContent.innerHTML = pageShell("YOUR CARE PLAN", "Appointments", "Keep planned visits together so you can prepare questions for your care team.", `<div class="workflow-card"><div class="appointment-list"><div class="appointment-item"><span class="calendar-square">24<small>AUG</small></span><div><strong>First antenatal visit</strong><p>10:30 AM &middot; Kampala Women's Health Centre</p></div><span class="status">Upcoming</span></div></div><hr><h3>Request a new appointment</h3><p class="muted">Choose a preferred date and tell the facility what you need help with.</p><form id="appointment-request-form"><label>Preferred appointment date<input id="appointment-date" type="date" required /></label><label>Healthcare facility<select id="appointment-facility" required><option value="">Select a facility</option><option>Kampala Women's Health Centre</option><option>Mulago National Referral Hospital</option><option>Other facility</option></select></label><label>Reason for visit<textarea id="appointment-reason" placeholder="Describe what you would like to discuss" required></textarea></label>${requestStatus}<button class="primary-button" type="button" data-action="appointment">Continue to payment: UGX 20,000 <span aria-hidden="true">&rarr;</span></button></form></div>`);
+  $("#appointment-date").min = new Date().toISOString().slice(0, 10);
   setActiveNav("appointments");
 }
 
 function showAppointmentPayment() {
-  $("#payment-confirmation").checked = false;
+  const form = $("#appointment-request-form");
+  if (!form.checkValidity()) return form.reportValidity();
+  $("#payment-form").reset();
+  $("#payment-reference").classList.add("hidden");
+  $("#payment-instructions").textContent = "A secure payment prompt will be sent after you start payment.";
+  $("#start-payment").classList.remove("hidden");
+  $("#verify-payment").classList.add("hidden");
   paymentDialog.showModal();
 }
 
@@ -147,12 +158,39 @@ document.querySelectorAll("[data-show]").forEach((button) => button.addEventList
 document.querySelectorAll("[data-message]").forEach((button) => button.addEventListener("click", () => openNotice("Password reset", button.dataset.message)));
 $("#close-notice").addEventListener("click", () => notice.close());
 $("#close-payment").addEventListener("click", () => paymentDialog.close());
-$("#payment-form").addEventListener("submit", (event) => {
+$("#payment-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
-  paymentDialog.close();
-  updateActiveAccount({ appointmentRequest: { fee: 20000, currency: "UGX", status: "payment-confirmed", requestedAt: new Date().toISOString() } });
-  openNotice("Appointment request submitted", "Your UGX 20,000 appointment fee has been confirmed for this demo. The healthcare facility can now review your request and confirm the visit.");
+  const button = $("#start-payment");
+  button.disabled = true;
+  try {
+    const response = await fetch(`${PAYMENT_API}/api/payments/initialize`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: $("#payment-provider").value, phone: $("#payment-phone").value.trim(), appointment: { date: $("#appointment-date").value, facility: $("#appointment-facility").value, reason: $("#appointment-reason").value.trim() } }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Payment could not be started.");
+    pendingPayment = result;
+    $("#payment-reference").textContent = `Payment reference: ${result.reference}`;
+    $("#payment-reference").classList.remove("hidden");
+    $("#payment-instructions").textContent = `${result.message} Click Verify payment after the provider confirms the transaction.`;
+    button.classList.add("hidden");
+    $("#verify-payment").classList.remove("hidden");
+  } catch (error) {
+    openNotice("Payment service unavailable", `${error.message} Start the payment API before trying again.`);
+  } finally {
+    button.disabled = false;
+  }
+});
+$("#verify-payment").addEventListener("click", async () => {
+  if (!pendingPayment) return;
+  try {
+    const response = await fetch(`${PAYMENT_API}/api/payments/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reference: pendingPayment.reference }) });
+    const result = await response.json();
+    if (!response.ok) throw new Error(result.error || "Payment verification failed.");
+    paymentDialog.close();
+    updateActiveAccount({ appointmentRequest: { date: $("#appointment-date").value, facility: $("#appointment-facility").value, reason: $("#appointment-reason").value.trim(), fee: result.receipt.amount, currency: result.receipt.currency, provider: result.receipt.provider, status: "Pending", paymentStatus: result.receipt.status, paymentReference: result.receipt.reference, receiptNumber: result.receipt.receiptNumber, requestedAt: new Date().toISOString() } });
+    openNotice("Payment verified", `Receipt ${result.receipt.receiptNumber} issued for UGX 20,000 via ${result.receipt.provider}. Your appointment request is now pending facility confirmation.`);
+  } catch (error) {
+    openNotice("Payment verification failed", error.message);
+  }
 });
 
 $("#register-form").addEventListener("submit", (event) => {
