@@ -15,6 +15,7 @@ import {
 } from "./firebase.js";
 import { auth } from "./firebase.js";
 import { createWhatsAppUrl, getConfiguredWhatsAppNumber } from "./whatsapp.js";
+import { calculatePregnancyStatus, calculateEddFromLmp, isValidLmp } from "./pregnancy-calculations.js";
 
 const $ = (selector) => document.querySelector(selector);
 const notice = $("#notice");
@@ -112,11 +113,7 @@ function formatDate(value) {
 }
 
 function calculateDueDate(lmp) {
-  if (!lmp) return "";
-  const date = new Date(lmp.includes("T") ? lmp : lmp + "T00:00:00");
-  if (isNaN(date.getTime())) return "";
-  date.setDate(date.getDate() + 280);
-  return date.toISOString().slice(0, 10);
+  return calculateEddFromLmp(lmp);
 }
 
 function getFormattedToday() {
@@ -126,15 +123,28 @@ function getFormattedToday() {
 
 function updatePregnancySummary() {
   const profile = getProfile();
-  if (!profile || !profile.lmp || !$("#week-number")) return;
-  const lmp = new Date(profile.lmp.includes("T") ? profile.lmp : profile.lmp + "T00:00:00");
-  if (isNaN(lmp.getTime())) return;
-  const weeks = Math.max(1, Math.min(40, Math.floor((Date.now() - lmp.getTime()) / 604800000)));
-  const progress = Math.round((weeks / 40) * 100);
-  $("#week-number").textContent = weeks;
-  $("#progress-value").textContent = progress + "%";
-  $("#progress-bar").style.width = progress + "%";
-  $("#due-date").textContent = formatDate(profile.edd || calculateDueDate(profile.lmp));
+  if (!$("#week-number")) return;
+  const status = calculatePregnancyStatus(profile || {});
+  const weekNumber = $("#week-number");
+  const progressValue = $("#progress-value");
+  const progressBar = $("#progress-bar");
+  const dueDate = $("#due-date");
+  const weekDetail = $("#week-detail");
+  if (!status.complete) {
+    weekNumber.textContent = "Pregnancy information not completed";
+    weekNumber.parentElement.classList.add("pregnancy-empty");
+    progressValue.textContent = "--";
+    progressBar.style.width = "0%";
+    dueDate.textContent = "--";
+    if (weekDetail) weekDetail.innerHTML = '<a href="#profile" data-route="profile">Complete Pregnancy Profile <span aria-hidden="true">&rarr;</span></a>';
+    return;
+  }
+  weekNumber.parentElement.classList.remove("pregnancy-empty");
+  weekNumber.textContent = `${status.weeks} weeks, ${status.days} days`;
+  progressValue.textContent = status.progress + "%";
+  progressBar.style.width = status.progress + "%";
+  dueDate.textContent = formatDate(status.edd);
+  if (weekDetail) weekDetail.textContent = `Trimester ${status.trimester} · ${status.daysRemaining} days remaining`;
 }
 
 function setUserName() {
@@ -215,7 +225,7 @@ function pageShell(eyebrow, title, description, body) {
 }
 
 function showCheckin() {
-  dashContent.innerHTML = pageShell("DAILY HEALTH", "How are you feeling today?", "A brief record can help you and your care team spot changes over time.", `<form id="checkin-form" class="profile-form"><div class="two-col"><label>Weight (kg)<input id="weight" type="number" min="20" max="300" step="0.1" placeholder="Optional" /></label><label>Temperature (C)<input id="temperature" type="number" min="30" max="45" step="0.1" placeholder="Optional" /></label></div><div class="two-col"><label>Blood pressure - top number<input id="systolic" type="number" min="40" max="250" placeholder="Optional" /></label><label>Blood pressure - bottom number<input id="diastolic" type="number" min="30" max="180" placeholder="Optional" /></label></div><label>How is your general wellbeing?<select id="wellbeing" required><option value="">Select an option</option><option>Feeling well</option><option>A little uncomfortable</option><option>Not feeling well</option></select></label><label>Symptoms today <span class="optional">Optional</span><textarea id="symptoms" placeholder="For example, nausea, headache, or other changes you want to record"></textarea></label><label class="check"><input id="medication" type="checkbox" /> I took my prescribed medication or supplement as instructed.</label><p class="privacy-note">Recorded information does not replace professional assessment. For heavy bleeding, severe pain, fainting, trouble breathing, or another urgent concern, seek urgent professional care.</p><div class="workflow-actions"><button class="secondary-button" type="button" data-route="dashboard">Cancel</button><button class="primary-button" type="submit">Save today's check-in</button></div></form>`);
+  dashContent.innerHTML = pageShell("DAILY HEALTH", "How are you feeling today?", "Answer a few simple questions. You can leave measurements blank if you do not have them.", `<form id="checkin-form" class="profile-form checkin-form"><fieldset class="question-group"><legend>How is your general wellbeing?</legend><p class="question-help">Choose the answer that feels closest today.</p><div class="choice-grid"><label class="choice-card"><input id="wellbeing" name="wellbeing" type="radio" value="Feeling well" required /><span>Feeling well</span><small>I feel okay today</small></label><label class="choice-card"><input name="wellbeing" type="radio" value="A little uncomfortable" /><span>A little uncomfortable</span><small>Some changes or discomfort</small></label><label class="choice-card"><input name="wellbeing" type="radio" value="Not feeling well" /><span>Not feeling well</span><small>I need extra support</small></label></div></fieldset><fieldset class="question-group"><legend>Are you noticing any symptoms?</legend><p class="question-help">Tell us anything you would like your care team to know.</p><label class="field-label">Symptoms <span class="optional">Optional</span><textarea id="symptoms" placeholder="For example: nausea, headache, pain, or bleeding"></textarea></label></fieldset><fieldset class="question-group optional-group"><legend>Do you have today's measurements?</legend><p class="question-help">These are optional. Add them if you have checked them today.</p><div class="two-col"><label>Weight (kg)<input id="weight" type="number" min="20" max="300" step="0.1" placeholder="Optional" /></label><label>Temperature (C)<input id="temperature" type="number" min="30" max="45" step="0.1" placeholder="Optional" /></label></div><div class="two-col"><label>Blood pressure - top number<input id="systolic" type="number" min="40" max="250" placeholder="Optional" /></label><label>Blood pressure - bottom number<input id="diastolic" type="number" min="30" max="180" placeholder="Optional" /></label></div></fieldset><label class="check medication-check"><input id="medication" type="checkbox" /> I took my prescribed medication or supplement today.</label><p class="privacy-note">This check-in does not diagnose or replace professional care. For heavy bleeding, severe pain, fainting, trouble breathing, or another urgent concern, seek urgent help.</p><div class="workflow-actions"><button class="secondary-button" type="button" data-route="dashboard">Cancel</button><button class="primary-button" type="submit">Save today's check-in <span aria-hidden="true">&rarr;</span></button></div></form>`);
   setActiveNav("checkin");
 }
 
@@ -276,7 +286,7 @@ async function saveCheckin(form) {
     temperature: $("#temperature").value,
     systolic: $("#systolic").value,
     diastolic: $("#diastolic").value,
-    wellbeing: $("#wellbeing").value,
+    wellbeing: $("#checkin-form input[name="wellbeing"]:checked")?.value || "",
     symptoms: $("#symptoms").value.trim(),
     medication: $("#medication").checked
   };
@@ -450,12 +460,20 @@ $("#login-form").addEventListener("submit", async (event) => {
 });
 
 $("#lmp").addEventListener("change", (event) => {
-  if (event.target.value) $("#edd").value = calculateDueDate(event.target.value);
+  if (!event.target.value) return;
+  if (!isValidLmp(event.target.value)) {
+    event.target.setCustomValidity("Last menstrual period cannot be in the future or be an invalid date.");
+    $("#edd").value = "";
+    return;
+  }
+  event.target.setCustomValidity("");
+  $("#edd").value = calculateDueDate(event.target.value);
 });
 
 $("#profile-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
+  if (!isValidLmp($("#lmp").value)) return openNotice("Check your pregnancy dates", "Enter a valid last menstrual period date that is not in the future.");
   const profileData = { lmp: $("#lmp").value, edd: $("#edd").value };
   updateActiveAccount({ profile: profileData });
 
