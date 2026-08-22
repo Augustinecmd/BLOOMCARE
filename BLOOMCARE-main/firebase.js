@@ -53,7 +53,7 @@ export async function updateSystemSettings(settings) {
 
 // Authentication Helpers
 export async function signUpUser(client) {
-    const { firstName, lastName, email, phone, dateOfBirth, gender, password } = client;
+    const { firstName, lastName, email, phone, password } = client;
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     const fullName = `${firstName} ${lastName}`.trim();
@@ -68,8 +68,6 @@ export async function signUpUser(client) {
             lastName,
             email: user.email.toLowerCase(),
             phone,
-            dateOfBirth,
-            gender: gender || "",
             role: "patient",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()

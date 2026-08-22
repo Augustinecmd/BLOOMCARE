@@ -51,6 +51,9 @@ function openNotice(title, message) {
   notice.showModal();
 }
 
+const TERMS_OF_USE = "BloomCare Pharmacy Terms and Conditions govern the use of the BloomCare Pharmacy Management System and its related services, including medicine information, prescription management, medicine ordering, stock management, payments, customer support, and other pharmacy services. By creating an account, placing an order, or using the system, users agree to provide accurate and up-to-date personal, contact, prescription, and order information and to use the platform responsibly and lawfully. Prescription medicines will only be dispensed where appropriate prescription and professional requirements have been satisfied, and BloomCare reserves the right to verify, reject, delay, or cancel orders where safety, legal, regulatory, stock, or prescription requirements are not met. Medicine availability, prices, quantities, substitutions, payments, deliveries, cancellations, and refunds are subject to BloomCare's applicable procedures and confirmation. Customers are responsible for using medicines according to instructions provided by qualified healthcare professionals and should seek professional medical assistance for diagnosis, treatment, emergencies, adverse reactions, or other medical concerns, as information provided through BloomCare does not replace professional healthcare. BloomCare will take reasonable measures to protect customer accounts, personal information, prescriptions, health-related information, and transaction records and will process such information only for legitimate service, healthcare, business, legal, or regulatory purposes in accordance with applicable privacy and data-protection requirements. Users are responsible for keeping their login credentials secure and must not attempt unauthorized access, submit fraudulent information, manipulate prescriptions or orders, misuse medicines or the system, or interfere with BloomCare's security and operations. BloomCare may temporarily suspend services for maintenance, security, upgrades, or circumstances beyond its reasonable control and may suspend or terminate accounts involved in fraud, abuse, unauthorized activities, or violations of these terms. BloomCare may also update its services, prices, policies, and Terms and Conditions when necessary and will communicate significant changes appropriately. By continuing to use BloomCare, users acknowledge that they have read, understood, and agreed to these Terms and Conditions and the BloomCare Privacy Policy.";
+const PRIVACY_POLICY = "BloomCare collects and uses your account, contact, health, appointment, and payment information to provide and improve care-related services, process requests, support your account, and meet legal and regulatory obligations. We limit access to authorised personnel and retain information only as long as needed for legitimate service or legal purposes. You may request information about your data, ask for corrections, or withdraw consent where applicable. BloomCare does not replace professional medical advice or emergency services.";
+
 function normaliseEmail(email) {
   return email.trim().toLowerCase();
 }
@@ -145,15 +148,21 @@ function setUserName() {
 function showHome() {
   dashContent.innerHTML = dashboardHome;
   const header = dashContent.querySelector(".dash-header");
-  const emergencyButton = header?.querySelector(".emergency-button");
-  if (header && emergencyButton) {
-    emergencyButton.insertAdjacentHTML("beforebegin", '<div class="header-actions"><label class="dashboard-search"><span aria-hidden="true">⌕</span><input id="dashboard-search" type="search" placeholder="Search your care space" aria-label="Search your care space" /></label><button class="notification-button" type="button" aria-label="Notifications">i</button></div>');
+  if (header) {
+    header.querySelector(".header-actions")?.remove();
+    header.querySelector('[data-action="logout"]')?.remove();
+    header.querySelector("[data-whatsapp]")?.remove();
   }
-  if (header && !header.querySelector('[data-action="logout"]')) {
-    header.insertAdjacentHTML("beforeend", '<button class="secondary-button compact" type="button" data-action="logout">Sign out</button>');
-  }
-  if (header && !header.querySelector("[data-whatsapp]")) {
-    header.insertAdjacentHTML("beforeend", '<a class="secondary-button whatsapp-button" data-whatsapp href="#">Chat with us on WhatsApp</a>');
+  const sidebar = dashContent.querySelector(".sidebar");
+  const sidebarLogout = sidebar?.querySelector("#logout");
+  if (sidebar && sidebarLogout && !sidebar.querySelector(".sidebar-actions")) {
+    const sidebarActions = document.createElement("div");
+    sidebarActions.className = "sidebar-actions";
+    sidebarActions.innerHTML = '<a class="whatsapp-button" data-whatsapp href="#"><span aria-hidden="true">◉</span> Chat with us on WhatsApp</a>';
+    sidebarLogout.dataset.action = "logout";
+    sidebarLogout.innerHTML = '<span aria-hidden="true">↪</span> Sign out';
+    sidebar.insertBefore(sidebarActions, sidebarLogout);
+    sidebarActions.appendChild(sidebarLogout);
   }
   setUserName();
   updatePregnancySummary();
@@ -251,7 +260,7 @@ function showProfileEditor() {
   const client = currentUser;
   if (client) {
     const customerWhatsApp = getWhatsAppUrl(client.phone);
-    $(".profile-wrap").insertAdjacentHTML("afterbegin", `<section class="workflow-card client-account-summary"><p class="eyebrow teal">YOUR ACCOUNT</p><h3>${client.firstName || ""} ${client.lastName || ""}</h3><p class="muted">${client.email || ""}<br>${client.phone || ""}<br>${client.dateOfBirth ? formatDate(client.dateOfBirth) : ""}${client.gender ? ` · ${client.gender}` : ""}</p><div class="profile-actions"><button class="text-button" type="button" data-action="edit-account">Edit account details</button>${customerWhatsApp ? `<a class="secondary-button whatsapp-button" href="${customerWhatsApp}" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>` : ""}</div></section>`);
+    $(".profile-wrap").insertAdjacentHTML("afterbegin", `<section class="workflow-card client-account-summary"><p class="eyebrow teal">YOUR ACCOUNT</p><h3>${client.firstName || ""} ${client.lastName || ""}</h3><p class="muted">${client.email || ""}<br>${client.phone || ""}<br>${client.dateOfBirth ? formatDate(client.dateOfBirth) : ""}${client.gender ? ` · ${client.gender}` : ""}</p><div class="profile-actions"><button class="text-button profile-edit-button" type="button" data-action="edit-account"><span aria-hidden="true">✎</span> Edit account details</button>${customerWhatsApp ? `<a class="secondary-button whatsapp-button" href="${customerWhatsApp}" target="_blank" rel="noopener noreferrer">Chat on WhatsApp</a>` : ""}</div></section>`);
   }
 }
 
@@ -300,6 +309,11 @@ document.querySelectorAll("[data-show]").forEach((button) =>
   })
 );
 
+const registerCard = $("#register-card");
+if (registerCard) {
+  registerCard.innerHTML = `<p class="eyebrow teal">GET STARTED</p><h2>Create your BloomCare account</h2><p class="muted">Start with the essentials. You can complete your personal information later.</p><form id="register-form" novalidate><label>Full name<input id="register-full-name" type="text" autocomplete="name" placeholder="Your full name" required /></label><div class="two-col"><label>Phone number<input id="register-phone" type="tel" autocomplete="tel" placeholder="0751234567" required /></label><label>Email address<input id="register-email" type="email" autocomplete="email" required /></label></div><label>Password<input id="register-password" type="password" autocomplete="new-password" required /><span class="password-help">8+ characters, uppercase, lowercase, number, and special character.</span></label><label>Confirm password<input id="register-confirm-password" type="password" autocomplete="new-password" required /></label><label class="check consent"><input id="consent" type="checkbox" required /> I agree to BloomCare's <button class="legal-link" type="button" data-legal="privacy">Privacy Policy</button> and <button class="legal-link" type="button" data-legal="terms">Terms of Use</button>.</label><button class="primary-button" type="submit">Create Account <span aria-hidden="true">&rarr;</span></button></form><p class="switch-copy">Already have an account? <button class="text-button" type="button" data-show="login-card">Sign in</button></p>`;
+}
+
 document.querySelectorAll("[data-message]").forEach((button) =>
   button.addEventListener("click", async () => {
     const email = normaliseEmail($("#login-email").value);
@@ -313,6 +327,14 @@ document.querySelectorAll("[data-message]").forEach((button) =>
     }
   })
 );
+
+document.addEventListener("click", (event) => {
+  const legalLink = event.target.closest("[data-legal]");
+  if (!legalLink) return;
+  event.preventDefault();
+  if (legalLink.dataset.legal === "terms") openNotice("BloomCare Terms and Conditions", TERMS_OF_USE);
+  if (legalLink.dataset.legal === "privacy") openNotice("BloomCare Privacy Policy", PRIVACY_POLICY);
+});
 
 $("#close-notice").addEventListener("click", () => notice.close());
 $("#close-payment").addEventListener("click", () => paymentDialog.close());
@@ -353,15 +375,15 @@ $("#verify-payment").addEventListener("click", async () => {
 $("#register-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
-  const firstName = $("#register-first-name").value.trim();
-  const lastName = $("#register-last-name").value.trim();
+  const nameParts = $("#register-full-name").value.trim().split(/\s+/).filter(Boolean);
+  const firstName = nameParts.shift() || "";
+  const lastName = nameParts.join(" ");
   const email = normaliseEmail($("#register-email").value);
   const phone = validUgandanPhone($("#register-phone").value);
-  const dateOfBirth = $("#register-date-of-birth").value;
-  const gender = $("#register-gender").value;
   const password = $("#register-password").value;
   const confirmPassword = $("#register-confirm-password").value;
   if (!phone) return openNotice("Invalid phone number", "Please enter a valid Ugandan phone number.");
+  if (!firstName || !lastName) return openNotice("Enter your full name", "Please enter your first and last name.");
   if (!/^\S+@\S+\.\S+$/.test(email)) return openNotice("Invalid email", "Please enter a valid email address.");
   if (!validPassword(password)) return openNotice("Choose a stronger password", "Use at least 8 characters with uppercase, lowercase, a number, and a special character.");
   if (password !== confirmPassword) return openNotice("Passwords do not match", "Confirm Password must match Password.");
@@ -375,8 +397,8 @@ $("#register-form").addEventListener("submit", async (event) => {
   // tab as authenticated before starting the async operation.
   sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SESSION_VERSION);
   try {
-    const user = await signUpUser({ firstName, lastName, email, phone, dateOfBirth, gender, password });
-    currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, dateOfBirth, gender, role: "patient" };
+    const user = await signUpUser({ firstName, lastName, email, phone, password });
+    currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, role: "patient" };
     sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SESSION_VERSION);
     showView("dashboard-view");
     showHome();
