@@ -102,5 +102,64 @@
       "reason": "hlo"
     },
     "verifiedAt": "2026-08-20T16:43:36.128288+00:00"
+  },
+  "BC-20260820-0EB217E0": {
+    "reference": "BC-20260820-0EB217E0",
+    "provider": "MTN MoMo",
+    "phone": "0760889`193",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-20T18:53:40.759213+00:00",
+    "appointment": {
+      "date": "2026-09-12",
+      "facility": "Kampala Women's Health Centre",
+      "reason": "check up"
+    },
+    "verifiedAt": "2026-08-20T18:53:43.981731+00:00"
+  },
+  "BC-20260821-41F4531B": {
+    "reference": "BC-20260821-41F4531B",
+    "provider": "MTN MoMo",
+    "phone": "0751234567",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-21T07:18:30.271648+00:00",
+    "appointment": {},
+    "verifiedAt": "2026-08-21T07:18:30.403433+00:00"
+  },
+  "BC-20260821-AE168928": {
+    "reference": "BC-20260821-AE168928",
+    "provider": "MTN MoMo",
+    "phone": "0788435366",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-21T13:27:36.245363+00:00",
+    "appointment": {
+      "patientId": "Eqzubng6JGVZXjvLBB08CpSaB833",
+      "service": "Follow-up Consultation",
+      "provider": "Dr. Sarah Namusoke",
+      "date": "2027-05-04",
+      "time": "09:00 AM",
+      "facility": "Kampala Women's Health Centre"
+    },
+    "verifiedAt": "2026-08-21T13:27:40.328524+00:00"
+  },
+  "BC-20260822-8FF3B3B8": {
+    "reference": "BC-20260822-8FF3B3B8",
+    "provider": "MTN MoMo",
+    "phone": "0784798398",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "paid",
+    "createdAt": "2026-08-22T07:38:44.337363+00:00",
+    "appointment": {
+      "date": "2026-08-22",
+      "facility": "Kampala Women's Health Centre",
+      "reason": "check up"
+    },
+    "verifiedAt": "2026-08-22T07:38:47.344883+00:00"
   }
 }

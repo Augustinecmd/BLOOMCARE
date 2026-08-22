@@ -1,4 +1,9 @@
 {
+  "systemSettings": {
+    "public": {
+      "whatsappBusinessNumber": "256741592069"
+    }
+  },
   "facilities": {
     "kampala-womens-health-centre": {
       "name": "Kampala Women's Health Centre",

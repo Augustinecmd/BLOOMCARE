@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Early pregnancy monitoring and education dashboard." />
+  <meta name="theme-color" content="#147a73" />
+  <title>BloomCare | Early Pregnancy Monitoring</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles-improved.css" />
+</head>
+<body>
+  <main class="app-shell" role="main">
+    <!-- ========== AUTHENTICATION VIEW ========== -->
+    <section class="auth-layout" id="auth-view" aria-label="Authentication">
+      <aside class="brand-panel" role="complementary">
+        <a class="brand brand-logo-link" href="#" aria-label="BloomCare home">
+          <img class="brand-logo" src="bloomcare-logo.svg" alt="BloomCare Logo" />
+          <span class="brand-status">Care companion</span>
+        </a>
+        <div class="brand-copy">
+          <p class="eyebrow">YOUR EARLY PREGNANCY COMPANION</p>
+          <h1>Care that stays close.</h1>
+          <p>Keep your information, appointments, and questions together through the early weeks of pregnancy.</p>
+        </div>
+        <div class="consultant-contacts-auth">
+          <p class="eyebrow">NEED SUPPORT?</p>
+          <p class="contact-label">Consultant Support:</p>
+          <ul class="contact-list">
+            <li><a href="tel:+256741592069" class="phone-link">0741592069</a></li>
+            <li><a href="tel:+256786426344" class="phone-link">0786426344</a></li>
+          </ul>
+        </div>
+        <p class="brand-foot">BloomCare supports your care. It does not replace your healthcare provider or emergency services.</p>
+      </aside>
+
+      <div class="auth-content">
+        <!-- Login Card -->
+        <div class="auth-card" id="login-card">
+          <p class="eyebrow teal">WELCOME BACK</p>
+          <h2>Sign in to your care space</h2>
+          <p class="muted">Use your registered email address to continue.</p>
+          
+          <div id="login-error" class="error-message" role="alert" style="display: none;"></div>
+          <div id="login-loading" class="loading-indicator" style="display: none;">Signing you in...</div>
+
+          <form id="login-form" novalidate>
+            <label for="login-email">
+              Email address *
+              <input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required aria-describedby="login-email-help" />
+            </label>
+
+            <label for="login-password">
+              Password *
+              <input id="login-password" type="password" autocomplete="current-password" placeholder="Enter your password" required />
+            </label>
+
+            <div class="form-row">
+              <label class="check">
+                <input type="checkbox" id="remember-me" /> Remember me
+              </label>
+              <button class="text-button" type="button" data-message="Password reset links are sent by the secure backend in production." aria-label="Forgot password">
+                Forgot password?
+              </button>
+            </div>
+
+            <button class="primary-button" type="submit" aria-busy="false">
+              Sign in <span aria-hidden="true">→</span>
+            </button>
+          </form>
+
+          <p class="switch-copy">
+            New to BloomCare? <button class="text-button" type="button" data-show="register-card">Create an account</button>
+          </p>
+        </div>
+
+        <!-- Registration Card -->
+        <div class="auth-card hidden" id="register-card">
+          <p class="eyebrow teal">GET STARTED</p>
+          <h2>Create your account</h2>
+          <p class="muted">Your information is private and used to support your care.</p>
+
+          <div id="register-error" class="error-message" role="alert" style="display: none;"></div>
+          <div id="register-loading" class="loading-indicator" style="display: none;">Creating your account...</div>
+
+          <form id="register-form" novalidate>
+            <div class="two-col">
+              <label for="register-name">
+                Full name *
+                <input id="register-name" type="text" autocomplete="name" required />
+              </label>
+              <label for="register-phone">
+                Phone number *
+                <input id="register-phone" type="tel" autocomplete="tel" required />
+              </label>
+            </div>
+
+            <div class="two-col">
+              <label for="register-dob">
+                Date of birth *
+                <input id="register-dob" type="date" autocomplete="bday" required />
+              </label>
+              <label for="register-email">
+                Email address *
+                <input id="register-email" type="email" autocomplete="email" required />
+              </label>
+            </div>
+
+            <label for="register-password">
+              Password *
+              <input id="register-password" type="password" autocomplete="new-password" minlength="8" required aria-describedby="password-hint" />
+              <small id="password-hint">8+ characters with uppercase, lowercase, number, and special character</small>
+            </label>
+
+            <label for="register-password-confirm">
+              Confirm password *
+              <input id="register-password-confirm" type="password" autocomplete="new-password" required />
+            </label>
+
+            <label class="check consent">
+              <input id="consent" type="checkbox" required aria-describedby="consent-help" />
+              <span id="consent-help">I consent to my health information being processed for my care and have read the privacy notice.</span>
+            </label>
+
+            <label class="check consent">
+              <input id="terms-consent" type="checkbox" required aria-describedby="terms-help" />
+              <span id="terms-help">I agree to the <button class="text-button" id="open-terms" type="button">Terms and Conditions</button>.</span>
+            </label>
+
+            <button class="primary-button" type="submit" aria-busy="false">
+              Create account <span aria-hidden="true">→</span>
+            </button>
+          </form>
+
+          <p class="switch-copy">
+            Already registered? <button class="text-button" type="button" data-show="login-card">Sign in</button>
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== PREGNANCY PROFILE SETUP ========== -->
+    <section class="onboarding hidden" id="profile-view" aria-label="Pregnancy Profile Setup">
+      <header class="topbar">
+          <a class="brand dark" href="#" aria-label="BloomCare home">
+          <img class="brand-compact-logo" src="bloomcare-logo.svg" alt="BloomCare Pharmacy" />
+        </a>
+        <div class="topbar-actions">
+          <p>Step <strong>1 of 1</strong> &middot; Your pregnancy profile</p>
+          <button class="logout onboarding-logout" type="button" data-action="logout">Sign out</button>
+        </div>
+      </header>
+
+      <div class="profile-wrap">
+        <div>
+          <p class="eyebrow teal">YOUR ESSENTIAL CARE DETAILS</p>
+          <h1>Just the essentials</h1>
+          <p class="muted">Answer four questions so we can personalise your care. You can update these details later.</p>
+        </div>
+
+        <form id="profile-form" class="profile-form" novalidate>
+          <div class="two-col">
+            <label for="lmp">
+              First day of last period *
+              <input id="lmp" type="date" required aria-describedby="lmp-help" />
+              <small id="lmp-help">Used to calculate your pregnancy progress</small>
+            </label>
+            <label for="edd">
+              Estimated due date
+              <input id="edd" type="date" readonly aria-describedby="edd-help" />
+              <small id="edd-help">Automatically calculated (280 days from LMP)</small>
+            </label>
+          </div>
+
+          <label for="previous-pregnancies">
+            Previous pregnancies *
+            <select id="previous-pregnancies">
+              <option value="0">This is my first pregnancy</option>
+              <option value="1">1 previous pregnancy</option>
+              <option value="2">2 previous pregnancies</option>
+              <option value="3">3 or more previous pregnancies</option>
+            </select>
+          </label>
+
+          <label for="medical-history">
+            Conditions or allergies your care team should know about
+            <span class="optional">Optional</span>
+            <textarea id="medical-history" placeholder="List any important conditions or allergies" rows="4"></textarea>
+          </label>
+
+          <div class="two-col">
+            <label for="emergency-contact-name">
+              Emergency contact name *
+              <input id="emergency-contact-name" type="text" autocomplete="name" required />
+            </label>
+            <label for="emergency-contact-phone">
+              Emergency contact phone *
+              <input id="emergency-contact-phone" type="tel" autocomplete="tel" placeholder="0751234567" required />
+            </label>
+          </div>
+
+          <label for="emergency-contact-relationship">
+            Relationship *
+            <input id="emergency-contact-relationship" type="text" placeholder="Partner, parent, or friend" required />
+          </label>
+
+          <p class="privacy-note">
+            <strong>Privacy:</strong> Only authorised healthcare staff can access these details for your care. In an emergency, contact your provider or local emergency services.
+          </p>
+
+          <div id="profile-error" class="error-message" role="alert" style="display: none;"></div>
+
+          <button class="primary-button" type="submit" aria-busy="false">
+            Save profile and continue <span aria-hidden="true">→</span>
+          </button>
+        </form>
+      </div>
+    </section>
+
+    <!-- ========== MAIN DASHBOARD ========== -->
+    <section class="dashboard hidden" id="dashboard-view" aria-label="Dashboard">
+      <aside class="sidebar" role="navigation">
+        <a class="brand dark" href="#" aria-label="BloomCare home">
+          <img class="brand-compact-logo" src="bloomcare-logo.svg" alt="BloomCare Pharmacy" />
+        </a>
+        <div class="care-space">
+          <span class="presence-dot" aria-hidden="true"></span>
+          <span>Your care space</span>
+        </div>
+        <nav aria-label="Main navigation">
+          <a class="active" href="#dashboard"><span class="nav-glyph">O</span>Overview</a>
+          <a href="#profile"><span class="nav-glyph">P</span>Pregnancy profile</a>
+          <a href="#checkin"><span class="nav-glyph">+</span>Daily check-in</a>
+          <a href="#appointments"><span class="nav-glyph">A</span>Appointments</a>
+          <a href="#education"><span class="nav-glyph">L</span>Learn</a>
+          <a href="#support"><span class="nav-glyph">S</span>Support</a>
+        </nav>
+        <button class="logout" id="logout" type="button" aria-label="Sign out">Sign out</button>
+      </aside>
+
+      <div class="dash-content" role="main">
+        <!-- Header -->
+        <header class="dash-header">
+          <div>
+            <p class="eyebrow teal" id="current-date"><!-- Date inserted by JS --></p>
+            <h1>Good morning, <span id="patient-name">there</span>.</h1>
+          </div>
+          <button class="emergency-button" type="button" data-action="emergency" aria-label="Emergency support">
+            Emergency support
+          </button>
+        </header>
+
+        <!-- Safety Banner -->
+        <div class="safety-banner" role="complementary" aria-label="Safety information">
+          <span class="alert-symbol" aria-hidden="true">ℹ</span>
+          <div>
+            <strong>This is a record-keeping and education tool.</strong>
+            <span>It cannot assess an emergency or replace professional medical advice.</span>
+          </div>
+        </div>
+
+        <!-- Pregnancy Progress & Next Appointment -->
+        <section class="hero-grid">
+          <article class="week-card">
+            <div>
+              <p class="eyebrow">YOUR PREGNANCY</p>
+              <h2><span id="week-number">0</span> weeks, <span id="day-number">0</span> days</h2>
+              <p class="trimester-info" id="trimester-info"><!-- Trimester badge --></p>
+              <p id="week-detail">Loading pregnancy information...</p>
+            </div>
+            <div class="progress-ring">
+              <span id="progress-value">0%</span>
+            </div>
+            <div class="progress-track">
+              <span id="progress-bar"></span>
+            </div>
+            <p class="due-date">
+              Estimated due date <strong id="due-date">--</strong>
+            </p>
+          </article>
+
+          <article class="next-card">
+            <div class="appointment-top">
+              <p class="eyebrow teal">NEXT APPOINTMENT</p>
+              <span class="calendar-square" id="next-appt-date">TBD<small></small></span>
+            </div>
+            <h3 id="next-appt-title">No upcoming appointments</h3>
+            <p id="next-appt-time">--</p>
+            <p class="muted" id="next-appt-facility">Schedule your first antenatal visit</p>
+            <button class="secondary-button" type="button" data-route="appointments">
+              View appointments
+            </button>
+          </article>
+        </section>
+
+        <!-- Consultant Support Section -->
+        <section class="consultant-section card-section">
+          <div class="section-header">
+            <h2>Consultant Support</h2>
+            <p class="muted">Reach out for professional guidance</p>
+          </div>
+          <div class="consultant-contacts-dashboard">
+            <div class="contact-card">
+              <h3>Healthcare Support</h3>
+              <ul class="contact-list">
+                <li>
+                  <a href="tel:+256741592069" class="contact-link">
+                    <span class="contact-icon">📞</span>
+                    <span>0741592069</span>
+                  </a>
+                </li>
+                <li>
+                  <a href="tel:+256786426344" class="contact-link">
+                    <span class="contact-icon">📞</span>
+                    <span>0786426344</span>
+                  </a>
+                </li>
+              </ul>
+              <p class="contact-note">Available for pregnancy-related questions and guidance</p>
+            </div>
+          </div>
+        </section>
+
+        <!-- Recent Check-ins -->
+        <section class="card-section">
+          <div class="section-header">
+            <h2>Recent Check-ins</h2>
+            <a href="#checkin" class="text-link">Add new</a>
+          </div>
+          <div class="record-list" id="recent-checkins">
+            <p class="empty-state">No check-ins yet. Start tracking your health today.</p>
+          </div>
+        </section>
+
+        <!-- Educational Content -->
+        <section class="card-section">
+          <div class="section-header">
+            <h2>Learn</h2>
+            <p class="muted">Week-specific information for you and your baby</p>
+          </div>
+          <div class="education-grid" id="education-content">
+            <article class="workflow-card">
+              <p class="eyebrow teal">COMMON CHANGES</p>
+              <h3>Your body this week</h3>
+              <p>Fatigue, nausea, breast tenderness, and changes in appetite can happen in early pregnancy. Each pregnancy is different.</p>
+            </article>
+            <article class="workflow-card">
+              <p class="eyebrow teal">CARE TIP</p>
+              <h3>Questions for your provider</h3>
+              <p>Ask about appropriate supplements, when to schedule your first visit, and which symptoms need immediate attention.</p>
+            </article>
+          </div>
+        </section>
+      </div>
+    </section>
+
+    <!-- ========== SUPPORT VIEW ========== -->
+    <section class="support-view hidden" id="support-view" aria-label="Support and Resources">
+      <header class="dash-header">
+        <div>
+          <p class="eyebrow teal">SUPPORT</p>
+          <h1>Get help and guidance</h1>
+        </div>
+        <button class="secondary-button" type="button" data-route="dashboard">Back to dashboard</button>
+      </header>
+
+      <section class="workflow-page">
+        <div class="workflow-card">
+          <p class="eyebrow teal">CONSULTANT SUPPORT</p>
+          <h2>Speak with a healthcare professional</h2>
+          <p>If you have questions about your pregnancy or health, reach out to our consultants:</p>
+          <div class="consultant-contacts-large">
+            <a href="tel:+256741592069" class="contact-button">
+              <span class="contact-icon">📞</span>
+              <span>Call 0741592069</span>
+            </a>
+            <a href="tel:+256786426344" class="contact-button">
+              <span class="contact-icon">📞</span>
+              <span>Call 0786426344</span>
+            </a>
+          </div>
+        </div>
+
+        <div class="workflow-card warning-card">
+          <p class="eyebrow">WHEN TO SEEK HELP</p>
+          <h2>Do not wait with urgent symptoms</h2>
+          <p>Seek urgent medical attention or contact your healthcare provider for:</p>
+          <ul class="warning-list">
+            <li>Heavy or prolonged bleeding</li>
+            <li>Severe abdominal or chest pain</li>
+            <li>Fainting or dizziness</li>
+            <li>Difficulty breathing</li>
+            <li>Signs of infection (fever, chills)</li>
+          </ul>
+          <button class="primary-button" type="button" aria-label="Emergency support details">Get Emergency Support</button>
+        </div>
+      </section>
+    </section>
+
+    <!-- ========== PROVIDER PORTAL (STUB) ========== -->
+    <section class="provider-view hidden" id="provider-view" aria-label="Provider Portal">
+      <header class="dash-header">
+        <div>
+          <p class="eyebrow teal">PROVIDER PORTAL</p>
+          <h1>Patient Care Management</h1>
+        </div>
+        <button class="secondary-button" type="button" data-route="dashboard">Back</button>
+      </header>
+      <div class="workflow-page">
+        <p class="info-message">Provider portal functionality coming soon</p>
+      </div>
+    </section>
+
+    <!-- ========== ADMIN PORTAL (STUB) ========== -->
+    <section class="admin-view hidden" id="admin-view" aria-label="Administrator Portal">
+      <header class="dash-header">
+        <div>
+          <p class="eyebrow teal">ADMIN PORTAL</p>
+          <h1>System Management</h1>
+        </div>
+        <button class="secondary-button" type="button" data-route="dashboard">Back</button>
+      </header>
+      <div class="workflow-page">
+        <p class="info-message">Admin portal functionality coming soon</p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ========== DIALOGS ========== -->
+  
+  <!-- Notification Dialog -->
+  <dialog id="notice" class="modal-dialog">
+    <div class="dialog-head">
+      <h2 id="notice-title">Important</h2>
+      <button id="close-notice" class="icon-button" aria-label="Close" type="button">&times;</button>
+    </div>
+    <p id="notice-text" role="alert"></p>
+    <div class="dialog-footer">
+      <button type="button" class="primary-button" onclick="document.getElementById('notice').close()">
+        Dismiss
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Logout Dialog -->
+  <dialog id="logout-dialog" class="modal-dialog">
+    <div class="dialog-head">
+      <h2>Sign out?</h2>
+      <button id="close-logout" class="icon-button" type="button" aria-label="Close">&times;</button>
+    </div>
+    <p class="muted">Your client session will be closed on this device. Your saved care records will remain in your account.</p>
+    <div class="workflow-actions">
+      <button id="cancel-logout" class="secondary-button" type="button">Stay signed in</button>
+      <button id="confirm-logout" class="primary-button" type="button">Sign out</button>
+    </div>
+  </dialog>
+
+  <!-- Terms and Conditions Dialog -->
+  <dialog id="terms-dialog" class="modal-dialog" aria-labelledby="terms-title">
+    <div class="dialog-head">
+      <h2 id="terms-title">Terms and Conditions</h2>
+      <button id="close-terms" class="icon-button" type="button" aria-label="Close">&times;</button>
+    </div>
+    <div class="terms-content">
+      <p class="muted">Please review these terms before creating your BloomCare account.</p>
+      <h3>Using BloomCare</h3>
+      <p>BloomCare helps you keep pregnancy information, appointments, and educational resources together. It does not diagnose conditions, provide emergency care, or replace advice from a qualified healthcare professional.</p>
+      <h3>Your responsibility</h3>
+      <p>Provide accurate information, keep your sign-in details private, and contact your healthcare provider or local emergency services when you need urgent care.</p>
+      <h3>Your information</h3>
+      <p>Your information is used to support this care experience. Do not use this demo for real health records until the production privacy and security controls are in place.</p>
+    </div>
+    <div class="dialog-footer">
+      <button id="accept-terms" class="primary-button" type="button">I agree</button>
+    </div>
+  </dialog>
+
+  <!-- Payment Dialog -->
+  <dialog id="payment-dialog" class="modal-dialog">
+    <div class="dialog-head">
+      <h2>Appointment fee</h2>
+      <button id="close-payment" class="icon-button" type="button" aria-label="Close">&times;</button>
+    </div>
+    <p class="muted">Complete mobile-money payment before sending your request to the healthcare facility.</p>
+    <p class="fee-amount">UGX 20,000</p>
+    <form id="payment-form">
+      <label for="payment-provider">
+        Mobile-money provider
+        <select id="payment-provider" required>
+          <option value="">Select provider</option>
+          <option>MTN MoMo</option>
+          <option>Airtel Money</option>
+        </select>
+      </label>
+      <label for="payment-phone">
+        Mobile-money number
+        <input id="payment-phone" type="tel" placeholder="e.g. 0772 123 456" required />
+      </label>
+      <p id="payment-reference" class="payment-reference hidden"></p>
+      <p id="payment-instructions" class="muted"></p>
+      <button id="start-payment" class="primary-button" type="submit">Start payment</button>
+      <button id="verify-payment" class="primary-button hidden" type="button">Verify payment</button>
+    </form>
+  </dialog>
+
+  <!-- Scripts -->
+  <script type="module" src="app-improved.js?v=3"></script>
+</body>
+</html>

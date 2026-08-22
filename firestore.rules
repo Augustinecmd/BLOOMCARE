@@ -28,14 +28,47 @@ service cloud.firestore {
       );
     }
 
+    function validClientProfile(data) {
+      return data.firstName is string
+        && data.firstName.size() >= 1
+        && data.lastName is string
+        && data.lastName.size() >= 1
+        && data.email is string
+        && data.email.matches('^.+@.+\\..+$')
+        && data.phone is string
+        && data.phone.matches('^07[0-9]{8}$')
+        && data.dateOfBirth is string
+        && data.role == 'patient';
+    }
+
     match /users/{uid} {
       allow create: if isSelf(uid)
-        && request.resource.data.role == 'patient';
+        && validClientProfile(request.resource.data);
       allow read: if isSelf(uid) || isAdmin();
       allow update: if isSelf(uid)
-        && request.resource.data.role == resource.data.role
-        && request.resource.data.email == resource.data.email;
+        && (request.resource.data.role == resource.data.role
+          || (!resource.data.keys().hasAll(['role']) && request.resource.data.role == 'patient'))
+        && request.resource.data.email == resource.data.email
+        && validClientProfile(request.resource.data);
       allow delete: if isAdmin();
+    }
+
+    match /systemSettings/public {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // The live client uses these collections for pregnancy onboarding and check-ins.
+    // They mirror the same self-only access model as the nested pregnancy records.
+    match /profiles/{uid} {
+      allow create, read, update: if isSelf(uid);
+      allow delete: if isAdmin();
+    }
+
+    match /healthRecords/{recordId} {
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update, delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
 
     match /pregnancies/{pregnancyId} {

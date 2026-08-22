@@ -3,6 +3,7 @@ import { auth, db, createUserWithEmailAndPassword, signInWithEmailAndPassword, s
 const $ = (selector) => document.querySelector(selector);
 const notice = $("#notice");
 const paymentDialog = $("#payment-dialog");
+const logoutDialog = $("#logout-dialog");
 const dashContent = $(".dash-content");
 const dashboardHome = dashContent.innerHTML;
 
@@ -116,7 +117,7 @@ function pageShell(eyebrow, title, description, body) {
 }
 
 function showCheckin() {
-  dashContent.innerHTML = pageShell("DAILY HEALTH", "How are you feeling today?", "A brief record can help you and your care team spot changes over time.", `<form id="checkin-form" class="profile-form"><div class="two-col"><label>Weight (kg)<input id="weight" type="number" min="20" max="300" step="0.1" placeholder="Optional" /></label><label>Temperature (C)<input id="temperature" type="number" min="30" max="45" step="0.1" placeholder="Optional" /></label></div><div class="two-col"><label>Blood pressure - top number<input id="systolic" type="number" min="40" max="250" placeholder="Optional" /></label><label>Blood pressure - bottom number<input id="diastolic" type="number" min="30" max="180" placeholder="Optional" /></label></div><label>How is your general wellbeing?<select id="wellbeing" required><option value="">Select an option</option><option>Feeling well</option><option>A little uncomfortable</option><option>Not feeling well</option></select></label><label>Symptoms today <span class="optional">Optional</span><textarea id="symptoms" placeholder="For example, nausea, headache, or other changes you want to record"></textarea></label><label class="check"><input id="medication" type="checkbox" /> I took my prescribed medication or supplement as instructed.</label><p class="privacy-note">Recorded information does not replace professional assessment. For heavy bleeding, severe pain, fainting, trouble breathing, or another urgent concern, seek urgent professional care.</p><div class="workflow-actions"><button class="secondary-button" type="button" data-route="dashboard">Cancel</button><button class="primary-button" type="submit">Save today's check-in</button></div></form>`);
+  dashContent.innerHTML = pageShell("DAILY HEALTH", "How are you feeling today?", "A brief record can help you and your care team spot changes over time.", `<form id="checkin-form" class="profile-form"><div class="two-col"><label>Weight (kg)<input id="weight" type="number" min="20" max="300" step="0.1" placeholder="Optional" /></label><label>Temperature (C)<input id="temperature" type="number" min="30" max="45" step="0.1" placeholder="Optional" /></label></div><div class="two-col"><label>Blood pressure - top number<input id="systolic" type="number" min="40" max="250" placeholder="Optional" /></label><label>Blood pressure - bottom number<input id="diastolic" type="number" min="30" max="180" placeholder="Optional" /></label></div><label>How is your general wellbeing?<select id="wellbeing" required><option value="">Select an option</option><option>Feeling well</option><option>A little uncomfortable</option><option>Not feeling well</option></select></label><label>Symptoms today <span class="optional">Optional</span><textarea id="symptoms" placeholder="For example, nausea, headache, or other changes you want to record"></textarea></label><label>Additional comments <span class="optional">Optional</span><textarea id="comments" placeholder="Share anything else you would like your care team to know"></textarea></label><label class="check"><input id="medication" type="checkbox" /> I took my prescribed medication or supplement as instructed.</label><p class="privacy-note">Recorded information does not replace professional assessment. For heavy bleeding, severe pain, fainting, trouble breathing, or another urgent concern, seek urgent professional care.</p><div class="workflow-actions"><button class="secondary-button" type="button" data-route="dashboard">Cancel</button><button class="primary-button" type="submit">Save today's check-in</button></div></form>`);
   setActiveNav("checkin");
 }
 
@@ -155,13 +156,13 @@ function showProfileEditor() {
 }
 
 async function saveCheckin(form) {
-  const record = { date: new Date().toISOString(), weight: $("#weight").value, temperature: $("#temperature").value, systolic: $("#systolic").value, diastolic: $("#diastolic").value, wellbeing: $("#wellbeing").value, symptoms: $("#symptoms").value.trim() };
+  const record = { date: new Date().toISOString(), weight: $("#weight").value, temperature: $("#temperature").value, systolic: $("#systolic").value, diastolic: $("#diastolic").value, wellbeing: $("#wellbeing").value, symptoms: $("#symptoms").value.trim(), comments: $("#comments").value.trim() };
   updateActiveAccount({ records: [record, ...getRecords()] });
   if (auth.currentUser) {
     const pregnancyId = `${auth.currentUser.uid}_current`;
     const checkinId = `checkin-${Date.now()}`;
     const shared = { patientUid: auth.currentUser.uid, pregnancyId, recordedAt: serverTimestamp(), createdByUid: auth.currentUser.uid };
-    await setDoc(doc(db, "pregnancies", pregnancyId, "measurements", checkinId), { ...shared, weightKg: record.weight ? Number(record.weight) : null, temperatureC: record.temperature ? Number(record.temperature) : null, systolicBp: record.systolic ? Number(record.systolic) : null, diastolicBp: record.diastolic ? Number(record.diastolic) : null, wellbeing: record.wellbeing, notes: record.symptoms });
+    await setDoc(doc(db, "pregnancies", pregnancyId, "measurements", checkinId), { ...shared, weightKg: record.weight ? Number(record.weight) : null, temperatureC: record.temperature ? Number(record.temperature) : null, systolicBp: record.systolic ? Number(record.systolic) : null, diastolicBp: record.diastolic ? Number(record.diastolic) : null, wellbeing: record.wellbeing, notes: record.symptoms, comments: record.comments });
     if (record.symptoms) await setDoc(doc(db, "pregnancies", pregnancyId, "symptoms", checkinId), { ...shared, type: "patient-reported", severity: record.wellbeing, notes: record.symptoms, requiresReview: /heavy bleeding|severe pain|faint|difficulty breathing|trouble breathing/i.test(record.symptoms) });
   }
   showHome();
@@ -292,7 +293,12 @@ $("#profile-form").addEventListener("submit", (event) => {
   }
   showView("dashboard-view"); showHome();
 });
-$("#logout").addEventListener("click", async () => { localStorage.removeItem(SESSION_KEY); await signOut(auth).catch(() => {}); showView("auth-view"); });
+async function logOut() { localStorage.removeItem(SESSION_KEY); await signOut(auth).catch(() => {}); showView("auth-view"); }
+function requestLogout() { logoutDialog.showModal(); }
+$("#logout").addEventListener("click", requestLogout);
+$("#confirm-logout").addEventListener("click", async () => { logoutDialog.close(); await logOut(); });
+$("#close-logout").addEventListener("click", () => logoutDialog.close());
+$("#cancel-logout").addEventListener("click", () => logoutDialog.close());
 
 document.addEventListener("click", (event) => {
   if (event.target.closest("#check-in, #quick-check")) {
@@ -321,6 +327,7 @@ document.addEventListener("click", (event) => {
     if (page === "profile") showProfileEditor();
   }
   const action = event.target.closest("[data-action]")?.dataset.action;
+  if (action === "logout") requestLogout();
   if (action === "emergency") openNotice("Seek urgent professional care", "For severe pain, heavy bleeding, fainting, difficulty breathing, or any urgent concern, contact your healthcare provider, local emergency services, or your selected healthcare facility now. BloomCare cannot assess emergencies.");
   if (action === "appointment") showAppointmentPayment();
 });

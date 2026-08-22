@@ -12,6 +12,7 @@ import threading
 from datetime import datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
+import re
 from urllib.parse import urlparse
 
 HOST = "127.0.0.1"
@@ -20,6 +21,34 @@ AMOUNT = 20000
 CURRENCY = "UGX"
 DATA_FILE = Path(__file__).parent / "data" / "payments.json"
 LOCK = threading.Lock()
+PHONE_PATTERN = re.compile(r"^07\d{8}$")
+INTERNATIONAL_PHONE_PATTERN = re.compile(r"^\+2567\d{8}$")
+REFERENCE_PATTERN = re.compile(r"^BC-\d{8}-[A-F0-9]{8}$")
+APPOINTMENT_REFERENCE_PATTERN = re.compile(r"^BC-APT-\d{4}-\d{6}$")
+
+
+def normalize_phone(value: object) -> str:
+    phone = str(value or "").strip().replace(" ", "")
+    if INTERNATIONAL_PHONE_PATTERN.fullmatch(phone):
+        return "0" + phone[4:]
+    return phone
+
+
+def validation_errors_for_initialize(payload: object) -> dict[str, str]:
+    if not isinstance(payload, dict):
+        return {"body": "Request body must be a JSON object."}
+    errors: dict[str, str] = {}
+    provider = payload.get("provider")
+    if provider not in {"MTN MoMo", "Airtel Money"}:
+        errors["provider"] = "Choose MTN MoMo or Airtel Money."
+    phone = normalize_phone(payload.get("phone"))
+    if not PHONE_PATTERN.fullmatch(phone):
+        errors["phone"] = "Enter a valid Ugandan number such as 0751234567 or +256751234567."
+    return errors
+
+
+def validation_error_payload(errors: dict[str, str]) -> dict[str, object]:
+    return {"success": False, "message": "Validation failed", "errors": errors}
 
 
 def read_payments() -> dict:
@@ -72,6 +101,10 @@ class PaymentHandler(BaseHTTPRequestHandler):
             return
 
         if path == "/api/payments/initialize":
+            errors = validation_errors_for_initialize(payload)
+            if errors:
+                response_payload(self, 400, validation_error_payload(errors))
+                return
             self.initialize(payload)
         elif path == "/api/payments/verify":
             self.verify(payload)
@@ -80,58 +113,79 @@ class PaymentHandler(BaseHTTPRequestHandler):
 
     def initialize(self, payload: dict) -> None:
         provider = payload.get("provider")
-        phone = str(payload.get("phone", "")).strip()
-        if provider not in {"MTN MoMo", "Airtel Money"}:
-            response_payload(self, 400, {"error": "Choose MTN MoMo or Airtel Money."})
-            return
-        if not phone:
-            response_payload(self, 400, {"error": "A mobile-money phone number is required."})
-            return
+        phone = normalize_phone(payload.get("phone"))
 
         reference = f"BC-{datetime.now(timezone.utc):%Y%m%d}-{secrets.token_hex(4).upper()}"
+        appointment = payload.get("appointment")
+        if not isinstance(appointment, dict) or not all(str(appointment.get(key, "")).strip() for key in ("patientId", "service", "provider", "date", "time", "facility")):
+            response_payload(self, 400, validation_error_payload({"appointment": "Select a service, provider, date, time, and facility before paying."}))
+            return
+        # The backend, not the browser, decides the fee from the requested service.
+        amount = 15000 if appointment["service"] == "Follow-up Consultation" else AMOUNT
+        slot_key = "|".join(str(appointment[key]).strip() for key in ("provider", "date", "time"))
         payment = {
             "reference": reference,
             "provider": provider,
             "phone": phone,
-            "amount": AMOUNT,
+            "amount": amount,
             "currency": CURRENCY,
-            "status": "pending",
+            "status": "PENDING",
             "createdAt": datetime.now(timezone.utc).isoformat(),
-            "appointment": payload.get("appointment", {}),
+            "appointment": appointment,
+            "appointmentStatus": "UNCONFIRMED",
+            "slotKey": slot_key,
         }
         with LOCK:
             payments = read_payments()
+            for existing in payments.values():
+                if existing.get("slotKey") == slot_key and existing.get("status") in {"PENDING", "PROCESSING", "PAID"}:
+                    response_payload(self, 409, {"error": "This provider time slot already has an active booking or payment."})
+                    return
             payments[reference] = payment
             write_payments(payments)
         response_payload(self, 201, {
             "reference": reference,
-            "amount": AMOUNT,
+            "amount": amount,
             "currency": CURRENCY,
             "provider": provider,
-            "status": "pending",
+            "message": f"A payment prompt would be sent to {phone} through {provider} in production.",
+            "status": "PENDING",
+            "message": f"A payment prompt would be sent to {phone} through {provider} in production.",
             "message": f"A payment prompt would be sent to {phone} through {provider} in production.",
         })
 
     def verify(self, payload: dict) -> None:
+        if not isinstance(payload, dict):
+            response_payload(self, 400, validation_error_payload({"body": "Request body must be a JSON object."}))
+            return
         reference = str(payload.get("reference", "")).strip()
+        if not REFERENCE_PATTERN.fullmatch(reference):
+            response_payload(self, 400, validation_error_payload({"reference": "Enter a valid payment reference."}))
+            return
         with LOCK:
             payments = read_payments()
             payment = payments.get(reference)
             if not payment:
                 response_payload(self, 404, {"error": "Payment reference not found."})
                 return
+            if payment.get("status") != "PENDING":
+                response_payload(self, 409, {"error": "This payment has already been verified."})
+                return
             # Demo adapter: production code must ask the provider for this status.
-            payment["status"] = "paid"
+            payment["status"] = "PAID"
+            payment["appointmentStatus"] = "CONFIRMED"
+            payment["transactionId"] = f"TXN-{secrets.token_hex(6).upper()}"
+            payment["appointmentReference"] = f"BC-APT-{datetime.now(timezone.utc):%Y}-{secrets.randbelow(1_000_000):06d}"
             payment["verifiedAt"] = datetime.now(timezone.utc).isoformat()
             payments[reference] = payment
             write_payments(payments)
         response_payload(self, 200, {"payment": payment, "receipt": {
             "receiptNumber": f"RCP-{reference[3:]}",
             "reference": reference,
-            "amount": AMOUNT,
+            "amount": payment["amount"],
             "currency": CURRENCY,
             "provider": payment["provider"],
-            "status": "paid",
+            "status": "PAID",
             "issuedAt": payment["verifiedAt"],
         }})
 

@@ -1,5 +1,12 @@
 {
   "projects": {
+<<<<<<< HEAD
     "default": "bloomcare-ee449"
+=======
+    "default": "bloomcare-72986"
+>>>>>>> 619feb78a55870d62e7ae9fc8afa5bbfd24df5ce
+  {
+    "projects": {
+      "default": "bloomcare-72986"
+    }
   }
-}

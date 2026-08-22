@@ -67,15 +67,47 @@ align-items:center;
 gap:9px
 }
 .brand-mark{
+position:relative;
 display:inline-grid;
 place-items:center;
-width:30px;
-height:30px;
-border-radius:8px;
-background:#bfe2d4;
+width:38px;
+height:38px;
+border-radius:52% 48% 58% 42%;
+background:#c9eadc;
 color:var(--ink);
 font-family:"Libre Baskerville",serif;
-font-weight:700
+font-size:21px;
+font-weight:700;
+box-shadow:0 8px 18px rgba(0,0,0,.12)
+}
+.brand-mark:before{
+content:"";
+position:absolute;
+width:13px;
+height:7px;
+right:5px;
+top:5px;
+border:2px solid var(--teal);
+border-bottom:0;
+border-radius:100% 100% 0 100%;
+transform:rotate(-30deg)
+}
+.brand-mark:after{
+content:"";
+position:absolute;
+width:2px;
+height:9px;
+right:10px;
+top:12px;
+background:var(--teal);
+transform:rotate(28deg);
+border-radius:2px
+}
+.brand-panel .brand-mark{
+width:52px;
+height:52px;
+border-radius:52% 48% 58% 42%;
+font-size:27px
 }
 .brand-status{
 font-size:10px;
@@ -85,6 +117,19 @@ border-left:1px solid #5a827b;
 padding-left:10px;
 text-transform:uppercase;
 letter-spacing:.7px
+}
+.brand-logo-link{
+gap:10px;
+flex-direction:column;
+align-items:flex-start
+}
+.brand-logo{
+display:block;
+width:250px;
+height:auto
+}
+.brand-logo-link .brand-status{
+margin-left:0
 }
 .brand-copy{
 position:relative;
@@ -261,6 +306,18 @@ font-size:14px
 }
 .profile-wrap{
 max-width:850px;
+.topbar-actions{
+display:flex;
+align-items:center;
+gap:20px
+}
+.topbar-actions p{
+margin:0
+}
+.onboarding-logout{
+margin:0;
+padding:8px 0
+}
 margin:0 auto;
 padding:72px 24px
 }

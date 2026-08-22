@@ -1,4 +1,4 @@
-# Early Pregnancy Monitoring System - System Design
+# early Pregnancy Monitoring System - System Design
 
 ## 1. System overview
 
@@ -29,10 +29,10 @@ audit-log management.
 
 ## 4. Roles and permissions
 
-| Role | Permissions |
-| --- | --- |
-| Patient | Access only their profile, records, reminders, contacts, and education. |
-| Provider | Access only explicitly assigned patients; add clinical notes and follow-ups. |
+| Role          | Permissions                                                                       |
+| ------------- | --------------------------------------------------------------------------------- |
+| Patient       | Access only their profile, records, reminders, contacts, and education.           |
+| Provider      | Access only explicitly assigned patients; add clinical notes and follow-ups.      |
 | Administrator | Manage approved users, providers, facilities, content, notifications, and audits. |
 
 Enforce permissions on every server endpoint, not merely in the UI.
