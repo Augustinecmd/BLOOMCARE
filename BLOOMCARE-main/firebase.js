@@ -5,6 +5,8 @@ import {
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged,
+    setPersistence,
+    browserSessionPersistence,
     updateProfile,
     sendPasswordResetEmail
 } from "firebase/auth";
@@ -35,6 +37,9 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+setPersistence(auth, browserSessionPersistence).catch((error) => {
+    console.warn("Session persistence could not be configured.", error);
+});
 
 export async function getSystemSettings() {
     const snap = await getDoc(doc(db, "systemSettings", "public"));

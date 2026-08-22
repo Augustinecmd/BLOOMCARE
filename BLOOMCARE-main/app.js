@@ -13,6 +13,7 @@ import {
   updateClientProfile,
   getSystemSettings
 } from "./firebase.js";
+import { auth } from "./firebase.js";
 import { createWhatsAppUrl, getConfiguredWhatsAppNumber } from "./whatsapp.js";
 
 const $ = (selector) => document.querySelector(selector);
@@ -33,6 +34,7 @@ let currentProfile = null;
 let currentRecords = [];
 let currentAppointment = null;
 let systemSettings = {};
+let authTransition = 0;
 const AUTH_SESSION_KEY = "bloomcare-authenticated";
 const AUTH_SESSION_VERSION = "2";
 const RESET_SESSION_REQUESTED = new URLSearchParams(window.location.search).has("reset-session");
@@ -143,6 +145,10 @@ function setUserName() {
 function showHome() {
   dashContent.innerHTML = dashboardHome;
   const header = dashContent.querySelector(".dash-header");
+  const emergencyButton = header?.querySelector(".emergency-button");
+  if (header && emergencyButton) {
+    emergencyButton.insertAdjacentHTML("beforebegin", '<div class="header-actions"><label class="dashboard-search"><span aria-hidden="true">⌕</span><input id="dashboard-search" type="search" placeholder="Search your care space" aria-label="Search your care space" /></label><button class="notification-button" type="button" aria-label="Notifications">i</button></div>');
+  }
   if (header && !header.querySelector('[data-action="logout"]')) {
     header.insertAdjacentHTML("beforeend", '<button class="secondary-button compact" type="button" data-action="logout">Sign out</button>');
   }
@@ -360,7 +366,14 @@ $("#register-form").addEventListener("submit", async (event) => {
   if (!validPassword(password)) return openNotice("Choose a stronger password", "Use at least 8 characters with uppercase, lowercase, a number, and a special character.");
   if (password !== confirmPassword) return openNotice("Passwords do not match", "Confirm Password must match Password.");
 
-  sessionStorage.setItem(AUTH_SESSION_KEY, "true");
+  const submitButton = event.currentTarget.querySelector("button[type=submit]");
+  submitButton.disabled = true;
+  submitButton.setAttribute("aria-busy", "true");
+  submitButton.dataset.originalText = submitButton.textContent;
+  submitButton.textContent = "Creating account...";
+  // The auth listener can run while Firebase creates the account, so mark the
+  // tab as authenticated before starting the async operation.
+  sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SESSION_VERSION);
   try {
     const user = await signUpUser({ firstName, lastName, email, phone, dateOfBirth, gender, password });
     currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, dateOfBirth, gender, role: "patient" };
@@ -377,6 +390,11 @@ $("#register-form").addEventListener("submit", async (event) => {
     } else {
       openNotice("Registration error", "We could not create your account. Please try again.");
     }
+  } finally {
+    submitButton.disabled = false;
+    submitButton.removeAttribute("aria-busy");
+    submitButton.textContent = submitButton.dataset.originalText;
+    delete submitButton.dataset.originalText;
   }
 });
 
@@ -432,6 +450,7 @@ $("#profile-form").addEventListener("submit", async (event) => {
 });
 
 async function endSession() {
+  authTransition += 1;
   try {
     await signOutUser();
   } catch (e) {
@@ -497,6 +516,7 @@ document.addEventListener("submit", (event) => {
 
 // Subscribe to Firebase Auth State changes
 subscribeAuthState(async (user) => {
+  const transition = ++authTransition;
   if (user) {
     // Firebase's default local persistence can restore another person's old
     // browser session. Only restore a session that began in this browser tab.
@@ -512,18 +532,21 @@ subscribeAuthState(async (user) => {
     } catch (_) {
       systemSettings = {};
     }
+    if (transition !== authTransition || auth.currentUser?.uid !== user.uid || sessionStorage.getItem(AUTH_SESSION_KEY) !== AUTH_SESSION_VERSION) return;
     try {
       const client = await getClientProfile(user.uid);
       currentUser = { uid: user.uid, email: user.email, ...(client || {}), displayName: user.displayName || user.email.split("@")[0] };
     } catch (_) {
       currentUser = { uid: user.uid, email: user.email, displayName: user.displayName || user.email.split("@")[0] };
     }
+    if (transition !== authTransition || auth.currentUser?.uid !== user.uid || sessionStorage.getItem(AUTH_SESSION_KEY) !== AUTH_SESSION_VERSION) return;
     try {
       currentProfile = await getUserProfile(user.uid);
       currentRecords = await getHealthRecords(user.uid);
     } catch (e) {
       console.warn("Firestore initial load fallback:", e);
     }
+    if (transition !== authTransition || auth.currentUser?.uid !== user.uid || sessionStorage.getItem(AUTH_SESSION_KEY) !== AUTH_SESSION_VERSION) return;
     // Authentication restores the dashboard consistently. Pregnancy details are
     // optional onboarding data and can be completed from the Profile tab.
     showView("dashboard-view");
