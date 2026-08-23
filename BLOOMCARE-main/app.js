@@ -102,7 +102,7 @@ function validUgandanPhone(value) {
 }
 
 function validPassword(value) {
-  return String(value).length >= 8 && /[A-Z]/.test(value) && /[a-z]/.test(value) && /\d/.test(value) && /[^A-Za-z0-9]/.test(value);
+  return /^\d{6}$/.test(String(value));
 }
 
 function formatDate(value) {
@@ -324,6 +324,16 @@ if (registerCard) {
   registerCard.innerHTML = `<p class="eyebrow teal">GET STARTED</p><h2>Create your BloomCare account</h2><p class="muted">Start with the essentials. You can complete your personal information later.</p><form id="register-form" novalidate><label>Full name<input id="register-full-name" type="text" autocomplete="name" placeholder="Your full name" required /></label><div class="two-col"><label>Phone number<input id="register-phone" type="tel" autocomplete="tel" placeholder="0751234567" required /></label><label>Email address<input id="register-email" type="email" autocomplete="email" required /></label></div><label>Password<input id="register-password" type="password" autocomplete="new-password" required /><span class="password-help">8+ characters, uppercase, lowercase, number, and special character.</span></label><label>Confirm password<input id="register-confirm-password" type="password" autocomplete="new-password" required /></label><label class="check consent"><input id="consent" type="checkbox" required /> I agree to BloomCare's <button class="legal-link" type="button" data-legal="privacy">Privacy Policy</button> and <button class="legal-link" type="button" data-legal="terms">Terms of Use</button>.</label><button class="primary-button" type="submit">Create Account <span aria-hidden="true">&rarr;</span></button></form><p class="switch-copy">Already have an account? <button class="text-button" type="button" data-show="login-card">Sign in</button></p>`;
 }
 
+$("#register-password")?.setAttribute("inputmode", "numeric");
+$("#register-password")?.setAttribute("pattern", "[0-9]{6}");
+$("#register-password")?.setAttribute("minlength", "6");
+$("#register-password")?.setAttribute("maxlength", "6");
+$(".password-help") && ($(".password-help").textContent = "Use exactly 6 numbers.");
+$("#register-confirm-password")?.setAttribute("inputmode", "numeric");
+$("#register-confirm-password")?.setAttribute("pattern", "[0-9]{6}");
+$("#register-confirm-password")?.setAttribute("minlength", "6");
+$("#register-confirm-password")?.setAttribute("maxlength", "6");
+
 document.querySelectorAll("[data-message]").forEach((button) =>
   button.addEventListener("click", async () => {
     const email = normaliseEmail($("#login-email").value);
@@ -395,7 +405,7 @@ $("#register-form").addEventListener("submit", async (event) => {
   if (!phone) return openNotice("Invalid phone number", "Please enter a valid Ugandan phone number.");
   if (!firstName || !lastName) return openNotice("Enter your full name", "Please enter your first and last name.");
   if (!/^\S+@\S+\.\S+$/.test(email)) return openNotice("Invalid email", "Please enter a valid email address.");
-  if (!validPassword(password)) return openNotice("Choose a stronger password", "Use at least 8 characters with uppercase, lowercase, a number, and a special character.");
+  if (!validPassword(password)) return openNotice("Invalid password", "Your password must contain exactly 6 numbers.");
   if (password !== confirmPassword) return openNotice("Passwords do not match", "Confirm Password must match Password.");
 
   const submitButton = event.currentTarget.querySelector("button[type=submit]");
@@ -420,7 +430,14 @@ $("#register-form").addEventListener("submit", async (event) => {
       $("#register-card").classList.add("hidden");
       openNotice("Email Already Registered", "An account with this email already exists.");
     } else {
-      openNotice("Registration error", "We could not create your account. Please try again.");
+      const registrationMessages = {
+        "auth/operation-not-allowed": "Email and password sign-up is not enabled in Firebase Authentication.",
+        "auth/network-request-failed": "The connection to Firebase failed. Check your internet connection and try again.",
+        "auth/too-many-requests": "Too many attempts were made. Please wait a moment and try again.",
+        "auth/weak-password": "Firebase rejected this password. Please use a different 6-digit password.",
+        "auth/invalid-email": "Please enter a valid email address."
+      };
+      openNotice("Registration error", registrationMessages[error.code] || "We could not create your account. Please try again.");
     }
   } finally {
     submitButton.disabled = false;
