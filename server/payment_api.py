@@ -9,7 +9,7 @@ from __future__ import annotations
 import json
 import secrets
 import threading
-from datetime import datetime, timezone
+from datetime import date, datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import re
@@ -19,12 +19,27 @@ HOST = "127.0.0.1"
 PORT = 8787
 AMOUNT = 20000
 CURRENCY = "UGX"
+MAX_REQUEST_BODY_BYTES = 16 * 1024
 DATA_FILE = Path(__file__).parent / "data" / "payments.json"
 LOCK = threading.Lock()
 PHONE_PATTERN = re.compile(r"^07\d{8}$")
 INTERNATIONAL_PHONE_PATTERN = re.compile(r"^\+2567\d{8}$")
 REFERENCE_PATTERN = re.compile(r"^BC-\d{8}-[A-F0-9]{8}$")
 APPOINTMENT_REFERENCE_PATTERN = re.compile(r"^BC-APT-\d{4}-\d{6}$")
+SERVICE_FEES = {
+    "Pregnancy Consultation": 20000,
+    "Follow-up Consultation": 15000,
+}
+AVAILABLE_PROVIDERS = {"Dr. Amina Nanyonga", "Dr. Sarah Namusoke"}
+AVAILABLE_FACILITIES = {
+    "Kampala Women's Health Centre",
+    "Mulago National Referral Hospital",
+}
+AVAILABLE_TIMES = {"09:00 AM", "10:00 AM", "11:30 AM", "02:00 PM"}
+
+
+class PaymentStoreError(RuntimeError):
+    """Raised when the local demo payment store cannot be used safely."""
 
 
 def normalize_phone(value: object) -> str:
@@ -47,6 +62,35 @@ def validation_errors_for_initialize(payload: object) -> dict[str, str]:
     return errors
 
 
+def validated_appointment(value: object) -> tuple[dict[str, str] | None, dict[str, str]]:
+    """Return a storage-safe appointment payload or field-level validation errors."""
+    if not isinstance(value, dict):
+        return None, {"appointment": "Select an appointment before paying."}
+
+    appointment = {
+        key: str(value.get(key, "")).strip()
+        for key in ("patientId", "service", "provider", "date", "time", "facility")
+    }
+    errors: dict[str, str] = {}
+    if not appointment["patientId"]:
+        errors["appointment.patientId"] = "A patient identifier is required."
+    if appointment["service"] not in SERVICE_FEES:
+        errors["appointment.service"] = "Choose a supported appointment service."
+    if appointment["provider"] not in AVAILABLE_PROVIDERS:
+        errors["appointment.provider"] = "Choose an available healthcare provider."
+    if appointment["facility"] not in AVAILABLE_FACILITIES:
+        errors["appointment.facility"] = "Choose an available healthcare facility."
+    if appointment["time"] not in AVAILABLE_TIMES:
+        errors["appointment.time"] = "Choose an available appointment time."
+    try:
+        appointment_date = date.fromisoformat(appointment["date"])
+        if appointment_date < datetime.now(timezone.utc).date():
+            errors["appointment.date"] = "Choose an appointment date that is today or later."
+    except ValueError:
+        errors["appointment.date"] = "Enter a valid appointment date."
+    return (appointment if not errors else None), errors
+
+
 def validation_error_payload(errors: dict[str, str]) -> dict[str, object]:
     return {"success": False, "message": "Validation failed", "errors": errors}
 
@@ -55,14 +99,19 @@ def read_payments() -> dict:
     if not DATA_FILE.exists():
         return {}
     try:
-        return json.loads(DATA_FILE.read_text(encoding="utf-8"))
-    except json.JSONDecodeError:
-        return {}
+        payments = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as error:
+        raise PaymentStoreError("Payment records could not be read safely.") from error
+    if not isinstance(payments, dict):
+        raise PaymentStoreError("Payment records have an invalid format.")
+    return payments
 
 
 def write_payments(payments: dict) -> None:
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
-    DATA_FILE.write_text(json.dumps(payments, indent=2), encoding="utf-8")
+    temporary_file = DATA_FILE.with_suffix(".tmp")
+    temporary_file.write_text(json.dumps(payments, indent=2), encoding="utf-8")
+    temporary_file.replace(DATA_FILE)
 
 
 def response_payload(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> None:
@@ -95,6 +144,9 @@ class PaymentHandler(BaseHTTPRequestHandler):
         path = urlparse(self.path).path
         try:
             length = int(self.headers.get("Content-Length", "0"))
+            if length < 0 or length > MAX_REQUEST_BODY_BYTES:
+                response_payload(self, 413, {"error": "Request body is too large."})
+                return
             payload = json.loads(self.rfile.read(length) or b"{}")
         except (ValueError, json.JSONDecodeError):
             response_payload(self, 400, {"error": "Request body must be valid JSON."})
@@ -105,9 +157,15 @@ class PaymentHandler(BaseHTTPRequestHandler):
             if errors:
                 response_payload(self, 400, validation_error_payload(errors))
                 return
-            self.initialize(payload)
+            try:
+                self.initialize(payload)
+            except PaymentStoreError:
+                response_payload(self, 503, {"error": "Payment service is temporarily unavailable."})
         elif path == "/api/payments/verify":
-            self.verify(payload)
+            try:
+                self.verify(payload)
+            except PaymentStoreError:
+                response_payload(self, 503, {"error": "Payment service is temporarily unavailable."})
         else:
             response_payload(self, 404, {"error": "Payment endpoint not found."})
 
@@ -115,13 +173,13 @@ class PaymentHandler(BaseHTTPRequestHandler):
         provider = payload.get("provider")
         phone = normalize_phone(payload.get("phone"))
 
-        reference = f"BC-{datetime.now(timezone.utc):%Y%m%d}-{secrets.token_hex(4).upper()}"
-        appointment = payload.get("appointment")
-        if not isinstance(appointment, dict) or not all(str(appointment.get(key, "")).strip() for key in ("patientId", "service", "provider", "date", "time", "facility")):
-            response_payload(self, 400, validation_error_payload({"appointment": "Select a service, provider, date, time, and facility before paying."}))
+        appointment, errors = validated_appointment(payload.get("appointment"))
+        if errors:
+            response_payload(self, 400, validation_error_payload(errors))
             return
         # The backend, not the browser, decides the fee from the requested service.
-        amount = 15000 if appointment["service"] == "Follow-up Consultation" else AMOUNT
+        amount = SERVICE_FEES[appointment["service"]]
+        reference = f"BC-{datetime.now(timezone.utc):%Y%m%d}-{secrets.token_hex(4).upper()}"
         slot_key = "|".join(str(appointment[key]).strip() for key in ("provider", "date", "time"))
         payment = {
             "reference": reference,
@@ -150,8 +208,6 @@ class PaymentHandler(BaseHTTPRequestHandler):
             "provider": provider,
             "message": f"A payment prompt would be sent to {phone} through {provider} in production.",
             "status": "PENDING",
-            "message": f"A payment prompt would be sent to {phone} through {provider} in production.",
-            "message": f"A payment prompt would be sent to {phone} through {provider} in production.",
         })
 
     def verify(self, payload: dict) -> None:
