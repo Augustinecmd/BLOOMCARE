@@ -7,13 +7,12 @@ import {
   getUserProfile,
   saveHealthRecord,
   getHealthRecords,
-  saveAppointmentRequest,
   requestPasswordReset,
   getClientProfile,
   updateClientProfile,
-  getSystemSettings
+  getSystemSettings,
+  auth
 } from "./firebase.js";
-import { auth } from "./firebase.js";
 import { createWhatsAppUrl, getConfiguredWhatsAppNumber } from "./whatsapp.js";
 import { calculatePregnancyStatus, calculateEddFromLmp, isValidLmp } from "./pregnancy-calculations.js";
 
@@ -36,6 +35,7 @@ let currentRecords = [];
 let currentAppointment = null;
 let systemSettings = {};
 let authTransition = 0;
+let registrationInProgress = false;
 const AUTH_SESSION_KEY = "bloomcare-authenticated";
 const AUTH_SESSION_VERSION = "2";
 const RESET_SESSION_REQUESTED = new URLSearchParams(window.location.search).has("reset-session");
@@ -56,7 +56,21 @@ const TERMS_OF_USE = "BloomCare Pharmacy Terms and Conditions govern the use of 
 const PRIVACY_POLICY = "BloomCare collects and uses your account, contact, health, appointment, and payment information to provide and improve care-related services, process requests, support your account, and meet legal and regulatory obligations. We limit access to authorised personnel and retain information only as long as needed for legitimate service or legal purposes. You may request information about your data, ask for corrections, or withdraw consent where applicable. BloomCare does not replace professional medical advice or emergency services.";
 
 function normaliseEmail(email) {
-  return email.trim().toLowerCase();
+  return String(email || "").trim().toLowerCase();
+}
+
+function registrationErrorMessage(code) {
+  const messages = {
+    "auth/email-already-in-use": "An account with this email already exists. Please sign in or use another email.",
+    "auth/invalid-email": "Please enter a valid email address.",
+    "auth/weak-password": "Your password is too weak. Please use a stronger password.",
+    "auth/network-request-failed": "Network error. Please check your internet connection and try again.",
+    "auth/too-many-requests": "Too many attempts. Please wait a moment and try again.",
+    "auth/operation-not-allowed": "Email/password registration is currently unavailable. Please contact BloomCare support.",
+    "auth/user-disabled": "This account has been disabled. Please contact BloomCare support.",
+    "firestore/profile-creation-failed": "Your account was created, but we could not save your profile. Please complete it from your dashboard."
+  };
+  return messages[code] || "Registration could not be completed. Please try again.";
 }
 function getActiveEmail() {
   return currentUser?.email || "";
@@ -65,7 +79,7 @@ function getActiveAccount() {
   return currentUser ? { ...currentUser, appointmentRequest: currentAppointment } : null;
 }
 function getUser() {
-  return currentUser || getActiveAccount();
+  return currentUser;
 }
 function getProfile() {
   return currentProfile || getActiveAccount()?.profile || null;
@@ -99,10 +113,6 @@ function validUgandanPhone(value) {
   const phone = String(value || "").trim().replace(/\s/g, "");
   if (/^\+2567\d{8}$/.test(phone)) return `0${phone.slice(4)}`;
   return /^07\d{8}$/.test(phone) ? phone : null;
-}
-
-function validPassword(value) {
-  return /^\d{6}$/.test(String(value));
 }
 
 function formatDate(value) {
@@ -163,7 +173,7 @@ function showHome() {
     header.querySelector('[data-action="logout"]')?.remove();
     header.querySelector("[data-whatsapp]")?.remove();
   }
-  const sidebar = dashContent.querySelector(".sidebar");
+  const sidebar = document.querySelector("#dashboard-view .sidebar");
   const sidebarLogout = sidebar?.querySelector("#logout");
   if (sidebar && sidebarLogout && !sidebar.querySelector(".sidebar-actions")) {
     const sidebarActions = document.createElement("div");
@@ -286,7 +296,7 @@ async function saveCheckin(form) {
     temperature: $("#temperature").value,
     systolic: $("#systolic").value,
     diastolic: $("#diastolic").value,
-    wellbeing: $("#checkin-form input[name="wellbeing"]:checked")?.value || "",
+    wellbeing: $('#checkin-form input[name="wellbeing"]:checked')?.value || "",
     symptoms: $("#symptoms").value.trim(),
     medication: $("#medication").checked
   };
@@ -311,28 +321,15 @@ async function saveCheckin(form) {
   }
 }
 
-// UI Event Listeners
-document.querySelectorAll("[data-show]").forEach((button) =>
-  button.addEventListener("click", () => {
-    $("#login-card").classList.toggle("hidden", button.dataset.show !== "login-card");
-    $("#register-card").classList.toggle("hidden", button.dataset.show !== "register-card");
-  })
-);
-
-const registerCard = $("#register-card");
-if (registerCard) {
-  registerCard.innerHTML = `<p class="eyebrow teal">GET STARTED</p><h2>Create your BloomCare account</h2><p class="muted">Start with the essentials. You can complete your personal information later.</p><form id="register-form" novalidate><label>Full name<input id="register-full-name" type="text" autocomplete="name" placeholder="Your full name" required /></label><div class="two-col"><label>Phone number<input id="register-phone" type="tel" autocomplete="tel" placeholder="0751234567" required /></label><label>Email address<input id="register-email" type="email" autocomplete="email" required /></label></div><label>Password<input id="register-password" type="password" autocomplete="new-password" required /><span class="password-help">8+ characters, uppercase, lowercase, number, and special character.</span></label><label>Confirm password<input id="register-confirm-password" type="password" autocomplete="new-password" required /></label><label class="check consent"><input id="consent" type="checkbox" required /> I agree to BloomCare's <button class="legal-link" type="button" data-legal="privacy">Privacy Policy</button> and <button class="legal-link" type="button" data-legal="terms">Terms of Use</button>.</label><button class="primary-button" type="submit">Create Account <span aria-hidden="true">&rarr;</span></button></form><p class="switch-copy">Already have an account? <button class="text-button" type="button" data-show="login-card">Sign in</button></p>`;
-}
-
-$("#register-password")?.setAttribute("inputmode", "numeric");
-$("#register-password")?.setAttribute("pattern", "[0-9]{6}");
-$("#register-password")?.setAttribute("minlength", "6");
-$("#register-password")?.setAttribute("maxlength", "6");
-$(".password-help") && ($(".password-help").textContent = "Use exactly 6 numbers.");
-$("#register-confirm-password")?.setAttribute("inputmode", "numeric");
-$("#register-confirm-password")?.setAttribute("pattern", "[0-9]{6}");
-$("#register-confirm-password")?.setAttribute("minlength", "6");
-$("#register-confirm-password")?.setAttribute("maxlength", "6");
+// The registration form is defined once in index.html. Delegation keeps both
+// account-switch links working even if other UI content is rendered later.
+document.addEventListener("click", (event) => {
+  const button = event.target.closest("[data-show]");
+  if (!button) return;
+  event.preventDefault();
+  $("#login-card").classList.toggle("hidden", button.dataset.show !== "login-card");
+  $("#register-card").classList.toggle("hidden", button.dataset.show !== "register-card");
+});
 
 document.querySelectorAll("[data-message]").forEach((button) =>
   button.addEventListener("click", async () => {
@@ -394,52 +391,80 @@ $("#verify-payment").addEventListener("click", async () => {
 // Firebase Auth & Database Forms Integration
 $("#register-form").addEventListener("submit", async (event) => {
   event.preventDefault();
+  if (registrationInProgress) {
+    console.warn("[BloomCare Auth] Ignoring duplicate registration submission");
+    return;
+  }
   if (!event.currentTarget.checkValidity()) return event.currentTarget.reportValidity();
-  const nameParts = $("#register-full-name").value.trim().split(/\s+/).filter(Boolean);
-  const firstName = nameParts.shift() || "";
-  const lastName = nameParts.join(" ");
+
+  // Get first and last name from separate fields
+  const firstName = $("#register-first-name").value.trim();
+  const lastName = $("#register-last-name").value.trim();
   const email = normaliseEmail($("#register-email").value);
+  $("#register-email").value = email;
   const phone = validUgandanPhone($("#register-phone").value);
   const password = $("#register-password").value;
   const confirmPassword = $("#register-confirm-password").value;
+
+  if (!firstName) return openNotice("Enter first name", "Please enter your first name.");
+  if (!lastName) return openNotice("Enter last name", "Please enter your last name.");
   if (!phone) return openNotice("Invalid phone number", "Please enter a valid Ugandan phone number.");
-  if (!firstName || !lastName) return openNotice("Enter your full name", "Please enter your first and last name.");
   if (!/^\S+@\S+\.\S+$/.test(email)) return openNotice("Invalid email", "Please enter a valid email address.");
-  if (!validPassword(password)) return openNotice("Invalid password", "Your password must contain exactly 6 numbers.");
+  if (password.length < 8) return openNotice("Invalid password", "Your password must be at least 8 characters.");
+  if (!/[A-Z]/.test(password)) return openNotice("Invalid password", "Your password must contain at least one uppercase letter.");
+  if (!/[a-z]/.test(password)) return openNotice("Invalid password", "Your password must contain at least one lowercase letter.");
+  if (!/[0-9]/.test(password)) return openNotice("Invalid password", "Your password must contain at least one number.");
+  if (!/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password)) return openNotice("Invalid password", "Your password must contain at least one special character.");
   if (password !== confirmPassword) return openNotice("Passwords do not match", "Confirm Password must match Password.");
 
   const submitButton = event.currentTarget.querySelector("button[type=submit]");
+
+  registrationInProgress = true;
   submitButton.disabled = true;
   submitButton.setAttribute("aria-busy", "true");
   submitButton.dataset.originalText = submitButton.textContent;
   submitButton.textContent = "Creating account...";
-  // The auth listener can run while Firebase creates the account, so mark the
-  // tab as authenticated before starting the async operation.
-  sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SESSION_VERSION);
+
   try {
-    const user = await signUpUser({ firstName, lastName, email, phone, password });
-    currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, role: "patient" };
+    // Set session key BEFORE signup so auth listener recognizes this as valid session
+    // when auth state changes with the new user
     sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SESSION_VERSION);
+    console.log("[BloomCare Auth] Registration attempt:", { email, firstName, lastName });
+
+    // Create Firebase Auth account and Firestore profile
+    const user = await signUpUser({ firstName, lastName, email, phone, password });
+
+    console.log("[BloomCare Auth] Registration successful:", { uid: user.uid, email: user.email });
+
+    // Set currentUser - auth state listener will also load this
+    currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, role: "patient" };
     showView("dashboard-view");
     showHome();
   } catch (error) {
-    sessionStorage.removeItem(AUTH_SESSION_KEY);
-    if (error.code === "auth/email-already-in-use" || (error.message && error.message.includes("email-already-in-use"))) {
+    console.error("[BloomCare Auth] Registration error:", {
+      code: error.code,
+      message: error.message,
+      email
+    });
+
+    if (error.code === "auth/email-already-in-use") {
       $("#login-email").value = email;
       $("#login-card").classList.remove("hidden");
       $("#register-card").classList.add("hidden");
-      openNotice("Email Already Registered", "An account with this email already exists.");
+    } else if (error.code === "firestore/profile-creation-failed") {
+      // The Firebase Auth session remains valid. Continue to the dashboard without retrying Auth.
+      const user = error.user;
+      currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, role: "patient" };
+      showView("dashboard-view");
+      showHome();
     } else {
-      const registrationMessages = {
-        "auth/operation-not-allowed": "Email and password sign-up is not enabled in Firebase Authentication.",
-        "auth/network-request-failed": "The connection to Firebase failed. Check your internet connection and try again.",
-        "auth/too-many-requests": "Too many attempts were made. Please wait a moment and try again.",
-        "auth/weak-password": "Firebase rejected this password. Please use a different 6-digit password.",
-        "auth/invalid-email": "Please enter a valid email address."
-      };
-      openNotice("Registration error", registrationMessages[error.code] || "We could not create your account. Please try again.");
+      sessionStorage.removeItem(AUTH_SESSION_KEY);
+      currentUser = null;
     }
+
+    openNotice(error.code === "firestore/profile-creation-failed" ? "Profile save issue" : "Registration error", registrationErrorMessage(error.code));
   } finally {
+    registrationInProgress = false;
     submitButton.disabled = false;
     submitButton.removeAttribute("aria-busy");
     submitButton.textContent = submitButton.dataset.originalText;
@@ -568,7 +593,30 @@ document.addEventListener("submit", (event) => {
     event.preventDefault();
     if (event.target.checkValidity()) saveCheckin(event.target);
     else event.target.reportValidity();
+    return;
   }
+
+  if (event.target.id !== "client-profile-form") return;
+  event.preventDefault();
+  const phone = validUgandanPhone($("#client-phone").value);
+  if (!phone) return openNotice("Invalid phone number", "Please enter a valid Ugandan phone number.");
+
+  const client = {
+    firstName: $("#client-first-name").value.trim(),
+    lastName: $("#client-last-name").value.trim(),
+    phone,
+    dateOfBirth: $("#client-date-of-birth").value,
+    gender: $("#client-gender").value,
+    role: currentUser?.role || "patient"
+  };
+
+  updateClientProfile(currentUser.uid, client)
+    .then(() => {
+      currentUser = { ...currentUser, ...client };
+      showHome();
+      openNotice("Profile updated", "Your account details have been saved.");
+    })
+    .catch(() => openNotice("Profile update failed", "We could not save your profile. Please try again."));
 });
 
 // Subscribe to Firebase Auth State changes
@@ -616,12 +664,5 @@ subscribeAuthState(async (user) => {
     systemSettings = {};
     sessionStorage.removeItem(AUTH_SESSION_KEY);
     showView("auth-view");
-  }
-  if (event.target.id === "client-profile-form") {
-    event.preventDefault();
-    const phone = validUgandanPhone($("#client-phone").value);
-    if (!phone) return openNotice("Invalid phone number", "Please enter a valid Ugandan phone number.");
-    const client = { firstName: $("#client-first-name").value.trim(), lastName: $("#client-last-name").value.trim(), phone, dateOfBirth: $("#client-date-of-birth").value, gender: $("#client-gender").value, role: currentUser.role || "patient" };
-    updateClientProfile(currentUser.uid, client).then(() => { currentUser = { ...currentUser, ...client }; showHome(); openNotice("Profile updated", "Your account details have been saved."); }).catch(() => openNotice("Profile update failed", "We could not save your profile. Please try again."));
   }
 });

@@ -54,14 +54,25 @@ export async function updateSystemSettings(settings) {
 // Authentication Helpers
 export async function signUpUser(client) {
     const { firstName, lastName, email, phone, password } = client;
-    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-    const user = userCredential.user;
-    const fullName = `${firstName} ${lastName}`.trim();
-    await updateProfile(user, { displayName: fullName });
-    // Passwords are held and hashed by Firebase Authentication only; never write one to Firestore.
-    // A Firestore outage or a rules-deployment gap must not undo a successful
-    // Firebase Auth account creation or strand the signed-in client.
+    const normalizedEmail = String(email).trim().toLowerCase();
+
+    let user;
     try {
+        const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
+        user = userCredential.user;
+        console.log("[BloomCare Auth] Firebase account created:", { uid: user.uid, email: user.email });
+    } catch (error) {
+        console.error("[BloomCare Auth] Firebase account creation failed:", {
+            code: error.code,
+            message: error.message,
+            email: normalizedEmail
+        });
+        throw error;
+    }
+
+    // Auth is complete at this point. Do not retry it if either profile operation fails.
+    try {
+        await updateProfile(user, { displayName: `${firstName} ${lastName}`.trim() });
         await setDoc(doc(db, "users", user.uid), {
             uid: user.uid,
             firstName,
@@ -72,15 +83,36 @@ export async function signUpUser(client) {
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         });
+        console.log("[BloomCare Auth] Firestore profile created successfully:", user.uid);
+        return user;
     } catch (error) {
-        console.warn("Client profile could not be saved yet.", error);
+        console.error("[BloomCare Auth] Profile creation failed after Firebase Auth succeeded:", {
+            uid: user.uid,
+            code: error.code,
+            message: error.message
+        });
+        const profileError = new Error("The account was created, but its profile could not be saved.");
+        profileError.code = "firestore/profile-creation-failed";
+        profileError.originalError = error;
+        profileError.user = user;
+        throw profileError;
     }
-    return user;
 }
 
 export async function signInUser(email, password) {
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    const normalizedEmail = String(email).trim().toLowerCase();
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
+        console.log("[BloomCare Auth] Sign-in successful:", { uid: userCredential.user.uid, email: userCredential.user.email });
+        return userCredential.user;
+    } catch (error) {
+        console.error("[BloomCare Auth] Sign-in failed:", {
+            code: error.code,
+            message: error.message,
+            email: normalizedEmail
+        });
+        throw error;
+    }
 }
 
 export async function signOutUser() {
