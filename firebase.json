@@ -1,51 +1,24 @@
 {
-<<<<<<< HEAD
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
   "hosting": {
-    "public": ".",
+    "public": "BLOOMCARE-main/dist",
     "ignore": [
       "firebase.json",
-        ".firebaserc",
+      ".firebaserc",
       "firestore.rules",
       "firestore.indexes.json",
-        "firestore-seed.json",
-        "FIREBASE_SETUP.md",
-        "SYSTEM_DESIGN.md",
-        "README.md",
-        "server/**",
-        "scripts/**",
-        "pharmacy-management/**",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "cleanUrls": true,
+    "rewrites": [
       {
-        "firestore": {
-          "rules": "firestore.rules",
-          "indexes": "firestore.indexes.json"
-        },
-        "hosting": {
-          "public": "BLOOMCARE-main/dist",
-          "ignore": [
-            "firebase.json",
-            ".firebaserc",
-            "firestore.rules",
-            "firestore.indexes.json",
-            "firestore-seed.json",
-            "FIREBASE_SETUP.md",
-            "SYSTEM_DESIGN.md",
-            "README.md",
-            "server/**",
-            "scripts/**",
-            "pharmacy-management/**",
-            "**/.*",
-            "**/node_modules/**"
-          ],
-          "cleanUrls": true,
-          "rewrites": [
-            {
-              "source": "**",
-              "destination": "/index.html"
-            }
-          ]
-        }
+        "source": "**",
+        "destination": "/index.html"
       }
+    ]
+  }
+}

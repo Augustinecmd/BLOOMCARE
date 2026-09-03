@@ -33,7 +33,14 @@ function firebaseErrorMessage(error) {
 }
 
 function getAccounts() { return JSON.parse(localStorage.getItem(ACCOUNTS_KEY) || "{}"); }
-function saveAccounts(accounts) { localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(accounts)); }
+function saveAccounts(accounts) {
+  // Authentication is handled by Firebase. Never retain a password in browser storage.
+  const safeAccounts = Object.fromEntries(Object.entries(accounts).map(([email, account]) => {
+    const { password, ...safeAccount } = account;
+    return [email, safeAccount];
+  }));
+  localStorage.setItem(ACCOUNTS_KEY, JSON.stringify(safeAccounts));
+}
 function normaliseEmail(email) { return email.trim().toLowerCase(); }
 function getActiveEmail() { return localStorage.getItem(SESSION_KEY); }
 function getActiveAccount() { return getAccounts()[getActiveEmail()] || null; }
@@ -52,6 +59,8 @@ function updateActiveAccount(update) {
 
 function migrateLegacyData() {
   const accounts = getAccounts();
+  // Clean up credentials saved by earlier demo versions.
+  if (Object.values(accounts).some((account) => Object.hasOwn(account, "password"))) saveAccounts(accounts);
   const legacyUser = JSON.parse(localStorage.getItem("bloomcareUser") || "null");
   if (Object.keys(accounts).length || !legacyUser?.email) return;
   const email = normaliseEmail(legacyUser.email);
@@ -184,9 +193,9 @@ $("#payment-form").addEventListener("submit", async (event) => {
   const button = $("#start-payment");
   button.disabled = true;
   try {
-    const response = await fetch(`${PAYMENT_API}/api/payments/initialize`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: $("#payment-provider").value, phone: $("#payment-phone").value.trim(), appointment: { date: $("#appointment-date").value, facility: $("#appointment-facility").value, reason: $("#appointment-reason").value.trim() } }) });
+    const response = await fetch(`${PAYMENT_API}/api/payments/initialize`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ provider: $("#payment-provider").value, phone: $("#payment-phone").value.trim(), appointment: { patientId: auth.currentUser?.uid || getActiveEmail(), service: "Pregnancy Consultation", provider: "Dr. Amina Nanyonga", date: $("#appointment-date").value, time: "09:00 AM", facility: $("#appointment-facility").value } }) });
     const result = await response.json();
-    if (!response.ok) throw new Error(result.error || "Payment could not be started.");
+    if (!response.ok) throw new Error(result.errors ? Object.values(result.errors).join(" ") : result.error || "Payment could not be started.");
     pendingPayment = result;
     $("#payment-reference").textContent = `Payment reference: ${result.reference}`;
     $("#payment-reference").classList.remove("hidden");
@@ -194,7 +203,7 @@ $("#payment-form").addEventListener("submit", async (event) => {
     button.classList.add("hidden");
     $("#verify-payment").classList.remove("hidden");
   } catch (error) {
-    openNotice("Payment service unavailable", `${error.message} Start the payment API before trying again.`);
+    openNotice("Payment could not be started", error.message);
   } finally {
     button.disabled = false;
   }
@@ -239,7 +248,7 @@ $("#register-form").addEventListener("submit", async (event) => {
       $("#login-email").value = email;
       return openNotice("Account already exists", "This email is already registered. Sign in with your existing password to continue.");
     }
-    if (error.code !== "auth/operation-not-allowed") return openNotice("Account creation failed", firebaseErrorMessage(error));
+    return openNotice("Account creation unavailable", firebaseErrorMessage(error));
   }
   if (firebaseUser) {
     try {
@@ -250,7 +259,7 @@ $("#register-form").addEventListener("submit", async (event) => {
   }
   const accounts = getAccounts();
   if (accounts[email] && !firebaseCreated) return openNotice("Account already exists", "Please sign in with this email address instead.");
-  accounts[email] = { ...(accounts[email] || {}), name, email, password, phone, dateOfBirth, profile: accounts[email]?.profile || null, records: accounts[email]?.records || [] };
+  accounts[email] = { ...(accounts[email] || {}), name, email, phone, dateOfBirth, profile: accounts[email]?.profile || null, records: accounts[email]?.records || [] };
   saveAccounts(accounts);
   localStorage.setItem(SESSION_KEY, email);
   showProfileEditor();
@@ -263,20 +272,14 @@ $("#login-form").addEventListener("submit", async (event) => {
   try {
     await signInWithEmailAndPassword(auth, email, password);
   } catch (error) {
-    if (error.code !== "auth/operation-not-allowed") return openNotice("Sign-in failed", firebaseErrorMessage(error));
+    return openNotice("Sign-in failed", firebaseErrorMessage(error));
   }
-  const account = getAccounts()[email] || (auth.currentUser ? { name: auth.currentUser.displayName || email.split("@")[0], email, password, profile: null, records: [] } : null);
-  if (!account) return openNotice("Sign-in failed", "The email address or password is incorrect.");
+  const account = getAccounts()[email] || { name: auth.currentUser.displayName || email.split("@")[0], email, profile: null, records: [] };
   if (!getAccounts()[email]) {
     const accounts = getAccounts();
     accounts[email] = account;
     saveAccounts(accounts);
   }
-  if (!account.password) {
-    const accounts = getAccounts();
-    accounts[email] = { ...account, password };
-    saveAccounts(accounts);
-  } else if (account.password !== password) return openNotice("Sign-in failed", "The email address or password is incorrect.");
   localStorage.setItem(SESSION_KEY, email);
   account.profile ? (showView("dashboard-view"), showHome()) : showProfileEditor();
 });

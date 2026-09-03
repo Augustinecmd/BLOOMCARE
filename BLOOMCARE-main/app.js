@@ -7,10 +7,14 @@ import {
   getUserProfile,
   saveHealthRecord,
   getHealthRecords,
+  saveAppointmentRequest,
+  getLatestAppointmentRequest,
   requestPasswordReset,
   getClientProfile,
   updateClientProfile,
   getSystemSettings,
+  authPersistenceReady,
+  resetAuthSession,
   auth
 } from "./firebase.js";
 import { createWhatsAppUrl, getConfiguredWhatsAppNumber } from "./whatsapp.js";
@@ -38,7 +42,7 @@ let authTransition = 0;
 let registrationInProgress = false;
 const AUTH_SESSION_KEY = "bloomcare-authenticated";
 const AUTH_SESSION_VERSION = "2";
-const RESET_SESSION_REQUESTED = new URLSearchParams(window.location.search).has("reset-session");
+let resetSessionRequested = new URLSearchParams(window.location.search).has("reset-session");
 
 function showView(id) {
   ["auth-view", "profile-view", "dashboard-view"].forEach((view) =>
@@ -57,6 +61,12 @@ const PRIVACY_POLICY = "BloomCare collects and uses your account, contact, healt
 
 function normaliseEmail(email) {
   return String(email || "").trim().toLowerCase();
+}
+
+function escapeHtml(value) {
+  return String(value ?? "").replace(/[&<>'"]/g, (character) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;"
+  })[character]);
 }
 
 function registrationErrorMessage(code) {
@@ -170,8 +180,10 @@ function showHome() {
   const header = dashContent.querySelector(".dash-header");
   if (header) {
     header.querySelector(".header-actions")?.remove();
-    header.querySelector('[data-action="logout"]')?.remove();
     header.querySelector("[data-whatsapp]")?.remove();
+    if (!header.querySelector('[data-action="logout"]')) {
+      header.insertAdjacentHTML("beforeend", '<button class="header-signout" type="button" data-action="logout"><span aria-hidden="true">↪</span> Sign out</button>');
+    }
   }
   const sidebar = document.querySelector("#dashboard-view .sidebar");
   const sidebarLogout = sidebar?.querySelector("#logout");
@@ -191,6 +203,15 @@ function showHome() {
 
   const dateEl = dashContent.querySelector(".dash-header .eyebrow");
   if (dateEl) dateEl.textContent = getFormattedToday();
+
+  const welcomeGuide = document.createElement("section");
+  welcomeGuide.className = "welcome-guide";
+  if (!getProfile()) {
+    welcomeGuide.innerHTML = '<div><p class="eyebrow teal">GET STARTED</p><h2>Complete your care profile</h2><p>Add your pregnancy details so BloomCare can personalise your care plan and due-date information.</p></div><button class="primary-button" type="button" data-route="profile">Complete profile <span aria-hidden="true">→</span></button>';
+  } else {
+    welcomeGuide.innerHTML = '<div><p class="eyebrow teal">QUICK ACTIONS</p><h2>What would you like to do?</h2><p>Choose a common task to continue with your care plan.</p></div><div class="quick-actions"><button class="secondary-button" type="button" data-route="checkin">Daily check-in</button><button class="secondary-button" type="button" data-route="appointments">Book a visit</button><button class="secondary-button" type="button" data-route="education">Learn this week</button></div>';
+  }
+  header?.insertAdjacentElement("afterend", welcomeGuide);
 
   const records = getRecords();
   const latest = records[0];
@@ -225,13 +246,26 @@ function showHome() {
 }
 
 function setActiveNav(page) {
-  document.querySelectorAll(".sidebar nav a").forEach((link) =>
-    link.classList.toggle("active", link.getAttribute("href") === "#" + page)
-  );
+  document.querySelectorAll(".sidebar nav a").forEach((link) => {
+    const active = link.getAttribute("href") === "#" + page;
+    link.classList.toggle("active", active);
+    link.toggleAttribute("aria-current", active);
+  });
+}
+
+function navigateTo(page) {
+  const routes = {
+    dashboard: showHome,
+    checkin: showCheckin,
+    appointments: showAppointments,
+    education: showEducation,
+    profile: showProfileEditor
+  };
+  routes[page]?.();
 }
 
 function pageShell(eyebrow, title, description, body) {
-  return `<header class="dash-header"><div><p class="eyebrow teal">${eyebrow}</p><h1>${title}</h1><p class="muted page-description">${description}</p></div><button class="emergency-button" type="button" data-action="emergency">Emergency support</button></header><section class="workflow-page">${body}</section>`;
+  return `<header class="dash-header"><div><p class="eyebrow teal">${eyebrow}</p><h1>${title}</h1><p class="muted page-description">${description}</p></div><div class="page-header-actions"><button class="emergency-button" type="button" data-action="emergency">Emergency support</button><button class="header-signout" type="button" data-action="logout"><span aria-hidden="true">↪</span> Sign out</button></div></header><section class="workflow-page">${body}</section>`;
 }
 
 function showCheckin() {
@@ -371,7 +405,7 @@ $("#payment-form").addEventListener("submit", async (event) => {
     $("#payment-instructions").textContent = "Payment processing. Verification is performed by the backend; the appointment remains unconfirmed until it reports PAID.";
     button.classList.add("hidden");
     $("#verify-payment").classList.remove("hidden");
-  } catch (error) { openNotice("Payment unavailable", `${error.message} Start the local payment API before trying again.`); }
+  } catch (error) { openNotice("Payment could not be started", error.message); }
   finally { button.disabled = false; }
 });
 
@@ -381,10 +415,17 @@ $("#verify-payment").addEventListener("click", async () => {
     const response = await fetch(`${PAYMENT_API}/api/payments/verify`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ reference: pendingPayment.reference }) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.error || "Payment verification is still pending.");
-    const appointment = { ...(result.payment.appointment || {}), fee: result.receipt.amount, currency: result.receipt.currency, paymentStatus: "PAID", appointmentStatus: "CONFIRMED", reference: result.payment.appointmentReference || result.receipt.reference, receiptNumber: result.receipt.receiptNumber, paymentReference: result.receipt.reference, requestedAt: new Date().toISOString() };
+    const appointment = { ...(result.payment.appointment || {}), reason: $("#appointment-reason").value.trim(), fee: result.receipt.amount, currency: result.receipt.currency, paymentStatus: "PAID", appointmentStatus: "CONFIRMED", reference: result.payment.appointmentReference || result.receipt.reference, receiptNumber: result.receipt.receiptNumber, paymentReference: result.receipt.reference, requestedAt: new Date().toISOString() };
     updateActiveAccount({ appointmentRequest: appointment });
+    let synced = true;
+    try {
+      await saveAppointmentRequest(currentUser.uid, appointment);
+    } catch (error) {
+      synced = false;
+      console.warn("Firestore appointment save fallback:", error);
+    }
     paymentDialog.close(); pendingPayment = null; showAppointments();
-    openNotice("Appointment confirmed", `Reference: ${appointment.reference}. Payment status: PAID. Please keep receipt ${appointment.receiptNumber}.`);
+    openNotice("Appointment confirmed", `Reference: ${appointment.reference}. Payment status: PAID. Please keep receipt ${appointment.receiptNumber}.${synced ? " Your appointment has been saved to your account." : " We could not sync this appointment to your account yet."}`);
   } catch (error) { openNotice("Payment verification", error.message); }
 });
 
@@ -403,6 +444,8 @@ $("#register-form").addEventListener("submit", async (event) => {
   const email = normaliseEmail($("#register-email").value);
   $("#register-email").value = email;
   const phone = validUgandanPhone($("#register-phone").value);
+  const dateOfBirth = $("#register-date-of-birth").value;
+  const gender = $("#register-gender").value;
   const password = $("#register-password").value;
   const confirmPassword = $("#register-confirm-password").value;
 
@@ -429,23 +472,15 @@ $("#register-form").addEventListener("submit", async (event) => {
     // Set session key BEFORE signup so auth listener recognizes this as valid session
     // when auth state changes with the new user
     sessionStorage.setItem(AUTH_SESSION_KEY, AUTH_SESSION_VERSION);
-    console.log("[BloomCare Auth] Registration attempt:", { email, firstName, lastName });
-
     // Create Firebase Auth account and Firestore profile
-    const user = await signUpUser({ firstName, lastName, email, phone, password });
-
-    console.log("[BloomCare Auth] Registration successful:", { uid: user.uid, email: user.email });
+    const user = await signUpUser({ firstName, lastName, email, phone, password, dateOfBirth, gender });
 
     // Set currentUser - auth state listener will also load this
-    currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, role: "patient" };
+    currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, dateOfBirth, gender, role: "patient" };
     showView("dashboard-view");
     showHome();
   } catch (error) {
-    console.error("[BloomCare Auth] Registration error:", {
-      code: error.code,
-      message: error.message,
-      email
-    });
+    console.error("[BloomCare Auth] Registration error:", error.code);
 
     if (error.code === "auth/email-already-in-use") {
       $("#login-email").value = email;
@@ -454,7 +489,12 @@ $("#register-form").addEventListener("submit", async (event) => {
     } else if (error.code === "firestore/profile-creation-failed") {
       // The Firebase Auth session remains valid. Continue to the dashboard without retrying Auth.
       const user = error.user;
-      currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, role: "patient" };
+      try {
+        await updateClientProfile(user.uid, { firstName, lastName, email: user.email, phone, dateOfBirth, gender, role: "patient" });
+      } catch (_) {
+        // The profile editor remains available for a later retry.
+      }
+      currentUser = { uid: user.uid, firstName, lastName, email: user.email, phone, dateOfBirth, gender, role: "patient" };
       showView("dashboard-view");
       showHome();
     } else {
@@ -489,6 +529,7 @@ $("#login-form").addEventListener("submit", async (event) => {
     try {
       currentProfile = await getUserProfile(user.uid);
       currentRecords = await getHealthRecords(user.uid);
+      currentAppointment = await getLatestAppointmentRequest(user.uid);
     } catch (e) {
       console.warn("Firestore sync fallback:", e);
     }
@@ -574,11 +615,7 @@ document.addEventListener("click", (event) => {
   if (route) {
     event.preventDefault();
     const page = route.dataset.route || route.getAttribute("href").slice(1);
-    if (page === "dashboard") showHome();
-    if (page === "checkin") showCheckin();
-    if (page === "appointments") showAppointments();
-    if (page === "education") showEducation();
-    if (page === "profile") showProfileEditor();
+    navigateTo(page);
   }
   const action = event.target.closest("[data-action]")?.dataset.action;
   if (action === "emergency")
@@ -619,16 +656,29 @@ document.addEventListener("submit", (event) => {
     .catch(() => openNotice("Profile update failed", "We could not save your profile. Please try again."));
 });
 
-// Subscribe to Firebase Auth State changes
-subscribeAuthState(async (user) => {
+// Subscribe only after persistence is configured. This prevents an older local
+// Firebase session from briefly restoring a different user's dashboard.
+async function initialiseAuthState() {
+  if (resetSessionRequested) {
+    authTransition += 1;
+    sessionStorage.removeItem(AUTH_SESSION_KEY);
+    await resetAuthSession().catch((error) => console.warn("Session reset failed:", error));
+    window.history.replaceState({}, document.title, window.location.pathname);
+    resetSessionRequested = false;
+    showView("auth-view");
+  } else {
+    await authPersistenceReady.catch(() => {});
+  }
+
+  subscribeAuthState(async (user) => {
   const transition = ++authTransition;
   if (user) {
     // Firebase's default local persistence can restore another person's old
     // browser session. Only restore a session that began in this browser tab.
-    if (RESET_SESSION_REQUESTED || sessionStorage.getItem(AUTH_SESSION_KEY) !== AUTH_SESSION_VERSION) {
+    if (resetSessionRequested || sessionStorage.getItem(AUTH_SESSION_KEY) !== AUTH_SESSION_VERSION) {
       await signOutUser().catch(() => {});
       sessionStorage.removeItem(AUTH_SESSION_KEY);
-      if (RESET_SESSION_REQUESTED) window.history.replaceState({}, document.title, window.location.pathname);
+      if (resetSessionRequested) window.history.replaceState({}, document.title, window.location.pathname);
       showView("auth-view");
       return;
     }
@@ -648,6 +698,7 @@ subscribeAuthState(async (user) => {
     try {
       currentProfile = await getUserProfile(user.uid);
       currentRecords = await getHealthRecords(user.uid);
+      currentAppointment = await getLatestAppointmentRequest(user.uid);
     } catch (e) {
       console.warn("Firestore initial load fallback:", e);
     }
@@ -665,4 +716,7 @@ subscribeAuthState(async (user) => {
     sessionStorage.removeItem(AUTH_SESSION_KEY);
     showView("auth-view");
   }
-});
+  });
+}
+
+initialiseAuthState();

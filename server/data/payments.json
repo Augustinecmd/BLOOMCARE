@@ -161,5 +161,49 @@
       "reason": "check up"
     },
     "verifiedAt": "2026-08-22T07:38:47.344883+00:00"
+  },
+  "BC-20260827-D20B6C3F": {
+    "reference": "BC-20260827-D20B6C3F",
+    "provider": "MTN MoMo",
+    "phone": "0778965799",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "PAID",
+    "createdAt": "2026-08-27T19:15:04.101787+00:00",
+    "appointment": {
+      "patientId": "X0hwwGgREacT7RpXHkEkTJbMEA53",
+      "service": "Pregnancy Consultation",
+      "provider": "Dr. Amina Nanyonga",
+      "date": "2026-09-12",
+      "time": "09:00 AM",
+      "facility": "Kampala Women's Health Centre"
+    },
+    "appointmentStatus": "CONFIRMED",
+    "slotKey": "Dr. Amina Nanyonga|2026-09-12|09:00 AM",
+    "transactionId": "TXN-FD7F17AD3E21",
+    "appointmentReference": "BC-APT-2026-879646",
+    "verifiedAt": "2026-08-27T19:15:07.831095+00:00"
+  },
+  "BC-20260828-8708A548": {
+    "reference": "BC-20260828-8708A548",
+    "provider": "MTN MoMo",
+    "phone": "0768574648",
+    "amount": 20000,
+    "currency": "UGX",
+    "status": "PAID",
+    "createdAt": "2026-08-28T06:00:14.427076+00:00",
+    "appointment": {
+      "patientId": "Eqzubng6JGVZXjvLBB08CpSaB833",
+      "service": "Pregnancy Consultation",
+      "provider": "Dr. Amina Nanyonga",
+      "date": "2026-09-29",
+      "time": "11:30 AM",
+      "facility": "Kampala Women's Health Centre"
+    },
+    "appointmentStatus": "CONFIRMED",
+    "slotKey": "Dr. Amina Nanyonga|2026-09-29|11:30 AM",
+    "transactionId": "TXN-73D3CF806E75",
+    "appointmentReference": "BC-APT-2026-870102",
+    "verifiedAt": "2026-08-28T06:00:19.064777+00:00"
   }
 }

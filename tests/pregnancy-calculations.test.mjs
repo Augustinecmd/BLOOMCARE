@@ -15,7 +15,7 @@ test("calculates requested gestational ages from LMP", () => {
 
 test("calculates trimester, progress, due date, and remaining days", () => {
   const result = calculatePregnancyStatus({ lmp: "2026-06-20" }, today);
-  assert.deepEqual({ weeks: result.weeks, days: result.days, trimester: result.trimester, edd: result.edd, progress: result.progress, daysRemaining: result.daysRemaining }, { weeks: 9, days: 0, trimester: 1, edd: "2027-03-27", progress: 16, daysRemaining: 217 });
+  assert.deepEqual({ weeks: result.weeks, days: result.days, trimester: result.trimester, edd: result.edd, progress: result.progress, daysRemaining: result.daysRemaining }, { weeks: 9, days: 0, trimester: 1, edd: "2027-03-27", progress: 23, daysRemaining: 217 });
 });
 
 test("handles missing, invalid, and future pregnancy dates", () => {

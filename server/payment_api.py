@@ -108,10 +108,13 @@ def read_payments() -> dict:
 
 
 def write_payments(payments: dict) -> None:
-    DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     temporary_file = DATA_FILE.with_suffix(".tmp")
-    temporary_file.write_text(json.dumps(payments, indent=2), encoding="utf-8")
-    temporary_file.replace(DATA_FILE)
+    try:
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        temporary_file.write_text(json.dumps(payments, indent=2), encoding="utf-8")
+        temporary_file.replace(DATA_FILE)
+    except OSError as error:
+        raise PaymentStoreError("Payment records could not be saved safely.") from error
 
 
 def response_payload(handler: BaseHTTPRequestHandler, status: int, payload: dict) -> None:
@@ -197,6 +200,20 @@ class PaymentHandler(BaseHTTPRequestHandler):
             payments = read_payments()
             for existing in payments.values():
                 if existing.get("slotKey") == slot_key and existing.get("status") in {"PENDING", "PROCESSING", "PAID"}:
+                    existing_appointment = existing.get("appointment", {})
+                    if (
+                        existing.get("status") in {"PENDING", "PROCESSING"}
+                        and existing_appointment.get("patientId") == appointment["patientId"]
+                    ):
+                        response_payload(self, 200, {
+                            "reference": existing["reference"],
+                            "amount": existing["amount"],
+                            "currency": existing["currency"],
+                            "provider": existing["provider"],
+                            "message": "Your existing payment request has been resumed. Complete or verify it to confirm the appointment.",
+                            "status": existing["status"],
+                        })
+                        return
                     response_payload(self, 409, {"error": "This provider time slot already has an active booking or payment."})
                     return
             payments[reference] = payment

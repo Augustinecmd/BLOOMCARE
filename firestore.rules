@@ -70,6 +70,18 @@ service cloud.firestore {
       allow update, delete: if signedIn() && resource.data.userId == request.auth.uid;
     }
 
+    match /appointmentRequests/{requestId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.paymentReference == requestId;
+      allow read: if signedIn() && resource.data.userId == request.auth.uid;
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId
+        && request.resource.data.paymentReference == resource.data.paymentReference;
+      allow delete: if isAdmin();
+    }
+
     match /pregnancies/{pregnancyId} {
       allow create: if signedIn()
         && request.resource.data.patientUid == request.auth.uid;

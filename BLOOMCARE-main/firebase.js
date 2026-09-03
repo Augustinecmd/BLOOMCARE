@@ -37,9 +37,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-setPersistence(auth, browserSessionPersistence).catch((error) => {
+export const authPersistenceReady = setPersistence(auth, browserSessionPersistence).catch((error) => {
     console.warn("Session persistence could not be configured.", error);
+    throw error;
 });
+
+export async function resetAuthSession() {
+    await authPersistenceReady;
+    await signOut(auth);
+}
 
 export async function getSystemSettings() {
     const snap = await getDoc(doc(db, "systemSettings", "public"));
@@ -53,19 +59,17 @@ export async function updateSystemSettings(settings) {
 
 // Authentication Helpers
 export async function signUpUser(client) {
-    const { firstName, lastName, email, phone, password } = client;
+    const { firstName, lastName, email, phone, password, dateOfBirth = "", gender = "" } = client;
     const normalizedEmail = String(email).trim().toLowerCase();
 
     let user;
     try {
         const userCredential = await createUserWithEmailAndPassword(auth, normalizedEmail, password);
         user = userCredential.user;
-        console.log("[BloomCare Auth] Firebase account created:", { uid: user.uid, email: user.email });
     } catch (error) {
         console.error("[BloomCare Auth] Firebase account creation failed:", {
             code: error.code,
-            message: error.message,
-            email: normalizedEmail
+            message: error.message
         });
         throw error;
     }
@@ -79,15 +83,15 @@ export async function signUpUser(client) {
             lastName,
             email: user.email.toLowerCase(),
             phone,
+            dateOfBirth,
+            gender,
             role: "patient",
             createdAt: new Date().toISOString(),
             updatedAt: new Date().toISOString()
         });
-        console.log("[BloomCare Auth] Firestore profile created successfully:", user.uid);
         return user;
     } catch (error) {
         console.error("[BloomCare Auth] Profile creation failed after Firebase Auth succeeded:", {
-            uid: user.uid,
             code: error.code,
             message: error.message
         });
@@ -103,13 +107,11 @@ export async function signInUser(email, password) {
     const normalizedEmail = String(email).trim().toLowerCase();
     try {
         const userCredential = await signInWithEmailAndPassword(auth, normalizedEmail, password);
-        console.log("[BloomCare Auth] Sign-in successful:", { uid: userCredential.user.uid, email: userCredential.user.email });
         return userCredential.user;
     } catch (error) {
         console.error("[BloomCare Auth] Sign-in failed:", {
             code: error.code,
-            message: error.message,
-            email: normalizedEmail
+            message: error.message
         });
         throw error;
     }
@@ -142,6 +144,9 @@ export async function updateClientProfile(userId, client) {
         role: client.role || "patient",
         updatedAt: new Date().toISOString()
     };
+    if (typeof client.email === "string" && client.email.trim()) {
+        data.email = client.email.trim().toLowerCase();
+    }
     await setDoc(doc(db, "users", userId), data, { merge: true });
     await updateProfile(auth.currentUser, { displayName: `${data.firstName} ${data.lastName}`.trim() });
     return data;
@@ -204,14 +209,32 @@ export async function getHealthRecords(userId) {
 
 // 3. 'appointmentRequests' collection
 export async function saveAppointmentRequest(userId, requestData) {
-    const requestsCol = collection(db, "appointmentRequests");
+    const id = String(requestData.paymentReference || requestData.reference || "").trim();
+    if (!id) throw new Error("A verified payment reference is required to save an appointment.");
     const data = {
         userId,
-        fee: requestData.fee || 20000,
-        currency: requestData.currency || "UGX",
-        status: requestData.status || "payment-confirmed",
-        requestedAt: new Date().toISOString()
+        service: requestData.service,
+        provider: requestData.provider,
+        date: requestData.date,
+        time: requestData.time,
+        facility: requestData.facility,
+        reason: requestData.reason || "",
+        fee: requestData.fee,
+        currency: requestData.currency,
+        paymentStatus: requestData.paymentStatus,
+        appointmentStatus: requestData.appointmentStatus,
+        reference: requestData.reference,
+        receiptNumber: requestData.receiptNumber,
+        paymentReference: id,
+        requestedAt: requestData.requestedAt || new Date().toISOString()
     };
-    const docRef = await addDoc(requestsCol, data);
-    return { id: docRef.id, ...data };
+    await setDoc(doc(db, "appointmentRequests", id), data, { merge: true });
+    return { id, ...data };
+}
+
+export async function getLatestAppointmentRequest(userId) {
+    const requests = await getDocs(query(collection(db, "appointmentRequests"), where("userId", "==", userId)));
+    return requests.docs
+        .map((snapshot) => ({ id: snapshot.id, ...snapshot.data() }))
+        .sort((left, right) => new Date(right.requestedAt) - new Date(left.requestedAt))[0] || null;
 }

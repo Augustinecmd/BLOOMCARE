@@ -1,47 +1,41 @@
 #!/usr/bin/env node
 
-/**
- * Quick Start Development Server
- * 
- * This script bypasses PowerShell execution policy issues by running the dev server directly.
- * 
- * Usage:
- *   node run-dev.js
- */
+import { spawn } from "node:child_process";
+import { fileURLToPath } from "node:url";
+import path from "node:path";
 
-const path = require('path');
-const { spawn } = require('child_process');
+const root = path.dirname(fileURLToPath(import.meta.url));
+const npmCommand = process.platform === "win32" ? "npm.cmd" : "npm";
+const pythonCommand = process.platform === "win32" ? "python" : "python3";
+const processes = [];
+let stopping = false;
 
-const projectRoot = path.resolve(__dirname, 'BLOOMCARE-main');
+function stop(exitCode = 0) {
+  if (stopping) return;
+  stopping = true;
+  for (const child of processes) child.kill();
+  process.exit(exitCode);
+}
 
-console.log('🚀 Starting BloomCare development server...');
-console.log(`📁 Project: ${projectRoot}`);
-console.log(`🌐 URL: http://localhost:8080`);
-console.log('---');
+function start(name, command, args) {
+  const child = spawn(command, args, { cwd: root, stdio: "inherit" });
+  processes.push(child);
+  child.on("error", (error) => {
+    console.error(`${name} failed to start: ${error.message}`);
+    stop(1);
+  });
+  child.on("exit", (code) => {
+    if (!stopping && code !== 0) {
+      console.error(`${name} stopped unexpectedly (exit code ${code ?? "unknown"}).`);
+      stop(code || 1);
+    }
+  });
+}
 
-// Run vite dev server
-const vite = spawn('npx', ['vite', '--port', '8080'], {
-  cwd: projectRoot,
-  stdio: 'inherit',
-  shell: true,
-});
-
-vite.on('error', (error) => {
-  console.error('❌ Failed to start dev server:', error.message);
-  process.exit(1);
-});
-
-vite.on('close', (code) => {
-  if (code === 0) {
-    console.log('✅ Dev server stopped gracefully');
-  } else {
-    console.error(`❌ Dev server exited with code ${code}`);
-  }
-  process.exit(code);
-});
-
-// Handle Ctrl+C
-process.on('SIGINT', () => {
-  console.log('\n⏹️  Stopping dev server...');
-  vite.kill();
-});
+console.log("Starting BloomCare web app and payment API...");
+console.log("Web: http://127.0.0.1:8080");
+console.log("API: http://127.0.0.1:8787/health");
+start("Web server", npmCommand, ["--prefix", "BLOOMCARE-main", "run", "dev"]);
+start("Payment API", pythonCommand, ["server/payment_api.py"]);
+process.on("SIGINT", () => stop());
+process.on("SIGTERM", () => stop());

@@ -550,9 +550,65 @@ justify-content:space-between;
 align-items:flex-start;
 gap:24px
 }
+.page-header-actions{
+display:flex;
+align-items:center;
+gap:10px
+}
+.header-signout{
+border:1px solid var(--line);
+border-radius:6px;
+padding:10px 13px;
+background:#fff;
+color:#58716d;
+font:inherit;
+font-size:13px;
+font-weight:700;
+cursor:pointer
+}
+.header-signout:hover{
+border-color:#c7dcd3;
+background:var(--pale);
+color:var(--teal)
+}
 .dash-header h1{
 font-size:33px;
 margin:0
+}
+.welcome-guide{
+display:flex;
+align-items:center;
+justify-content:space-between;
+gap:24px;
+margin:28px 0 30px;
+padding:22px 24px;
+border:1px solid #cfe3da;
+border-radius:8px;
+background:#f2faf6
+}
+.welcome-guide .eyebrow{
+margin-bottom:6px
+}
+.welcome-guide h2{
+margin:0;
+font-family:"Libre Baskerville",Georgia,serif;
+font-size:20px
+}
+.welcome-guide p:not(.eyebrow){
+max-width:600px;
+margin:7px 0 0;
+color:var(--muted);
+font-size:13px;
+line-height:1.55
+}
+.quick-actions{
+display:flex;
+flex-wrap:wrap;
+justify-content:flex-end;
+gap:9px
+}
+.quick-actions .secondary-button{
+white-space:nowrap
 }
 .emergency-button{
 background:#fff7f5;
@@ -1117,6 +1173,26 @@ border-color:#eed1ca
 color:var(--danger)
 }
 @media(max-width:760px){
+.page-header-actions{
+width:100%;
+justify-content:space-between
+}
+.welcome-guide{
+align-items:flex-start;
+flex-direction:column;
+margin:22px 0 25px;
+padding:19px
+}
+.welcome-guide .primary-button{
+width:100%
+}
+.quick-actions{
+width:100%;
+justify-content:stretch
+}
+.quick-actions .secondary-button{
+flex:1
+}
 .workflow-page{
 margin-top:24px
 }
