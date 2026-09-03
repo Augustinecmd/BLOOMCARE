@@ -9,6 +9,7 @@ import {
   validateProduct,
   validateOrder,
   validatePrescription,
+  validatePrescriptionFile,
   validateConsultation,
   validateRefill,
   validateStockAdjustment
@@ -73,3 +74,18 @@ test("validates prescriptions, consultations, and refills", () => {
   assert.equal(validateStockAdjustment({ productId: "BC-1", type: "stock_in", quantity: 50 }).valid, true);
   assert.equal(validateStockAdjustment({ productId: "BC-1", type: "invalid_type", quantity: 50 }).valid, false);
 });
+
+test("validates PC prescription file uploads (images & PDF)", () => {
+  // Valid PC files
+  assert.equal(validatePrescriptionFile({ name: "dr_prescription.png", type: "image/png", size: 450000 }).valid, true);
+  assert.equal(validatePrescriptionFile({ name: "dr_prescription.jpg", type: "image/jpeg", size: 950000 }).valid, true);
+  assert.equal(validatePrescriptionFile({ name: "clinic_scan.pdf", type: "application/pdf", size: 1500000 }).valid, true);
+  assert.equal(validatePrescriptionFile({ name: "photo.webp", type: "image/webp", size: 200000 }).valid, true);
+
+  // Invalid PC files
+  assert.equal(validatePrescriptionFile(null).valid, false);
+  assert.equal(validatePrescriptionFile({ name: "notes.txt", type: "text/plain", size: 1000 }).valid, false);
+  assert.equal(validatePrescriptionFile({ name: "virus.exe", type: "application/x-msdownload", size: 5000 }).valid, false);
+  assert.equal(validatePrescriptionFile({ name: "huge_scan.pdf", type: "application/pdf", size: 15 * 1024 * 1024 }).valid, false); // > 10MB
+});
+

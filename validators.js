@@ -89,10 +89,27 @@ export function validateOrder(order) {
   return { valid: true };
 }
 
+export function validatePrescriptionFile(file) {
+  if (!file) return { valid: false, message: "Please select a prescription document." };
+  const fileName = file.name || "";
+  const fileType = file.type || "";
+  const isImage = fileType.startsWith("image/") || /\.(jpe?g|png|webp|gif|bmp)$/i.test(fileName);
+  const isPdf = fileType === "application/pdf" || /\.pdf$/i.test(fileName);
+
+  if (!isImage && !isPdf) {
+    return { valid: false, message: "Unsupported file format. Please upload a JPG, PNG, WEBP image or PDF scan." };
+  }
+  const maxSize = 10 * 1024 * 1024; // 10MB
+  if (file.size && file.size > maxSize) {
+    return { valid: false, message: "File exceeds 10MB limit. Please choose a smaller file." };
+  }
+  return { valid: true, isImage, isPdf };
+}
+
 export function validatePrescription(prescription) {
   if (!prescription || typeof prescription !== "object") return { valid: false, message: "Prescription details required." };
   if (!prescription.customerId) return { valid: false, message: "Customer identification required." };
-  if (!prescription.fileUrl && !prescription.notes && !prescription.medications) {
+  if (!prescription.fileUrl && !prescription.notes && !prescription.medications && !prescription.fileName) {
     return { valid: false, message: "Provide a prescription file or doctor notes." };
   }
   return { valid: true };

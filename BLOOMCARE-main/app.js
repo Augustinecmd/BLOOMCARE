@@ -773,6 +773,7 @@ export const STATE = {
   pendingAction: null,
   currentRoute: "",
   activeReceiptOrder: null,
+  pendingRxFile: null,
   products: [...INITIAL_MEDICINES],
   categories: [...ESSENTIAL_CATEGORIES],
   cart: [],
@@ -3041,7 +3042,7 @@ function renderPrescriptionsView() {
             <th>Prescription ID</th>
             <th>Upload Date</th>
             <th>Status</th>
-            <th>Related Order</th>
+            <th>Document File</th>
             <th>Pharmacist Note</th>
             <th>Actions</th>
           </tr>
@@ -3052,14 +3053,16 @@ function renderPrescriptionsView() {
               <td><strong>${escapeHtml(rx.prescriptionNumber || rx.id)}</strong></td>
               <td>${new Date(rx.createdAt).toLocaleDateString()}</td>
               <td><span class="status-pill status-${rx.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(rx.status)}</span></td>
-              <td><small>${escapeHtml(rx.relatedOrder || "Prescription File: " + (rx.fileUrl || "rx-doc.pdf"))}</small></td>
+              <td>
+                <div><strong>${escapeHtml(rx.fileName || rx.fileUrl || "Prescription Scan")}</strong></div>
+                ${rx.fileSize ? `<small class="muted">${escapeHtml(rx.fileSize)}</small>` : ""}
+              </td>
               <td><em>"${escapeHtml(rx.reviewNotes || "Awaiting clinical review")}"</em></td>
               <td>
+                <button class="btn btn-secondary btn-sm view-rx-file-btn" data-id="${rx.id}">View File</button>
                 ${(rx.status === "Pending" || rx.status === "Pending Review") ? `
-                  <button class="btn btn-outline btn-sm cancel-rx-btn" data-id="${rx.id}">Cancel</button>
-                ` : `
-                  <button class="btn btn-secondary btn-sm view-rx-file-btn" data-id="${rx.id}">View</button>
-                `}
+                  <button class="btn btn-outline btn-sm cancel-rx-btn" data-id="${rx.id}" style="margin-left:4px;">Cancel</button>
+                ` : ""}
               </td>
             </tr>
           `).join("")}
@@ -3069,17 +3072,25 @@ function renderPrescriptionsView() {
   } else {
     box.innerHTML = `
       <table class="standard-table">
-        <thead><tr><th>Prescription #</th><th>Date</th><th>Patient</th><th>Doctor / Clinical Notes</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Prescription #</th><th>Date</th><th>Patient</th><th>Attached File</th><th>Doctor / Clinical Notes</th><th>Status</th><th>Actions</th></tr></thead>
         <tbody>
           ${list.map(rx => `
             <tr>
               <td><strong>${escapeHtml(rx.prescriptionNumber || rx.id)}</strong></td>
               <td>${new Date(rx.createdAt).toLocaleDateString()}</td>
-              <td>${escapeHtml(rx.customerName)}</td>
+              <td>
+                <strong>${escapeHtml(rx.customerName)}</strong>
+                ${rx.customerPhone ? `<div class="muted" style="font-size:11px;">${escapeHtml(rx.customerPhone)}</div>` : ""}
+              </td>
+              <td>
+                <span>📄 ${escapeHtml(rx.fileName || rx.fileUrl || "Prescription Document")}</span>
+                ${rx.fileSize ? `<small class="muted" style="display:block;">${escapeHtml(rx.fileSize)}</small>` : ""}
+              </td>
               <td><em>"${escapeHtml(rx.notes || "None")}"</em></td>
               <td><span class="status-pill status-${rx.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(rx.status)}</span></td>
               <td>
-                <button class="btn btn-primary btn-sm open-rx-review-btn" data-id="${rx.id}">Review Rx</button>
+                <button class="btn btn-secondary btn-sm view-rx-file-btn" data-id="${rx.id}">View Doc</button>
+                <button class="btn btn-primary btn-sm open-rx-review-btn" data-id="${rx.id}" style="margin-left:4px;">Review Rx</button>
               </td>
             </tr>
           `).join("")}
@@ -3089,9 +3100,152 @@ function renderPrescriptionsView() {
   }
 }
 
+export function formatBytes(bytes) {
+  if (!bytes || bytes === 0) return "0 Bytes";
+  const k = 1024;
+  const sizes = ["Bytes", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + " " + sizes[i];
+}
+
+export function handleRxFileSelection(file) {
+  if (!file) return;
+
+  const isImage = file.type.startsWith("image/") || /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name);
+  const isPdf = file.type === "application/pdf" || /\.pdf$/i.test(file.name);
+
+  if (!isImage && !isPdf) {
+    openNotice("Unsupported File Format", "Please choose a doctor's prescription image (JPG, PNG, WEBP) or PDF scan from your PC.");
+    return;
+  }
+
+  // Max 10MB
+  if (file.size > 10 * 1024 * 1024) {
+    openNotice("File Too Large", "Prescription files must be under 10MB. Please choose a smaller file from your PC.");
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = (e) => {
+    STATE.pendingRxFile = {
+      name: file.name,
+      size: formatBytes(file.size),
+      type: file.type || (isPdf ? "application/pdf" : "image/jpeg"),
+      dataUrl: e.target.result,
+      isPdf,
+      isImage
+    };
+
+    const previewBox = $("#rx-dropzone-preview");
+    const emptyBox = $("#rx-dropzone-empty");
+    const thumbBox = $("#rx-preview-thumb");
+    const nameEl = $("#rx-preview-filename");
+    const sizeEl = $("#rx-preview-filesize");
+
+    if (nameEl) nameEl.textContent = file.name;
+    if (sizeEl) sizeEl.textContent = formatBytes(file.size);
+
+    if (thumbBox) {
+      if (isImage) {
+        thumbBox.innerHTML = `<img src="${e.target.result}" alt="Prescription Thumbnail" class="rx-preview-thumb-img" />`;
+      } else {
+        thumbBox.innerHTML = `<span class="rx-preview-pdf-icon">PDF</span>`;
+      }
+    }
+
+    if (emptyBox) emptyBox.classList.add("hidden");
+    if (previewBox) previewBox.classList.remove("hidden");
+  };
+  reader.readAsDataURL(file);
+}
+
+export function clearRxFileSelection() {
+  STATE.pendingRxFile = null;
+  const fileInput = $("#rx-file-input");
+  if (fileInput) fileInput.value = "";
+  const previewBox = $("#rx-dropzone-preview");
+  const emptyBox = $("#rx-dropzone-empty");
+  if (previewBox) previewBox.classList.add("hidden");
+  if (emptyBox) emptyBox.classList.remove("hidden");
+}
+
+export function openRxDocumentModal(rxId) {
+  const rx = STATE.prescriptions.find(p => p.id === rxId);
+  if (!rx) return;
+
+  const titleEl = $("#rx-view-modal-title");
+  const bodyEl = $("#rx-view-modal-content");
+  const downloadLink = $("#rx-modal-download-link");
+
+  if (titleEl) {
+    titleEl.textContent = `Prescription ${rx.prescriptionNumber || rx.id}`;
+  }
+
+  const isImage = rx.fileType?.startsWith("image/") || (rx.fileData && rx.fileData.startsWith("data:image/")) || (rx.fileName && /\.(jpe?g|png|webp|gif)$/i.test(rx.fileName));
+  const isPdf = rx.fileType === "application/pdf" || (rx.fileName && /\.pdf$/i.test(rx.fileName)) || (rx.fileData && rx.fileData.startsWith("data:application/pdf"));
+
+  let previewHtml = "";
+  if (rx.fileData && isImage) {
+    previewHtml = `
+      <div class="rx-doc-preview-container">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:6px;">High-Resolution Prescription Document Preview:</p>
+        <img src="${rx.fileData}" alt="Prescription Scan from PC" class="rx-doc-preview-image" />
+      </div>
+    `;
+  } else if (rx.fileData && isPdf) {
+    previewHtml = `
+      <div class="rx-doc-preview-container">
+        <p style="font-size:12px; color:var(--muted); margin-bottom:6px;">PDF Document Scan:</p>
+        <iframe src="${rx.fileData}" width="100%" height="400px" style="border:none; border-radius:4px;"></iframe>
+      </div>
+    `;
+  } else {
+    previewHtml = `
+      <div class="rx-doc-preview-container" style="padding: 24px;">
+        <div style="font-size:42px; margin-bottom:8px;">📄</div>
+        <p><strong>${escapeHtml(rx.fileName || rx.fileUrl || "Prescription Document")}</strong></p>
+        <p class="muted" style="font-size:12px;">Doctor's prescription record attached securely to patient profile.</p>
+      </div>
+    `;
+  }
+
+  if (bodyEl) {
+    bodyEl.innerHTML = `
+      <div style="background:var(--bg-page); padding:12px 14px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:13.5px; line-height:1.6;">
+        <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; margin-bottom:6px;">
+          <div><strong>Patient:</strong> ${escapeHtml(rx.customerName)} (${escapeHtml(rx.customerPhone || "No phone")})</div>
+          <div><span class="status-pill status-${rx.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(rx.status)}</span></div>
+        </div>
+        <div><strong>Uploaded:</strong> ${new Date(rx.createdAt).toLocaleDateString()} at ${new Date(rx.createdAt).toLocaleTimeString()}</div>
+        <div><strong>Attached File:</strong> <code>${escapeHtml(rx.fileName || rx.fileUrl || "prescription.pdf")}</code> ${rx.fileSize ? `(${escapeHtml(rx.fileSize)})` : ""}</div>
+        ${rx.notes ? `<div style="margin-top:6px;"><strong>Clinical / Patient Notes:</strong> <em>"${escapeHtml(rx.notes)}"</em></div>` : ""}
+        ${rx.reviewNotes ? `<div style="margin-top:6px; color:var(--primary-dark);"><strong>Pharmacist Clinical Assessment:</strong> <em>"${escapeHtml(rx.reviewNotes)}"</em></div>` : ""}
+      </div>
+      ${previewHtml}
+    `;
+  }
+
+  if (downloadLink) {
+    if (rx.fileData) {
+      downloadLink.href = rx.fileData;
+      downloadLink.download = rx.fileName || `prescription-${rx.id}.png`;
+      downloadLink.style.display = "inline-flex";
+    } else {
+      downloadLink.style.display = "none";
+    }
+  }
+
+  $("#rx-view-dialog")?.showModal();
+}
+
+if (typeof window !== "undefined") {
+  window.bloomcareOpenDoc = openRxDocumentModal;
+}
+
 function openRxReviewModal(rxId) {
-  if (STATE.activeRole !== "pharmacist" && STATE.activeRole !== "admin") {
-    openNotice("Permission Denied", "Prescription review and clinical approval is restricted to licensed pharmacists and administrators.");
+  const effRole = getEffectiveRole();
+  if (effRole !== "pharmacist" && effRole !== "admin" && effRole !== "developer") {
+    openNotice("Permission Denied", "Prescription review and clinical approval is restricted to licensed pharmacists, administrators, and developers.");
     return;
   }
 
@@ -3099,11 +3253,35 @@ function openRxReviewModal(rxId) {
   if (!rx) return;
 
   $("#review-rx-id").value = rx.id;
+
+  const isImage = rx.fileType?.startsWith("image/") || (rx.fileData && rx.fileData.startsWith("data:image/")) || (rx.fileName && /\.(jpe?g|png|webp|gif)$/i.test(rx.fileName));
+  const isPdf = rx.fileType === "application/pdf" || (rx.fileName && /\.pdf$/i.test(rx.fileName));
+
+  let previewThumb = "";
+  if (rx.fileData && isImage) {
+    previewThumb = `
+      <div style="margin-top:12px; text-align:center; background:#fff; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+        <p style="font-size:12px; font-weight:600; color:var(--text-dark); margin-bottom:6px;">Scanned Doctor's Prescription (Uploaded from Patient PC):</p>
+        <img src="${rx.fileData}" alt="Prescription" style="max-height:190px; max-width:100%; border-radius:4px; border:1px solid #cbd5e1; cursor:pointer;" onclick="window.bloomcareOpenDoc && window.bloomcareOpenDoc('${rx.id}')" title="Click to open high-resolution viewer" />
+        <div style="margin-top:8px;">
+          <button type="button" class="btn btn-secondary btn-sm view-rx-file-btn" data-id="${rx.id}">Open Full High-Res Document</button>
+        </div>
+      </div>
+    `;
+  } else if (rx.fileData && isPdf) {
+    previewThumb = `
+      <div style="margin-top:10px; text-align:center;">
+        <button type="button" class="btn btn-secondary btn-sm view-rx-file-btn" data-id="${rx.id}">Inspect Uploaded PDF Document</button>
+      </div>
+    `;
+  }
+
   $("#rx-review-details-box").innerHTML = `
-    <div style="background:var(--bg-page); padding:10px; border-radius:var(--radius-sm); margin-bottom:10px;">
+    <div style="background:var(--bg-page); padding:12px; border-radius:var(--radius-sm); margin-bottom:12px; font-size:13.5px; line-height:1.6;">
       <p><strong>Patient:</strong> ${escapeHtml(rx.customerName)} (${escapeHtml(rx.customerPhone || "")})</p>
-      <p><strong>Prescription Notes:</strong> <em>"${escapeHtml(rx.notes)}"</em></p>
-      <p><strong>File Attached:</strong> ${escapeHtml(rx.fileUrl || "prescription-document.pdf")}</p>
+      <p><strong>Prescription Notes:</strong> <em>"${escapeHtml(rx.notes || "None provided")}"</em></p>
+      <p><strong>Attached File:</strong> <code>${escapeHtml(rx.fileName || rx.fileUrl || "prescription-document.pdf")}</code> ${rx.fileSize ? `(${escapeHtml(rx.fileSize)})` : ""}</p>
+      ${previewThumb}
     </div>
   `;
   $("#review-rx-decision").value = rx.status || "Approved";
@@ -4929,20 +5107,7 @@ function bindEventListeners() {
 
     const viewRxFileBtn = e.target.closest(".view-rx-file-btn");
     if (viewRxFileBtn) {
-      const rx = STATE.prescriptions.find(p => p.id === viewRxFileBtn.dataset.id);
-      if (rx) {
-        openNotice("Prescription File Details", `
-          <div style="font-size:13.5px; line-height:1.6;">
-            <p><strong>Prescription ID:</strong> ${escapeHtml(rx.prescriptionNumber || rx.id)}</p>
-            <p><strong>Uploaded By:</strong> ${escapeHtml(rx.customerName)}</p>
-            <p><strong>Date:</strong> ${new Date(rx.createdAt).toLocaleDateString()}</p>
-            <p><strong>File Attached:</strong> <code>${escapeHtml(rx.fileUrl || "prescription-document.pdf")}</code></p>
-            <p><strong>Clinical Notes:</strong> ${escapeHtml(rx.notes || "None provided")}</p>
-            <p><strong>Pharmacist Review:</strong> <em>"${escapeHtml(rx.reviewNotes || "Awaiting clinical verification")}"</em></p>
-            <p><strong>Status:</strong> <span class="status-pill status-${rx.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(rx.status)}</span></p>
-          </div>
-        `);
-      }
+      openRxDocumentModal(viewRxFileBtn.dataset.id);
     }
 
     const selectRefillMedBtn = e.target.closest(".select-refill-med-btn");
@@ -5207,11 +5372,65 @@ function bindEventListeners() {
     openNotice("Signed Out", "You have signed out of BloomCare Pharmacy.");
   });
 
-  // Prescription Upload Form (Protected)
+  // Prescription Document Upload Dropzone & PC File Handling
+  const rxDropzone = $("#rx-upload-dropzone");
+  const rxFileInput = $("#rx-file-input");
+  const rxSelectBtn = $("#rx-select-file-btn");
+  const rxRemoveBtn = $("#rx-remove-file-btn");
+
+  rxSelectBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    rxFileInput?.click();
+  });
+
+  rxDropzone?.addEventListener("click", (e) => {
+    if (e.target.closest("#rx-remove-file-btn") || e.target.closest("#rx-select-file-btn")) return;
+    rxFileInput?.click();
+  });
+
+  rxFileInput?.addEventListener("change", (e) => {
+    if (e.target.files && e.target.files[0]) {
+      handleRxFileSelection(e.target.files[0]);
+    }
+  });
+
+  rxRemoveBtn?.addEventListener("click", (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    clearRxFileSelection();
+  });
+
+  rxDropzone?.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    rxDropzone.classList.add("dragover");
+  });
+
+  rxDropzone?.addEventListener("dragleave", (e) => {
+    e.preventDefault();
+    rxDropzone.classList.remove("dragover");
+  });
+
+  rxDropzone?.addEventListener("drop", (e) => {
+    e.preventDefault();
+    rxDropzone.classList.remove("dragover");
+    if (e.dataTransfer?.files && e.dataTransfer.files[0]) {
+      handleRxFileSelection(e.dataTransfer.files[0]);
+    }
+  });
+
+  // Prescription View Dialog Close handlers
+  $("#close-rx-view-modal")?.addEventListener("click", () => $("#rx-view-dialog")?.close());
+  $("#rx-modal-close-btn")?.addEventListener("click", () => $("#rx-view-dialog")?.close());
+
+  // Prescription Upload Form Submit Handler
   $("#rx-upload-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const authed = requireAuth(null, { type: "navigate", route: "prescriptions" }, "Please create an account or log in before uploading a prescription.");
-    if (!authed) return;
+    if (!STATE.currentUser) {
+      openNotice("Sign-in Required", "Please log in to your account first so our pharmacists can verify your prescription and securely link it to your customer records.");
+      navigateTo("auth");
+      return;
+    }
 
     const name = $("#rx-patient-name").value.trim();
     const phone = $("#rx-patient-phone").value.trim();
@@ -5220,24 +5439,56 @@ function bindEventListeners() {
     const phoneVal = validateUgandanPhone(phone);
     if (!phoneVal.valid) return openNotice("Invalid Phone Number", phoneVal.message);
 
+    // Ensure prescription document was selected from PC
+    if (!STATE.pendingRxFile) {
+      const directFile = rxFileInput?.files?.[0];
+      if (directFile) {
+        handleRxFileSelection(directFile);
+        // give brief delay for FileReader
+        await new Promise(r => setTimeout(r, 150));
+      }
+    }
+
+    if (!STATE.pendingRxFile) {
+      return openNotice("Prescription Document Required", "Please select a doctor's prescription file (image or PDF scan) from your PC before submitting.");
+    }
+
+    const rxNumber = "BC-RX-" + new Date().getFullYear() + "-" + Math.floor(100000 + Math.random() * 900000);
     const newRx = {
       id: "BC-RX-" + Date.now().toString().slice(-4),
-      prescriptionNumber: "BC-RX-" + Date.now().toString().slice(-4),
+      prescriptionNumber: rxNumber,
       customerId: STATE.currentUser.uid,
       customerName: name,
+      customerEmail: STATE.currentUser.email || "",
       customerPhone: phoneVal.normalized,
-      fileUrl: "prescription-document.pdf",
+      fileName: STATE.pendingRxFile.name,
+      fileSize: STATE.pendingRxFile.size,
+      fileType: STATE.pendingRxFile.type,
+      fileData: STATE.pendingRxFile.dataUrl,
+      fileUrl: STATE.pendingRxFile.name,
       notes,
       status: "Pending Review",
+      reviewNotes: "",
+      reviewedBy: null,
       createdAt: new Date().toISOString()
     };
 
-    try { await submitPrescription(newRx); } catch (_) {}
+    try {
+      await submitPrescription(newRx);
+    } catch (err) {
+      console.warn("[BLOOMCARE Rx] Firestore submission handled locally:", err);
+    }
+
     STATE.prescriptions.unshift(newRx);
     $("#rx-upload-form").reset();
+    clearRxFileSelection();
     renderPrescriptionsView();
     renderRoleDashboard();
-    openNotice("Prescription Submitted", "Your prescription has been submitted for pharmacist safety verification.");
+
+    openNotice(
+      "Prescription Uploaded Successfully",
+      `Your prescription file <strong>${escapeHtml(newRx.fileName)}</strong> (${newRx.fileSize}) has been uploaded from your PC and submitted for pharmacist safety verification. You can track its status in the table below.`
+    );
   });
 
   // Consultation Booking Form (Protected)

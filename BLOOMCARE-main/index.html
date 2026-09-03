@@ -340,9 +340,33 @@
             <form id="rx-upload-form" class="standard-form">
               <label>Patient Full Name<input type="text" id="rx-patient-name" placeholder="Full name" required /></label>
               <label>Phone Number<input type="tel" id="rx-patient-phone" placeholder="0751234567" required /></label>
-              <label>Prescription Document (Image or PDF Scan)<input type="file" id="rx-file-input" accept="image/*,.pdf" required /></label>
+              <div class="form-field-block">
+                <label>Prescription Document (Upload from PC)</label>
+                <div class="rx-upload-dropzone" id="rx-upload-dropzone">
+                  <input type="file" id="rx-file-input" accept="image/jpeg,image/png,image/webp,image/jpg,.pdf" class="rx-file-input-hidden" />
+                  <div class="rx-dropzone-content" id="rx-dropzone-empty">
+                    <div class="rx-upload-icon-circle">
+                      <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </div>
+                    <div class="rx-dropzone-text">
+                      <strong>Click to choose prescription file from your PC</strong>
+                      <span class="muted">or drag and drop document here (JPG, PNG, WEBP, or PDF &bull; max 10MB)</span>
+                    </div>
+                    <button type="button" class="btn btn-secondary btn-sm" id="rx-select-file-btn">Browse Files on PC</button>
+                  </div>
+                  <div class="rx-dropzone-preview hidden" id="rx-dropzone-preview">
+                    <div class="rx-preview-thumb-box" id="rx-preview-thumb"></div>
+                    <div class="rx-preview-details">
+                      <strong class="rx-preview-filename" id="rx-preview-filename">prescription.png</strong>
+                      <span class="rx-preview-filesize muted" id="rx-preview-filesize">240 KB</span>
+                      <span class="rx-preview-badge">Ready for Review</span>
+                    </div>
+                    <button type="button" class="rx-remove-file-btn" id="rx-remove-file-btn" title="Remove selected file" aria-label="Remove file">&times;</button>
+                  </div>
+                </div>
+              </div>
               <label>Clinical Notes / Instructions<textarea id="rx-notes-input" placeholder="List prescribed medicines, dosage instructions, or questions for the pharmacist..." rows="3"></textarea></label>
-              <button class="btn btn-primary" type="submit">Submit for Pharmacist Review</button>
+              <button class="btn btn-primary" type="submit" id="rx-submit-btn">Submit for Pharmacist Review</button>
             </form>
           </div>
 
@@ -1026,6 +1050,19 @@
       <button class="btn btn-primary" type="submit">Submit Clinical Review</button>
     </div>
   </form>
+</dialog>
+
+<!-- 6b. Prescription Document Viewer Modal (Patient & Staff) -->
+<dialog id="rx-view-dialog" class="form-modal-dialog" style="max-width: 680px;">
+  <div class="dialog-header">
+    <h3 id="rx-view-modal-title">Prescription Document Viewer</h3>
+    <button class="dialog-close-btn" id="close-rx-view-modal">&times;</button>
+  </div>
+  <div class="rx-modal-body" id="rx-view-modal-content"></div>
+  <div class="form-actions-row" style="margin-top: 16px;">
+    <a href="#" id="rx-modal-download-link" class="btn btn-secondary" download="prescription-document">Download Document</a>
+    <button class="btn btn-primary" type="button" id="rx-modal-close-btn">Close</button>
+  </div>
 </dialog>
 
 <!-- 7. Product Details Monograph Modal -->
