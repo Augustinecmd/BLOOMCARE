@@ -1,13 +1,13 @@
 {
-    "name": "bloomcare-early-pregnancy",
+    "name": "bloomcare-pharmacy-ecosystem",
     "version": "1.0.0",
-    "description": "BloomCare Early Pregnancy Monitoring System",
+    "description": "BloomCare Professional Digital Pharmacy Ecosystem",
     "main": "app.js",
     "type": "module",
     "scripts": {
-        "dev": "vite --port 8080",
+        "dev": "vite --host --port 8080",
         "serve": "npx serve -l 8080 .",
-        "start": "vite --port 8080",
+        "start": "vite --host --port 8080",
         "build": "vite build",
         "preview": "vite preview"
     },

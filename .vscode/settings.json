@@ -1,0 +1,6 @@
+{
+  "npm.enableScriptExplorer": true,
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.scrollback": 5000
+}
+

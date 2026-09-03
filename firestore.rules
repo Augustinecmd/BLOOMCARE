@@ -1,205 +1,135 @@
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    function signedIn() {
+    
+    function isSignedIn() {
       return request.auth != null;
     }
-
-    function isSelf(uid) {
-      return signedIn() && request.auth.uid == uid;
+    
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
     }
-
+    
+    function getUserData() {
+      return isSignedIn() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data : null;
+    }
+    
     function hasRole(role) {
-      return signedIn() && request.auth.token.role == role;
+      return isSignedIn() && (
+        request.auth.token.role == role || 
+        getUserData().role == role
+      );
     }
-
-    function isAdmin() {
-      return hasRole('admin');
-    }
-
-    function isProvider() {
-      return hasRole('provider');
-    }
-
-    function assignedToPatient(patientUid) {
-      return isProvider() && exists(
-        /databases/$(database)/documents/providerPatientAssignments/$(request.auth.uid + '_' + patientUid)
+    
+    function isStaff() {
+      return isSignedIn() && (
+        hasRole('admin') || 
+        hasRole('developer') ||
+        hasRole('pharmacist') || 
+        hasRole('assistant_pharmacist') ||
+        hasRole('pharmacyAssistant') || 
+        hasRole('delivery_person') ||
+        hasRole('deliveryStaff')
       );
     }
 
-    function validClientProfile(data) {
-      return data.firstName is string
-        && data.firstName.size() >= 1
-        && data.lastName is string
-        && data.lastName.size() >= 1
-        && data.email is string
-        && data.email.matches('^.+@.+\\..+$')
-        && data.phone is string
-        && data.phone.matches('^07[0-9]{8}$')
-        && data.role == 'patient';
+    function isDeveloper() {
+      return isSignedIn() && (hasRole('developer') || request.auth.token.role == 'developer');
     }
 
-    match /users/{uid} {
-      allow create: if isSelf(uid)
-        && validClientProfile(request.resource.data);
-      allow read: if isSelf(uid) || isAdmin();
-      allow update: if isSelf(uid)
-        && (request.resource.data.role == resource.data.role
-          || (!resource.data.keys().hasAll(['role']) && request.resource.data.role == 'patient'))
-        && request.resource.data.email == resource.data.email
-        && validClientProfile(request.resource.data);
+    function isAdmin() {
+      return isSignedIn() && (hasRole('admin') || hasRole('developer'));
+    }
+
+    function isPharmacist() {
+      return isSignedIn() && (hasRole('pharmacist') || hasRole('admin') || hasRole('developer'));
+    }
+
+    // 1. User Profiles
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isStaff();
+      allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isDeveloper());
+      allow update: if (isOwner(userId) && (!('role' in resource.data) || request.resource.data.role == resource.data.role)) || isAdmin() || isDeveloper();
+      allow delete: if isAdmin() || isDeveloper();
+    }
+
+    // 2. Pharmacy Products (Public Catalog)
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isStaff();
+    }
+
+    // 3. Pharmacy Categories
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isStaff();
+    }
+
+    // 4. Pharmacy Orders (Authenticated Customers & Staff Only)
+    match /orders/{orderId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isStaff();
       allow delete: if isAdmin();
     }
 
-    match /systemSettings/public {
+    // 5. Prescriptions (Authenticated Patient & Pharmacists Only)
+    match /prescriptions/{presId} {
+      allow read: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isPharmacist();
+      allow delete: if isAdmin();
+    }
+
+    // 6. Pharmacist Consultations
+    match /consultations/{consultId} {
+      allow read: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // 7. Medicine Refill Requests
+    match /refills/{refillId} {
+      allow read: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
+      allow update: if isPharmacist();
+      allow delete: if isAdmin();
+    }
+
+    // 8. Inventory Logs
+    match /inventoryLogs/{logId} {
+      allow read, write: if isStaff();
+    }
+
+    // 9. Deliveries
+    match /deliveries/{deliveryId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+
+    // 10. Payments
+    match /payments/{paymentId} {
+      allow read: if isStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow write: if isStaff();
+    }
+
+    // 11. Notifications
+    match /notifications/{notifId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.role == getUserData().role);
+      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow create, delete: if isStaff();
+    }
+
+    // 12. Public Settings
+    match /systemSettings/{settingId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // The live client uses these collections for pregnancy onboarding and check-ins.
-    // They mirror the same self-only access model as the nested pregnancy records.
-    match /profiles/{uid} {
-      allow create, read, update: if isSelf(uid);
-      allow delete: if isAdmin();
-    }
-
-    match /healthRecords/{recordId} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
-      allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow update, delete: if signedIn() && resource.data.userId == request.auth.uid;
-    }
-
-    match /appointmentRequests/{requestId} {
-      allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.paymentReference == requestId;
-      allow read: if signedIn() && resource.data.userId == request.auth.uid;
-      allow update: if signedIn()
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == resource.data.userId
-        && request.resource.data.paymentReference == resource.data.paymentReference;
-      allow delete: if isAdmin();
-    }
-
-    match /pregnancies/{pregnancyId} {
-      allow create: if signedIn()
-        && request.resource.data.patientUid == request.auth.uid;
-      allow read: if signedIn()
-        && (resource.data.patientUid == request.auth.uid
-          || assignedToPatient(resource.data.patientUid)
-          || isAdmin());
-      allow update: if signedIn()
-        && (resource.data.patientUid == request.auth.uid
-          || isAdmin());
-      allow delete: if isAdmin();
-
-      match /measurements/{measurementId} {
-        allow create: if signedIn()
-          && request.resource.data.patientUid == request.auth.uid
-          && request.resource.data.pregnancyId == pregnancyId;
-        allow read: if signedIn()
-          && (resource.data.patientUid == request.auth.uid
-            || assignedToPatient(resource.data.patientUid)
-            || isAdmin());
-        allow update, delete: if isSelf(resource.data.patientUid) || isAdmin();
-      }
-
-      match /symptoms/{symptomId} {
-        allow create: if signedIn()
-          && request.resource.data.patientUid == request.auth.uid
-          && request.resource.data.pregnancyId == pregnancyId;
-        allow read: if signedIn()
-          && (resource.data.patientUid == request.auth.uid
-            || assignedToPatient(resource.data.patientUid)
-            || isAdmin());
-        allow update, delete: if isSelf(resource.data.patientUid) || isAdmin();
-      }
-
-      match /medications/{medicationId} {
-        allow create: if signedIn()
-          && request.resource.data.patientUid == request.auth.uid
-          && request.resource.data.pregnancyId == pregnancyId;
-        allow read: if signedIn()
-          && (resource.data.patientUid == request.auth.uid
-            || assignedToPatient(resource.data.patientUid)
-            || isAdmin());
-        allow update, delete: if isSelf(resource.data.patientUid) || isAdmin();
-      }
-
-      match /appointments/{appointmentId} {
-        allow create: if signedIn()
-          && request.resource.data.patientUid == request.auth.uid
-          && request.resource.data.pregnancyId == pregnancyId
-          && request.resource.data.status == 'pending_facility_confirmation'
-          && request.resource.data.paymentStatus == 'paid'
-          && request.resource.data.feeMinorUnits == 20000;
-        allow read: if signedIn()
-          && (resource.data.patientUid == request.auth.uid
-            || assignedToPatient(resource.data.patientUid)
-            || isAdmin());
-        allow update: if isAdmin()
-          || (isSelf(resource.data.patientUid)
-            && request.resource.data.patientUid == resource.data.patientUid
-            && request.resource.data.status == resource.data.status);
-        allow delete: if isAdmin();
-      }
-
-      match /medicalNotes/{noteId} {
-        allow read: if signedIn()
-          && (resource.data.patientUid == request.auth.uid
-            || assignedToPatient(resource.data.patientUid)
-            || isAdmin());
-        allow create: if isProvider()
-          && request.resource.data.providerUid == request.auth.uid
-          && assignedToPatient(request.resource.data.patientUid);
-        allow update, delete: if isAdmin();
-      }
-    }
-
-    match /emergencyContacts/{contactId} {
-      allow create: if signedIn() && request.resource.data.patientUid == request.auth.uid;
-      allow read, update, delete: if signedIn()
-        && (resource.data.patientUid == request.auth.uid || isAdmin());
-    }
-
-    match /facilities/{facilityId} {
-      allow read: if signedIn();
-      allow write: if isAdmin();
-    }
-
-    match /providers/{uid} {
-      allow read: if signedIn();
-      allow write: if isAdmin() || isSelf(uid);
-    }
-
-    match /providerPatientAssignments/{assignmentId} {
-      allow read: if signedIn()
-        && (resource.data.providerUid == request.auth.uid
-          || resource.data.patientUid == request.auth.uid
-          || isAdmin());
-      allow write: if isAdmin();
-    }
-
-    match /educationContent/{contentId} {
-      allow read: if signedIn() && resource.data.isPublished == true;
-      allow write: if isAdmin();
-    }
-
-    match /notifications/{notificationId} {
-      allow read, update: if signedIn() && resource.data.userUid == request.auth.uid;
-      allow create: if isAdmin();
-      allow delete: if isAdmin();
-    }
-
-    match /payments/{paymentId} {
-      allow read: if signedIn() && resource.data.patientUid == request.auth.uid;
-      allow write: if false;
-    }
-
-    match /auditLogs/{logId} {
-      allow read: if isAdmin();
-      allow write: if false;
+    // 13. Staff Action Audit Logs
+    match /auditLogs/{auditId} {
+      allow read, write: if isStaff();
     }
   }
 }

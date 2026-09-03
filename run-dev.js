@@ -18,7 +18,7 @@ function stop(exitCode = 0) {
 }
 
 function start(name, command, args) {
-  const child = spawn(command, args, { cwd: root, stdio: "inherit" });
+  const child = spawn(command, args, { cwd: root, stdio: "inherit", shell: process.platform === "win32" });
   processes.push(child);
   child.on("error", (error) => {
     console.error(`${name} failed to start: ${error.message}`);

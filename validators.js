@@ -1,129 +1,133 @@
-const UGANDAN_LOCAL_PHONE = /^07[0-9]{8}$/;
-const UGANDAN_INTERNATIONAL_PHONE = /^\+2567[0-9]{8}$/;
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const NAME_PATTERN = /^\p{L}+(?:[ '-]\p{L}+)*$/u;
+// BloomCare Pharmacy Management System - Validators
 
 export function normalizeUgandanPhone(value) {
-  const phone = String(value ?? '').trim().replace(/[ \t]/g, '');
-  if (UGANDAN_INTERNATIONAL_PHONE.test(phone)) {
-    return `0${phone.slice(4)}`;
-  }
-  return phone;
+  const phone = String(value || "").trim().replace(/[\s-]/g, "");
+  if (/^\+2567\d{8}$/.test(phone)) return `0${phone.slice(4)}`;
+  if (/^2567\d{8}$/.test(phone)) return `0${phone.slice(3)}`;
+  return /^07\d{8}$/.test(phone) ? phone : null;
 }
 
 export function validateUgandanPhone(value) {
   const normalized = normalizeUgandanPhone(value);
-  return {
-    valid: UGANDAN_LOCAL_PHONE.test(normalized),
-    value: normalized,
-    message: 'Enter a valid Ugandan number such as 0751234567 or +256751234567.'
-  };
-}
-
-export function validateEmail(value) {
-  const email = String(value ?? '').trim().toLowerCase();
-  return {
-    valid: EMAIL_PATTERN.test(email),
-    value: email,
-    message: 'Please enter a valid email address.'
-  };
-}
-
-export function validatePassword(value) {
-  const password = String(value ?? '');
-  const errors = [];
-  if (password.length < 8) errors.push('Use at least 8 characters.');
-  if (!/[A-Z]/.test(password)) errors.push('Add at least one uppercase letter.');
-  if (!/[a-z]/.test(password)) errors.push('Add at least one lowercase letter.');
-  if (!/[0-9]/.test(password)) errors.push('Add at least one number.');
-  if (!/[^A-Za-z0-9]/.test(password)) errors.push('Add at least one special character.');
-  return { valid: errors.length === 0, errors, message: errors.join(' ') };
-}
-
-export function validateName(value) {
-  const name = String(value ?? '').trim().replace(/[ \t]+/g, ' ');
-  const valid = name.length >= 2 && name.length <= 100 && NAME_PATTERN.test(name);
-  return { valid, value: name, message: 'Enter a name using letters, spaces, apostrophes, or hyphens.' };
-}
-
-export function parseDate(value) {
-  const date = new Date(`${value}T00:00:00`);
-  const localDate = [date.getFullYear(), date.getMonth() + 1, date.getDate()]
-    .map((part, index) => index === 0 ? String(part).padStart(4, '0') : String(part).padStart(2, '0'))
-    .join('-');
-  return /^\d{4}-\d{2}-\d{2}$/.test(String(value)) && !Number.isNaN(date.getTime()) && localDate === value ? date : null;
-}
-
-export function validateDateOfBirth(value) {
-  const date = parseDate(value);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  return {
-    valid: Boolean(date && date <= today),
-    message: date && date > today ? 'Date of birth cannot be in the future.' : 'Enter a valid date of birth.'
-  };
-}
-
-export function calculateDueDate(lmp) {
-  const date = parseDate(lmp);
-  if (!date) return '';
-  date.setDate(date.getDate() + 280);
-  return date.toISOString().slice(0, 10);
-}
-
-export function validateLmp(value) {
-  const date = parseDate(value);
-  const today = new Date();
-  today.setHours(23, 59, 59, 999);
-  const earliest = new Date(today);
-  earliest.setDate(earliest.getDate() - 294);
-  const valid = Boolean(date && date <= today && date >= earliest);
-  let message = 'Enter a valid last menstrual period date.';
-  if (date && date > today) message = 'Last menstrual period cannot be in the future.';
-  if (date && date < earliest) message = 'Use an LMP date from the last 42 weeks.';
-  return { valid, message, dueDate: calculateDueDate(value) };
-}
-
-export function validateMeasurement({ weight, temperature, systolic, diastolic }) {
-  const errors = {};
-  const values = { weight, temperature, systolic, diastolic };
-  for (const [field, value] of Object.entries(values)) {
-    if (value !== '' && value != null && !Number.isFinite(Number(value))) errors[field] = 'Enter a numeric value.';
+  if (!normalized) {
+    return {
+      valid: false,
+      message: "Enter a valid 10-digit Ugandan phone number (e.g. 0772 123 456, 0751 234 567, or +2567...)."
+    };
   }
-  if (weight !== '' && (Number(weight) <= 0 || Number(weight) > 400)) errors.weight = 'Weight must be between 0 and 400 kg.';
-  if (temperature !== '' && (Number(temperature) < 30 || Number(temperature) > 45)) errors.temperature = 'Temperature must be between 30 and 45 °C.';
-  if (systolic !== '' && (Number(systolic) < 50 || Number(systolic) > 250)) errors.systolic = 'Systolic pressure must be between 50 and 250 mmHg.';
-  if (diastolic !== '' && (Number(diastolic) < 30 || Number(diastolic) > 150)) errors.diastolic = 'Diastolic pressure must be between 30 and 150 mmHg.';
-  if (systolic !== '' && diastolic !== '' && Number(diastolic) > Number(systolic)) errors.diastolic = 'Diastolic pressure cannot be higher than systolic pressure.';
-  return { valid: Object.keys(errors).length === 0, errors };
+  return { valid: true, normalized };
 }
 
-export function validateEmergencyContact({ name, phone, relationship }) {
-  const errors = {};
-  const nameResult = validateName(name);
-  const phoneResult = validateUgandanPhone(phone);
-  if (!nameResult.valid) errors.name = nameResult.message;
-  if (!phoneResult.valid) errors.phone = phoneResult.message;
-  if (!String(relationship ?? '').trim()) errors.relationship = 'Select or enter a relationship.';
-  return { valid: Object.keys(errors).length === 0, errors };
+export function validateEmail(email) {
+  const raw = String(email || "").trim().toLowerCase();
+  const valid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(raw);
+  return {
+    valid,
+    message: valid ? "" : "Enter a valid email address (e.g. name@example.com)."
+  };
 }
 
-export function validateAppointment({ date, time, provider, facility }) {
-  const errors = {};
-  const appointmentDate = parseDate(date);
+export function validatePassword(password) {
+  const raw = String(password || "");
+  const hasMinLength = raw.length >= 8;
+  const hasUpper = /[A-Z]/.test(raw);
+  const hasLower = /[a-z]/.test(raw);
+  const hasNumber = /[0-9]/.test(raw);
+  const hasSpecial = /[^A-Za-z0-9]/.test(raw);
+
+  const valid = hasMinLength && hasUpper && hasLower && hasNumber && hasSpecial;
+  return {
+    valid,
+    message: valid
+      ? ""
+      : "Password must have at least 8 characters including uppercase, lowercase, a number, and a special character."
+  };
+}
+
+export function validateName(name) {
+  const raw = String(name || "").trim();
+  const valid = /^[A-Za-zÀ-ÿ' -]{2,60}$/.test(raw);
+  return {
+    valid,
+    message: valid ? "" : "Name must be between 2 and 60 characters and contain letters only."
+  };
+}
+
+export function validateDateOfBirth(dateStr) {
+  if (!dateStr) return { valid: false, message: "Date of birth is required." };
+  const d = new Date(dateStr);
+  if (isNaN(d.getTime())) return { valid: false, message: "Invalid date format." };
   const now = new Date();
-  if (!appointmentDate) errors.date = 'Enter a valid appointment date.';
-  else if (appointmentDate < new Date(now.toISOString().slice(0, 10))) errors.date = 'Appointment date cannot be in the past.';
-  if (!/^([01]\d|2[0-3]):[0-5]\d$/.test(String(time ?? ''))) errors.time = 'Enter a valid appointment time.';
-  if (!String(provider ?? '').trim()) errors.provider = 'Choose a healthcare provider.';
-  if (!String(facility ?? '').trim()) errors.facility = 'Enter a healthcare facility.';
-  return { valid: Object.keys(errors).length === 0, errors };
+  if (d > now) return { valid: false, message: "Date of birth cannot be in the future." };
+  const age = (now - d) / (365.25 * 24 * 60 * 60 * 1000);
+  if (age > 120) return { valid: false, message: "Please enter a valid birth year." };
+  return { valid: true };
 }
 
-export function validateMedication({ name, instructions, reminderTime }) {
-  const errors = {};
-  if (!String(name ?? '').trim()) errors.name = 'Enter the medication name.';
-  if (!String(instructions ?? '').trim()) errors.instructions = 'Enter medication instructions.';
-  if (reminderTime && !/^([01]\d|2[0-3]):[0-5]\d$/.test(reminderTime)) errors.reminderTime = 'Enter a valid reminder time.';
-  return { valid: Object.keys(errors).length === 0, errors };
+export function validateProduct(product) {
+  if (!product || typeof product !== "object") return { valid: false, message: "Product data required." };
+  if (!product.name || String(product.name).trim().length < 2) return { valid: false, message: "Product name must be at least 2 characters." };
+  if (!product.category) return { valid: false, message: "Category is required." };
+  const price = Number(product.price);
+  if (isNaN(price) || price <= 0) return { valid: false, message: "Price must be greater than 0 UGX." };
+  const stock = Number(product.stockQuantity ?? product.stock ?? 0);
+  if (isNaN(stock) || stock < 0) return { valid: false, message: "Stock quantity cannot be negative." };
+  return { valid: true };
+}
+
+export function validateOrder(order) {
+  if (!order || typeof order !== "object") return { valid: false, message: "Order data required." };
+  if (!order.customerName) return { valid: false, message: "Customer name is required." };
+  const phoneRes = validateUgandanPhone(order.customerPhone || order.phone);
+  if (!phoneRes.valid) return phoneRes;
+  if (!order.deliveryAddress || String(order.deliveryAddress).trim().length < 3) {
+    return { valid: false, message: "A delivery address or pickup location is required." };
+  }
+  if (!Array.isArray(order.items) || order.items.length === 0) {
+    return { valid: false, message: "Cart cannot be empty when placing an order." };
+  }
+  return { valid: true };
+}
+
+export function validatePrescription(prescription) {
+  if (!prescription || typeof prescription !== "object") return { valid: false, message: "Prescription details required." };
+  if (!prescription.customerId) return { valid: false, message: "Customer identification required." };
+  if (!prescription.fileUrl && !prescription.notes && !prescription.medications) {
+    return { valid: false, message: "Provide a prescription file or doctor notes." };
+  }
+  return { valid: true };
+}
+
+export function validateConsultation(consultation) {
+  if (!consultation || typeof consultation !== "object") return { valid: false, message: "Consultation details required." };
+  if (!consultation.consultationType) return { valid: false, message: "Select a consultation type." };
+  if (!consultation.pharmacist) return { valid: false, message: "Select a pharmacist." };
+  if (!consultation.date) return { valid: false, message: "Consultation date is required." };
+  if (!consultation.time) return { valid: false, message: "Consultation time is required." };
+  const dateObj = new Date(consultation.date + "T00:00:00");
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  if (isNaN(dateObj.getTime()) || dateObj < today) {
+    return { valid: false, message: "Consultation date must be today or in the future." };
+  }
+  return { valid: true };
+}
+
+export function validateRefill(refill) {
+  if (!refill || typeof refill !== "object") return { valid: false, message: "Refill details required." };
+  if (!refill.medicineName) return { valid: false, message: "Medicine name is required for refill." };
+  const qty = Number(refill.quantity || 1);
+  if (isNaN(qty) || qty <= 0) return { valid: false, message: "Refill quantity must be at least 1." };
+  return { valid: true };
+}
+
+export function validateStockAdjustment(adjustment) {
+  if (!adjustment || typeof adjustment !== "object") return { valid: false, message: "Adjustment details required." };
+  if (!adjustment.productId) return { valid: false, message: "Product ID required." };
+  if (!["stock_in", "stock_out", "adjustment", "sale"].includes(adjustment.type)) {
+    return { valid: false, message: "Invalid adjustment type." };
+  }
+  const qty = Number(adjustment.quantity);
+  if (isNaN(qty) || qty <= 0) return { valid: false, message: "Quantity must be greater than 0." };
+  return { valid: true };
 }

@@ -1,9 +1,1338 @@
 <!doctype html>
-<html lang="en"><head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="Early pregnancy monitoring and education dashboard." /><title>BloomCare | Early Pregnancy</title><link rel="preconnect" href="https://fonts.googleapis.com" /><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin /><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet" /><link rel="stylesheet" href="styles.css" /></head>
-<body><main class="app-shell">
-  <section class="auth-layout" id="auth-view"><aside class="brand-panel"><a class="brand brand-logo-link" href="#" aria-label="BloomCare Pharmacy home"><img class="brand-logo" src="bloomcare-logo.svg" alt="BloomCare Pharmacy" /><span class="brand-status">Care companion</span></a><div class="brand-copy"><p class="eyebrow">YOUR EARLY PREGNANCY COMPANION</p><h1>Care that stays close.</h1><p>Keep your information, appointments, and questions together through the early weeks of pregnancy.</p></div><p class="brand-foot">BloomCare supports your care. It does not replace your healthcare provider or emergency services.</p></aside>
-    <div class="auth-content"><div class="auth-card" id="login-card"><p class="eyebrow teal">WELCOME BACK</p><h2>Sign in to your care space</h2><p class="muted">Use your registered email address to continue.</p><form id="login-form" novalidate><label>Email address<input id="login-email" type="email" autocomplete="email" placeholder="you@example.com" required /></label><label>Password<input id="login-password" type="password" autocomplete="current-password" placeholder="Enter your password" required /></label><div class="form-row"><label class="check"><input type="checkbox" /> Remember me</label><button class="text-button" type="button" data-message="Password reset links are sent by the secure backend in production.">Forgot password?</button></div><button class="primary-button" type="submit">Sign in <span aria-hidden="true">&rarr;</span></button></form><p class="switch-copy">New to BloomCare? <button class="text-button" type="button" data-show="register-card">Create an account</button></p></div>
-      <div class="auth-card hidden" id="register-card"><p class="eyebrow teal">GET STARTED</p><h2>Create your account</h2><p class="muted">Your information is private and used to support your care.</p><form id="register-form" novalidate><div class="two-col"><label>First name<input id="register-first-name" type="text" autocomplete="given-name" required /></label><label>Last name<input id="register-last-name" type="text" autocomplete="family-name" required /></label></div><div class="two-col"><label>Phone number<input id="register-phone" type="tel" autocomplete="tel" placeholder="0751234567" required /></label><label>Date of birth<input id="register-date-of-birth" type="date" autocomplete="bday" required /></label></div><div class="two-col"><label>Email address<input id="register-email" type="email" autocomplete="email" required /></label><label>Gender<select id="register-gender"><option value="">Prefer not to say</option><option>Female</option><option>Male</option><option>Non-binary</option><option>Prefer to self-describe</option></select></label></div><label>Password<input id="register-password" type="password" autocomplete="new-password" required /></label><label>Confirm password<input id="register-confirm-password" type="password" autocomplete="new-password" required /></label><p class="muted">Use at least 8 characters with uppercase, lowercase, a number, and a special character.</p><label class="check consent"><input id="consent" type="checkbox" required /> I consent to my health information being processed for my care and have read the privacy notice.</label><button class="primary-button" type="submit">Create account <span aria-hidden="true">&rarr;</span></button></form><p class="switch-copy">Already registered? <button class="text-button" type="button" data-show="login-card">Sign in</button></p></div></div></section>
-  <section class="onboarding hidden" id="profile-view"><header class="topbar"><a class="brand dark compact-logo" href="#" aria-label="BloomCare Pharmacy home"><img src="bloomcare-logo.svg" alt="BloomCare Pharmacy" /></a><p>Step <strong>1 of 1</strong> &middot; Your pregnancy profile</p></header><div class="profile-wrap"><div><p class="eyebrow teal">LET'S PERSONALISE YOUR CARE</p><h1>Tell us about this pregnancy</h1><p class="muted">We use this information to make your dashboard more relevant. You can update it later.</p></div><form id="profile-form" class="profile-form"><div class="two-col"><label>First day of last period (LMP)<input id="lmp" type="date" required /></label><label>Estimated due date<input id="edd" type="date" readonly /></label></div><div class="two-col"><label>Previous pregnancies<select><option value="0">This is my first pregnancy</option><option value="1">1 previous pregnancy</option><option value="2">2 previous pregnancies</option><option value="3">3 or more previous pregnancies</option></select></label><label>Preferred healthcare facility<input type="text" placeholder="Search or enter facility" /></label></div><label>Relevant medical history <span class="optional">Optional</span><textarea placeholder="For example, conditions your care team should know about"></textarea></label><div class="two-col"><label>Allergies <span class="optional">Optional</span><input type="text" placeholder="List allergies, if any" /></label><label>Emergency contact<input type="tel" placeholder="Name and phone number" required /></label></div><p class="privacy-note">Only authorised healthcare staff can access your records for care. In an emergency, contact your provider or local emergency services.</p><button class="primary-button" type="submit">Save profile and continue <span aria-hidden="true">&rarr;</span></button></form></div></section>
-  <section class="dashboard hidden" id="dashboard-view"><aside class="sidebar"><a class="brand dark compact-logo" href="#" aria-label="BloomCare Pharmacy home"><img src="bloomcare-logo.svg" alt="BloomCare Pharmacy" /></a><div class="care-space"><span class="presence-dot"></span><span>Your care space</span></div><nav><a class="active" href="#dashboard"><span class="nav-glyph">O</span>Overview</a><a href="#profile"><span class="nav-glyph">P</span>Pregnancy profile</a><a href="#checkin"><span class="nav-glyph">+</span>Daily check-in</a><a href="#appointments"><span class="nav-glyph">A</span>Appointments</a><a href="#education"><span class="nav-glyph">L</span>Learn</a></nav><button class="logout" id="logout" type="button">Sign out</button></aside><div class="dash-content"><header class="dash-header"><div><p class="eyebrow teal">TUESDAY, 18 AUGUST</p><h1>Good morning, <span id="patient-name">Amina</span>.</h1></div><button class="emergency-button" type="button" id="emergency">Emergency support</button></header><div class="safety-banner"><span class="alert-symbol">i</span><div><strong>This is a record-keeping and education tool.</strong><span>It cannot assess an emergency or replace professional medical advice.</span></div></div><section class="hero-grid"><article class="week-card"><div><p class="eyebrow">YOUR PREGNANCY</p><h2><span id="week-number">8</span> weeks</h2><p id="week-detail">Your baby is about the size of a raspberry.</p></div><div class="progress-ring"><span id="progress-value">20%</span></div><div class="progress-track"><span id="progress-bar"></span></div><p class="due-date">Estimated due date <strong id="due-date">--</strong></p></article><article class="next-card"><div class="appointment-top"><p class="eyebrow teal">NEXT APPOINTMENT</p><span class="calendar-square">24<small>AUG</small></span></div><h3>First antenatal visit</h3><p>10:30 AM &middot; 45 minutes</p><p class="muted">Kampala Women's Health Centre</p><button class="secondary-button" type="button">View appointment</button></article></section><section class="section-heading"><div><p class="eyebrow teal">TODAY</p><h2>A small check-in can help you notice patterns.</h2></div><button class="primary-button compact" id="check-in" type="button">Record today's health</button></section><section class="dashboard-grid"><article class="panel"><div class="panel-title"><h3>Recent health records</h3><button class="text-button" type="button">View all</button></div><div class="record"><span class="record-icon">OK</span><div><strong>Daily check-in</strong><p>Not yet recorded today</p></div><button class="text-button" id="quick-check" type="button">Add</button></div><div class="record"><span class="record-icon blue">BP</span><div><strong>Blood pressure</strong><p>Last recorded: 112 / 73 mmHg</p></div><span class="status">Recorded</span></div></article><article class="panel learn-panel"><p class="eyebrow teal">WEEK 8</p><h3>What to expect this week</h3><p>Fatigue and nausea can be common. Eat small, regular meals and bring any concerns to your care team.</p><button class="text-button" type="button">Read this week's guide &rarr;</button></article></section></div></section>
-</main><dialog id="notice"><div class="dialog-head"><h2 id="notice-title">Important</h2><button id="close-notice" class="icon-button" aria-label="Close">&times;</button></div><p id="notice-text"></p></dialog><dialog id="payment-dialog"><div class="dialog-head"><h2>Review and pay</h2><button id="close-payment" class="icon-button" type="button" aria-label="Close">&times;</button></div><p id="payment-summary" class="muted"></p><form id="payment-form"><label>Payment method<select id="payment-provider" required><option value="">Select payment method</option><option>MTN MoMo</option><option>Airtel Money</option></select></label><label>Mobile-money number<input id="payment-phone" type="tel" placeholder="e.g. 0772 123 456" required /></label><p id="payment-reference" class="payment-reference hidden"></p><p id="payment-instructions" class="muted"></p><button id="start-payment" class="primary-button" type="submit">Pay now</button><button id="verify-payment" class="primary-button hidden" type="button">Check payment status</button></form></dialog><script type="module" src="app.js?v=5"></script></body></html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="BloomCare Pharmacy - Professional Pharmacy Management & Online Healthcare System in Uganda." />
+  <title>BloomCare Pharmacy | Management & Healthcare System</title>
+  <link rel="icon" type="image/png" href="bloomcare-logo.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+<div class="app-layout-sidebar-root">
+
+  <!-- Mobile Backdrop Overlay -->
+  <div class="sidebar-backdrop" id="sidebar-backdrop"></div>
+
+  <!-- ============================================================== -->
+  <!-- 0. DEVELOPER PREVIEW MODE STICKY BANNER -->
+  <!-- ============================================================== -->
+  <div class="developer-preview-banner hidden" id="developer-preview-banner" role="region" aria-label="Developer Preview Mode">
+    <div class="dev-banner-left">
+      <span class="dev-mode-pill">🛠 DEVELOPER MODE</span>
+      <span class="dev-banner-text" id="dev-banner-text">Developer Preview — Viewing as <strong>Pharmacist</strong></span>
+      <span class="dev-banner-subtext">(Actual database role: developer)</span>
+    </div>
+    <div class="dev-banner-right">
+      <label for="dev-quick-preview-select" class="dev-select-label">View As:</label>
+      <select id="dev-quick-preview-select" class="dev-preview-select">
+        <option value="developer">Developer Dashboard</option>
+        <option value="admin">Administrator</option>
+        <option value="pharmacist">Pharmacist</option>
+        <option value="assistant_pharmacist">Assistant Pharmacist</option>
+        <option value="delivery_person">Delivery Person</option>
+        <option value="customer">Customer</option>
+      </select>
+      <button class="btn btn-sm btn-outline-light" id="btn-exit-dev-preview" type="button">Exit Preview</button>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 0. AUTHENTICATION & ROLE LOADING SCREEN (ZERO-FLICKER RBAC) -->
+  <!-- ============================================================== -->
+  <div class="auth-loading-overlay" id="auth-loading-screen" role="alert" aria-busy="true" aria-live="polite">
+    <div class="auth-loading-card" id="auth-loading-card">
+      <div class="auth-spinner" id="auth-loading-spinner"></div>
+      <h2 class="auth-loading-title" id="auth-loading-title">Loading your BloomCare workspace...</h2>
+      <p class="auth-loading-subtitle" id="auth-loading-subtitle">Verifying your account role and access permissions...</p>
+      
+      <!-- Explicit Error State (Rendered if role verification fails) -->
+      <div class="auth-error-box hidden" id="auth-error-box">
+        <div class="auth-error-icon">⚠️</div>
+        <h3 class="auth-error-title" id="auth-error-title">Account Role Verification Failed</h3>
+        <p class="auth-error-desc" id="auth-error-desc">Your account role could not be verified. Please contact the administrator.</p>
+        <div class="auth-error-actions">
+          <button class="btn btn-secondary btn-sm" id="auth-error-retry-btn" type="button">Retry Verification</button>
+          <button class="btn btn-outline btn-sm" id="auth-error-logout-btn" type="button">Sign Out</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================== -->
+  <!-- 1. PERMANENT LEFT SIDEBAR (VERTICAL COLUMN IN LEFT CORNER) -->
+  <!-- ============================================================== -->
+  <aside class="app-left-sidebar" id="app-left-sidebar">
+    
+    <!-- Top Brand in Left Sidebar -->
+    <div class="sidebar-brand-box">
+      <a href="#dashboard" class="sidebar-brandmark" data-route="dashboard">
+        <img src="bloomcare-logo.png" alt="BloomCare Logo" class="sidebar-logo" />
+        <div class="brand-text-group">
+          <span class="brand-name">BloomCare</span>
+          <span class="brand-subtitle">PHARMACY</span>
+        </div>
+      </a>
+    </div>
+
+    <!-- Active User Portal Indicator (Visible When Authenticated) -->
+    <div class="sidebar-role-box hidden" id="sidebar-role-container">
+      <span class="role-badge" id="sidebar-role-tag">CUSTOMER</span>
+    </div>
+
+    <!-- Dynamic Role-Based Navigation Menu List (Vertical Column on Left) -->
+    <nav class="sidebar-nav-menu" id="sidebar-nav-menu">
+      <button class="nav-item active-nav" type="button" data-route="dashboard">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span>
+        <span class="nav-text">Dashboard</span>
+      </button>
+      <button class="nav-item" type="button" data-route="medicines">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
+        <span class="nav-text">Medicines</span>
+      </button>
+      <button class="nav-item" type="button" data-route="categories">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg></span>
+        <span class="nav-text">Categories</span>
+      </button>
+      <button class="nav-item" type="button" data-route="prescriptions">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6"/><path d="M12 9v6"/></svg></span>
+        <span class="nav-text">Prescriptions</span>
+      </button>
+      <button class="nav-item" type="button" data-route="consultations">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg></span>
+        <span class="nav-text">Consultations</span>
+      </button>
+      <button class="nav-item" type="button" data-route="refills">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></span>
+        <span class="nav-text">Refills</span>
+      </button>
+      <button class="nav-item" type="button" data-route="orders">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span>
+        <span class="nav-text">Orders</span>
+      </button>
+      <button class="nav-item" type="button" data-route="about">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
+        <span class="nav-text">About Us</span>
+      </button>
+      <button class="nav-item" type="button" data-route="contact">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
+        <span class="nav-text">Contact Us</span>
+      </button>
+    </nav>
+
+    <!-- Bottom Actions in Left Sidebar -->
+    <div class="sidebar-bottom-panel">
+      <button class="sidebar-bottom-btn" id="sidebar-profile-btn" type="button" data-route="profile">
+        <span class="nav-svg-icon" id="sidebar-profile-icon"></span>
+        <span>My Profile</span>
+      </button>
+      <button class="sidebar-bottom-btn" id="sidebar-settings-btn" type="button" data-route="settings">
+        <span class="nav-svg-icon" id="sidebar-settings-icon"></span>
+        <span>Settings</span>
+      </button>
+      <button class="sidebar-bottom-btn logout-link" id="sidebar-logout-btn" type="button">
+        <span class="nav-svg-icon" id="sidebar-logout-icon"></span>
+        <span id="sidebar-auth-btn-text">Log In</span>
+      </button>
+    </div>
+
+  </aside>
+
+  <!-- ============================================================== -->
+  <!-- 2. MAIN APPLICATION VIEWPORT CONTAINER (RIGHT OF SIDEBAR) -->
+  <!-- ============================================================== -->
+  <div class="app-main-viewport-container">
+    
+    <!-- Top Announcement Bar -->
+    <div class="main-top-announcement">
+      <span><strong>BloomCare Pharmacy Uganda</strong> &bull; Licensed Pharmacy (#NDA/UG/PHARM/2026/894) &bull; Kampala, Uganda</span>
+      <div class="announcement-right">
+        <a href="tel:+256700000000" class="announcement-link">Tel: +256 700 000 000</a>
+        <a href="#" id="top-whatsapp-link" class="announcement-link whatsapp-accent" target="_blank" rel="noopener noreferrer">WhatsApp Care Desk</a>
+      </div>
+    </div>
+
+    <!-- Main Top Bar -->
+    <header class="app-top-header" id="app-top-header">
+      <div class="top-header-left">
+        <!-- Mobile Sidebar Toggle -->
+        <button class="mobile-sidebar-toggle" id="mobile-sidebar-toggle" aria-label="Toggle Navigation Menu">
+          <span></span><span></span><span></span>
+        </button>
+        <div class="top-header-brand">
+          <span class="top-brand-text">BloomCare Pharmacy</span>
+        </div>
+      </div>
+
+      <div class="top-header-right">
+        <!-- Authenticated Role Indicator -->
+        <div class="active-role-indicator" id="active-role-indicator" title="Current Authenticated Role">
+          <span class="switcher-badge-label">Portal Role:</span>
+          <span class="role-badge" id="top-role-badge">VISITOR</span>
+        </div>
+
+        <!-- Global Medicine Search Bar -->
+        <div class="top-search-box">
+          <input type="search" id="top-search-input" placeholder="Search medicines by name or generic..." autocomplete="off" />
+          <span class="search-ico" id="top-search-icon"></span>
+        </div>
+
+        <!-- Notifications Bell -->
+        <button class="icon-round-btn" id="open-notif-btn" type="button" title="Notifications" data-route="notifications">
+          <span id="top-bell-icon"></span>
+          <span class="notif-badge hidden" id="top-notif-badge">0</span>
+        </button>
+
+        <!-- Shopping Cart Trigger Button -->
+        <button class="cart-btn" id="open-cart-btn" type="button" aria-label="Open Shopping Cart">
+          <span class="cart-btn-icon" id="top-cart-icon"></span>
+          <span class="cart-btn-label">Cart</span>
+          <span class="cart-badge" id="nav-cart-count">0</span>
+        </button>
+
+        <!-- User Profile Pill / Auth Buttons -->
+        <div id="top-user-area">
+          <div class="user-profile-pill" id="user-profile-pill" data-route="profile">
+            <span class="user-avatar-circle" id="top-avatar-icon"></span>
+            <div class="user-pill-info">
+              <strong id="top-user-name">Guest Visitor</strong>
+              <small id="top-user-role">Sign In</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Main Viewport Content Panes -->
+    <main class="app-content-viewport" id="app-content-viewport">
+      
+      <!-- ========================================================== -->
+      <!-- MODULE 1: ROLE-BASED DASHBOARDS (#dashboard / #home) -->
+      <!-- ========================================================== -->
+      <section class="page-pane" id="view-dashboard">
+        <div id="role-dashboard-container"></div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 2: MEDICINES MODULE (#medicines) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-medicines">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Medicines</h1>
+            <p class="page-desc">Browse and search genuine NDA-verified pharmaceutical products.</p>
+          </div>
+          <div id="medicines-staff-actions" class="hidden">
+            <button class="btn btn-primary btn-sm" id="btn-open-add-product" type="button">Add New Product</button>
+          </div>
+        </div>
+
+        <div class="demo-catalog-notice" style="background:#f0f7ff; border:1px solid #bfdbfe; color:#1e40af; padding:8px 14px; border-radius:var(--radius-sm); font-size:12.5px; margin-bottom:14px;">
+          <strong>DEMONSTRATION TEST CATALOG:</strong> The medicines listed below are structured demonstration items for evaluation and test workflows. They do not represent live dispensary stock or current market quotes.
+        </div>
+
+        <!-- Customer View Toolbar -->
+        <div class="catalog-controls-panel" id="customer-medicines-controls">
+          <div class="search-input-wrap">
+            <input type="text" id="catalog-search-input" placeholder="Search medicines by brand name, generic name, or manufacturer..." />
+            <span class="search-icon-symbol" id="catalog-search-symbol"></span>
+          </div>
+          <div class="filter-controls-row">
+            <div class="filter-pills-row" id="catalog-category-pills"></div>
+            <div class="filter-dropdowns-row">
+              <select id="filter-availability" class="form-select-sm">
+                <option value="all">Availability: All</option>
+                <option value="in-stock">In Stock Only</option>
+                <option value="out-of-stock">Out of Stock</option>
+              </select>
+              <select id="filter-prescription" class="form-select-sm">
+                <option value="all">Prescription: All</option>
+                <option value="otc">Over-The-Counter (OTC)</option>
+                <option value="rx">Prescription Required (Rx)</option>
+              </select>
+              <select id="sort-medicines" class="form-select-sm">
+                <option value="name-asc">Sort: Name (A-Z)</option>
+                <option value="name-desc">Sort: Name (Z-A)</option>
+                <option value="price-asc">Sort: Price (Low to High)</option>
+                <option value="price-desc">Sort: Price (High to Low)</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer Product Cards Grid -->
+        <div class="products-grid" id="catalog-products-grid"></div>
+
+        <!-- Staff/Admin Product Management Table -->
+        <div class="content-card hidden" id="staff-medicines-table-card">
+          <div class="table-responsive">
+            <div id="staff-medicines-table-box"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 3: CATEGORIES MODULE (#categories) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-categories">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Categories</h1>
+            <p class="page-desc">Browse medicines organized by health category.</p>
+          </div>
+          <div id="categories-staff-actions" class="hidden">
+            <button class="btn btn-primary btn-sm" id="btn-open-add-category" type="button">Add Category</button>
+          </div>
+        </div>
+
+        <!-- 15 Categories Grid -->
+        <div class="categories-grid-15" id="full-categories-grid"></div>
+
+        <!-- Admin Category Management Table -->
+        <div class="content-card hidden" id="admin-categories-table-card" style="margin-top: 24px;">
+          <h3>Manage Category Taxonomy</h3>
+          <div id="admin-categories-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 4: ORDERS MODULE (#orders) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-orders">
+        <div class="page-header-block">
+          <h1 class="page-title" id="orders-page-title">Orders</h1>
+          <p class="page-desc" id="orders-page-desc">Track and manage customer orders.</p>
+        </div>
+
+        <div class="content-card">
+          <div class="filter-pills-row" id="orders-status-filter-pills" style="margin-bottom: 14px;">
+            <button class="pill-btn active" data-order-filter="all">All Orders</button>
+            <button class="pill-btn" data-order-filter="Pending">Pending</button>
+            <button class="pill-btn" data-order-filter="Awaiting Prescription Review">Awaiting Rx Review</button>
+            <button class="pill-btn" data-order-filter="Confirmed">Confirmed</button>
+            <button class="pill-btn" data-order-filter="Processing">Processing</button>
+            <button class="pill-btn" data-order-filter="Ready for Pickup">Ready for Pickup</button>
+            <button class="pill-btn" data-order-filter="Out for Delivery">Out for Delivery</button>
+            <button class="pill-btn" data-order-filter="Delivered">Delivered</button>
+            <button class="pill-btn" data-order-filter="Cancelled">Cancelled</button>
+          </div>
+          <div class="table-responsive" id="orders-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 7: PRESCRIPTIONS MODULE (#prescriptions) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-prescriptions">
+        <div class="page-header-block">
+          <h1 class="page-title" id="prescriptions-page-title">Prescriptions</h1>
+          <p class="page-desc" id="prescriptions-page-desc">Upload and manage prescriptions for pharmacist review.</p>
+        </div>
+
+        <div class="content-dual-grid">
+          <!-- Upload Form (Customer) -->
+          <div class="content-card">
+            <h3>Upload Doctor's Prescription</h3>
+            <p class="muted">Attach a clear image or PDF scan of your doctor's prescription for pharmacist review.</p>
+            <form id="rx-upload-form" class="standard-form">
+              <label>Patient Full Name<input type="text" id="rx-patient-name" placeholder="Full name" required /></label>
+              <label>Phone Number<input type="tel" id="rx-patient-phone" placeholder="0751234567" required /></label>
+              <label>Prescription Document (Image or PDF Scan)<input type="file" id="rx-file-input" accept="image/*,.pdf" required /></label>
+              <label>Clinical Notes / Instructions<textarea id="rx-notes-input" placeholder="List prescribed medicines, dosage instructions, or questions for the pharmacist..." rows="3"></textarea></label>
+              <button class="btn btn-primary" type="submit">Submit for Pharmacist Review</button>
+            </form>
+          </div>
+
+          <!-- Prescriptions Verification Queue -->
+          <div class="content-card">
+            <h3>Prescription Verification Queue</h3>
+            <div class="table-responsive" id="rx-queue-table-box"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 8: CONSULTATIONS MODULE (#consultations) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-consultations">
+        <div class="page-header-block">
+          <h1 class="page-title">Consultations</h1>
+          <p class="page-desc">Book and manage pharmacist consultations.</p>
+        </div>
+
+        <!-- Available Pharmacists Cards -->
+        <div class="pharmacists-cards-grid" id="available-pharmacists-grid">
+          <div class="pharmacist-profile-card">
+            <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga" class="pharm-photo-avatar" />
+            <h4>Dr. Amina Nanyonga</h4>
+            <p class="pharm-role">Lead Clinical Pharmacist (B.Pharm, MUK)</p>
+            <p class="pharm-spec">Specialty: General Medicine &amp; Pediatric Therapy</p>
+            <span class="pharm-fee">Consultation: UGX 15,000</span>
+            <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Dr. Amina Nanyonga">Select Pharmacist</button>
+          </div>
+          <div class="pharmacist-profile-card">
+            <div class="pharm-avatar-badge" id="pharm-badge-2"></div>
+            <h4>Pharm. David Mukasa</h4>
+            <p class="pharm-role">Senior Dispensing Pharmacist</p>
+            <p class="pharm-spec">Specialty: Chronic Illness &amp; Hypertension Care</p>
+            <span class="pharm-fee">Consultation: UGX 15,000</span>
+            <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Pharm. David Mukasa">Select Pharmacist</button>
+          </div>
+          <div class="pharmacist-profile-card">
+            <div class="pharm-avatar-badge" id="pharm-badge-3"></div>
+            <h4>Pharm. Sarah Namusoke</h4>
+            <p class="pharm-role">Clinical Counseling Specialist</p>
+            <p class="pharm-spec">Specialty: Diabetes Management &amp; Dietary Supplements</p>
+            <span class="pharm-fee">Consultation: UGX 15,000</span>
+            <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Pharm. Sarah Namusoke">Select Pharmacist</button>
+          </div>
+        </div>
+
+        <div class="content-dual-grid" style="margin-top: 20px;">
+          <!-- Booking Form -->
+          <div class="content-card">
+            <h3>Book Consultation Session</h3>
+            <form id="consult-booking-form" class="standard-form">
+              <div class="form-row-2">
+                <label>Selected Pharmacist
+                  <select id="consult-pharmacist-select" required>
+                    <option value="Dr. Amina Nanyonga">Dr. Amina Nanyonga</option>
+                    <option value="Pharm. David Mukasa">Pharm. David Mukasa</option>
+                    <option value="Pharm. Sarah Namusoke">Pharm. Sarah Namusoke</option>
+                  </select>
+                </label>
+                <label>Date<input type="date" id="consult-date-input" required /></label>
+              </div>
+              <div class="form-row-2">
+                <label>Preferred Time Slot
+                  <select id="consult-time-select" required>
+                    <option>09:00 AM</option>
+                    <option>11:00 AM</option>
+                    <option>02:00 PM</option>
+                    <option>04:30 PM</option>
+                  </select>
+                </label>
+                <label>Patient Phone<input type="tel" id="consult-phone-input" placeholder="0751234567" required /></label>
+              </div>
+              <label>Reason for Consultation / Questions<textarea id="consult-notes-input" placeholder="Describe symptoms, questions, or medication concerns..." rows="3" required></textarea></label>
+              <button class="btn btn-primary" type="submit">Book Session (UGX 15,000)</button>
+            </form>
+          </div>
+
+          <!-- Appointments List -->
+          <div class="content-card">
+            <h3>Consultation Appointments &amp; Notes</h3>
+            <div class="table-responsive" id="consultations-table-box"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 9: REFILLS MODULE (#refills) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-refills">
+        <div class="page-header-block">
+          <h1 class="page-title" id="refills-page-title">Refills</h1>
+          <p class="page-desc" id="refills-page-desc">Request refills for previously purchased medicines.</p>
+        </div>
+
+        <div class="content-dual-grid">
+          <!-- Refill Form -->
+          <div class="content-card">
+            <h3>Request Medicine Refill</h3>
+            <form id="refill-request-form" class="standard-form">
+              <div class="form-row-2">
+                <label>Select Medication
+                  <select id="refill-medicine-select" required>
+                    <option value="Amlodipine 5mg Tablets">Amlodipine 5mg Tablets</option>
+                    <option value="Metformin Hydrochloride 500mg">Metformin HCl 500mg</option>
+                    <option value="Omeprazole Delayed-Release 20mg">Omeprazole 20mg</option>
+                    <option value="Cetirizine 10mg Tablets">Cetirizine 10mg</option>
+                    <option value="Paracetamol 500mg Tablets">Paracetamol 500mg</option>
+                  </select>
+                </label>
+                <label>Quantity / Packs<input type="number" id="refill-qty-input" min="1" max="20" value="1" required /></label>
+              </div>
+              <label>Delivery Address in Kampala<input type="text" id="refill-address-input" placeholder="e.g. Bukoto, Plot 14, Kampala" required /></label>
+              <label>Special Instructions / Original Order #<input type="text" id="refill-orig-order" placeholder="e.g. Refill for Order #BC-ORD-0041" /></label>
+              <button class="btn btn-primary" type="submit">Submit Refill Request</button>
+            </form>
+          </div>
+
+          <!-- Refill History -->
+          <div class="content-card">
+            <h3>Refill Tracking &amp; Pharmacist Review</h3>
+            <div class="table-responsive" id="refills-table-box"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 10: INVENTORY MODULE (#inventory) (Staff/Admin) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-inventory">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Inventory</h1>
+            <p class="page-desc">Monitor stock levels, batches and expiry dates.</p>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" id="btn-open-stock-adjust" type="button">Adjust Stock</button>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <h3>Current Stock Status</h3>
+          <div class="table-responsive" id="inventory-table-box"></div>
+        </div>
+
+        <div class="content-card" style="margin-top: 20px;">
+          <h3>Inventory Audit Log</h3>
+          <div class="table-responsive" id="inventory-logs-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 11: CUSTOMERS MODULE (#customers) (Staff/Admin) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-customers">
+        <div class="page-header-block">
+          <h1 class="page-title">Customers</h1>
+          <p class="page-desc">Patient directory and past prescription dispensing histories.</p>
+        </div>
+
+        <div class="content-card">
+          <div class="table-responsive" id="customers-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 12: USERS & ROLES MODULE (#users) (Admin Only) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-users">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Users</h1>
+            <p class="page-desc">Manage pharmacy staff accounts and role permissions.</p>
+          </div>
+          <div>
+            <button class="btn btn-primary btn-sm" id="btn-open-add-user" type="button">Add New Staff User</button>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="table-responsive" id="users-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 13: DELIVERIES MODULE (#deliveries) (Staff/Admin) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-deliveries">
+        <div class="page-header-block">
+          <h1 class="page-title" id="deliveries-page-title">Deliveries</h1>
+          <p class="page-desc" id="deliveries-page-desc">Manage doorstep dispatch routes and delivery staff assignments.</p>
+        </div>
+
+        <div class="content-card">
+          <div class="table-responsive" id="deliveries-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 14: PAYMENTS MODULE (#payments) (Staff/Admin) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-payments">
+        <div class="page-header-block">
+          <h1 class="page-title">Payments</h1>
+          <p class="page-desc">Audit mobile money settlements, cash transactions, and payment references.</p>
+        </div>
+
+        <div class="content-card">
+          <div class="table-responsive" id="payments-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 15: REPORTS & SALES TRACKING (#reports) (Admin Only) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-reports">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Reports</h1>
+            <p class="page-desc">Financial sales analytics, dispensing audits, and revenue reports.</p>
+          </div>
+          <div class="filter-dropdowns-row">
+            <select id="reports-date-filter" class="form-select-sm">
+              <option value="today">Today</option>
+              <option value="week">This Week</option>
+              <option value="month" selected>This Month</option>
+              <option value="year">This Year</option>
+              <option value="all">All Time</option>
+            </select>
+            <button class="btn btn-secondary btn-sm" id="btn-print-sales-report" type="button">Print Sales Audit</button>
+          </div>
+        </div>
+
+        <div id="reports-dashboard-content"></div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 16: NOTIFICATIONS MODULE (#notifications) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-notifications">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Notifications</h1>
+            <p class="page-desc">System alerts, prescription updates, and order notifications.</p>
+          </div>
+          <div>
+            <button class="btn btn-secondary btn-sm" id="btn-mark-all-notifs" type="button">Mark All as Read</button>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div id="notifications-list-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 17: PROFILE MODULE (#profile) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-profile">
+        <div class="page-header-block">
+          <h1 class="page-title" id="profile-page-title">Profile &amp; Security</h1>
+          <p class="page-desc" id="profile-page-desc">Manage your personal information and account security.</p>
+        </div>
+
+        <div class="content-dual-grid">
+          <!-- Profile Info Card -->
+          <div class="content-card">
+            <h3>Personal Information</h3>
+            <form id="profile-edit-form" class="standard-form">
+              <label>Full Name<input type="text" id="prof-fullname" required /></label>
+              <label>Email Address<input type="email" id="prof-email" readonly disabled /></label>
+              <label>Phone Number<input type="tel" id="prof-phone" required /></label>
+              <button class="btn btn-primary" type="submit">Save Profile Details</button>
+            </form>
+          </div>
+
+          <!-- Security / Password Reset -->
+          <div class="content-card">
+            <h3>Password &amp; Account Security</h3>
+            <p class="muted">Request a secure password reset link sent to your registered email address.</p>
+            <div style="margin-top: 14px;">
+              <button class="btn btn-secondary" id="btn-profile-reset-pass" type="button">Send Password Reset Email</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 18: SETTINGS MODULE (#settings) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-settings">
+        <div class="page-header-block">
+          <h1 class="page-title">Settings</h1>
+          <p class="page-desc">Manage your notification preferences and account security.</p>
+        </div>
+
+        <div class="content-card">
+          <div id="settings-content-container"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 19: CONTACT MODULE (#contact) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-contact">
+        <div class="page-header-block">
+          <h1 class="page-title">Contact Us</h1>
+          <p class="page-desc">Get in touch with our pharmacy care desk for support.</p>
+        </div>
+
+        <div class="contact-cards-grid-4">
+          <div class="contact-card"><span class="contact-label-tag">Phone</span><strong id="contact-card-phone">+256 700 000 000</strong><a href="tel:+256700000000" class="btn btn-secondary btn-sm">Call Pharmacy</a></div>
+          <div class="contact-card"><span class="contact-label-tag">WhatsApp</span><strong>+256 751 234 567</strong><a href="#" id="contact-whatsapp-btn" class="btn btn-secondary btn-sm" target="_blank" rel="noopener noreferrer">Contact BloomCare on WhatsApp</a></div>
+          <div class="contact-card"><span class="contact-label-tag">Email</span><strong id="contact-card-email">care@bloomcare.com</strong><a href="mailto:care@bloomcare.com" class="btn btn-secondary btn-sm">Send Email</a></div>
+          <div class="contact-card"><span class="contact-label-tag">Location</span><strong id="contact-card-address">Plot 14, Kampala Road</strong><small class="muted">Central Kampala &amp; Mbarara, Uganda</small></div>
+        </div>
+
+        <div class="content-dual-grid" style="margin-top: 20px;">
+          <div class="content-card">
+            <h3>Send Us a Message</h3>
+            <form id="contact-form" class="standard-form">
+              <label>Name<input type="text" id="contact-name" placeholder="Your full name" required /></label>
+              <label>Email<input type="email" id="contact-email" placeholder="Your email address" required /></label>
+              <label>Message<textarea id="contact-message" placeholder="Write your message here..." rows="3" required></textarea></label>
+              <button class="btn btn-primary" type="submit">Send Message</button>
+              <div id="contact-form-feedback" class="form-feedback-msg hidden"></div>
+            </form>
+          </div>
+          <div class="content-card">
+            <h3>Opening Hours</h3>
+            <ul class="hours-list">
+              <li><span>Monday – Friday:</span> <strong>8:00 AM – 8:00 PM</strong></li>
+              <li><span>Saturday:</span> <strong>9:00 AM – 6:00 PM</strong></li>
+              <li><span>Sunday:</span> <strong>10:00 AM – 4:00 PM</strong></li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 20: ABOUT MODULE (#about) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-about">
+        <div class="page-header-block">
+          <h1 class="page-title">About BloomCare Pharmacy</h1>
+          <p class="page-desc">Digital pharmacy platform connecting customers with licensed pharmacy services.</p>
+        </div>
+
+        <div class="content-card">
+          <h3>About BloomCare Pharmacy</h3>
+          <p>BloomCare Pharmacy is a digital pharmacy platform in Uganda connecting customers with authentic medications, licensed pharmacist consultations, prescription verification, and scheduled refills.</p>
+
+          <h3 style="margin-top: 18px;">Mission</h3>
+          <p>Provide accessible, convenient, and affordable pharmacy services to patients across Uganda.</p>
+
+          <h3 style="margin-top: 18px;">Services</h3>
+          <ul class="about-bullets" style="margin-left: 20px; margin-top: 6px;">
+            <li><strong>Medicine Ordering:</strong> Genuine NDA-verified over-the-counter and prescription medications.</li>
+            <li><strong>Prescription Support:</strong> Safety review and clinical verification by licensed pharmacists.</li>
+            <li><strong>Pharmacist Consultation:</strong> 1-on-1 personalized medication therapy guidance.</li>
+            <li><strong>Medicine Refills:</strong> Scheduled repeat deliveries for chronic and maintenance therapies.</li>
+            <li><strong>Delivery / Pickup:</strong> Fast doorstep dispatch in Kampala and regional pickup points in Mbarara &amp; Uganda.</li>
+          </ul>
+
+          <h3 style="margin-top: 18px;">Location</h3>
+          <p><strong>Dispensary:</strong> Plot 14, Kampala Road, Central Kampala, Uganda<br>
+          <strong>Regional Distribution:</strong> Mbarara / Uganda<br>
+          <strong>NDA License:</strong> #NDA/UG/PHARM/2026/894</p>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 22: AUTHENTICATION MODULE (#auth / #login / #register) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-auth">
+        <div class="auth-container-centered">
+          <!-- Register Screen (Default First Page for Clients) -->
+          <div class="auth-card" id="register-card">
+            <div class="auth-card-head">
+              <h2>Create Your BloomCare Account</h2>
+              <p class="muted">Register to access genuine medicines, prescription review, consultations, and doorstep refills.</p>
+            </div>
+            <form id="register-form" class="standard-form">
+              <label>Full Name<input type="text" id="reg-fullname" placeholder="e.g. Grace Nakato" required /></label>
+              <label>Email Address<input type="email" id="reg-email" placeholder="you@example.com" required /></label>
+              <label>Phone Number (MTN / Airtel Uganda)<input type="tel" id="reg-phone" placeholder="0751234567" required /></label>
+              <div class="form-row-2">
+                <label>Password<input type="password" id="reg-password" placeholder="Min 8 characters" required /></label>
+                <label>Confirm Password<input type="password" id="reg-confirm" placeholder="Confirm password" required /></label>
+              </div>
+              <button class="btn btn-primary btn-block" type="submit">Create Account</button>
+            </form>
+            <p class="auth-switch-text">Already have an account? <button class="text-link" id="switch-to-login-btn" type="button">Log In</button></p>
+          </div>
+
+          <!-- Customer Login Screen -->
+          <div class="auth-card hidden" id="login-card">
+            <div class="auth-card-head">
+              <h2>BloomCare Pharmacy</h2>
+              <p class="muted">Login to your account</p>
+            </div>
+            <form id="login-form" class="standard-form">
+              <label>Email Address<input type="email" id="login-email" placeholder="you@example.com" required /></label>
+              <label>Password<input type="password" id="login-password" placeholder="Password" required /></label>
+              <div class="form-actions-row">
+                <button class="btn btn-primary" type="submit">Log In</button>
+                <button class="text-link" id="forgot-password-link" type="button">Forgot Password?</button>
+              </div>
+            </form>
+            <div class="auth-divider">or</div>
+            <div class="demo-auth-help-box">
+              <span class="demo-help-tag">One-Click Demo Access</span>
+              <button class="btn btn-outline btn-sm btn-block" id="demo-customer-login-btn" type="button">Log In as Demo Customer (Grace Nakato)</button>
+            </div>
+            <p class="auth-switch-text" style="margin-top:12px;">Don't have an account? <button class="text-link" id="switch-to-register-btn" type="button">Create Account</button></p>
+          </div>
+
+          <!-- Dedicated Staff Portal Login Screen (Separate Route #staff-login) -->
+          <div class="auth-card hidden" id="staff-login-card">
+            <div class="auth-card-head">
+              <h2>BloomCare Clinical &amp; Staff Portal</h2>
+              <p class="muted">Pharmacy Staff &amp; Administrator Sign In</p>
+            </div>
+            <form id="staff-login-form" class="standard-form">
+              <label>Staff Email Address<input type="email" id="staff-login-email" placeholder="staff@bloomcare.com" required /></label>
+              <label>Staff Password<input type="password" id="staff-login-password" placeholder="Password" required /></label>
+              <div class="form-actions-row">
+                <button class="btn btn-primary" type="submit">Log In to Staff Portal</button>
+                <button class="text-link" id="staff-forgot-password-link" type="button">Forgot Password?</button>
+              </div>
+            </form>
+            <div class="demo-auth-help-box">
+              <span class="demo-help-tag">One-Click Staff Sign-In (Demo Profiles)</span>
+              <div class="demo-roles-btn-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
+                <button class="btn btn-outline btn-sm demo-staff-btn" data-role="developer" type="button" style="border-color:var(--amber); color:var(--amber);">Developer (Console)</button>
+                <button class="btn btn-outline btn-sm demo-staff-btn" data-role="admin" type="button">Administrator</button>
+                <button class="btn btn-outline btn-sm demo-staff-btn" data-role="pharmacist" type="button">Pharmacist</button>
+                <button class="btn btn-outline btn-sm demo-staff-btn" data-role="assistant_pharmacist" type="button">Asst. Pharmacist</button>
+                <button class="btn btn-outline btn-sm demo-staff-btn" data-role="delivery_person" type="button">Delivery Person</button>
+              </div>
+            </div>
+            <p class="auth-switch-text" style="margin-top:16px;"><button class="text-link" id="back-to-customer-login-btn" type="button">&larr; Return to Customer Login</button></p>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <!-- Main Footer -->
+    <footer class="main-bottom-footer">
+      <p>&copy; 2026 BloomCare Pharmacy. All rights reserved. Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894).</p>
+      <p class="muted" style="margin-top:6px; font-size:11px;">Pharmacy Workers: <a href="#staff-login" class="text-link" style="color:var(--muted); text-decoration:underline;">Staff Portal Sign In</a></p>
+    </footer>
+
+  </div>
+
+</div>
+
+<!-- ============================================================== -->
+<!-- DIALOGS & MODAL ENGINES -->
+<!-- ============================================================== -->
+
+<!-- 0. Account Required Modal (Account-First Customer Protection) -->
+<dialog id="auth-required-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3>Account Required</h3>
+    <button class="dialog-close-btn" id="close-auth-required-modal">&times;</button>
+  </div>
+  <p id="auth-required-msg" style="margin: 12px 0 20px; font-size: 14px;">
+    Please create an account or log in to continue using this BloomCare service.
+  </p>
+  <div class="form-actions-row">
+    <button class="btn btn-secondary" id="btn-auth-req-login" type="button">Log In</button>
+    <button class="btn btn-primary" id="btn-auth-req-register" type="button">Create Account</button>
+  </div>
+</dialog>
+
+<!-- 1. Add / Edit Product Modal -->
+<dialog id="product-form-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3 id="product-modal-title">Add Pharmacy Product</h3>
+    <button class="dialog-close-btn" id="close-product-form-modal">&times;</button>
+  </div>
+  <form id="product-manage-form" class="standard-form">
+    <input type="hidden" id="prod-id" />
+    <div class="form-row-2">
+      <label>Product Name<input type="text" id="prod-name" placeholder="e.g. Paracetamol 500mg Tablets" required /></label>
+      <label>Generic Name<input type="text" id="prod-generic" placeholder="e.g. Paracetamol (Acetaminophen)" required /></label>
+    </div>
+    <div class="form-row-2">
+      <label>Strength / Potency<input type="text" id="prod-strength" placeholder="e.g. 500mg or 100mcg" required /></label>
+      <label>Dosage Form / Unit<input type="text" id="prod-unit" placeholder="Pack of 20 Tablets" required /></label>
+    </div>
+    <div class="form-row-2">
+      <label>Brand Name<input type="text" id="prod-brand" placeholder="e.g. Panadol / BloomCare" /></label>
+      <label>Category
+        <select id="prod-category" required>
+          <option value="Pain Relief">Pain Relief</option>
+          <option value="Cold &amp; Flu">Cold &amp; Flu</option>
+          <option value="Vitamins &amp; Supplements">Vitamins &amp; Supplements</option>
+          <option value="Digestive Health">Digestive Health</option>
+          <option value="First Aid">First Aid</option>
+          <option value="Skin Care">Skin Care</option>
+          <option value="Personal Care">Personal Care</option>
+          <option value="Baby &amp; Child Care">Baby &amp; Child Care</option>
+          <option value="Maternal Health">Maternal Health</option>
+          <option value="Chronic Care">Chronic Care</option>
+          <option value="Diabetes Care">Diabetes Care</option>
+          <option value="Respiratory Care">Respiratory Care</option>
+          <option value="Allergy Care">Allergy Care</option>
+          <option value="Medical Devices">Medical Devices</option>
+          <option value="Wellness Products">Wellness Products</option>
+        </select>
+      </label>
+    </div>
+    <div class="form-row-3">
+      <label>Price in UGX<input type="number" id="prod-price" min="0" placeholder="5000" required /></label>
+      <label>Stock Quantity<input type="number" id="prod-stock" min="0" placeholder="100" required /></label>
+      <label>Minimum Stock Level<input type="number" id="prod-min-stock" min="0" placeholder="10" value="10" required /></label>
+    </div>
+    <div class="form-row-2">
+      <label>Manufacturer<input type="text" id="prod-mfg" placeholder="e.g. GSK / Cipla" required /></label>
+      <label>Batch Number<input type="text" id="prod-batch" placeholder="BC-2026-B11" /></label>
+    </div>
+    <div class="form-row-2">
+      <label>Expiry Date<input type="date" id="prod-expiry" value="2028-12-31" required /></label>
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer; margin-top:24px;">
+        <input type="checkbox" id="prod-requires-rx" /> Prescription Required (Rx)
+      </label>
+    </div>
+    <label>Description &amp; Clinical Indications<textarea id="prod-desc" rows="2" placeholder="[DEMONSTRATION TEST DATA] Clinical indications and dosage information..."></textarea></label>
+    <div class="form-row-2">
+      <label style="display:flex; align-items:center; gap:8px; cursor:pointer;">
+        <input type="checkbox" id="prod-active-status" checked /> Active in Catalog
+      </label>
+    </div>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-prod-form-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Save Product</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 2. Stock Adjustment Modal -->
+<dialog id="stock-adjust-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3>Adjust Stock Levels</h3>
+    <button class="dialog-close-btn" id="close-stock-adjust-modal">&times;</button>
+  </div>
+  <form id="stock-adjust-form" class="standard-form">
+    <label>Select Product
+      <select id="adjust-prod-select" required></select>
+    </label>
+    <div class="form-row-2">
+      <label>Adjustment Type
+        <select id="adjust-type" required>
+          <option value="in">+ Stock In (Restock)</option>
+          <option value="out">- Stock Out (Dispensed/Expired)</option>
+        </select>
+      </label>
+      <label>Quantity<input type="number" id="adjust-qty" min="1" value="10" required /></label>
+    </div>
+    <label>Reason for Adjustment<input type="text" id="adjust-reason" placeholder="e.g. New shipment batch received" required /></label>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-stock-adjust-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Record Stock Adjustment</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 3. Add / Edit Category Modal -->
+<dialog id="category-form-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3 id="category-modal-title">Add Pharmacy Category</h3>
+    <button class="dialog-close-btn" id="close-category-form-modal">&times;</button>
+  </div>
+  <form id="category-manage-form" class="standard-form">
+    <input type="hidden" id="cat-id" />
+    <label>Category Name<input type="text" id="cat-name" placeholder="e.g. Diabetes Care" required /></label>
+    <label>Category Code / Identifier<input type="text" id="cat-icon" placeholder="e.g. diabetes" required /></label>
+    <label>Short Description<textarea id="cat-desc" rows="2" placeholder="Description of medicines and healthcare products in this category..." required></textarea></label>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-cat-form-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Save Category</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 4. Add / Edit User Modal -->
+<dialog id="user-form-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3 id="user-modal-title">Add Staff User</h3>
+    <button class="dialog-close-btn" id="close-user-form-modal">&times;</button>
+  </div>
+  <form id="user-manage-form" class="standard-form">
+    <input type="hidden" id="usr-id" />
+    <label>Full Name<input type="text" id="usr-name" placeholder="e.g. Pharm. Sarah Namusoke" required /></label>
+    <label>Email Address<input type="email" id="usr-email" placeholder="sarah.n@bloomcare.com" required /></label>
+    <label>Phone Number<input type="tel" id="usr-phone" placeholder="0751234567" required /></label>
+    <div class="form-row-2">
+      <label>Staff Role Assignment
+        <select id="usr-role" required>
+          <option value="admin">Administrator</option>
+          <option value="pharmacist">Pharmacist</option>
+          <option value="assistant_pharmacist">Assistant Pharmacist</option>
+          <option value="delivery_person">Delivery Person</option>
+          <option value="developer">Developer (System)</option>
+        </select>
+      </label>
+      <label>Account Status
+        <select id="usr-status" required>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+          <option value="suspended">Suspended</option>
+        </select>
+      </label>
+    </div>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-usr-form-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Save User</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 5. Order Management Status Modal (Staff) -->
+<dialog id="order-status-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3 id="order-status-modal-title">Update Order Status</h3>
+    <button class="dialog-close-btn" id="close-order-status-modal">&times;</button>
+  </div>
+  <form id="order-status-form" class="standard-form">
+    <input type="hidden" id="manage-order-id" />
+    <label>Order Status
+      <select id="manage-order-status" required>
+        <option value="Pending">Pending</option>
+        <option value="Awaiting Prescription Review">Awaiting Prescription Review</option>
+        <option value="Confirmed">Confirmed</option>
+        <option value="Processing">Processing</option>
+        <option value="Ready for Pickup">Ready for Pickup</option>
+        <option value="Out for Delivery">Out for Delivery</option>
+        <option value="Delivered">Delivered</option>
+        <option value="Cancelled">Cancelled</option>
+      </select>
+    </label>
+    <label>Assign Delivery Driver
+      <select id="manage-order-driver">
+        <option value="Unassigned">Unassigned</option>
+        <option value="Moses Kato">Moses Kato (Driver #1)</option>
+        <option value="Paul Ssemwogerere">Paul Ssemwogerere (Driver #2)</option>
+      </select>
+    </label>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-order-status-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Update Status</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 6. Prescription Review Modal (Pharmacist) -->
+<dialog id="rx-review-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3>Pharmacist Prescription Review</h3>
+    <button class="dialog-close-btn" id="close-rx-review-modal">&times;</button>
+  </div>
+  <form id="rx-review-form" class="standard-form">
+    <input type="hidden" id="review-rx-id" />
+    <div id="rx-review-details-box"></div>
+    <label>Review Decision
+      <select id="review-rx-decision" required>
+        <option value="Approved">Approve Prescription</option>
+        <option value="Under Review">Under Review</option>
+        <option value="Clarification Required">Request Clarification</option>
+        <option value="Rejected">Reject Prescription</option>
+        <option value="Completed">Completed / Dispensed</option>
+      </select>
+    </label>
+    <label>Pharmacist Review Notes<textarea id="review-rx-notes" rows="2" placeholder="Clinical notes for the patient or dispensing assistant..."></textarea></label>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-rx-review-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Submit Clinical Review</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 7. Product Details Monograph Modal -->
+<dialog id="product-details-dialog" class="details-modal-dialog">
+  <div class="dialog-header">
+    <h2 id="modal-product-name">Product Details</h2>
+    <button class="dialog-close-btn" id="close-product-details-btn">&times;</button>
+  </div>
+  <div class="product-details-body" id="product-details-content"></div>
+  <div class="product-details-footer">
+    <div class="modal-price-box">
+      <small>Price in UGX</small>
+      <strong id="modal-product-price">UGX 0</strong>
+    </div>
+    <button class="btn btn-primary" id="modal-add-cart-btn" type="button">Add to Cart</button>
+  </div>
+</dialog>
+
+<!-- 8. Shopping Cart Dialog -->
+<dialog id="cart-dialog" class="cart-dialog">
+  <div class="dialog-header">
+    <h2>Shopping Cart</h2>
+    <button class="dialog-close-btn" id="close-cart-modal">&times;</button>
+  </div>
+  <div class="cart-dialog-body" id="cart-items-box"></div>
+  <div class="cart-dialog-footer">
+    <div class="cart-line-row"><span>Subtotal:</span> <strong id="cart-subtotal-val">UGX 0</strong></div>
+    <div class="cart-line-row"><span>Delivery Fee (Kampala):</span> <strong id="cart-delivery-val">UGX 5,000</strong></div>
+    <div class="cart-line-row total-highlight"><span>Total Payable:</span> <strong id="cart-total-val">UGX 5,000</strong></div>
+    <div class="cart-btn-row">
+      <button class="btn btn-secondary" id="cart-continue-btn" type="button">Continue Shopping</button>
+      <button class="btn btn-primary" id="go-checkout-btn" type="button">Proceed to Checkout</button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 9. Checkout Modal (5-Step Checkout) -->
+<dialog id="checkout-dialog" class="checkout-dialog">
+  <div class="dialog-header">
+    <h2>Complete Checkout &amp; Payment</h2>
+    <button class="dialog-close-btn" id="close-checkout-modal">&times;</button>
+  </div>
+  <form id="checkout-form" class="checkout-form-body">
+    <h4 style="margin-top:4px;">1. Customer Information</h4>
+    <div class="form-row-2">
+      <label>Full Name<input type="text" id="chk-name" required /></label>
+      <label>Email Address<input type="email" id="chk-email" placeholder="you@example.com" required /></label>
+    </div>
+    
+    <h4 style="margin-top:10px;">2. Fulfillment &amp; Delivery Option</h4>
+    <label>Choose Fulfillment Method
+      <select id="chk-fulfillment-option" required>
+        <option value="delivery">Home Delivery in Kampala (UGX 5,000)</option>
+        <option value="pickup">Pharmacy Pickup (Free / UGX 0)</option>
+      </select>
+    </label>
+
+    <div id="chk-delivery-fields">
+      <label>Delivery Address in Kampala<input type="text" id="chk-address" placeholder="e.g. Bukoto, Plot 14, Kampala" required /></label>
+      <label>City / Town<input type="text" id="chk-city" value="Kampala" required /></label>
+      <label>Additional Delivery Instructions<input type="text" id="chk-instructions" placeholder="e.g. Landmark, gate color, or reception delivery" /></label>
+    </div>
+
+    <div id="chk-pickup-fields" class="hidden" style="background:var(--bg-page); padding:10px; border-radius:var(--radius-sm); margin-bottom:10px;">
+      <strong>Pickup Station:</strong>
+      <p style="font-size:13px; margin:2px 0;">BloomCare Pharmacy Main Dispensary</p>
+      <p style="font-size:12px; color:var(--muted);">Plot 14, Kampala Road, Central Kampala, Uganda</p>
+      <p style="font-size:12px; color:var(--primary); font-weight:700; margin-top:4px;">Available for pickup Mon–Sat: 8:00 AM – 8:00 PM</p>
+    </div>
+
+    <h4 style="margin-top:10px;">3. Order Review &amp; Payment</h4>
+    <label>Payment Method
+      <select id="chk-payment-method" required>
+        <option value="MTN MoMo">MTN Mobile Money (*165#)</option>
+        <option value="Airtel Money">Airtel Money (*185#)</option>
+        <option value="Cash on Delivery">Cash on Doorstep Delivery</option>
+      </select>
+    </label>
+    <label>Payment Phone Number<input type="tel" id="chk-phone" placeholder="0772 123 456" required /></label>
+
+    <div class="checkout-summary-box" style="margin-top: 10px;">
+      <div class="cart-line-row total-highlight"><span>Total Payable:</span> <strong id="chk-total-val">UGX 0</strong></div>
+    </div>
+
+    <button class="btn btn-primary btn-block" type="submit" style="margin-top: 10px;">Place Order &amp; Generate Reference</button>
+  </form>
+</dialog>
+
+<!-- 10. Official Professional Pharmacy Receipt & Order Confirmation Modal -->
+<dialog id="receipt-dialog" class="receipt-modal-dialog">
+  <div class="receipt-dialog-header no-print">
+    <div class="receipt-modal-title-box">
+      <span class="receipt-check-icon">✓</span>
+      <div>
+        <h3 style="margin:0; font-size:15px;">Order Confirmed &amp; Receipt Generated</h3>
+        <small class="muted">Official BloomCare Dispensary Sales Documentation</small>
+      </div>
+    </div>
+    <button class="dialog-close-btn" id="close-receipt-modal" type="button" aria-label="Close receipt">&times;</button>
+  </div>
+
+  <div class="receipt-sheet" id="printable-receipt">
+    <!-- 1. Header & Brand -->
+    <div class="receipt-header">
+      <div class="receipt-brand-row">
+        <div class="receipt-brand-info">
+          <h1 class="receipt-brand-name">BLOOMCARE PHARMACY</h1>
+          <p class="receipt-brand-tagline">Professional Pharmacy Services</p>
+          <p class="receipt-address-line">Plot 14, Kampala Road, Central Kampala, Uganda &bull; Tel: +256 700 000 000</p>
+        </div>
+        <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="receipt-logo" />
+      </div>
+
+      <div class="receipt-divider-strong"></div>
+      <div class="receipt-title-badge-row">
+        <h2 class="receipt-doc-title">ORDER RECEIPT</h2>
+        <div class="receipt-status-wrap">
+          <span class="receipt-status-label">Status:</span>
+          <span class="receipt-status-pill" id="rec-status-badge">Confirmed</span>
+        </div>
+      </div>
+      <div class="receipt-divider-light"></div>
+    </div>
+
+    <!-- Order Metadata Grid -->
+    <div class="receipt-meta-grid">
+      <div class="receipt-meta-item">
+        <span class="meta-label">Order Reference:</span>
+        <strong class="meta-value ref-highlight" id="rec-order-ref">BC-20260903-00000</strong>
+      </div>
+      <div class="receipt-meta-item">
+        <span class="meta-label">Order Date:</span>
+        <strong class="meta-value" id="rec-order-date">--</strong>
+      </div>
+      <div class="receipt-meta-item">
+        <span class="meta-label">Order Time:</span>
+        <strong class="meta-value" id="rec-order-time">--</strong>
+      </div>
+      <div class="receipt-meta-item">
+        <span class="meta-label">Fulfillment Method:</span>
+        <strong class="meta-value" id="rec-fulfillment-type">--</strong>
+      </div>
+    </div>
+
+    <!-- 2. Customer & Delivery Information Sections -->
+    <div class="receipt-parties-grid">
+      <!-- Customer Information -->
+      <div class="receipt-card-section">
+        <h4 class="receipt-section-heading">CUSTOMER INFORMATION</h4>
+        <div class="receipt-details-list">
+          <div class="receipt-detail-row">
+            <span class="detail-label">Customer Name:</span>
+            <strong class="detail-val" id="rec-cust-name">--</strong>
+          </div>
+          <div class="receipt-detail-row">
+            <span class="detail-label">Email:</span>
+            <span class="detail-val" id="rec-cust-email">--</span>
+          </div>
+          <div class="receipt-detail-row">
+            <span class="detail-label">Phone Number:</span>
+            <span class="detail-val" id="rec-cust-phone">--</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Delivery / Fulfillment Information -->
+      <div class="receipt-card-section" id="rec-fulfillment-section">
+        <h4 class="receipt-section-heading">DELIVERY INFORMATION</h4>
+        <div class="receipt-details-list" id="rec-delivery-details-body">
+          <!-- Populated dynamically (Delivery address & instructions OR Pickup Station info) -->
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. Payment Information Section -->
+    <div class="receipt-card-section" style="margin-top:10px;">
+      <h4 class="receipt-section-heading">PAYMENT INFORMATION</h4>
+      <div class="receipt-details-grid-3">
+        <div class="receipt-detail-row">
+          <span class="detail-label">Payment Method:</span>
+          <strong class="detail-val" id="rec-pay-method">--</strong>
+        </div>
+        <div class="receipt-detail-row">
+          <span class="detail-label">Payment Phone:</span>
+          <span class="detail-val" id="rec-pay-phone">--</span>
+        </div>
+        <div class="receipt-detail-row">
+          <span class="detail-label">Payment Status:</span>
+          <span class="receipt-pay-pill" id="rec-pay-status">--</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. Order Items Table -->
+    <div class="receipt-items-section">
+      <h4 class="receipt-section-heading" style="margin-top:14px;">ORDER ITEMS</h4>
+      <table class="receipt-items-table">
+        <thead>
+          <tr>
+            <th class="col-item">Item</th>
+            <th class="col-qty text-center">Quantity</th>
+            <th class="col-price text-right">Unit Price</th>
+            <th class="col-subtotal text-right">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody id="rec-items-body">
+          <!-- Dynamically populated rows -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 5. Order Summary -->
+    <div class="receipt-summary-container">
+      <div class="receipt-summary-box">
+        <div class="summary-line">
+          <span>Subtotal:</span>
+          <strong id="rec-subtotal-val">UGX 0</strong>
+        </div>
+        <div class="summary-line">
+          <span>Delivery Fee:</span>
+          <strong id="rec-delivery-fee-val">UGX 0</strong>
+        </div>
+        <div class="summary-divider"></div>
+        <div class="summary-line total-payable-line">
+          <span>TOTAL PAYABLE:</span>
+          <strong id="rec-total-payable-val">UGX 0</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. Receipt Footer -->
+    <div class="receipt-footer">
+      <div class="receipt-footer-divider"></div>
+      <p class="receipt-thanks-msg">Thank you for choosing BloomCare Pharmacy.</p>
+      <p class="receipt-support-msg">For inquiries or support, please contact BloomCare Pharmacy.</p>
+      <div class="receipt-contact-pills">
+        <span>📞 +256 700 000 000</span>
+        <span>✉ care@bloomcare.com</span>
+        <a id="rec-whatsapp-btn" href="#" target="_blank" rel="noopener" class="receipt-whatsapp-link">
+          💬 Chat on WhatsApp
+        </a>
+      </div>
+      <p class="receipt-legal-note">Official computerized dispensary sales record. Retain this receipt for medicine verification or prescription refills.</p>
+    </div>
+  </div>
+
+  <!-- Action Buttons (Print / Download / Close) -->
+  <div class="receipt-modal-actions no-print">
+    <button class="btn btn-primary" id="print-receipt-action" type="button">
+      🖨 Print Receipt
+    </button>
+    <button class="btn btn-secondary" id="download-receipt-action" type="button">
+      ⬇ Download Receipt
+    </button>
+    <button class="btn btn-outline" id="receipt-done-btn" type="button">
+      Close
+    </button>
+  </div>
+</dialog>
+
+<!-- 10B. Order Tracking Modal (6-Stage Timeline) -->
+<dialog id="order-tracking-dialog" class="details-modal-dialog">
+  <div class="dialog-header">
+    <h2>Order Tracking &amp; Status</h2>
+    <button class="dialog-close-btn" id="close-tracking-modal">&times;</button>
+  </div>
+  <div class="tracking-modal-body" id="tracking-modal-content"></div>
+</dialog>
+
+<!-- 11. Logout Confirmation Modal -->
+<dialog id="logout-confirm-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3>Confirm Sign Out</h3>
+    <button class="dialog-close-btn" id="close-logout-modal">&times;</button>
+  </div>
+  <p style="margin: 12px 0 20px;">Are you sure you want to sign out of BloomCare Pharmacy?</p>
+  <div class="form-actions-row">
+    <button class="btn btn-outline" id="cancel-logout-btn" type="button">Cancel</button>
+    <button class="btn btn-primary" id="confirm-logout-btn" type="button">Sign Out</button>
+  </div>
+</dialog>
+
+<!-- 12. Forgot Password Modal -->
+<dialog id="forgot-password-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h2>Reset Password</h2>
+    <button class="dialog-close-btn" id="close-forgot-modal">&times;</button>
+  </div>
+  <form id="forgot-password-form" class="standard-form">
+    <p class="muted">Enter your email address to receive a secure password reset link.</p>
+    <label>Email Address<input type="email" id="forgot-email" placeholder="you@example.com" required /></label>
+    <button class="btn btn-primary btn-block" type="submit">Send Reset Link</button>
+  </form>
+</dialog>
+
+<!-- 13. System Notice Modal -->
+<dialog id="notice-modal" class="notice-dialog">
+  <div class="dialog-header">
+    <h3 id="notice-title">Notice</h3>
+    <button class="dialog-close-btn" id="close-notice-modal">&times;</button>
+  </div>
+  <p id="notice-msg"></p>
+  <div class="dialog-action-right">
+    <button class="btn btn-primary btn-sm" id="notice-confirm-btn" type="button">OK</button>
+  </div>
+</dialog>
+
+<script type="module" src="app.js"></script>
+</body>
+</html>

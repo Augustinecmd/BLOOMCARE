@@ -1,52 +1,75 @@
-import assert from 'node:assert/strict';
-import test from 'node:test';
+import assert from "node:assert/strict";
+import test from "node:test";
 import {
   normalizeUgandanPhone,
   validateUgandanPhone,
   validateEmail,
   validatePassword,
   validateName,
-  validateDateOfBirth,
-  validateMeasurement,
-  validateEmergencyContact,
-  validateAppointment,
-  validateMedication
-} from '../validators.js';
+  validateProduct,
+  validateOrder,
+  validatePrescription,
+  validateConsultation,
+  validateRefill,
+  validateStockAdjustment
+} from "../validators.js";
 
-test('accepts and normalizes valid Ugandan phone numbers', () => {
-  for (const phone of ['0741592069', '0786426344', '0751234567', '0771234567', '+256741592069', '+256786426344']) {
+test("accepts and normalizes valid Ugandan phone numbers", () => {
+  for (const phone of ["0741592069", "0786426344", "0751234567", "0771234567", "+256741592069", "+256786426344", "075 123 4567"]) {
     assert.equal(validateUgandanPhone(phone).valid, true, phone);
   }
-  assert.equal(normalizeUgandanPhone('+256751234567'), '0751234567');
-  assert.equal(normalizeUgandanPhone('075 123 4567'), '0751234567');
+  assert.equal(normalizeUgandanPhone("+256751234567"), "0751234567");
+  assert.equal(normalizeUgandanPhone("075 123 4567"), "0751234567");
 });
 
-test('rejects invalid Ugandan phone numbers', () => {
-  for (const phone of ['074159206', '741592069', '07415920699', '0841592069', '07415ABC69', '074-159-2069', 'abcdefghij']) {
+test("rejects invalid Ugandan phone numbers", () => {
+  for (const phone of ["074159206", "741592069", "07415920699", "0841592069", "07415ABC69", "abcdefghij"]) {
     assert.equal(validateUgandanPhone(phone).valid, false, phone);
   }
 });
 
-test('validates email, password, and names with specific rules', () => {
-  assert.equal(validateEmail('name@gmail.com').valid, true);
-  assert.equal(validateEmail('user@').valid, false);
-  assert.equal(validatePassword('Strong9').valid, false);
-  assert.equal(validatePassword('StrongPass9!').valid, true);
-  assert.equal(validateName('Mary Atim').valid, true);
-  assert.equal(validateName("Anne-Marie O'Kello").valid, true);
-  assert.equal(validateName('12345').valid, false);
+test("validates email, password, and customer names", () => {
+  assert.equal(validateEmail("care@bloomcare.com").valid, true);
+  assert.equal(validateEmail("user@").valid, false);
+  assert.equal(validatePassword("WeakPass").valid, false);
+  assert.equal(validatePassword("BloomCare2026!").valid, true);
+  assert.equal(validateName("Grace Nakato").valid, true);
+  assert.equal(validateName("12345").valid, false);
 });
 
-test('rejects future birth dates and malformed measurements', () => {
-  assert.equal(validateDateOfBirth('2999-01-01').valid, false);
-  assert.equal(validateMeasurement({ weight: '70', temperature: '37', systolic: '110', diastolic: '80' }).valid, true);
-  assert.equal(validateMeasurement({ weight: '-1', temperature: '90', systolic: '80', diastolic: '100' }).valid, false);
+test("validates pharmacy products and prices", () => {
+  assert.equal(validateProduct({ name: "Panadol Extra", category: "Pain Relief", price: 6500, stockQuantity: 50 }).valid, true);
+  assert.equal(validateProduct({ name: "", category: "Pain Relief", price: 6500 }).valid, false);
+  assert.equal(validateProduct({ name: "Panadol", category: "Pain Relief", price: -100 }).valid, false);
 });
 
-test('validates emergency contacts, appointments, and medications', () => {
-  assert.equal(validateEmergencyContact({ name: 'Mary Atim', phone: '0751234567', relationship: 'Parent' }).valid, true);
-  assert.equal(validateEmergencyContact({ name: '123', phone: '074159206', relationship: '' }).valid, false);
-  assert.equal(validateAppointment({ date: '2999-01-01', time: '10:30', provider: 'Dr A', facility: 'Clinic' }).valid, true);
-  assert.equal(validateMedication({ name: 'Iron', instructions: 'One tablet daily', reminderTime: '08:00' }).valid, true);
-  assert.equal(validateMedication({ name: '', instructions: '', reminderTime: '25:00' }).valid, false);
+test("validates customer orders and cart checkout", () => {
+  const validOrder = {
+    customerName: "Grace Nakato",
+    customerPhone: "0751234567",
+    deliveryAddress: "Bukoto, Kampala",
+    items: [{ productId: "BC-1", name: "Amoxicillin", price: 18000, quantity: 1 }],
+    total: 23000
+  };
+  assert.equal(validateOrder(validOrder).valid, true);
+  assert.equal(validateOrder({ ...validOrder, items: [] }).valid, false);
+  assert.equal(validateOrder({ ...validOrder, deliveryAddress: "" }).valid, false);
+});
+
+test("validates prescriptions, consultations, and refills", () => {
+  assert.equal(validatePrescription({ customerId: "user-1", notes: "Amoxicillin 500mg TDS" }).valid, true);
+  assert.equal(validatePrescription({ customerId: "" }).valid, false);
+
+  assert.equal(validateConsultation({
+    consultationType: "Medication Consultation",
+    pharmacist: "Dr. Amina",
+    date: "2099-01-01",
+    time: "10:00 AM"
+  }).valid, true);
+
+  assert.equal(validateRefill({ medicineName: "Amlodipine 5mg", quantity: 2 }).valid, true);
+  assert.equal(validateRefill({ medicineName: "", quantity: 0 }).valid, false);
+
+  assert.equal(validateStockAdjustment({ productId: "BC-1", type: "stock_in", quantity: 50 }).valid, true);
+  assert.equal(validateStockAdjustment({ productId: "BC-1", type: "invalid_type", quantity: 50 }).valid, false);
 });

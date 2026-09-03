@@ -9,8 +9,8 @@ const firebaseConfig = {
   projectId: "bloomcare-ee449",
   storageBucket: "bloomcare-ee449.firebasestorage.app",
   messagingSenderId: "265627798177",
-  appId: "1:265627798177:web:9282dd5c65f96e75fefee0",
-  measurementId: "G-SQJT4E2Y39"
+  appId: "1:265627798177:web:4158341a929ae11bfefee0",
+  measurementId: "G-PRMLMH2X75"
 };
 
 const firebaseApp = initializeApp(firebaseConfig);

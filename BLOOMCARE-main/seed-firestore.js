@@ -81,7 +81,7 @@ async function seedDatabase() {
     });
     console.log("✓ Created 'appointmentRequests' table document");
 
-    console.log("🎉 Successfully seeded all 4 Firestore tables!");
+    console.log("[BloomCare Setup] Successfully seeded all 4 Firestore tables.");
     process.exit(0);
 }
 
