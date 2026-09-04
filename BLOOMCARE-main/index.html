@@ -1814,6 +1814,103 @@
   </div>
 </dialog>
 
+<!-- 14. Admin User Profile Drawer / Modal -->
+<dialog id="user-profile-dialog" class="details-modal-dialog profile-drawer-dialog">
+  <div class="dialog-header">
+    <div class="dialog-title-with-badge">
+      <h2 id="up-user-name">User Profile</h2>
+      <span class="role-badge" id="up-role-badge">ROLE</span>
+      <span class="status-pill" id="up-status-pill">Active</span>
+    </div>
+    <button class="dialog-close-btn" id="close-user-profile-modal" type="button">&times;</button>
+  </div>
+  <div class="user-profile-dialog-body" id="user-profile-body">
+    <!-- Populated dynamically: Personal Info, Account Info, Permissions, Recent Orders/Consultations, and Action Controls -->
+  </div>
+</dialog>
+
+<!-- 15. User Account Suspension Dialog -->
+<dialog id="user-suspend-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3 style="display:flex; align-items:center; gap:8px; color:var(--warning-dark);">
+      <span>⚠️</span>
+      <span>Suspend User Account</span>
+    </h3>
+    <button class="dialog-close-btn" id="close-suspend-modal" type="button">&times;</button>
+  </div>
+  <form id="user-suspend-form" class="standard-form">
+    <input type="hidden" id="suspend-target-user-id" />
+    <div class="suspend-target-banner" id="suspend-user-banner">
+      <strong id="suspend-target-name">User Name</strong>
+      <small id="suspend-target-email" class="muted">user@example.com</small>
+    </div>
+    <div class="form-notice" style="background:#fffbeb; border:1px solid #fef3c7; color:#92400e; padding:10px 14px; border-radius:6px; font-size:12.5px; margin:10px 0;">
+      Suspending this user will immediately revoke login sessions and block access to protected actions until the suspension expires or is manually restored by an Admin.
+    </div>
+    <label>Reason for Account Suspension *
+      <textarea id="suspend-reason-input" rows="3" placeholder="State the policy violation, security concern, or compliance reason..." required></textarea>
+    </label>
+    <label>Suspension Duration *
+      <select id="suspend-duration-select" required>
+        <option value="7_days">7 Days (Temporary Review)</option>
+        <option value="30_days">30 Days (Extended Suspension)</option>
+        <option value="indefinite">Indefinite (Pending Investigation / Permanent)</option>
+      </select>
+    </label>
+    <label>Administrative Internal Notes (Optional)
+      <input type="text" id="suspend-admin-note" placeholder="Ticket number or supervisory reference..." />
+    </label>
+    <div class="form-actions-row">
+      <button class="btn btn-outline" type="button" id="cancel-suspend-btn">Cancel</button>
+      <button class="btn btn-warning" type="submit" id="confirm-suspend-btn">Confirm Suspension</button>
+    </div>
+  </form>
+</dialog>
+
+<!-- 16. Granular Permissions Management Dialog -->
+<dialog id="user-permissions-dialog" class="form-modal-dialog wide-modal-dialog">
+  <div class="dialog-header">
+    <div>
+      <h3 style="margin:0;">Manage User Permissions</h3>
+      <small class="muted" id="perm-user-subtitle">Configuring capabilities for user</small>
+    </div>
+    <button class="dialog-close-btn" id="close-permissions-modal" type="button">&times;</button>
+  </div>
+  <form id="user-permissions-form" class="standard-form">
+    <input type="hidden" id="perm-target-user-id" />
+    <div class="permissions-notice muted" style="font-size:12.5px; margin-bottom:14px;">
+      Grant or revoke granular permissions. By default, roles inherit their standard role capabilities. Custom permissions override default role limits.
+    </div>
+    <div class="permissions-matrix-grid" id="permissions-checkboxes-container">
+      <!-- Dynamically generated categorized permission checkboxes -->
+    </div>
+    <div class="form-actions-row flex-between" style="margin-top:20px;">
+      <button class="btn btn-outline btn-sm" type="button" id="btn-reset-role-defaults">Reset to Role Defaults</button>
+      <div style="display:flex; gap:10px;">
+        <button class="btn btn-outline btn-sm" type="button" id="cancel-permissions-btn">Cancel</button>
+        <button class="btn btn-primary btn-sm" type="submit">Save Permissions</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- 17. Reusable Action Confirmation Dialog -->
+<dialog id="user-confirm-dialog" class="form-modal-dialog">
+  <div class="dialog-header">
+    <h3 id="user-confirm-title" style="margin:0;">Confirm Administrative Action</h3>
+    <button class="dialog-close-btn" id="close-user-confirm-modal" type="button">&times;</button>
+  </div>
+  <div class="confirm-modal-body" style="padding:14px 0 20px;">
+    <div class="confirm-icon-wrap" id="user-confirm-icon" style="font-size:32px; margin-bottom:8px;">⚠️</div>
+    <p id="user-confirm-message" style="margin:0; font-size:14px; line-height:1.5; color:var(--text-dark);"></p>
+    <p id="user-confirm-submessage" class="muted" style="margin:6px 0 0; font-size:12.5px;"></p>
+  </div>
+  <div class="form-actions-row">
+    <button class="btn btn-outline" type="button" id="cancel-user-confirm-btn">Cancel</button>
+    <button class="btn btn-primary" type="button" id="proceed-user-confirm-btn">Proceed</button>
+  </div>
+</dialog>
+
 <script type="module" src="app.js"></script>
 </body>
 </html>

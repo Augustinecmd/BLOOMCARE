@@ -787,6 +787,16 @@ export function hasPermission(permission, role = getEffectiveRole()) {
   return perms.includes(permission);
 }
 
+export function userHasPermission(user, permission) {
+  if (!user) return false;
+  const role = normalizeRole(user.role);
+  if (role === "developer") return true;
+  if (user.permissions && Array.isArray(user.permissions)) {
+    return user.permissions.includes(permission);
+  }
+  return hasPermission(permission, role);
+}
+
 // 5. Pharmacy Workflow State Transition Logic (State Machine)
 export const ALLOWED_ORDER_TRANSITIONS = {
   "Pending": {
@@ -903,19 +913,32 @@ export function canAccessResource(user, resourceType, resource, action = "read")
   return false;
 }
 
-const INITIAL_USERS = [
-  { id: "usr-dev-001", name: "Lead Systems Developer", email: "dev@bloomcare.com", phone: "0751000999", role: "developer", status: "active", createdAt: "2026-01-01" },
-  { id: "usr-1", name: "Dr. Admin Mugisha", email: "admin@bloomcare.com", phone: "0700000001", role: "admin", status: "active", createdAt: "2026-01-01" },
-  { id: "usr-2", name: "Dr. Amina Nanyonga", email: "pharmacist@bloomcare.com", phone: "0700000002", role: "pharmacist", status: "active", createdAt: "2026-01-10" },
-  { id: "usr-2b", name: "Dr. Amina Nanyonga", email: "amina.n@bloomcare.com", phone: "0700000002", role: "pharmacist", status: "active", createdAt: "2026-01-10" },
-  { id: "usr-3", name: "Pharm. David Mukasa", email: "david.m@bloomcare.com", phone: "0700000003", role: "pharmacist", status: "active", createdAt: "2026-01-15" },
-  { id: "usr-4", name: "Sarah Namusoke", email: "assistant@bloomcare.com", phone: "0700000004", role: "assistant_pharmacist", status: "active", createdAt: "2026-02-01" },
-  { id: "usr-4b", name: "Sarah Namusoke", email: "sarah.n@bloomcare.com", phone: "0700000004", role: "assistant_pharmacist", status: "active", createdAt: "2026-02-01" },
-  { id: "usr-5", name: "Moses Kato", email: "delivery@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10" },
-  { id: "usr-5b", name: "Moses Kato", email: "moses.k@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10" },
-  { id: "usr-6", name: "Emmanuel Otim", email: "emmanuel.o@bloomcare.com", phone: "0700000006", role: "delivery_person", status: "active", createdAt: "2026-02-20" },
-  { id: "usr-cust-001", name: "Grace Nakato", email: "customer@bloomcare.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01" },
-  { id: "usr-cust-002", name: "Grace Nakato", email: "grace.nakato@example.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01" }
+export const INITIAL_USERS = [
+  { id: "usr-dev-001", uid: "usr-dev-001", name: "Lead Systems Developer", displayName: "Lead Systems Developer", email: "dev@bloomcare.com", phone: "0751000999", role: "developer", status: "active", createdAt: "2026-01-01", lastLogin: "2026-09-04 14:32:00", permissions: Object.values(PERMISSIONS) },
+  { id: "usr-1", uid: "usr-1", name: "Dr. Admin Mugisha", displayName: "Dr. Admin Mugisha", email: "admin@bloomcare.com", phone: "0700000001", role: "admin", status: "active", createdAt: "2026-01-01", lastLogin: "2026-09-04 15:45:00", permissions: [...ROLE_PERMISSIONS.admin] },
+  { id: "usr-2", uid: "usr-2", name: "Dr. Amina Nanyonga", displayName: "Dr. Amina Nanyonga", email: "pharmacist@bloomcare.com", phone: "0700000002", role: "pharmacist", status: "active", createdAt: "2026-01-10", lastLogin: "2026-09-04 11:20:00", permissions: [...ROLE_PERMISSIONS.pharmacist] },
+  { id: "usr-2b", uid: "usr-2b", name: "Dr. Amina Nanyonga", displayName: "Dr. Amina Nanyonga", email: "amina.n@bloomcare.com", phone: "0700000002", role: "pharmacist", status: "active", createdAt: "2026-01-10", lastLogin: "2026-09-04 11:20:00", permissions: [...ROLE_PERMISSIONS.pharmacist] },
+  { id: "usr-3", uid: "usr-3", name: "Pharm. David Mukasa", displayName: "Pharm. David Mukasa", email: "david.m@bloomcare.com", phone: "0700000003", role: "pharmacist", status: "active", createdAt: "2026-01-15", lastLogin: "2026-09-03 16:10:00", permissions: [...ROLE_PERMISSIONS.pharmacist] },
+  { id: "usr-4", uid: "usr-4", name: "Sarah Namusoke", displayName: "Sarah Namusoke", email: "assistant@bloomcare.com", phone: "0700000004", role: "assistant_pharmacist", status: "active", createdAt: "2026-02-01", lastLogin: "2026-09-04 09:30:00", permissions: [...ROLE_PERMISSIONS.assistant_pharmacist] },
+  { id: "usr-4b", uid: "usr-4b", name: "Sarah Namusoke", displayName: "Sarah Namusoke", email: "sarah.n@bloomcare.com", phone: "0700000004", role: "assistant_pharmacist", status: "active", createdAt: "2026-02-01", lastLogin: "2026-09-04 09:30:00", permissions: [...ROLE_PERMISSIONS.assistant_pharmacist] },
+  { id: "usr-5", uid: "usr-5", name: "Moses Kato", displayName: "Moses Kato", email: "delivery@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
+  { id: "usr-5b", uid: "usr-5b", name: "Moses Kato", displayName: "Moses Kato", email: "moses.k@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
+  { id: "usr-6", uid: "usr-6", name: "Emmanuel Otim", displayName: "Emmanuel Otim", email: "emmanuel.o@bloomcare.com", phone: "0700000006", role: "delivery_person", status: "active", createdAt: "2026-02-20", lastLogin: "2026-09-03 17:00:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
+  { id: "usr-cust-001", uid: "usr-cust-001", name: "Grace Nakato", displayName: "Grace Nakato", email: "customer@bloomcare.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-04 18:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "usr-cust-002", uid: "usr-cust-002", name: "Grace Nakato", displayName: "Grace Nakato", email: "grace.nakato@example.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-04 18:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "cust-2", uid: "cust-2", name: "David Mukasa", displayName: "David Mukasa", email: "david.m@example.com", phone: "0772334455", role: "customer", status: "active", createdAt: "2026-03-12", lastLogin: "2026-08-31 10:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "cust-3", uid: "cust-3", name: "Florence Kembabazi", displayName: "Florence Kembabazi", email: "florence.k@example.com", phone: "0701889900", role: "customer", status: "active", createdAt: "2026-03-18", lastLogin: "2026-09-01 14:00:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "cust-4", uid: "cust-4", name: "Joseph Okello", displayName: "Joseph Okello", email: "joseph.o@example.com", phone: "0782112233", role: "customer", status: "active", createdAt: "2026-04-02", lastLogin: "2026-09-01 16:30:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "cust-5", uid: "cust-5", name: "Dr. Brian Tumusiime", displayName: "Dr. Brian Tumusiime", email: "brian.t@example.com", phone: "0755443322", role: "customer", status: "active", createdAt: "2026-04-15", lastLogin: "2026-08-27 12:45:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "cust-6", uid: "cust-6", name: "Aisha Nabawanuka", displayName: "Aisha Nabawanuka", email: "aisha.n@example.com", phone: "0702667788", role: "customer", status: "active", createdAt: "2026-05-01", lastLogin: "2026-09-01 11:10:00", permissions: [...ROLE_PERMISSIONS.customer] },
+  { id: "usr-suspended-test", uid: "usr-suspended-test", name: "Suspended Test Account", displayName: "Suspended Test Account", email: "suspended@example.com", phone: "0751999888", role: "customer", status: "suspended", suspensionReason: "Terms of service violation review", suspensionDuration: "30_days", suspensionUntil: "2026-10-04", createdAt: "2026-04-10", lastLogin: "2026-08-20 09:00:00", permissions: [...ROLE_PERMISSIONS.customer] }
+];
+
+export const INITIAL_AUDIT_LOGS = [
+  { id: "audit-001", timestamp: "2026-09-01T10:00:00Z", actorId: "usr-1", actorName: "Dr. Admin Mugisha", actorRole: "admin", action: "USER_CREATE", targetUserId: "usr-cust-001", targetName: "Grace Nakato", details: "Customer account registered and verified", ip: "127.0.0.1" },
+  { id: "audit-002", timestamp: "2026-09-02T11:30:00Z", actorId: "usr-1", actorName: "Dr. Admin Mugisha", actorRole: "admin", action: "ROLE_CHANGE", targetUserId: "usr-4", targetName: "Sarah Namusoke", details: "Role confirmed as Assistant Pharmacist", ip: "127.0.0.1" },
+  { id: "audit-003", timestamp: "2026-09-03T15:20:00Z", actorId: "usr-1", actorName: "Dr. Admin Mugisha", actorRole: "admin", action: "PERMISSIONS_UPDATE", targetUserId: "usr-2", targetName: "Dr. Amina Nanyonga", details: "Prescription clinical review permissions verified", ip: "127.0.0.1" },
+  { id: "audit-004", timestamp: "2026-09-04T09:40:00Z", actorId: "usr-1", actorName: "Dr. Admin Mugisha", actorRole: "admin", action: "USER_SUSPEND", targetUserId: "usr-suspended-test", targetName: "Suspended Test Account", details: "Suspended for 30 days: Terms of service violation review", ip: "127.0.0.1" }
 ];
 
 export function findUserProfile(identifier) {
@@ -1055,7 +1078,14 @@ export const STATE = {
   payments: [...INITIAL_PAYMENTS],
   notifications: [...INITIAL_NOTIFICATIONS],
   inventoryLogs: [...INITIAL_INVENTORY_LOGS],
-  auditLogs: [],
+  auditLogs: [...INITIAL_AUDIT_LOGS],
+  userSearchQuery: "",
+  userRoleFilter: "all",
+  userStatusFilter: "all",
+  userSortBy: "date-desc",
+  selectedUserIds: new Set(),
+  auditSearchQuery: "",
+  auditActionFilter: "all",
   systemSettings: {
     pharmacyName: "BloomCare Pharmacy",
     phone: "+256 700 000 000",
@@ -1868,20 +1898,18 @@ export const ROLE_SIDEBAR_CONFIGS = {
   ],
   admin: [
     { route: "admin/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
-    { route: "admin/medicines", icon: ICONS.medicines, label: "Medicines" },
-    { route: "admin/categories", icon: ICONS.categories, label: "Categories" },
-    { route: "admin/inventory", icon: ICONS.inventory, label: "Inventory" },
-    { route: "admin/orders", icon: ICONS.orders, label: "Orders" },
-    { route: "admin/prescriptions", icon: ICONS.prescriptions, label: "Prescriptions" },
-    { route: "admin/consultations", icon: ICONS.consultations, label: "Consultations" },
-    { route: "admin/refills", icon: ICONS.refills, label: "Refills" },
+    { route: "admin/users", icon: ICONS.users, label: "Users" },
+    { route: "admin/pharmacists", icon: ICONS.users, label: "Pharmacists" },
     { route: "admin/customers", icon: ICONS.customers, label: "Customers" },
-    { route: "admin/users", icon: ICONS.users, label: "Users & Staff" },
-    { route: "admin/deliveries", icon: ICONS.deliveries, label: "Deliveries" },
-    { route: "admin/payments", icon: ICONS.payments, label: "Payments" },
+    { route: "admin/consultations", icon: ICONS.consultations, label: "Consultations" },
+    { route: "admin/appointments", icon: ICONS.consultations, label: "Appointments" },
+    { route: "admin/medicines", icon: ICONS.medicines, label: "Medicines" },
+    { route: "admin/orders", icon: ICONS.orders, label: "Orders" },
+    { route: "admin/inventory", icon: ICONS.inventory, label: "Inventory" },
     { route: "admin/reports", icon: ICONS.reports, label: "Reports" },
-    { route: "admin/notifications", icon: ICONS.notifications, label: "Notifications" },
-    { route: "admin/settings", icon: ICONS.settings, label: "Settings" }
+    { route: "admin/audit-logs", icon: ICONS.reports, label: "Audit Logs" },
+    { route: "admin/settings", icon: ICONS.settings, label: "Settings" },
+    { route: "admin/profile", icon: ICONS.profile, label: "Profile" }
   ]
 };
 
@@ -1911,6 +1939,22 @@ export function checkRouteAccess(route, user, role = null) {
   const publicRoutes = ["auth", "login", "register", "staff-login", "medicines", "categories", "about", "contact"];
   if (publicRoutes.includes(clean)) {
     return { allowed: true };
+  }
+
+  // Account Status Gate: Suspended or Deactivated users cannot access protected features
+  if (user && (user.status === "suspended" || user.status === "inactive" || user.status === "deactivated")) {
+    if (user.status === "suspended") {
+      return {
+        allowed: false,
+        redirectRoute: "auth",
+        reason: `Account Suspended: Your BloomCare account has been suspended${user.suspensionReason ? ` (${user.suspensionReason})` : ""}. Please contact pharmacy support.`
+      };
+    }
+    return {
+      allowed: false,
+      redirectRoute: "auth",
+      reason: "Account Inactive: Your account has been deactivated. Please contact system administration."
+    };
   }
 
   // Unauthenticated visitor attempting to access protected route
@@ -2196,6 +2240,16 @@ export function handleRoute() {
     basePane = route.split("/")[1];
   }
 
+  // Alias & Sub-module routing
+  if (basePane === "pharmacists") {
+    basePane = "users";
+    STATE.userRoleFilter = "pharmacist";
+  } else if (basePane === "appointments") {
+    basePane = "consultations";
+  } else if (basePane === "audit-logs" || basePane === "audit") {
+    basePane = "admin-audit";
+  }
+
   // Set Browser Title
   const pageTitles = {
     dashboard: effRole === "pharmacist" ? "Pharmacist Dashboard" : effRole === "admin" ? "Admin Dashboard" : effRole === "assistant_pharmacist" ? "Assistant Dashboard" : effRole === "delivery_person" ? "Delivery Dashboard" : effRole === "developer" ? "Developer Console" : "Customer Dashboard",
@@ -2203,11 +2257,16 @@ export function handleRoute() {
     categories: "Categories",
     prescriptions: "Prescriptions",
     consultations: "Consultations",
+    appointments: "Appointments",
     refills: "Refills",
     orders: effRole === "customer" ? "My Orders" : "Orders",
     inventory: "Inventory",
     customers: "Customers",
-    users: "Users & Roles",
+    users: "User Management",
+    pharmacists: "Pharmacist Directory",
+    "admin-audit": "Admin Audit Logs",
+    "audit-logs": "Admin Audit Logs",
+    audit: "Admin Audit Logs",
     deliveries: "Deliveries",
     payments: "Payments",
     reports: "Reports",
@@ -2236,6 +2295,7 @@ export function handleRoute() {
   else if (basePane === "inventory") renderInventoryView();
   else if (basePane === "customers") renderCustomersView();
   else if (basePane === "users") renderUsersView();
+  else if (basePane === "admin-audit" || basePane === "audit-logs") renderAdminAuditLogsView();
   else if (basePane === "deliveries") renderDeliveriesView();
   else if (basePane === "payments") renderPaymentsView();
   else if (basePane === "reports") renderReportsView();
