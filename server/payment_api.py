@@ -12,6 +12,7 @@ from datetime import date, datetime, timezone
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import re
+import time
 from urllib.parse import urlparse
 
 HOST = "127.0.0.1"
@@ -19,6 +20,8 @@ PORT = 8787
 CURRENCY = "UGX"
 MAX_REQUEST_BODY_BYTES = 64 * 1024
 DATA_FILE = Path(__file__).parent / "data" / "payments.json"
+USERS_FILE = Path(__file__).parent / "data" / "users.json"
+AUDIT_FILE = Path(__file__).parent / "data" / "audit_logs.json"
 LOCK = threading.Lock()
 PHONE_PATTERN = re.compile(r"^07\d{8}$")
 INTERNATIONAL_PHONE_PATTERN = re.compile(r"^\+2567\d{8}$")
@@ -96,14 +99,27 @@ def read_payments() -> dict:
 def write_payments(data: dict) -> None:
     DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
     temp_path = DATA_FILE.with_suffix(".tmp")
-    try:
-        with temp_path.open("w", encoding="utf-8") as file:
-            json.dump(data, file, indent=2)
-        temp_path.replace(DATA_FILE)
-    except Exception as exc:
-        if temp_path.exists():
-            temp_path.unlink()
-        raise PaymentStoreError(f"Failed to write payments store: {exc}") from exc
+    for attempt in range(5):
+        try:
+            with temp_path.open("w", encoding="utf-8") as file:
+                json.dump(data, file, indent=2)
+            temp_path.replace(DATA_FILE)
+            return
+        except PermissionError:
+            if attempt == 4:
+                try:
+                    with DATA_FILE.open("w", encoding="utf-8") as file:
+                        json.dump(data, file, indent=2)
+                    if temp_path.exists():
+                        temp_path.unlink()
+                    return
+                except Exception as inner_exc:
+                    raise PaymentStoreError(f"Failed to write payments store: {inner_exc}") from inner_exc
+            time.sleep(0.06)
+        except Exception as exc:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise PaymentStoreError(f"Failed to write payments store: {exc}") from exc
 
 
 def create_payment(provider: str, phone: str, details: dict, amount: int, payment_type: str = "order", custom_ref: str | None = None) -> dict:
@@ -154,6 +170,204 @@ def verify_payment(reference: str) -> dict | None:
         return record
 
 
+DEFAULT_SYSTEM_USERS = [
+    {
+        "id": "usr-staff-1",
+        "name": "Dr. Admin Mugisha",
+        "email": "admin@bloomcare.com",
+        "phone": "0751001122",
+        "role": "admin",
+        "status": "active",
+        "createdAt": "2026-01-01T08:00:00Z",
+        "lastLogin": "Today",
+        "permissions": ["all"]
+    },
+    {
+        "id": "usr-dev-001",
+        "name": "Lead Systems Developer",
+        "email": "dev@bloomcare.com",
+        "phone": "0751000999",
+        "role": "developer",
+        "status": "active",
+        "createdAt": "2026-01-01T08:00:00Z",
+        "lastLogin": "Today",
+        "permissions": ["all"]
+    },
+    {
+        "id": "usr-staff-2",
+        "name": "Dr. Amina Nanyonga",
+        "email": "amina.n@bloomcare.com",
+        "phone": "0700000002",
+        "role": "pharmacist",
+        "status": "active",
+        "createdAt": "2026-01-10T09:30:00Z",
+        "lastLogin": "Yesterday",
+        "permissions": ["prescription:clinical_review", "consultation:provide", "inventory:adjust"]
+    },
+    {
+        "id": "usr-staff-3",
+        "name": "Pharm. David Mukasa",
+        "email": "david.m@bloomcare.com",
+        "phone": "0700000003",
+        "role": "pharmacist",
+        "status": "active",
+        "createdAt": "2026-01-15T11:00:00Z",
+        "lastLogin": "03 Sep 2026",
+        "permissions": ["prescription:clinical_review", "consultation:provide"]
+    },
+    {
+        "id": "usr-staff-4",
+        "name": "Sarah Namusoke",
+        "email": "sarah.n@bloomcare.com",
+        "phone": "0700000004",
+        "role": "assistant_pharmacist",
+        "status": "active",
+        "createdAt": "2026-02-01T08:15:00Z",
+        "lastLogin": "Today",
+        "permissions": ["order:pack", "inventory:view"]
+    },
+    {
+        "id": "usr-staff-5",
+        "name": "Moses Kato",
+        "email": "moses.k@bloomcare.com",
+        "phone": "0700000005",
+        "role": "delivery_person",
+        "status": "active",
+        "createdAt": "2026-02-10T14:20:00Z",
+        "lastLogin": "Today",
+        "permissions": ["order:dispatch", "order:deliver"]
+    },
+    {
+        "id": "usr-cust-101",
+        "name": "Grace Nakato",
+        "email": "grace.nakato@example.com",
+        "phone": "0751234567",
+        "role": "customer",
+        "status": "active",
+        "createdAt": "2026-03-01T10:00:00Z",
+        "lastLogin": "Today",
+        "permissions": ["catalog:browse", "cart:checkout", "prescription:upload"]
+    },
+    {
+        "id": "usr-cust-202",
+        "name": "Florence Kembabazi",
+        "email": "florence.k@example.com",
+        "phone": "0701889900",
+        "role": "customer",
+        "status": "active",
+        "createdAt": "2026-03-18T16:45:00Z",
+        "lastLogin": "02 Sep 2026",
+        "permissions": ["catalog:browse", "cart:checkout"]
+    }
+]
+
+
+def read_users() -> list[dict]:
+    if not USERS_FILE.exists():
+        write_users(DEFAULT_SYSTEM_USERS)
+        return DEFAULT_SYSTEM_USERS
+    try:
+        with USERS_FILE.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+            return data if isinstance(data, list) else DEFAULT_SYSTEM_USERS
+    except Exception:
+        return DEFAULT_SYSTEM_USERS
+
+
+def write_users(users: list[dict]) -> None:
+    USERS_FILE.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = USERS_FILE.with_suffix(".tmp")
+    for attempt in range(5):
+        try:
+            with temp_path.open("w", encoding="utf-8") as file:
+                json.dump(users, file, indent=2)
+            temp_path.replace(USERS_FILE)
+            return
+        except PermissionError:
+            if attempt == 4:
+                try:
+                    with USERS_FILE.open("w", encoding="utf-8") as file:
+                        json.dump(users, file, indent=2)
+                    if temp_path.exists():
+                        temp_path.unlink()
+                    return
+                except Exception as inner:
+                    raise RuntimeError(f"Failed to write users store: {inner}") from inner
+            time.sleep(0.06)
+        except Exception as exc:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise RuntimeError(f"Failed to write users store: {exc}") from exc
+
+
+def read_audit_logs() -> list[dict]:
+    if not AUDIT_FILE.exists():
+        return []
+    try:
+        with AUDIT_FILE.open("r", encoding="utf-8") as file:
+            data = json.load(file)
+            return data if isinstance(data, list) else []
+    except Exception:
+        return []
+
+
+def write_audit_logs(logs: list[dict]) -> None:
+    AUDIT_FILE.parent.mkdir(parents=True, exist_ok=True)
+    temp_path = AUDIT_FILE.with_suffix(".tmp")
+    for attempt in range(5):
+        try:
+            with temp_path.open("w", encoding="utf-8") as file:
+                json.dump(logs, file, indent=2)
+            temp_path.replace(AUDIT_FILE)
+            return
+        except PermissionError:
+            if attempt == 4:
+                try:
+                    with AUDIT_FILE.open("w", encoding="utf-8") as file:
+                        json.dump(logs, file, indent=2)
+                    if temp_path.exists():
+                        temp_path.unlink()
+                    return
+                except Exception as inner:
+                    raise RuntimeError(f"Failed to write audit logs: {inner}") from inner
+            time.sleep(0.06)
+        except Exception as exc:
+            if temp_path.exists():
+                temp_path.unlink()
+            raise RuntimeError(f"Failed to write audit logs: {exc}") from exc
+
+
+def record_audit_log(admin_name: str, admin_role: str, action: str, target_user: str, target_user_id: str, description: str) -> dict:
+    with LOCK:
+        logs = read_audit_logs()
+        entry = {
+            "id": f"AUDIT-{int(time.time() * 1000)}",
+            "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "admin": admin_name or "Dr. Admin Mugisha",
+            "adminRole": admin_role or "admin",
+            "action": action,
+            "affectedUser": target_user or "System User",
+            "affectedUserId": target_user_id or "",
+            "description": description,
+        }
+        logs.insert(0, entry)
+        write_audit_logs(logs[:500])
+        return entry
+
+
+def is_admin_request(headers) -> tuple[bool, str, dict]:
+    role = (headers.get("X-Admin-Role") or headers.get("X-User-Role") or "").strip().lower()
+    auth_header = (headers.get("Authorization") or "").strip()
+    if auth_header.lower().startswith("bearer "):
+        token = auth_header[7:].strip().lower()
+        if token in {"admin", "developer"}:
+            role = token
+
+    if role in {"admin", "developer"}:
+        return True, role, {"role": role, "name": headers.get("X-Admin-Name", "Dr. Admin Mugisha")}
+    return False, role or "anonymous", {}
+
+
 class PaymentHandler(BaseHTTPRequestHandler):
     def send_json(self, status: int, payload: dict) -> None:
         raw = json.dumps(payload).encode("utf-8")
@@ -162,7 +376,7 @@ class PaymentHandler(BaseHTTPRequestHandler):
         self.send_header("Content-Length", str(len(raw)))
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Role, X-Admin-Name, X-User-Role")
         self.end_headers()
         self.wfile.write(raw)
 
@@ -170,7 +384,7 @@ class PaymentHandler(BaseHTTPRequestHandler):
         self.send_response(204)
         self.send_header("Access-Control-Allow-Origin", "*")
         self.send_header("Access-Control-Allow-Methods", "GET, POST, OPTIONS")
-        self.send_header("Access-Control-Allow-Headers", "Content-Type")
+        self.send_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Admin-Role, X-Admin-Name, X-User-Role")
         self.end_headers()
 
     def do_GET(self) -> None:
@@ -178,6 +392,44 @@ class PaymentHandler(BaseHTTPRequestHandler):
         if parsed.path == "/health":
             self.send_json(200, {"status": "ok", "service": "BloomCare Pharmacy Payment API", "currency": "UGX"})
             return
+
+        # ADMIN ENDPOINTS
+        if parsed.path == "/api/admin/users":
+            is_admin, role, meta = is_admin_request(self.headers)
+            if not is_admin:
+                self.send_json(403, {"success": False, "message": "Access Denied: Administrative privileges required."})
+                return
+            users = read_users()
+            self.send_json(200, {"success": True, "users": users, "total": len(users)})
+            return
+
+        if parsed.path == "/api/admin/audit-logs":
+            is_admin, role, meta = is_admin_request(self.headers)
+            if not is_admin:
+                self.send_json(403, {"success": False, "message": "Access Denied: Administrative privileges required."})
+                return
+            logs = read_audit_logs()
+            self.send_json(200, {"success": True, "auditLogs": logs, "total": len(logs)})
+            return
+
+        if parsed.path == "/api/admin/stats":
+            is_admin, role, meta = is_admin_request(self.headers)
+            if not is_admin:
+                self.send_json(403, {"success": False, "message": "Access Denied: Administrative privileges required."})
+                return
+            users = read_users()
+            stats = {
+                "totalUsers": len(users),
+                "activeUsers": len([u for u in users if u.get("status") == "active"]),
+                "suspendedUsers": len([u for u in users if u.get("status") == "suspended"]),
+                "deactivatedUsers": len([u for u in users if u.get("status") == "deactivated"]),
+                "customers": len([u for u in users if u.get("role") == "customer"]),
+                "pharmacists": len([u for u in users if u.get("role") == "pharmacist"]),
+                "staff": len([u for u in users if u.get("role") in {"assistant_pharmacist", "delivery_person", "pharmacist"}])
+            }
+            self.send_json(200, {"success": True, "stats": stats})
+            return
+
         if parsed.path.startswith("/api/payments/status/"):
             ref = parsed.path.split("/")[-1]
             record = verify_payment(ref)
@@ -200,6 +452,193 @@ class PaymentHandler(BaseHTTPRequestHandler):
             payload = json.loads(body) if body else {}
         except json.JSONDecodeError:
             self.send_json(400, {"success": False, "message": "Invalid JSON format"})
+            return
+
+        # ADMIN ENDPOINTS (Restricted to Admin & Developer)
+        if parsed.path.startswith("/api/admin/"):
+            is_admin, admin_role, admin_meta = is_admin_request(self.headers)
+            if not is_admin:
+                self.send_json(403, {"success": False, "message": "Access Denied: Administrative privileges required."})
+                return
+
+            admin_name = admin_meta.get("name", "Dr. Admin Mugisha")
+
+            if parsed.path == "/api/admin/users":
+                name = str(payload.get("name", "")).strip()
+                email = str(payload.get("email", "")).strip().lower()
+                role = str(payload.get("role", "customer")).strip().lower()
+                phone = str(payload.get("phone", "")).strip()
+                status = str(payload.get("status", "active")).strip().lower()
+                if not name or not email:
+                    self.send_json(422, {"success": False, "message": "User name and email are required."})
+                    return
+                with LOCK:
+                    users = read_users()
+                    if any(u.get("email", "").lower() == email for u in users):
+                        self.send_json(409, {"success": False, "message": f"A user with email {email} already exists."})
+                        return
+                    new_user = {
+                        "id": payload.get("id") or f"usr-{int(time.time() * 1000)}",
+                        "name": name,
+                        "displayName": name,
+                        "email": email,
+                        "phone": phone,
+                        "role": role,
+                        "status": status,
+                        "createdAt": datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC"),
+                        "lastLogin": "Never",
+                        "permissions": payload.get("permissions", [])
+                    }
+                    users.append(new_user)
+                    write_users(users)
+                record_audit_log(admin_name, admin_role, "USER_CREATED", name, new_user["id"], f"Created user {name} ({email}) with role {role} and status {status}")
+                self.send_json(201, {"success": True, "user": new_user, "message": f"User {name} created successfully."})
+                return
+
+            if parsed.path == "/api/admin/users/role":
+                user_id = str(payload.get("userId", "")).strip()
+                new_role = str(payload.get("role", "")).strip().lower()
+                if not user_id or not new_role:
+                    self.send_json(422, {"success": False, "message": "userId and role are required."})
+                    return
+                updated_user = None
+                old_role = ""
+                with LOCK:
+                    users = read_users()
+                    for u in users:
+                        if u.get("id") == user_id or u.get("uid") == user_id:
+                            old_role = u.get("role", "user")
+                            u["role"] = new_role
+                            u["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                            updated_user = u
+                            break
+                    if updated_user:
+                        write_users(users)
+                if not updated_user:
+                    self.send_json(404, {"success": False, "message": "User not found."})
+                    return
+                record_audit_log(admin_name, admin_role, "USER_ROLE_CHANGED", updated_user.get("name", user_id), user_id, f"Role changed from {old_role} to {new_role}")
+                self.send_json(200, {"success": True, "user": updated_user, "message": f"Role updated to {new_role}."})
+                return
+
+            if parsed.path == "/api/admin/users/status":
+                user_id = str(payload.get("userId", "")).strip()
+                new_status = str(payload.get("status", "")).strip().lower()
+                reason = str(payload.get("reason", "")).strip()
+                duration = str(payload.get("duration", "")).strip()
+                if not user_id or new_status not in {"active", "suspended", "deactivated"}:
+                    self.send_json(422, {"success": False, "message": "Valid userId and status (active, suspended, deactivated) are required."})
+                    return
+                updated_user = None
+                old_status = ""
+                with LOCK:
+                    users = read_users()
+                    for u in users:
+                        if u.get("id") == user_id or u.get("uid") == user_id:
+                            old_status = u.get("status", "active")
+                            u["status"] = new_status
+                            u["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                            if new_status == "suspended":
+                                u["suspensionReason"] = reason or "Administrative Review"
+                                u["suspensionDuration"] = duration or "Until manually restored"
+                                u["suspendedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                            elif new_status == "active":
+                                u.pop("suspensionReason", None)
+                                u.pop("suspensionDuration", None)
+                                u.pop("suspendedAt", None)
+                            updated_user = u
+                            break
+                    if updated_user:
+                        write_users(users)
+                if not updated_user:
+                    self.send_json(404, {"success": False, "message": "User not found."})
+                    return
+                action_name = "USER_SUSPENDED" if new_status == "suspended" else "USER_ACTIVATED" if new_status == "active" else "USER_DEACTIVATED"
+                desc = f"Status changed from {old_status} to {new_status}"
+                if reason:
+                    desc += f". Reason: {reason} ({duration})"
+                record_audit_log(admin_name, admin_role, action_name, updated_user.get("name", user_id), user_id, desc)
+                self.send_json(200, {"success": True, "user": updated_user, "message": f"User status set to {new_status}."})
+                return
+
+            if parsed.path == "/api/admin/users/permissions":
+                user_id = str(payload.get("userId", "")).strip()
+                perms = payload.get("permissions", [])
+                if not user_id or not isinstance(perms, list):
+                    self.send_json(422, {"success": False, "message": "userId and permissions list are required."})
+                    return
+                updated_user = None
+                with LOCK:
+                    users = read_users()
+                    for u in users:
+                        if u.get("id") == user_id or u.get("uid") == user_id:
+                            u["permissions"] = perms
+                            u["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                            updated_user = u
+                            break
+                    if updated_user:
+                        write_users(users)
+                if not updated_user:
+                    self.send_json(404, {"success": False, "message": "User not found."})
+                    return
+                record_audit_log(admin_name, admin_role, "PERMISSION_CHANGED", updated_user.get("name", user_id), user_id, f"Permissions updated: {', '.join(perms) if perms else 'Default role permissions'}")
+                self.send_json(200, {"success": True, "user": updated_user, "message": "Permissions updated successfully."})
+                return
+
+            if parsed.path == "/api/admin/users/reset-password":
+                email = str(payload.get("email", "")).strip().lower()
+                user_name = str(payload.get("name", email)).strip()
+                if not email:
+                    self.send_json(422, {"success": False, "message": "User email is required."})
+                    return
+                record_audit_log(admin_name, admin_role, "PASSWORD_RESET_SENT", user_name, "", f"Administrative password reset link dispatched to {email}")
+                self.send_json(200, {"success": True, "message": f"Password reset link dispatched to {email}."})
+                return
+
+            if parsed.path == "/api/admin/users/bulk":
+                action = str(payload.get("action", "")).strip().lower()
+                user_ids = payload.get("userIds", [])
+                target_role = str(payload.get("role", "")).strip().lower()
+                reason = str(payload.get("reason", "")).strip()
+                if not user_ids or not isinstance(user_ids, list):
+                    self.send_json(422, {"success": False, "message": "List of userIds is required."})
+                    return
+                affected_count = 0
+                with LOCK:
+                    users = read_users()
+                    for u in users:
+                        uid = u.get("id") or u.get("uid")
+                        if uid in user_ids:
+                            if action == "activate":
+                                u["status"] = "active"
+                                u.pop("suspensionReason", None)
+                                u.pop("suspensionDuration", None)
+                            elif action == "deactivate":
+                                u["status"] = "deactivated"
+                            elif action == "suspend":
+                                u["status"] = "suspended"
+                                u["suspensionReason"] = reason or "Bulk Administrative Suspension"
+                                u["suspensionDuration"] = "Until manually restored"
+                            elif action == "assign_role" and target_role:
+                                u["role"] = target_role
+                            u["updatedAt"] = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+                            affected_count += 1
+                    if affected_count > 0:
+                        write_users(users)
+                record_audit_log(admin_name, admin_role, f"BULK_{action.upper()}", f"{affected_count} Users", "", f"Bulk {action} performed on {affected_count} accounts")
+                self.send_json(200, {"success": True, "affected": affected_count, "message": f"Bulk {action} applied to {affected_count} users."})
+                return
+
+            if parsed.path == "/api/admin/audit-logs":
+                action = str(payload.get("action", "ADMIN_ACTION")).strip()
+                target_user = str(payload.get("affectedUser", "System")).strip()
+                target_id = str(payload.get("affectedUserId", "")).strip()
+                desc = str(payload.get("description", "")).strip()
+                entry = record_audit_log(admin_name, admin_role, action, target_user, target_id, desc)
+                self.send_json(201, {"success": True, "log": entry})
+                return
+
+            self.send_json(404, {"success": False, "message": "Admin endpoint not found."})
             return
 
         if parsed.path == "/api/payments/initialize":

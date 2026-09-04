@@ -48,8 +48,16 @@ service cloud.firestore {
     // 1. User Profiles
     match /users/{userId} {
       allow read: if isOwner(userId) || isStaff();
-      allow create: if isSignedIn() && (request.auth.uid == userId || isAdmin() || isDeveloper());
-      allow update: if (isOwner(userId) && (!('role' in resource.data) || request.resource.data.role == resource.data.role)) || isAdmin() || isDeveloper();
+      allow create: if isSignedIn() && (
+        (request.auth.uid == userId && (!('role' in request.resource.data) || request.resource.data.role == 'customer') && (!('status' in request.resource.data) || request.resource.data.status == 'active')) || 
+        isAdmin() || isDeveloper()
+      );
+      allow update: if (
+        isOwner(userId) && 
+        (!('role' in request.resource.data) || request.resource.data.role == resource.data.role) &&
+        (!('status' in request.resource.data) || request.resource.data.status == resource.data.status) &&
+        (!('permissions' in request.resource.data) || request.resource.data.permissions == resource.data.permissions)
+      ) || isAdmin() || isDeveloper();
       allow delete: if isAdmin() || isDeveloper();
     }
 
@@ -129,7 +137,9 @@ service cloud.firestore {
 
     // 13. Staff Action Audit Logs
     match /auditLogs/{auditId} {
-      allow read, write: if isStaff();
+      allow read: if isAdmin();
+      allow create: if isStaff();
+      allow update, delete: if false; // Immutable audit logs
     }
   }
 }

@@ -1,6 +1,8 @@
 {
   "npm.enableScriptExplorer": true,
   "terminal.integrated.defaultProfile.windows": "PowerShell",
-  "terminal.integrated.scrollback": 5000
+  "terminal.integrated.scrollback": 5000,
+  "antigravity.terminal.autoExecution": "always-proceed",
+  "antigravity.permissions.autoApproveTrusted": true
 }
 

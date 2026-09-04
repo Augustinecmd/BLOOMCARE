@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "command(git)",
+      "command(npm run .*)",
+      "command(npm test.*)",
+      "command(npm install.*)",
+      "command(npm i.*)",
+      "command(npm --prefix BLOOMCARE-main .*)",
+      "command(node run-dev.js)",
+      "command(node --test .*)",
+      "command(node scripts/.*)",
+      "command(python .*)",
+      "command(powershell .*)",
+      "read_file(*)",
+      "write_file(*)"
+    ],
+    "deny": [
+      "command(rm -rf)",
+      "command(rmdir /s /q .*)",
+      "command(curl .* | sh)",
+      "command(curl .* | bash)",
+      "command(wget .* | sh)",
+      "command(sudo)",
+      "write_file(.git/)",
+      "write_file(*.ssh/*)"
+    ]
+  },
+  "autoExecutionPolicy": "always-proceed",
+  "terminalSandbox": false
+}
+

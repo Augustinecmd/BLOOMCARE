@@ -523,16 +523,147 @@
       <section class="page-pane hidden" id="view-users">
         <div class="page-header-block flex-between">
           <div>
-            <h1 class="page-title">Users</h1>
-            <p class="page-desc">Manage pharmacy staff accounts and role permissions.</p>
+            <h1 class="page-title">User Management</h1>
+            <p class="page-desc">Complete administrative control over system accounts, roles, access permissions, and lifecycle states.</p>
+          </div>
+          <div class="header-action-btns">
+            <button class="btn btn-primary btn-sm" id="btn-open-add-user" type="button">+ Create New User</button>
+            <button class="btn btn-outline btn-sm" id="btn-refresh-users" type="button">↻ Refresh</button>
+          </div>
+        </div>
+
+        <!-- 1. Key Performance Indicators / Quick Stats Bar -->
+        <div class="users-kpi-summary-grid" id="users-stats-summary-grid">
+          <div class="user-stat-card">
+            <span class="user-stat-label">Total Users</span>
+            <strong class="user-stat-val" id="stat-total-users">0</strong>
+            <small class="user-stat-sub">Across all roles</small>
+          </div>
+          <div class="user-stat-card">
+            <span class="user-stat-label">Active Users</span>
+            <strong class="user-stat-val text-success" id="stat-active-users">0</strong>
+            <small class="user-stat-sub">Full system access</small>
+          </div>
+          <div class="user-stat-card">
+            <span class="user-stat-label">Suspended</span>
+            <strong class="user-stat-val text-warning" id="stat-suspended-users">0</strong>
+            <small class="user-stat-sub">Access blocked</small>
+          </div>
+          <div class="user-stat-card">
+            <span class="user-stat-label">Customers</span>
+            <strong class="user-stat-val text-primary" id="stat-customer-users">0</strong>
+            <small class="user-stat-sub">Registered patients</small>
+          </div>
+          <div class="user-stat-card">
+            <span class="user-stat-label">Pharmacists</span>
+            <strong class="user-stat-val text-info" id="stat-pharmacist-users">0</strong>
+            <small class="user-stat-sub">Clinical verified staff</small>
+          </div>
+          <div class="user-stat-card">
+            <span class="user-stat-label">Support &amp; Logistics</span>
+            <strong class="user-stat-val text-purple" id="stat-staff-users">0</strong>
+            <small class="user-stat-sub">Assistants &amp; drivers</small>
+          </div>
+        </div>
+
+        <!-- 2. Search, Filter, Sort & Action Controls -->
+        <div class="users-controls-panel">
+          <div class="users-search-row">
+            <div class="search-input-wrap">
+              <input type="text" id="user-search-input" placeholder="Search by name, email, phone number, or user ID..." autocomplete="off" />
+              <span class="search-icon-symbol">🔍</span>
+            </div>
+            <div class="users-filters-row">
+              <select id="filter-user-role" class="form-select-sm" aria-label="Filter by role">
+                <option value="all">Role: All Roles</option>
+                <option value="admin">Administrators</option>
+                <option value="pharmacist">Pharmacists</option>
+                <option value="assistant_pharmacist">Assistant Pharmacists</option>
+                <option value="delivery_person">Delivery Staff</option>
+                <option value="customer">Customers</option>
+                <option value="developer">Developers</option>
+              </select>
+
+              <select id="filter-user-status" class="form-select-sm" aria-label="Filter by status">
+                <option value="all">Status: All Statuses</option>
+                <option value="active">Active Accounts</option>
+                <option value="suspended">Suspended Accounts</option>
+                <option value="deactivated">Deactivated / Inactive</option>
+              </select>
+
+              <select id="sort-users-by" class="form-select-sm" aria-label="Sort users">
+                <option value="date-desc">Sort: Newest First</option>
+                <option value="date-asc">Sort: Oldest First</option>
+                <option value="name-asc">Sort: Name (A - Z)</option>
+                <option value="name-desc">Sort: Name (Z - A)</option>
+                <option value="role">Sort: By Role</option>
+                <option value="status">Sort: By Status</option>
+              </select>
+
+              <button class="btn btn-outline btn-sm" id="btn-clear-user-filters" type="button">Reset</button>
+            </div>
+          </div>
+
+          <!-- Bulk Actions Bar (Appears when 1+ users checked) -->
+          <div class="bulk-actions-toolbar hidden" id="users-bulk-toolbar">
+            <div class="bulk-info-wrap">
+              <span class="bulk-count-pill" id="bulk-selected-count">0</span>
+              <span class="bulk-text">users selected</span>
+            </div>
+            <div class="bulk-btns-wrap">
+              <button class="btn btn-sm btn-outline-success" id="bulk-btn-activate" type="button">✓ Activate</button>
+              <button class="btn btn-sm btn-outline-warning" id="bulk-btn-suspend" type="button">⏸ Suspend</button>
+              <button class="btn btn-sm btn-outline-danger" id="bulk-btn-deactivate" type="button">✕ Deactivate</button>
+              <button class="btn btn-sm btn-outline" id="bulk-btn-clear" type="button">Deselect All</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. Users Table Container -->
+        <div class="content-card" style="margin-top:16px;">
+          <div class="table-responsive" id="users-table-box"></div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
+      <!-- MODULE 12B: AUDIT LOGS MODULE (#admin/audit-logs) (Admin Only) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-admin-audit">
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">Administrative Audit Logs</h1>
+            <p class="page-desc">Complete immutable audit trail of administrative events, account modifications, status changes, and security actions.</p>
           </div>
           <div>
-            <button class="btn btn-primary btn-sm" id="btn-open-add-user" type="button">Add New Staff User</button>
+            <button class="btn btn-outline btn-sm" id="btn-refresh-audit-logs" type="button">↻ Refresh Logs</button>
+          </div>
+        </div>
+
+        <div class="users-controls-panel" style="margin-bottom:16px;">
+          <div class="users-search-row">
+            <div class="search-input-wrap">
+              <input type="text" id="audit-search-input" placeholder="Search audit trail by actor, target user, action, or reason..." />
+              <span class="search-icon-symbol">🔍</span>
+            </div>
+            <div class="users-filters-row">
+              <select id="filter-audit-action" class="form-select-sm">
+                <option value="all">Action: All Actions</option>
+                <option value="ROLE_CHANGE">Role Changes</option>
+                <option value="STATUS_CHANGE">Status Changes</option>
+                <option value="USER_SUSPEND">Suspensions</option>
+                <option value="USER_RESTORE">Restorations</option>
+                <option value="PERMISSIONS_UPDATE">Permissions</option>
+                <option value="PASSWORD_RESET">Password Resets</option>
+                <option value="USER_CREATE">User Creations</option>
+                <option value="BULK_ACTION">Bulk Actions</option>
+              </select>
+              <button class="btn btn-outline btn-sm" id="btn-clear-audit-filters" type="button">Reset</button>
+            </div>
           </div>
         </div>
 
         <div class="content-card">
-          <div class="table-responsive" id="users-table-box"></div>
+          <div class="table-responsive" id="audit-logs-table-box"></div>
         </div>
       </section>
 
