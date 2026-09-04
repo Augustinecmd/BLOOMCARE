@@ -170,9 +170,10 @@
         </div>
 
         <!-- Global Search Bar -->
-        <div class="top-search-box">
-          <input type="search" id="top-search-input" placeholder="Search medicines, orders, users..." autocomplete="off" />
+        <div class="top-search-box" id="top-search-container">
+          <input type="search" id="top-search-input" placeholder="Search medicines... (Ctrl+K)" autocomplete="off" aria-autocomplete="list" aria-controls="top-search-suggestions" />
           <span class="search-ico" id="top-search-icon"></span>
+          <div class="search-suggestions-dropdown hidden" id="top-search-suggestions" role="listbox"></div>
         </div>
 
         <!-- Notifications Bell with Dropdown Panel -->
@@ -272,9 +273,10 @@
 
         <!-- Customer View Toolbar -->
         <div class="catalog-controls-panel" id="customer-medicines-controls">
-          <div class="search-input-wrap">
-            <input type="text" id="catalog-search-input" placeholder="Search medicines by brand name, generic, active ingredient, or manufacturer..." />
+          <div class="search-input-wrap" id="catalog-search-container">
+            <input type="text" id="catalog-search-input" placeholder="Search medicines by name... (Ctrl+K)" autocomplete="off" aria-autocomplete="list" aria-controls="catalog-search-suggestions" />
             <span class="search-icon-symbol" id="catalog-search-symbol"></span>
+            <div class="search-suggestions-dropdown hidden" id="catalog-search-suggestions" role="listbox"></div>
           </div>
           <div class="filter-controls-row">
             <div class="filter-pills-row" id="catalog-category-pills"></div>
@@ -290,10 +292,12 @@
                 <option value="rx">Prescription Required (Rx)</option>
               </select>
               <select id="sort-medicines" class="form-select-sm">
-                <option value="name-asc">Sort: Name (A-Z)</option>
+                <option value="name-asc" selected>Sort: Name (A-Z)</option>
                 <option value="name-desc">Sort: Name (Z-A)</option>
                 <option value="price-asc">Sort: Price (Low to High)</option>
                 <option value="price-desc">Sort: Price (High to Low)</option>
+                <option value="newest">Sort: Newest</option>
+                <option value="availability">Sort: Availability (In Stock First)</option>
               </select>
             </div>
           </div>
@@ -308,7 +312,10 @@
         <!-- Staff/Admin Product Management Table -->
         <div class="content-card hidden" id="staff-medicines-table-card">
           <div class="staff-table-toolbar" id="staff-medicines-toolbar" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;">
-            <input type="text" id="staff-medicine-search" placeholder="Search dispensary by name, generic, brand, SKU..." class="form-input-sm" style="flex:1; min-width:220px;" />
+            <div class="staff-search-input-wrap" id="staff-search-container" style="flex:1; min-width:220px; position:relative;">
+              <input type="text" id="staff-medicine-search" placeholder="Quick medicine lookup by name, generic, SKU... (Ctrl+K)" class="form-input-sm" style="width:100%;" autocomplete="off" aria-autocomplete="list" aria-controls="staff-search-suggestions" />
+              <div class="search-suggestions-dropdown hidden" id="staff-search-suggestions" role="listbox"></div>
+            </div>
             <select id="staff-medicine-category-filter" class="form-select-sm" style="min-width:180px;">
               <option value="all">All Categories</option>
             </select>

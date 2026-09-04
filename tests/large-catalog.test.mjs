@@ -312,79 +312,131 @@ test('CSS STYLING: Contains responsive styles for pagination bar and buttons', (
   assert.ok(css.includes('.staff-table-toolbar'), 'CSS must define .staff-table-toolbar');
 });
 
-test('ZERO IMAGE DUPLICATION IN EVERY CATEGORY: No image appears more than once in any category', async () => {
+test('COMPREHENSIVE IMAGE AUDIT: Every product has a verified physical image file across all 15 categories', async () => {
   const { UGANDA_PHARMACY_CATALOG } = await import('../BLOOMCARE-main/data/medicines-catalog.js');
-  
-  const categoryImageMap = new Map();
-  const duplicates = [];
+  assert.strictEqual(UGANDA_PHARMACY_CATALOG.length, 749, 'Must audit all 749 catalog items');
+
+  const categories = new Set(UGANDA_PHARMACY_CATALOG.map(p => p.category));
+  assert.strictEqual(categories.size, 15, 'All 15 categories must be audited');
 
   for (const item of UGANDA_PHARMACY_CATALOG) {
-    if (!categoryImageMap.has(item.category)) {
-      categoryImageMap.set(item.category, new Set());
-    }
-    const seenImages = categoryImageMap.get(item.category);
-    
-    assert.ok(item.imageUrl, `Product ${item.id} (${item.name}) must have a valid imageUrl`);
+    assert.ok(item.imageUrl, `Product ${item.id} (${item.name}) must have an imageUrl`);
     assert.ok(typeof item.imageUrl === 'string' && item.imageUrl.trim().length > 0, `Product ${item.id} has empty imageUrl`);
-    
-    if (seenImages.has(item.imageUrl)) {
-      duplicates.push({ category: item.category, id: item.id, name: item.name, image: item.imageUrl });
-    }
-    seenImages.add(item.imageUrl);
-  }
 
-  assert.strictEqual(duplicates.length, 0, `Found ${duplicates.length} duplicate images across categories: ${JSON.stringify(duplicates)}`);
-  assert.strictEqual(categoryImageMap.size, 15, 'All 15 categories must have verified image uniqueness');
-
-  for (const [category, images] of categoryImageMap.entries()) {
-    const prodsInCategory = UGANDA_PHARMACY_CATALOG.filter(p => p.category === category);
-    assert.strictEqual(images.size, prodsInCategory.length, `Category "${category}" has ${images.size} unique images for ${prodsInCategory.length} products`);
+    // Verify physical file exists on disk and is non-empty
+    const filePath = path.join(rootDir, 'BLOOMCARE-main', item.imageUrl.replace(/\//g, path.sep));
+    assert.ok(fs.existsSync(filePath), `Image file for ${item.id} (${item.imageUrl}) must physically exist`);
+    const stat = fs.statSync(filePath);
+    assert.ok(stat.size > 0, `Image file for ${item.id} (${item.imageUrl}) must not be empty`);
   }
 });
 
-test('AUTHENTIC PACKSHOTS FOR USER REPORTED MEDICINES: Benzylpenicillin, Cefaclor, and Cefixime', async () => {
+test('MEDICAL DEVICES ACCURACY: Every device type corresponds to its authentic instrument', async () => {
   const { UGANDA_PHARMACY_CATALOG } = await import('../BLOOMCARE-main/data/medicines-catalog.js');
 
-  const penG = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'BC-MED-0121');
-  assert.ok(penG, 'Benzylpenicillin injection must exist in catalog');
-  assert.strictEqual(penG.imageUrl, 'products/packshots/BC-MED-0121.svg', 'Benzylpenicillin must have dedicated injection packshot');
-  assert.notStrictEqual(penG.imageUrl, 'products/cough-syrup.webp', 'Benzylpenicillin must NOT display cough syrup image');
+  // Stethoscopes (excluding combo sphygmomanometer kits)
+  const stethoscopes = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('stethoscope') && !p.name.toLowerCase().includes('sphygmomanometer'));
+  assert.ok(stethoscopes.length >= 2, 'Should find stethoscopes');
+  for (const s of stethoscopes) {
+    assert.strictEqual(s.imageUrl, 'products/stethoscope.webp', `Stethoscope ${s.id} must display stethoscope image`);
+  }
 
-  const cefaclor = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'BC-MED-0115');
-  assert.ok(cefaclor, 'Cefaclor capsules must exist in catalog');
-  assert.strictEqual(cefaclor.imageUrl, 'products/packshots/BC-MED-0115.svg', 'Cefaclor must have dedicated capsules packshot');
-  assert.notStrictEqual(cefaclor.imageUrl, 'products/cough-syrup.webp', 'Cefaclor must NOT display cough syrup image');
+  // Pulse Oximeter
+  const oximeters = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('pulse oximeter'));
+  assert.ok(oximeters.length >= 1, 'Should find pulse oximeter');
+  for (const ox of oximeters) {
+    assert.strictEqual(ox.imageUrl, 'products/pulse-oximeter.webp', `Pulse oximeter ${ox.id} must display pulse oximeter image`);
+  }
 
-  const cefixime = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'BC-MED-0087');
-  assert.ok(cefixime, 'Cefixime tablets must exist in catalog');
-  assert.strictEqual(cefixime.imageUrl, 'products/packshots/BC-MED-0087.svg', 'Cefixime must have dedicated tablets packshot');
-  assert.notStrictEqual(cefixime.imageUrl, 'products/cough-syrup.webp', 'Cefixime must NOT display cough syrup image');
+  // Nebulizer
+  const nebulizers = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('nebulizer'));
+  assert.ok(nebulizers.length >= 1, 'Should find nebulizer');
+  for (const neb of nebulizers) {
+    assert.strictEqual(neb.imageUrl, 'products/nebulizer.webp', `Nebulizer ${neb.id} must display nebulizer image`);
+  }
 
-  // Verify packshot files physically exist on disk
-  for (const id of ['BC-MED-0121', 'BC-MED-0115', 'BC-MED-0087']) {
-    const filePath = path.join(rootDir, 'BLOOMCARE-main', 'products', 'packshots', `${id}.svg`);
-    assert.ok(fs.existsSync(filePath), `Packshot file ${id}.svg must physically exist`);
-    const content = fs.readFileSync(filePath, 'utf8');
-    assert.ok(content.includes('<svg'), `Packshot ${id}.svg must be valid SVG`);
-    assert.ok(content.includes(id), `Packshot ${id}.svg must include product ID`);
+  // Blood Pressure Monitors
+  const bpMonitors = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('blood pressure monitor') || p.name.toLowerCase().includes('sphygmomanometer'));
+  assert.ok(bpMonitors.length >= 3, 'Should find BP monitors');
+  for (const bp of bpMonitors) {
+    assert.strictEqual(bp.imageUrl, 'products/blood-pressure-monitor.webp', `BP monitor ${bp.id} must display BP monitor image`);
+  }
+
+  // Thermometers
+  const infraredTherm = UGANDA_PHARMACY_CATALOG.find(p => p.name.toLowerCase().includes('infrared'));
+  assert.ok(infraredTherm, 'Should find infrared thermometer');
+  assert.strictEqual(infraredTherm.imageUrl, 'products/infrared-thermometer.webp', 'Infrared thermometer must display infrared thermometer image');
+
+  const digitalTherm = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'DEMO-MED-023');
+  assert.strictEqual(digitalTherm.imageUrl, 'products/digital-thermometer.webp', 'Digital thermometer must display clinical thermometer image');
+
+  // Mobility: Crutches, Walking Sticks, Wheelchair
+  const crutches = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('crutch'));
+  assert.ok(crutches.length >= 2, 'Should find crutches');
+  for (const c of crutches) {
+    assert.strictEqual(c.imageUrl, 'products/crutches.webp', `Crutches ${c.id} must display crutches image`);
+  }
+
+  const canes = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('walking stick') || p.name.toLowerCase().includes('quad cane'));
+  assert.ok(canes.length >= 2, 'Should find walking sticks');
+  for (const cn of canes) {
+    assert.strictEqual(cn.imageUrl, 'products/walking-stick.webp', `Cane ${cn.id} must display walking stick image`);
+  }
+
+  // Gloves & Syringes
+  const gloves = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('gloves'));
+  assert.ok(gloves.length >= 2, 'Should find medical/examination gloves');
+  for (const g of gloves) {
+    assert.strictEqual(g.imageUrl, 'products/examination-gloves.webp', `Gloves ${g.id} must display examination gloves image`);
+  }
+
+  const syringes = UGANDA_PHARMACY_CATALOG.filter(p => p.name.toLowerCase().includes('hypodermic syringe'));
+  assert.ok(syringes.length >= 2, 'Should find syringes');
+  for (const sy of syringes) {
+    assert.strictEqual(sy.imageUrl, 'products/hypodermic-syringe.webp', `Syringe ${sy.id} must display syringe image`);
   }
 });
 
-test('RUNTIME IMAGE DEDUPLICATION GUARD: enforceCategoryUniqueImages prevents category collisions', async () => {
-  const { enforceCategoryUniqueImages } = await import('../BLOOMCARE-main/app.js');
-  assert.strictEqual(typeof enforceCategoryUniqueImages, 'function', 'enforceCategoryUniqueImages must be exported from app.js');
+test('CLINICAL FORMULATION ACCURACY: Medicines match their actual clinical dosage form without unrelated images', async () => {
+  const { UGANDA_PHARMACY_CATALOG } = await import('../BLOOMCARE-main/data/medicines-catalog.js');
 
-  const mockCategoryList = [
-    { id: 'TEST-A', name: 'Product A', category: 'Cold & Flu', imageUrl: 'products/cough-syrup.webp' },
-    { id: 'TEST-B', name: 'Product B', category: 'Cold & Flu', imageUrl: 'products/cough-syrup.webp' }, // Duplicate image
-    { id: 'TEST-C', name: 'Product C', category: 'Cold & Flu', imageUrl: '' } // Missing image
-  ];
+  // Benzylpenicillin injection must show sterile vial, never cough syrup
+  const penG = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'BC-MED-0121');
+  assert.ok(penG, 'Benzylpenicillin injection must exist');
+  assert.strictEqual(penG.imageUrl, 'products/sterile-vial.webp', 'Benzylpenicillin injection must display sterile vial visual');
+  assert.notStrictEqual(penG.imageUrl, 'products/cough-syrup.webp', 'Benzylpenicillin must NOT display cough syrup');
 
-  const guarded = enforceCategoryUniqueImages(mockCategoryList);
-  assert.strictEqual(guarded[0].imageUrl, 'products/cough-syrup.webp');
-  assert.strictEqual(guarded[1].imageUrl, 'products/packshots/TEST-B.svg', 'Duplicate image should be converted to unique packshot');
-  assert.strictEqual(guarded[2].imageUrl, 'products/packshots/TEST-C.svg', 'Missing image should be converted to unique packshot');
+  // Cefaclor capsules must show capsules, never cough syrup
+  const cefaclor = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'BC-MED-0115');
+  assert.ok(cefaclor, 'Cefaclor capsules must exist');
+  assert.strictEqual(cefaclor.imageUrl, 'products/capsules-blister.webp', 'Cefaclor capsules must display capsules blister visual');
+  assert.notStrictEqual(cefaclor.imageUrl, 'products/cough-syrup.webp', 'Cefaclor must NOT display cough syrup');
 
-  const seen = new Set(guarded.map(p => p.imageUrl));
-  assert.strictEqual(seen.size, 3, 'All 3 items in category must have distinct images');
+  // Cefixime tablets must show tablets, never cough syrup
+  const cefixime = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'BC-MED-0087');
+  assert.ok(cefixime, 'Cefixime tablets must exist');
+  assert.strictEqual(cefixime.imageUrl, 'products/tablets-blister.webp', 'Cefixime tablets must display tablets blister visual');
+  assert.notStrictEqual(cefixime.imageUrl, 'products/cough-syrup.webp', 'Cefixime must NOT display cough syrup');
+
+  // Inhalers must show inhalers
+  const salbutamol = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'DEMO-MED-020');
+  assert.strictEqual(salbutamol.imageUrl, 'products/salbutamol-inhaler.webp', 'Salbutamol must display inhaler image');
+
+  // Creams must show cream tubes
+  const hydrocortisone = UGANDA_PHARMACY_CATALOG.find(p => p.id === 'DEMO-MED-017');
+  assert.strictEqual(hydrocortisone.imageUrl, 'products/hydrocortisone-cream.webp', 'Hydrocortisone must display cream tube image');
+});
+
+test('RUNTIME IMAGE FALLBACK: getProductImage and placeholder fallback in app.js', async () => {
+  const { getProductImage, BLOOMCARE_PLACEHOLDER_IMAGE } = await import('../BLOOMCARE-main/app.js');
+  assert.strictEqual(BLOOMCARE_PLACEHOLDER_IMAGE, 'products/placeholder-medicine.svg', 'Placeholder image must be products/placeholder-medicine.svg');
+
+  // Null product fallback
+  assert.strictEqual(getProductImage(null), 'products/placeholder-medicine.svg');
+
+  // Valid imageUrl
+  assert.strictEqual(getProductImage({ id: 'MED-1', imageUrl: 'products/paracetamol-500mg.webp' }), 'products/paracetamol-500mg.webp');
+
+  // Empty imageUrl fallback
+  assert.strictEqual(getProductImage({ id: 'MED-2', imageUrl: '' }), 'products/placeholder-medicine.svg');
 });

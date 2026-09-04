@@ -1269,40 +1269,18 @@ export function getProductImage(prod) {
   if (prod.image && typeof prod.image === "string" && prod.image.trim()) {
     return prod.image.trim();
   }
-  // Fall back to dedicated unique packshot if product ID is known
-  if (prod.id) {
-    return `products/packshots/${prod.id}.svg`;
-  }
   return BLOOMCARE_PLACEHOLDER_IMAGE;
 }
 
 export function enforceCategoryUniqueImages(products) {
   if (!Array.isArray(products)) return products;
-  const categorySeen = new Map();
-
   for (const p of products) {
-    if (!p || !p.category) continue;
-    if (!categorySeen.has(p.category)) {
-      categorySeen.set(p.category, new Set());
-    }
-    const seen = categorySeen.get(p.category);
+    if (!p) continue;
     let img = (p.imageUrl || p.image || "").trim();
-
-    // If image is missing, placeholder, or already seen in this category, enforce unique packshot
-    const isInvalidOrDuplicate = !img ||
-      img === BLOOMCARE_PLACEHOLDER_IMAGE ||
-      img === "products/placeholder-medicine.svg" ||
-      seen.has(img);
-
-    if (isInvalidOrDuplicate) {
+    if (!img) {
       const initMed = INITIAL_MEDICINES.find(m => m.id === p.id);
-      if (initMed && initMed.imageUrl && !seen.has(initMed.imageUrl)) {
-        p.imageUrl = initMed.imageUrl;
-      } else {
-        p.imageUrl = `products/packshots/${p.id}.svg`;
-      }
+      p.imageUrl = (initMed && initMed.imageUrl) ? initMed.imageUrl : BLOOMCARE_PLACEHOLDER_IMAGE;
     }
-    seen.add(p.imageUrl);
   }
   return products;
 }
@@ -3484,8 +3462,7 @@ function renderMedicinesView() {
           renderMedicinesView();
         });
       } else {
-        const seenCatImages = new Set();
-        grid.innerHTML = pagedList.map(prod => renderProductCardHtml(prod, seenCatImages)).join("");
+        grid.innerHTML = pagedList.map(renderProductCardHtml).join("");
       }
     }
 
@@ -3542,17 +3519,10 @@ function renderMedicinesView() {
 }
 
 function renderProductCardHtml(prod) {
-  const seenSet = arguments[1];
   const avail = getProductAvailability(prod);
   const rxBadge = prod.requiresPrescription ? `<span class="rx-pill rx-req">Rx Required</span>` : `<span class="rx-pill otc-ok">OTC (No Rx)</span>`;
   const stockBadge = `<span class="stock-pill ${avail.badgeClass}">${avail.label}</span>`;
-  let img = getProductImage(prod);
-  if (seenSet instanceof Set) {
-    if (seenSet.has(img)) {
-      img = prod.id ? `products/packshots/${prod.id}.svg` : BLOOMCARE_PLACEHOLDER_IMAGE;
-    }
-    seenSet.add(img);
-  }
+  const img = getProductImage(prod);
 
   const strengthMatch = prod.name.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i) || prod.genericName?.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i);
   const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "Standard Dose");
