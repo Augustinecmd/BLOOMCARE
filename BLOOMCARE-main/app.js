@@ -2540,23 +2540,68 @@ function renderRoleDashboard() {
 
   } else if (role === "admin") {
     // 1. ADMINISTRATOR DASHBOARD
+    const totalUsersCount = STATE.users.length;
+    const activeUsersCount = STATE.users.filter(u => (u.status || "active") === "active").length;
+    const suspendedUsersCount = STATE.users.filter(u => u.status === "suspended").length;
+    const customerCount = STATE.users.filter(u => u.role === "customer").length;
+    const pharmacistCount = STATE.users.filter(u => u.role === "pharmacist").length;
+    const staffCount = STATE.users.filter(u => ["admin", "assistant_pharmacist", "delivery_person"].includes(u.role)).length;
+
     container.innerHTML = `
-      <div class="page-header-block">
-        <h1 class="page-title">Dashboard</h1>
-        <p class="page-desc">Overview of pharmacy inventory, orders, revenue, and staff activity.</p>
+      <div class="page-header-block flex-between">
+        <div>
+          <h1 class="page-title">Executive Admin Dashboard</h1>
+          <p class="page-desc">Complete administrative oversight: financial analytics, user accounts, clinical queues, and immutable audit trails.</p>
+        </div>
+        <div style="display:flex; gap:8px;">
+          <button class="btn btn-primary btn-sm" data-route="admin/users">+ Manage Users</button>
+          <button class="btn btn-outline btn-sm" data-route="admin/audit-logs">Audit Trail</button>
+        </div>
       </div>
 
+      <!-- Core Operational KPIs -->
       <div class="kpi-grid-6">
-        <div class="kpi-card" data-route="medicines"><div class="kpi-icon-wrap">${ICONS.medicines}</div><div><strong class="kpi-value">${STATE.products.length}</strong><span class="kpi-label">Total Products</span></div></div>
-        <div class="kpi-card" data-route="orders"><div class="kpi-icon-wrap">${ICONS.orders}</div><div><strong class="kpi-value">${STATE.orders.length}</strong><span class="kpi-label">Total Orders</span></div></div>
-        <div class="kpi-card" data-route="customers"><div class="kpi-icon-wrap">${ICONS.customers}</div><div><strong class="kpi-value">${STATE.customers.length}</strong><span class="kpi-label">Total Customers</span></div></div>
+        <div class="kpi-card" data-route="medicines"><div class="kpi-icon-wrap">${ICONS.medicines}</div><div><strong class="kpi-value">${STATE.products.length}</strong><span class="kpi-label">Medicines</span></div></div>
+        <div class="kpi-card" data-route="orders"><div class="kpi-icon-wrap">${ICONS.orders}</div><div><strong class="kpi-value">${STATE.orders.length}</strong><span class="kpi-label">Orders</span></div></div>
+        <div class="kpi-card" data-route="admin/users"><div class="kpi-icon-wrap">${ICONS.users}</div><div><strong class="kpi-value">${totalUsersCount}</strong><span class="kpi-label">Total Users</span></div></div>
         <div class="kpi-card" data-route="prescriptions"><div class="kpi-icon-wrap">${ICONS.prescriptions}</div><div><strong class="kpi-value">${pendingRxCount}</strong><span class="kpi-label">Pending Rx</span></div></div>
         <div class="kpi-card" data-route="inventory"><div class="kpi-icon-wrap">${ICONS.inventory}</div><div><strong class="kpi-value" style="color:var(--warning);">${lowStockCount}</strong><span class="kpi-label">Low Stock</span></div></div>
         <div class="kpi-card" data-route="reports"><div class="kpi-icon-wrap">${ICONS.payments}</div><div><strong class="kpi-value">${formatUGX(todaySales > 0 ? todaySales : totalRev)}</strong><span class="kpi-label">${todaySales > 0 ? "Today's Sales" : "Total Revenue"}</span></div></div>
       </div>
 
+      <!-- User Management Quick Stats Bar -->
+      <div class="users-kpi-summary-grid" style="margin-top:14px; margin-bottom:14px;">
+        <div class="user-stat-card" data-route="admin/users" style="cursor:pointer;">
+          <span class="user-stat-label">Active Users</span>
+          <strong class="user-stat-val text-success">${activeUsersCount}</strong>
+          <small class="user-stat-sub">Verified accounts</small>
+        </div>
+        <div class="user-stat-card" data-route="admin/users" style="cursor:pointer;">
+          <span class="user-stat-label">Suspended</span>
+          <strong class="user-stat-val text-warning">${suspendedUsersCount}</strong>
+          <small class="user-stat-sub">Access blocked</small>
+        </div>
+        <div class="user-stat-card" data-route="admin/pharmacists" style="cursor:pointer;">
+          <span class="user-stat-label">Pharmacists</span>
+          <strong class="user-stat-val text-info">${pharmacistCount}</strong>
+          <small class="user-stat-sub">Clinical verified</small>
+        </div>
+        <div class="user-stat-card" data-route="admin/customers" style="cursor:pointer;">
+          <span class="user-stat-label">Customers</span>
+          <strong class="user-stat-val text-primary">${customerCount}</strong>
+          <small class="user-stat-sub">Retail clients</small>
+        </div>
+        <div class="user-stat-card" data-route="admin/users" style="cursor:pointer;">
+          <span class="user-stat-label">Staff Fleet</span>
+          <strong class="user-stat-val text-purple">${staffCount}</strong>
+          <small class="user-stat-sub">Dispensary &amp; logistics</small>
+        </div>
+      </div>
+
       <div class="quick-actions-bar">
         <button class="btn btn-primary btn-sm" id="dash-btn-add-prod" type="button">+ Add Product</button>
+        <button class="btn btn-secondary btn-sm" data-route="admin/users">Manage Users</button>
+        <button class="btn btn-secondary btn-sm" data-route="admin/audit-logs">Audit Logs</button>
         <button class="btn btn-secondary btn-sm" data-route="orders">View Orders</button>
         <button class="btn btn-secondary btn-sm" data-route="prescriptions">Review Prescriptions</button>
         <button class="btn btn-secondary btn-sm" data-route="inventory">View Inventory</button>
@@ -2597,6 +2642,53 @@ function renderRoleDashboard() {
                     <td>${p.reorderLevel}</td>
                     <td><span class="status-pill status-warning">Low Stock</span></td>
                     <td><button class="btn btn-primary btn-sm quick-restock-btn" data-id="${p.id}">Restock</button></td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Recent User Registrations & Audit Activity Summary -->
+      <div class="content-dual-grid" style="margin-top:20px;">
+        <div class="content-card">
+          <div class="flex-between">
+            <h3>Recent User Accounts</h3>
+            <button class="text-link" data-route="admin/users">View All Users &rarr;</button>
+          </div>
+          <div class="table-responsive">
+            <table class="standard-table">
+              <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
+              <tbody>
+                ${STATE.users.slice(0, 4).map(u => `
+                  <tr>
+                    <td><strong>${escapeHtml(u.name || u.displayName)}</strong><br><small class="muted">${escapeHtml(u.email)}</small></td>
+                    <td><span class="role-badge role-badge-${u.role}">${escapeHtml(formatRoleName(u.role).toUpperCase())}</span></td>
+                    <td><span class="status-pill status-${u.status || "active"}">${escapeHtml(u.status || "active")}</span></td>
+                    <td>${escapeHtml(u.createdAt || "—")}</td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="content-card">
+          <div class="flex-between">
+            <h3>Recent Administrative Audit Trail</h3>
+            <button class="text-link" data-route="admin/audit-logs">Full Audit Logs &rarr;</button>
+          </div>
+          <div class="table-responsive">
+            <table class="standard-table">
+              <thead><tr><th>Action</th><th>Actor</th><th>Target User</th><th>Details</th></tr></thead>
+              <tbody>
+                ${STATE.auditLogs.slice(0, 4).map(l => `
+                  <tr>
+                    <td><span class="audit-badge audit-${l.action}">${escapeHtml(l.action)}</span></td>
+                    <td><strong>${escapeHtml(l.actorName || "Admin")}</strong></td>
+                    <td>${escapeHtml(l.targetName || l.targetUserId || "—")}</td>
+                    <td><small>${escapeHtml(l.details || "—")}</small></td>
                   </tr>
                 `).join("")}
               </tbody>
@@ -4145,33 +4237,1018 @@ function renderCustomersView() {
 }
 
 // -------------------------------------------------------------
-// MODULE 12: USERS & ROLES MODULE (Admin)
 // -------------------------------------------------------------
-function renderUsersView() {
+// MODULE 12: ADMIN USER MANAGEMENT & AUDIT TRAIL ENGINE
+// -------------------------------------------------------------
+export const ADMIN_API_BASE = "http://127.0.0.1:8787/api/admin";
+
+export async function adminApiRequest(endpoint, method = "GET", data = null) {
+  try {
+    const effRole = getEffectiveRole();
+    const headers = {
+      "Content-Type": "application/json",
+      "X-Admin-Role": effRole,
+      "X-Admin-Name": STATE.currentUser?.displayName || STATE.currentUser?.name || "System Admin",
+      "Authorization": `Bearer ${effRole}`
+    };
+    const options = { method, headers };
+    if (data && method !== "GET") {
+      options.body = JSON.stringify(data);
+    }
+    const res = await fetch(`${ADMIN_API_BASE}${endpoint}`, options);
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || `HTTP ${res.status}`);
+    }
+    return await res.json();
+  } catch (err) {
+    console.warn(`[AdminAPI] ${method} ${endpoint} warning:`, err);
+    return null;
+  }
+}
+
+export async function recordAdminAudit(action, targetUserId, details, metadata = {}) {
+  const actor = STATE.currentUser || { uid: "usr-1", name: "Dr. Admin Mugisha", role: "admin" };
+  const target = STATE.users.find(u => u.id === targetUserId || u.uid === targetUserId);
+  const logEntry = {
+    id: `audit-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
+    timestamp: new Date().toISOString(),
+    actorId: actor.uid || actor.id || "usr-1",
+    actorName: actor.displayName || actor.name || "System Admin",
+    actorRole: actor.role || "admin",
+    action,
+    targetUserId,
+    targetName: target ? (target.name || target.displayName || target.email) : (metadata.targetName || targetUserId),
+    targetRole: target ? target.role : (metadata.targetRole || "unknown"),
+    details: details || "",
+    ip: "127.0.0.1",
+    metadata
+  };
+
+  STATE.auditLogs.unshift(logEntry);
+  if (STATE.auditLogs.length > 300) STATE.auditLogs.pop();
+
+  try {
+    adminApiRequest("/audit-logs", "POST", logEntry).catch(() => {});
+  } catch (_) {}
+
+  return logEntry;
+}
+
+export function getFilteredUsers() {
+  let list = [...STATE.users];
+  const q = (STATE.userSearchQuery || "").toLowerCase().trim();
+
+  if (q) {
+    list = list.filter(u => {
+      const name = (u.name || u.displayName || "").toLowerCase();
+      const email = (u.email || "").toLowerCase();
+      const phone = (u.phone || "").toLowerCase();
+      const id = (u.id || u.uid || "").toLowerCase();
+      return name.includes(q) || email.includes(q) || phone.includes(q) || id.includes(q);
+    });
+  }
+
+  if (STATE.userRoleFilter && STATE.userRoleFilter !== "all") {
+    list = list.filter(u => normalizeRole(u.role) === STATE.userRoleFilter);
+  }
+
+  if (STATE.userStatusFilter && STATE.userStatusFilter !== "all") {
+    list = list.filter(u => (u.status || "active") === STATE.userStatusFilter);
+  }
+
+  const sort = STATE.userSortBy || "date-desc";
+  list.sort((a, b) => {
+    if (sort === "date-desc") return (b.createdAt || "").localeCompare(a.createdAt || "");
+    if (sort === "date-asc") return (a.createdAt || "").localeCompare(b.createdAt || "");
+    if (sort === "name-asc") return (a.name || a.displayName || "").localeCompare(b.name || b.displayName || "");
+    if (sort === "name-desc") return (b.name || b.displayName || "").localeCompare(a.name || a.displayName || "");
+    if (sort === "role") return (ROLE_HIERARCHY[b.role] || 0) - (ROLE_HIERARCHY[a.role] || 0);
+    if (sort === "status") return (a.status || "active").localeCompare(b.status || "active");
+    return 0;
+  });
+
+  return list;
+}
+
+export function updateUserManagementKpis() {
+  const total = STATE.users.length;
+  const active = STATE.users.filter(u => (u.status || "active") === "active").length;
+  const suspended = STATE.users.filter(u => u.status === "suspended").length;
+  const customer = STATE.users.filter(u => u.role === "customer").length;
+  const pharmacist = STATE.users.filter(u => u.role === "pharmacist").length;
+  const staff = STATE.users.filter(u => ["assistant_pharmacist", "delivery_person", "admin"].includes(u.role)).length;
+
+  const setTxt = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = String(val);
+  };
+  setTxt("stat-total-users", total);
+  setTxt("stat-active-users", active);
+  setTxt("stat-suspended-users", suspended);
+  setTxt("stat-customer-users", customer);
+  setTxt("stat-pharmacist-users", pharmacist);
+  setTxt("stat-staff-users", staff);
+}
+
+export function renderUsersView() {
   const box = $("#users-table-box");
   if (!box) return;
 
   const effRole = getEffectiveRole();
   if (effRole !== "admin" && effRole !== "developer") {
-    box.innerHTML = `<div class="auth-error-box"><p class="auth-error-desc">Access Denied: Staff account management is restricted to administrators and developers.</p></div>`;
+    box.innerHTML = `<div class="auth-error-box"><p class="auth-error-desc">Access Denied: Administrative user management is restricted to administrators and developers.</p></div>`;
+    return;
+  }
+
+  updateUserManagementKpis();
+
+  // Bind Toolbar Controls Once
+  const searchInput = $("#user-search-input");
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = "true";
+    searchInput.value = STATE.userSearchQuery || "";
+    searchInput.addEventListener("input", (e) => {
+      STATE.userSearchQuery = e.target.value;
+      renderUsersTableOnly();
+    });
+  }
+
+  const roleFilter = $("#filter-user-role");
+  if (roleFilter && !roleFilter.dataset.bound) {
+    roleFilter.dataset.bound = "true";
+    roleFilter.value = STATE.userRoleFilter || "all";
+    roleFilter.addEventListener("change", (e) => {
+      STATE.userRoleFilter = e.target.value;
+      renderUsersTableOnly();
+    });
+  }
+
+  const statusFilter = $("#filter-user-status");
+  if (statusFilter && !statusFilter.dataset.bound) {
+    statusFilter.dataset.bound = "true";
+    statusFilter.value = STATE.userStatusFilter || "all";
+    statusFilter.addEventListener("change", (e) => {
+      STATE.userStatusFilter = e.target.value;
+      renderUsersTableOnly();
+    });
+  }
+
+  const sortSelect = $("#sort-users-by");
+  if (sortSelect && !sortSelect.dataset.bound) {
+    sortSelect.dataset.bound = "true";
+    sortSelect.value = STATE.userSortBy || "date-desc";
+    sortSelect.addEventListener("change", (e) => {
+      STATE.userSortBy = e.target.value;
+      renderUsersTableOnly();
+    });
+  }
+
+  const resetBtn = $("#btn-clear-user-filters");
+  if (resetBtn && !resetBtn.dataset.bound) {
+    resetBtn.dataset.bound = "true";
+    resetBtn.addEventListener("click", () => {
+      STATE.userSearchQuery = "";
+      STATE.userRoleFilter = "all";
+      STATE.userStatusFilter = "all";
+      STATE.userSortBy = "date-desc";
+      if (searchInput) searchInput.value = "";
+      if (roleFilter) roleFilter.value = "all";
+      if (statusFilter) statusFilter.value = "all";
+      if (sortSelect) sortSelect.value = "date-desc";
+      renderUsersTableOnly();
+    });
+  }
+
+  const refreshBtn = $("#btn-refresh-users");
+  if (refreshBtn && !refreshBtn.dataset.bound) {
+    refreshBtn.dataset.bound = "true";
+    refreshBtn.addEventListener("click", async () => {
+      const res = await adminApiRequest("/users");
+      if (res && res.users) {
+        STATE.users = res.users;
+      }
+      renderUsersView();
+      openNotice("Users Refreshed", "Loaded latest user accounts and permission states.");
+    });
+  }
+
+  // Bulk Toolbar Buttons
+  $("#bulk-btn-activate")?.addEventListener("click", () => handleBulkUsersAction("activate"));
+  $("#bulk-btn-deactivate")?.addEventListener("click", () => handleBulkUsersAction("deactivate"));
+  $("#bulk-btn-suspend")?.addEventListener("click", () => handleBulkUsersAction("suspend"));
+  $("#bulk-btn-clear")?.addEventListener("click", () => {
+    STATE.selectedUserIds.clear();
+    updateBulkToolbarState();
+    renderUsersTableOnly();
+  });
+
+  renderUsersTableOnly();
+}
+
+function updateBulkToolbarState() {
+  const toolbar = $("#users-bulk-toolbar");
+  const countBadge = $("#bulk-selected-count");
+  const count = STATE.selectedUserIds.size;
+
+  if (toolbar) {
+    toolbar.classList.toggle("hidden", count === 0);
+  }
+  if (countBadge) {
+    countBadge.textContent = String(count);
+  }
+}
+
+function renderUsersTableOnly() {
+  const box = $("#users-table-box");
+  if (!box) return;
+
+  const users = getFilteredUsers();
+  updateUserManagementKpis();
+  updateBulkToolbarState();
+
+  if (users.length === 0) {
+    box.innerHTML = `
+      <div style="text-align:center; padding: 40px 20px;">
+        <div style="font-size:36px; margin-bottom:10px;">👥</div>
+        <h3 style="margin:0 0 6px;">No users found</h3>
+        <p class="muted" style="margin:0;">No accounts matched your search or active filter criteria.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const allFilteredSelected = users.length > 0 && users.every(u => STATE.selectedUserIds.has(u.id || u.uid));
+
+  box.innerHTML = `
+    <table class="standard-table users-management-table">
+      <thead>
+        <tr>
+          <th style="width:40px; text-align:center;">
+            <input type="checkbox" id="user-select-all-cb" ${allFilteredSelected ? "checked" : ""} aria-label="Select all matching users" />
+          </th>
+          <th>User Account</th>
+          <th>Contact</th>
+          <th>Role</th>
+          <th>Status</th>
+          <th>Joined &amp; Last Login</th>
+          <th style="text-align:right;">Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${users.map(u => {
+          const uid = u.id || u.uid;
+          const isSelected = STATE.selectedUserIds.has(uid);
+          const initial = (u.name || u.displayName || u.role || "U").slice(0, 2).toUpperCase();
+          const status = u.status || "active";
+          return `
+            <tr class="${isSelected ? "row-selected" : ""}">
+              <td style="text-align:center;">
+                <input type="checkbox" class="user-row-cb" data-id="${uid}" ${isSelected ? "checked" : ""} />
+              </td>
+              <td>
+                <div class="user-info-cell">
+                  <div class="user-avatar-badge avatar-${u.role}">${initial}</div>
+                  <div class="user-names-wrap">
+                    <strong>${escapeHtml(u.name || u.displayName || "User")}</strong>
+                    <span class="user-id-sub">${escapeHtml(uid)}</span>
+                  </div>
+                </div>
+              </td>
+              <td>
+                <span class="contact-email">${escapeHtml(u.email || "—")}</span>
+                <span class="contact-phone">${escapeHtml(u.phone || "—")}</span>
+              </td>
+              <td>
+                <span class="role-badge role-badge-${u.role}">${escapeHtml(formatRoleName(u.role).toUpperCase())}</span>
+              </td>
+              <td>
+                <span class="status-pill status-${status}">${escapeHtml(status)}</span>
+                ${status === "suspended" && u.suspensionReason ? `<br><small class="text-warning" style="font-size:10.5px;">${escapeHtml(u.suspensionReason.slice(0, 25))}${u.suspensionReason.length > 25 ? "..." : ""}</small>` : ""}
+              </td>
+              <td>
+                <span style="font-size:12.5px; color:#334155;">Joined: ${escapeHtml(u.createdAt || "2026-01-01")}</span>
+                <br>
+                <small class="muted" style="font-size:11px;">Last: ${escapeHtml(u.lastLogin || "Never")}</small>
+              </td>
+              <td style="text-align:right;">
+                <div class="user-actions-group" style="justify-content:flex-end;">
+                  <button class="btn btn-secondary btn-sm user-tbl-action" data-action="profile" data-id="${uid}" title="View Complete Profile & Activity">Profile</button>
+                  <button class="btn btn-secondary btn-sm user-tbl-action" data-action="edit" data-id="${uid}" title="Edit User">Edit</button>
+                  <button class="btn btn-secondary btn-sm user-tbl-action" data-action="permissions" data-id="${uid}" title="Configure Granular Permissions">Permissions</button>
+                  ${status === "suspended" 
+                    ? `<button class="btn btn-sm btn-outline-success user-tbl-action" data-action="restore" data-id="${uid}">Restore</button>`
+                    : status === "deactivated" || status === "inactive"
+                    ? `<button class="btn btn-sm btn-outline-success user-tbl-action" data-action="activate" data-id="${uid}">Activate</button>`
+                    : `<button class="btn btn-sm btn-outline-warning user-tbl-action" data-action="suspend" data-id="${uid}">Suspend</button>
+                       <button class="btn btn-sm btn-outline-danger user-tbl-action" data-action="deactivate" data-id="${uid}">Deactivate</button>`
+                  }
+                  <button class="btn btn-sm btn-outline user-tbl-action" data-action="reset-pwd" data-id="${uid}" title="Send Password Reset Link">Reset Pwd</button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+
+  // Bind Select All Checkbox
+  const selectAllCb = $("#user-select-all-cb");
+  if (selectAllCb) {
+    selectAllCb.addEventListener("change", (e) => {
+      const checked = e.target.checked;
+      users.forEach(u => {
+        const uid = u.id || u.uid;
+        if (checked) STATE.selectedUserIds.add(uid);
+        else STATE.selectedUserIds.delete(uid);
+      });
+      renderUsersTableOnly();
+    });
+  }
+
+  // Bind Row Checkboxes
+  box.querySelectorAll(".user-row-cb").forEach(cb => {
+    cb.addEventListener("change", (e) => {
+      const uid = e.target.dataset.id;
+      if (e.target.checked) STATE.selectedUserIds.add(uid);
+      else STATE.selectedUserIds.delete(uid);
+      updateBulkToolbarState();
+    });
+  });
+
+  // Bind Table Row Actions (Event Delegation)
+  box.querySelectorAll(".user-tbl-action").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const action = btn.dataset.action;
+      const uid = btn.dataset.id;
+      const targetUser = STATE.users.find(u => (u.id === uid || u.uid === uid));
+      if (!targetUser) return;
+
+      if (action === "profile") openUserProfileModal(targetUser);
+      else if (action === "edit") openUserFormModal(targetUser);
+      else if (action === "permissions") openPermissionsModal(targetUser);
+      else if (action === "suspend") openSuspendUserModal(targetUser);
+      else if (action === "restore") restoreUserAccount(targetUser);
+      else if (action === "activate") activateUserAccount(targetUser);
+      else if (action === "deactivate") deactivateUserAccount(targetUser);
+      else if (action === "reset-pwd") openPasswordResetModal(targetUser);
+    });
+  });
+}
+
+export function openUserProfileModal(user) {
+  const dialog = $("#user-profile-dialog");
+  if (!dialog) return;
+
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const initial = (target.name || target.displayName || target.role || "U").slice(0, 2).toUpperCase();
+  const roleName = formatRoleName(target.role);
+  const clearance = ROLE_HIERARCHY[target.role] || 0;
+  const status = target.status || "active";
+
+  const nameEl = $("#up-user-name");
+  const roleBadge = $("#up-role-badge");
+  const statusPill = $("#up-status-pill");
+
+  if (nameEl) nameEl.textContent = target.name || target.displayName;
+  if (roleBadge) {
+    roleBadge.textContent = roleName.toUpperCase();
+    roleBadge.className = `role-badge role-badge-${target.role}`;
+  }
+  if (statusPill) {
+    statusPill.textContent = status.charAt(0).toUpperCase() + status.slice(1);
+    statusPill.className = `status-pill status-${status}`;
+  }
+
+  // Find user's orders and consultations
+  const userOrders = STATE.orders.filter(o => o.customerId === target.id || o.customerId === target.uid || (target.email && o.customerEmail === target.email));
+  const userConsultations = STATE.consultations.filter(c => c.patientPhone === target.phone || c.pharmacistName === target.name);
+  const userAuditTrail = STATE.auditLogs.filter(l => l.targetUserId === target.id || l.targetUserId === target.uid);
+
+  const body = $("#user-profile-body");
+  if (body) {
+    body.innerHTML = `
+      <div class="profile-overview-card">
+        <div class="profile-big-avatar avatar-${target.role}">${initial}</div>
+        <div class="profile-quick-details">
+          <h3>${escapeHtml(target.name || target.displayName)}</h3>
+          <p>${escapeHtml(target.email || "No email")} &bull; ${escapeHtml(target.phone || "No phone")}</p>
+          <div style="margin-top:6px; display:flex; gap:8px;">
+            <span class="role-badge role-badge-${target.role}">${escapeHtml(roleName.toUpperCase())}</span>
+            <span class="status-pill status-${status}">${escapeHtml(status)}</span>
+            <span class="status-pill" style="background:#f1f5f9; color:#475569;">Clearance Lvl: ${clearance}</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="profile-sections-grid">
+        <div class="profile-info-box">
+          <h4>Account Details</h4>
+          <div class="profile-kv-row"><span>User ID:</span><strong>${escapeHtml(target.id || target.uid)}</strong></div>
+          <div class="profile-kv-row"><span>Registered Date:</span><strong>${escapeHtml(target.createdAt || "2026-01-01")}</strong></div>
+          <div class="profile-kv-row"><span>Last Login:</span><strong>${escapeHtml(target.lastLogin || "Never")}</strong></div>
+          <div class="profile-kv-row"><span>Account Status:</span><strong class="text-${status === 'active' ? 'success' : status === 'suspended' ? 'warning' : 'danger'}">${status}</strong></div>
+          ${status === "suspended" ? `
+            <div class="profile-kv-row"><span>Suspension Reason:</span><strong class="text-warning">${escapeHtml(target.suspensionReason || "Administrative Review")}</strong></div>
+            <div class="profile-kv-row"><span>Suspension Duration:</span><strong>${escapeHtml(target.suspensionDuration || "30_days")}</strong></div>
+            <div class="profile-kv-row"><span>Suspended Until:</span><strong>${escapeHtml(target.suspensionUntil || "Indefinite")}</strong></div>
+          ` : ""}
+        </div>
+
+        <div class="profile-info-box">
+          <h4>Role &amp; Permissions</h4>
+          <div class="profile-kv-row"><span>Assigned Role:</span><strong>${roleName}</strong></div>
+          <div class="profile-kv-row"><span>Hierarchy Rank:</span><strong>Level ${clearance} / 100</strong></div>
+          <div style="margin-top:10px;">
+            <span class="muted" style="font-size:12px; display:block; margin-bottom:6px;">Active Capabilities:</span>
+            <div style="display:flex; flex-wrap:wrap; gap:4px;">
+              ${(target.permissions || ROLE_PERMISSIONS[target.role] || []).map(p => `
+                <span class="badge" style="background:#f1f5f9; color:#334155; font-size:11px; padding:2px 6px; border-radius:4px;">${escapeHtml(p)}</span>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Activity History -->
+      <div class="profile-info-box" style="margin-bottom:20px;">
+        <h4>Recent Activity History</h4>
+        ${userOrders.length > 0 ? `
+          <p style="font-size:12.5px; font-weight:700; margin:0 0 6px;">Orders (${userOrders.length})</p>
+          <table class="standard-table" style="font-size:12px; margin-bottom:12px;">
+            <thead><tr><th>Order #</th><th>Total</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+              ${userOrders.slice(0, 3).map(o => `
+                <tr><td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td><td>${formatUGX(o.total)}</td><td><span class="status-pill status-${o.orderStatus.toLowerCase().replace(/ /g, "_")}">${o.orderStatus}</span></td><td>${new Date(o.createdAt).toLocaleDateString()}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        ` : ""}
+        ${userConsultations.length > 0 ? `
+          <p style="font-size:12.5px; font-weight:700; margin:0 0 6px;">Consultations (${userConsultations.length})</p>
+          <table class="standard-table" style="font-size:12px; margin-bottom:12px;">
+            <thead><tr><th>Reference</th><th>Pharmacist</th><th>Date</th><th>Status</th></tr></thead>
+            <tbody>
+              ${userConsultations.slice(0, 3).map(c => `
+                <tr><td><strong>${escapeHtml(c.id || c.reference || "BC-CNS")}</strong></td><td>${escapeHtml(c.pharmacistName)}</td><td>${c.date} ${c.timeSlot}</td><td><span class="status-pill status-${c.status === "Confirmed" ? "confirmed" : "pending"}">${c.status}</span></td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        ` : ""}
+        ${userAuditTrail.length > 0 ? `
+          <p style="font-size:12.5px; font-weight:700; margin:0 0 6px;">Administrative Audit Trail (${userAuditTrail.length})</p>
+          <table class="standard-table" style="font-size:12px;">
+            <thead><tr><th>Action</th><th>Actor</th><th>Details</th><th>Date</th></tr></thead>
+            <tbody>
+              ${userAuditTrail.slice(0, 3).map(l => `
+                <tr><td><span class="audit-badge audit-${l.action}">${l.action}</span></td><td>${escapeHtml(l.actorName)}</td><td>${escapeHtml(l.details)}</td><td>${new Date(l.timestamp).toLocaleDateString()}</td></tr>
+              `).join("")}
+            </tbody>
+          </table>
+        ` : (userOrders.length === 0 && userConsultations.length === 0 ? `<p class="muted" style="font-size:12.5px; margin:0;">No recent orders or clinical sessions on file for this account.</p>` : "")}
+      </div>
+
+      <!-- Quick Action Buttons -->
+      <div class="profile-actions-panel">
+        <h4>Administrative Controls</h4>
+        <div class="profile-action-buttons-row">
+          <button class="btn btn-secondary btn-sm" id="up-act-edit" type="button">Edit User Role</button>
+          <button class="btn btn-secondary btn-sm" id="up-act-perm" type="button">Configure Permissions</button>
+          <button class="btn btn-outline btn-sm" id="up-act-pwd" type="button">Reset Password</button>
+          ${status === "suspended" ? `
+            <button class="btn btn-sm btn-outline-success" id="up-act-restore" type="button">Restore Account</button>
+          ` : status === "deactivated" || status === "inactive" ? `
+            <button class="btn btn-sm btn-outline-success" id="up-act-activate" type="button">Activate Account</button>
+          ` : `
+            <button class="btn btn-sm btn-outline-warning" id="up-act-suspend" type="button">Suspend Account</button>
+            <button class="btn btn-sm btn-outline-danger" id="up-act-deactivate" type="button">Deactivate Account</button>
+          `}
+        </div>
+      </div>
+    `;
+
+    $("#up-act-edit")?.addEventListener("click", () => { dialog.close(); openUserFormModal(target); });
+    $("#up-act-perm")?.addEventListener("click", () => { dialog.close(); openPermissionsModal(target); });
+    $("#up-act-pwd")?.addEventListener("click", () => openPasswordResetModal(target));
+    $("#up-act-suspend")?.addEventListener("click", () => { dialog.close(); openSuspendUserModal(target); });
+    $("#up-act-restore")?.addEventListener("click", () => { dialog.close(); restoreUserAccount(target); });
+    $("#up-act-activate")?.addEventListener("click", () => { dialog.close(); activateUserAccount(target); });
+    $("#up-act-deactivate")?.addEventListener("click", () => { dialog.close(); deactivateUserAccount(target); });
+  }
+
+  $("#close-user-profile-modal")?.addEventListener("click", () => dialog.close(), { once: true });
+  dialog.showModal();
+}
+
+export function openSuspendUserModal(user) {
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const targetId = target.id || target.uid;
+  const currentUserId = STATE.currentUser?.uid || STATE.currentUser?.id;
+  if (targetId === currentUserId) {
+    openNotice("Action Denied", "You cannot suspend your own administrative account.");
+    return;
+  }
+
+  const effRole = getEffectiveRole();
+  if (!canManageRole(effRole, target.role)) {
+    openNotice("Clearance Denied", `You cannot suspend an account with equal or higher clearance (${formatRoleName(target.role)}).`);
+    return;
+  }
+
+  const dialog = $("#user-suspend-dialog");
+  if (!dialog) return;
+
+  $("#suspend-target-user-id").value = targetId;
+  $("#suspend-target-name").textContent = target.name || target.displayName;
+  $("#suspend-target-email").textContent = target.email || "No email";
+  $("#suspend-reason-input").value = "";
+  $("#suspend-duration-select").value = "30_days";
+  $("#suspend-admin-note").value = "";
+
+  const form = $("#user-suspend-form");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const reason = $("#suspend-reason-input").value.trim();
+    const duration = $("#suspend-duration-select").value;
+    const note = $("#suspend-admin-note").value.trim();
+
+    let until = "Indefinite";
+    if (duration === "7_days") {
+      until = new Date(Date.now() + 7 * 86400000).toISOString().slice(0, 10);
+    } else if (duration === "30_days") {
+      until = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+    }
+
+    target.status = "suspended";
+    target.suspensionReason = reason;
+    target.suspensionDuration = duration;
+    target.suspensionUntil = until;
+
+    await recordAdminAudit("USER_SUSPEND", targetId, `Account suspended for ${duration}. Reason: ${reason}${note ? ` (Note: ${note})` : ""}`, { duration, until, note });
+    await adminApiRequest("/users/status", "POST", { userId: targetId, status: "suspended", reason, duration, until });
+
+    dialog.close();
+    renderUsersView();
+    renderRoleDashboard();
+    openNotice("Account Suspended", `Account for <strong>${escapeHtml(target.name || target.displayName)}</strong> has been suspended (${duration}).`);
+  };
+
+  $("#close-suspend-modal").onclick = () => dialog.close();
+  $("#cancel-suspend-btn").onclick = () => dialog.close();
+  dialog.showModal();
+}
+
+export function restoreUserAccount(user) {
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const targetId = target.id || target.uid;
+  openUserConfirmDialog({
+    title: "Restore Suspended Account",
+    icon: "✓",
+    message: `Are you sure you want to restore the account for <strong>${escapeHtml(target.name || target.displayName)}</strong>?`,
+    submessage: "This will remove the suspension block and immediately restore their system access.",
+    confirmText: "Restore Account",
+    confirmClass: "btn-primary",
+    onConfirm: async () => {
+      target.status = "active";
+      target.suspensionReason = null;
+      target.suspensionDuration = null;
+      target.suspensionUntil = null;
+
+      await recordAdminAudit("USER_RESTORE", targetId, "Suspended account restored to active status");
+      await adminApiRequest("/users/status", "POST", { userId: targetId, status: "active" });
+
+      renderUsersView();
+      renderRoleDashboard();
+      openNotice("Account Restored", `Account for <strong>${escapeHtml(target.name || target.displayName)}</strong> has been restored to active status.`);
+    }
+  });
+}
+
+export function activateUserAccount(user) {
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const targetId = target.id || target.uid;
+  target.status = "active";
+  target.suspensionReason = null;
+  target.suspensionDuration = null;
+  target.suspensionUntil = null;
+
+  recordAdminAudit("STATUS_CHANGE", targetId, "Account status changed from inactive to active");
+  adminApiRequest("/users/status", "POST", { userId: targetId, status: "active" });
+  renderUsersView();
+  renderRoleDashboard();
+  openNotice("Account Activated", `Account for <strong>${escapeHtml(target.name || target.displayName)}</strong> is now active.`);
+}
+
+export function deactivateUserAccount(user) {
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const targetId = target.id || target.uid;
+  const currentUserId = STATE.currentUser?.uid || STATE.currentUser?.id;
+  if (targetId === currentUserId) {
+    openNotice("Action Denied", "You cannot deactivate your own administrative account.");
+    return;
+  }
+
+  const effRole = getEffectiveRole();
+  if (!canManageRole(effRole, target.role)) {
+    openNotice("Clearance Denied", `You do not have clearance to deactivate an account with equal or higher authority (${formatRoleName(target.role)}).`);
+    return;
+  }
+
+  openUserConfirmDialog({
+    title: "Deactivate User Account",
+    icon: "⚠️",
+    message: `Are you sure you want to deactivate the account for <strong>${escapeHtml(target.name || target.displayName)}</strong>?`,
+    submessage: "The user will be immediately logged out and will not be able to log in until reactivated.",
+    confirmText: "Deactivate Account",
+    confirmClass: "btn-danger",
+    onConfirm: async () => {
+      target.status = "deactivated";
+      await recordAdminAudit("STATUS_CHANGE", targetId, "Account status changed to deactivated");
+      await adminApiRequest("/users/status", "POST", { userId: targetId, status: "deactivated" });
+
+      renderUsersView();
+      renderRoleDashboard();
+      openNotice("Account Deactivated", `Account for <strong>${escapeHtml(target.name || target.displayName)}</strong> has been deactivated.`);
+    }
+  });
+}
+
+export function openPasswordResetModal(user) {
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const targetId = target.id || target.uid;
+  openUserConfirmDialog({
+    title: "Reset User Password",
+    icon: "🔑",
+    message: `Trigger a secure password reset for <strong>${escapeHtml(target.name || target.displayName)}</strong> (${escapeHtml(target.email)})?`,
+    submessage: "A password reset token and verification link will be securely dispatched to the user's registered email address.",
+    confirmText: "Send Reset Link",
+    confirmClass: "btn-primary",
+    onConfirm: async () => {
+      try {
+        if (target.email) requestPasswordReset(target.email);
+      } catch (_) {}
+
+      await recordAdminAudit("PASSWORD_RESET", targetId, `Password reset link dispatched to ${target.email}`);
+      await adminApiRequest("/users/reset-password", "POST", { userId: targetId });
+
+      openNotice("Password Reset Dispatched", `A secure password reset link has been dispatched to <strong>${escapeHtml(target.email)}</strong>.`);
+    }
+  });
+}
+
+export function openPermissionsModal(user) {
+  const target = typeof user === "string" ? STATE.users.find(u => u.id === user || u.uid === user) : user;
+  if (!target) return;
+
+  const targetId = target.id || target.uid;
+  const dialog = $("#user-permissions-dialog");
+  if (!dialog) return;
+
+  $("#perm-target-user-id").value = targetId;
+  $("#perm-user-subtitle").textContent = `${target.name || target.displayName} (${formatRoleName(target.role)})`;
+
+  const container = $("#permissions-checkboxes-container");
+  if (!container) return;
+
+  const defaultRolePerms = ROLE_PERMISSIONS[target.role] || [];
+  const currentPerms = target.permissions || defaultRolePerms;
+
+  const PERM_CATEGORIES = [
+    {
+      name: "Administration & User Management",
+      perms: [
+        { key: PERMISSIONS.USER_VIEW, label: "View Users & Profiles", desc: "Access the system user directory and customer lists" },
+        { key: PERMISSIONS.USER_MANAGE, label: "Manage Users & Roles", desc: "Create, edit, suspend, activate, and assign permissions" },
+        { key: PERMISSIONS.REPORTS_VIEW, label: "Financial Reports & Audits", desc: "Access revenue, sales, and administrative audit logs" },
+        { key: PERMISSIONS.SYSTEM_SETTINGS, label: "System Configuration", desc: "Modify dispensary info, operating hours, and license" }
+      ]
+    },
+    {
+      name: "Clinical Prescriptions & Consultations",
+      perms: [
+        { key: PERMISSIONS.PRESCRIPTION_VIEW_ALL, label: "View All Prescriptions", desc: "Access clinical prescription records across patients" },
+        { key: PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, label: "Clinical Review & Approval", desc: "Authorize prescription safety, dosage, and dispensing" },
+        { key: PERMISSIONS.CONSULTATION_PROVIDE, label: "Conduct Consultations", desc: "Provide 1-on-1 pharmacist consultations to patients" },
+        { key: PERMISSIONS.CONSULTATION_BOOK, label: "Book Consultations", desc: "Schedule clinical pharmacist consultation sessions" }
+      ]
+    },
+    {
+      name: "Pharmacy Dispensary & Stock Control",
+      perms: [
+        { key: PERMISSIONS.CATALOG_BROWSE, label: "Browse Catalog", desc: "View medicines, pricing, categories, and availability" },
+        { key: PERMISSIONS.MEDICINE_MANAGE, label: "Manage Medicines", desc: "Add, edit, restock, or remove medicines from catalog" },
+        { key: PERMISSIONS.INVENTORY_VIEW, label: "View Inventory Levels", desc: "Check live stock balances and low-stock alerts" },
+        { key: PERMISSIONS.INVENTORY_ADJUST, label: "Adjust Stock Intake/Waste", desc: "Record batch intake, returns, and write-offs" }
+      ]
+    },
+    {
+      name: "Orders, Fulfillment & Logistics",
+      perms: [
+        { key: PERMISSIONS.CART_CHECKOUT, label: "Checkout & Ordering", desc: "Place orders and settle via Mobile Money" },
+        { key: PERMISSIONS.ORDER_PACK, label: "Pack Dispensary Orders", desc: "Verify medication packaging and prepare for pickup/dispatch" },
+        { key: PERMISSIONS.ORDER_DISPATCH, label: "Dispatch Management", desc: "Assign doorstep delivery drivers and delivery routes" },
+        { key: PERMISSIONS.ORDER_DELIVER, label: "Doorstep Delivery Runs", desc: "Mark deliveries picked up, in-transit, and delivered" }
+      ]
+    }
+  ];
+
+  container.innerHTML = PERM_CATEGORIES.map(cat => `
+    <div class="perm-category-block">
+      <div class="perm-cat-header">
+        <span>${escapeHtml(cat.name)}</span>
+        <button type="button" class="text-link perm-select-all-btn" style="font-size:11px;">Toggle All</button>
+      </div>
+      ${cat.perms.map(p => `
+        <label class="perm-checkbox-item">
+          <input type="checkbox" name="perm" value="${p.key}" ${currentPerms.includes(p.key) ? "checked" : ""} />
+          <div class="perm-desc-wrap">
+            <strong>${escapeHtml(p.label)}</strong>
+            <small>${escapeHtml(p.desc)}</small>
+          </div>
+        </label>
+      `).join("")}
+    </div>
+  `).join("");
+
+  // Toggle All in category buttons
+  container.querySelectorAll(".perm-select-all-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const block = btn.closest(".perm-category-block");
+      const cbs = block.querySelectorAll('input[type="checkbox"]');
+      const allChecked = Array.from(cbs).every(cb => cb.checked);
+      cbs.forEach(cb => { cb.checked = !allChecked; });
+    });
+  });
+
+  // Reset to Role Defaults button
+  const resetBtn = $("#btn-reset-role-defaults");
+  if (resetBtn) {
+    resetBtn.onclick = () => {
+      const defaults = ROLE_PERMISSIONS[target.role] || [];
+      container.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        cb.checked = defaults.includes(cb.value);
+      });
+    };
+  }
+
+  // Submit Handler
+  const form = $("#user-permissions-form");
+  form.onsubmit = async (e) => {
+    e.preventDefault();
+    const selectedPerms = Array.from(container.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.value);
+
+    target.permissions = selectedPerms;
+    await recordAdminAudit("PERMISSIONS_UPDATE", targetId, `Permissions updated (${selectedPerms.length} capabilities assigned)`, { permissions: selectedPerms });
+    await adminApiRequest("/users/permissions", "POST", { userId: targetId, permissions: selectedPerms });
+
+    dialog.close();
+    renderUsersView();
+    openNotice("Permissions Updated", `Permissions updated for <strong>${escapeHtml(target.name || target.displayName)}</strong> (${selectedPerms.length} capabilities).`);
+  };
+
+  $("#close-permissions-modal").onclick = () => dialog.close();
+  $("#cancel-permissions-btn").onclick = () => dialog.close();
+  dialog.showModal();
+}
+
+export function openUserConfirmDialog(options) {
+  const dialog = $("#user-confirm-dialog");
+  if (!dialog) return;
+
+  $("#user-confirm-title").textContent = options.title || "Confirm Action";
+  $("#user-confirm-icon").textContent = options.icon || "⚠️";
+  $("#user-confirm-message").innerHTML = options.message || "Are you sure?";
+  $("#user-confirm-submessage").textContent = options.submessage || "";
+
+  const proceedBtn = $("#proceed-user-confirm-btn");
+  if (proceedBtn) {
+    proceedBtn.textContent = options.confirmText || "Proceed";
+    proceedBtn.className = `btn btn-sm ${options.confirmClass || "btn-primary"}`;
+    proceedBtn.onclick = () => {
+      dialog.close();
+      if (typeof options.onConfirm === "function") options.onConfirm();
+    };
+  }
+
+  $("#close-user-confirm-modal").onclick = () => dialog.close();
+  $("#cancel-user-confirm-btn").onclick = () => dialog.close();
+  dialog.showModal();
+}
+
+export async function handleBulkUsersAction(action) {
+  const selectedIds = Array.from(STATE.selectedUserIds);
+  if (selectedIds.length === 0) {
+    openNotice("No Selection", "Please select at least one user from the list.");
+    return;
+  }
+
+  const currentUserId = STATE.currentUser?.uid || STATE.currentUser?.id;
+  const filteredIds = selectedIds.filter(id => id !== currentUserId);
+
+  if (action === "activate") {
+    filteredIds.forEach(id => {
+      const u = STATE.users.find(usr => (usr.id === id || usr.uid === id));
+      if (u) {
+        u.status = "active";
+        u.suspensionReason = null;
+        u.suspensionUntil = null;
+      }
+    });
+    await recordAdminAudit("BULK_ACTION", "multiple", `Bulk activated ${filteredIds.length} users`, { action: "activate", userIds: filteredIds });
+    await adminApiRequest("/users/bulk", "POST", { action: "activate", userIds: filteredIds });
+    STATE.selectedUserIds.clear();
+    renderUsersView();
+    renderRoleDashboard();
+    openNotice("Bulk Action Completed", `Activated <strong>${filteredIds.length}</strong> user accounts.`);
+  } else if (action === "deactivate") {
+    openUserConfirmDialog({
+      title: "Bulk Deactivate Accounts",
+      icon: "⚠️",
+      message: `Are you sure you want to deactivate <strong>${filteredIds.length}</strong> selected accounts?`,
+      submessage: "These accounts will immediately lose access until manually reactivated by an Admin.",
+      confirmText: "Deactivate Accounts",
+      confirmClass: "btn-danger",
+      onConfirm: async () => {
+        filteredIds.forEach(id => {
+          const u = STATE.users.find(usr => (usr.id === id || usr.uid === id));
+          if (u) u.status = "deactivated";
+        });
+        await recordAdminAudit("BULK_ACTION", "multiple", `Bulk deactivated ${filteredIds.length} users`, { action: "deactivate", userIds: filteredIds });
+        await adminApiRequest("/users/bulk", "POST", { action: "deactivate", userIds: filteredIds });
+        STATE.selectedUserIds.clear();
+        renderUsersView();
+        renderRoleDashboard();
+        openNotice("Bulk Action Completed", `Deactivated <strong>${filteredIds.length}</strong> user accounts.`);
+      }
+    });
+  } else if (action === "suspend") {
+    openUserConfirmDialog({
+      title: "Bulk Suspend Accounts",
+      icon: "⏸",
+      message: `Are you sure you want to suspend <strong>${filteredIds.length}</strong> selected accounts for 30 days?`,
+      submessage: "Selected accounts will be blocked from logging in or performing actions.",
+      confirmText: "Suspend Accounts",
+      confirmClass: "btn-warning",
+      onConfirm: async () => {
+        const until = new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+        filteredIds.forEach(id => {
+          const u = STATE.users.find(usr => (usr.id === id || usr.uid === id));
+          if (u) {
+            u.status = "suspended";
+            u.suspensionReason = "Bulk administrative suspension";
+            u.suspensionDuration = "30_days";
+            u.suspensionUntil = until;
+          }
+        });
+        await recordAdminAudit("BULK_ACTION", "multiple", `Bulk suspended ${filteredIds.length} users for 30 days`, { action: "suspend", userIds: filteredIds });
+        await adminApiRequest("/users/bulk", "POST", { action: "suspend", userIds: filteredIds, extra: { reason: "Bulk administrative suspension", duration: "30_days", until } });
+        STATE.selectedUserIds.clear();
+        renderUsersView();
+        renderRoleDashboard();
+        openNotice("Bulk Action Completed", `Suspended <strong>${filteredIds.length}</strong> user accounts for 30 days.`);
+      }
+    });
+  }
+}
+
+export function renderAdminAuditLogsView() {
+  const box = $("#audit-logs-table-box");
+  if (!box) return;
+
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    box.innerHTML = `<div class="auth-error-box"><p class="auth-error-desc">Access Denied: Audit log trail is restricted to administrators and developers.</p></div>`;
+    return;
+  }
+
+  // Bind Search and Filter Inputs Once
+  const searchInput = $("#audit-search-input");
+  if (searchInput && !searchInput.dataset.bound) {
+    searchInput.dataset.bound = "true";
+    searchInput.value = STATE.auditSearchQuery || "";
+    searchInput.addEventListener("input", (e) => {
+      STATE.auditSearchQuery = e.target.value;
+      renderAdminAuditLogsTableOnly();
+    });
+  }
+
+  const actionFilter = $("#filter-audit-action");
+  if (actionFilter && !actionFilter.dataset.bound) {
+    actionFilter.dataset.bound = "true";
+    actionFilter.value = STATE.auditActionFilter || "all";
+    actionFilter.addEventListener("change", (e) => {
+      STATE.auditActionFilter = e.target.value;
+      renderAdminAuditLogsTableOnly();
+    });
+  }
+
+  const resetBtn = $("#btn-clear-audit-filters");
+  if (resetBtn && !resetBtn.dataset.bound) {
+    resetBtn.dataset.bound = "true";
+    resetBtn.addEventListener("click", () => {
+      STATE.auditSearchQuery = "";
+      STATE.auditActionFilter = "all";
+      if (searchInput) searchInput.value = "";
+      if (actionFilter) actionFilter.value = "all";
+      renderAdminAuditLogsTableOnly();
+    });
+  }
+
+  const refreshBtn = $("#btn-refresh-audit-logs");
+  if (refreshBtn && !refreshBtn.dataset.bound) {
+    refreshBtn.dataset.bound = "true";
+    refreshBtn.addEventListener("click", async () => {
+      const res = await adminApiRequest("/audit-logs");
+      if (res && res.logs) {
+        STATE.auditLogs = res.logs;
+      }
+      renderAdminAuditLogsTableOnly();
+      openNotice("Audit Logs Refreshed", "Loaded latest system audit entries.");
+    });
+  }
+
+  renderAdminAuditLogsTableOnly();
+}
+
+function renderAdminAuditLogsTableOnly() {
+  const box = $("#audit-logs-table-box");
+  if (!box) return;
+
+  let logs = [...STATE.auditLogs];
+  const q = (STATE.auditSearchQuery || "").toLowerCase().trim();
+
+  if (q) {
+    logs = logs.filter(l => {
+      return (l.action && l.action.toLowerCase().includes(q)) ||
+             (l.actorName && l.actorName.toLowerCase().includes(q)) ||
+             (l.targetName && l.targetName.toLowerCase().includes(q)) ||
+             (l.details && l.details.toLowerCase().includes(q));
+    });
+  }
+
+  if (STATE.auditActionFilter && STATE.auditActionFilter !== "all") {
+    logs = logs.filter(l => l.action === STATE.auditActionFilter);
+  }
+
+  if (logs.length === 0) {
+    box.innerHTML = `
+      <div style="text-align:center; padding: 40px 20px;">
+        <div style="font-size:36px; margin-bottom:10px;">📜</div>
+        <h3 style="margin:0 0 6px;">No audit records found</h3>
+        <p class="muted" style="margin:0;">No actions matched your search or action filter criteria.</p>
+      </div>
+    `;
     return;
   }
 
   box.innerHTML = `
     <table class="standard-table">
-      <thead><tr><th>Staff Name</th><th>Email</th><th>Phone</th><th>Assigned Role</th><th>Status</th><th>Created</th><th>Actions</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Timestamp</th>
+          <th>Actor (Admin)</th>
+          <th>Action</th>
+          <th>Target User</th>
+          <th>Details &amp; Reason</th>
+          <th>Client IP</th>
+        </tr>
+      </thead>
       <tbody>
-        ${STATE.users.map(u => `
+        ${logs.map(l => `
           <tr>
-            <td><strong>${escapeHtml(u.name || u.displayName || "Staff Member")}</strong></td>
-            <td>${escapeHtml(u.email)}</td>
-            <td>${escapeHtml(u.phone || "—")}</td>
-            <td><span class="role-badge role-badge-${u.role}">${escapeHtml(formatRoleName(u.role).toUpperCase())}</span></td>
-            <td><span class="status-pill status-${u.status || "active"}">${escapeHtml(u.status || "active")}</span></td>
-            <td>${escapeHtml(u.createdAt || "2026-09-01")}</td>
             <td>
-              <button class="btn btn-secondary btn-sm edit-user-btn" data-id="${u.id || u.uid}">Edit</button>
-              <button class="btn btn-outline btn-sm toggle-user-btn" data-id="${u.id || u.uid}">${u.status === "inactive" ? "Activate" : "Deactivate"}</button>
+              <strong style="font-size:12.5px;">${new Date(l.timestamp).toLocaleDateString()}</strong><br>
+              <small class="muted" style="font-size:11px;">${new Date(l.timestamp).toLocaleTimeString()}</small>
+            </td>
+            <td>
+              <strong>${escapeHtml(l.actorName || "Admin")}</strong><br>
+              <span class="audit-actor-sub">${escapeHtml(formatRoleName(l.actorRole || "admin"))}</span>
+            </td>
+            <td>
+              <span class="audit-badge audit-${l.action}">${escapeHtml(l.action)}</span>
+            </td>
+            <td>
+              <span class="audit-target-sub"><strong>${escapeHtml(l.targetName || l.targetUserId || "—")}</strong></span>
+              ${l.targetUserId ? `<br><small class="muted" style="font-family:monospace; font-size:10.5px;">${escapeHtml(l.targetUserId)}</small>` : ""}
+            </td>
+            <td>
+              <span style="font-size:12.5px; color:#1e293b;">${escapeHtml(l.details || "—")}</span>
+            </td>
+            <td>
+              <small class="muted" style="font-family:monospace;">${escapeHtml(l.ip || "127.0.0.1")}</small>
             </td>
           </tr>
         `).join("")}
@@ -5807,16 +6884,18 @@ function bindEventListeners() {
       return;
     }
 
-    const userData = { id, name, displayName: name, email, phone, role, status, createdAt: new Date().toISOString().slice(0, 10) };
+    const userData = { id, uid: id, name, displayName: name, email, phone, role, status, createdAt: existing?.createdAt || new Date().toISOString().slice(0, 10), permissions: existing?.permissions || [...(ROLE_PERMISSIONS[role] || [])] };
     if (existing) Object.assign(existing, userData);
     else STATE.users.push(userData);
 
     try { saveUser(userData); } catch (_) {}
-    recordStaffAudit("UPDATE_USER_ROLE", "users", id, `Staff user ${name} assigned role ${role}, status ${status}`);
+    recordAdminAudit(existing ? "ROLE_CHANGE" : "USER_CREATE", id, `User ${name} saved as ${formatRoleName(role)} (${status})`);
+    adminApiRequest(existing ? "/users/role" : "/users", "POST", existing ? { userId: id, role } : userData).catch(() => {});
 
     $("#user-form-dialog").close();
     renderUsersView();
-    openNotice("User Saved", `Staff user <strong>${escapeHtml(name)}</strong> saved as <strong>${formatRoleName(role)}</strong> (${status}).`);
+    renderRoleDashboard();
+    openNotice("User Saved", `User <strong>${escapeHtml(name)}</strong> saved as <strong>${formatRoleName(role)}</strong> (${status}).`);
   });
 
   // Order Status Modal (Staff Only with Lifecycle Workflow Gates)
@@ -6929,19 +8008,19 @@ function openOrderStatusModal(orderId) {
   $("#order-status-dialog").showModal();
 }
 
-function openUserFormModal(userId = null) {
+export function openUserFormModal(userId = null) {
   const effRole = getEffectiveRole();
   if (effRole !== "admin" && effRole !== "developer") {
-    openNotice("Permission Denied", "Only administrators and developers can manage staff users and assign roles.");
+    openNotice("Permission Denied", "Only administrators and developers can manage users and assign roles.");
     return;
   }
-  const user = userId ? STATE.users.find(u => (u.id === userId || u.uid === userId)) : null;
+  const user = typeof userId === "object" && userId !== null ? userId : (userId ? STATE.users.find(u => (u.id === userId || u.uid === userId)) : null);
   if (user && !canManageRole(effRole, user.role)) {
-    openNotice("Clearance Denied", `You do not have clearance to edit an account with equal or higher authority (${formatRoleName(user.role)}). Only Developers can edit Developer accounts.`);
+    openNotice("Clearance Denied", `You do not have clearance to edit an account with equal or higher authority (${formatRoleName(user.role)}).`);
     return;
   }
   $("#usr-id").value = user ? (user.id || user.uid) : "";
-  $("#user-modal-title").textContent = user ? "Edit Staff Account" : "Add Staff Account";
+  $("#user-modal-title").textContent = user ? "Edit User Account" : "Add User Account";
   $("#usr-name").value = user ? (user.name || user.displayName || "") : "";
   $("#usr-email").value = user ? (user.email || "") : "";
   $("#usr-phone").value = user ? (user.phone || "") : "";

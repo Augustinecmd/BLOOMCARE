@@ -130,6 +130,160 @@ class TestPharmacyPaymentAPI(unittest.TestCase):
         self.assertTrue(verified["transactionId"].startswith("MM-UGX-"))
         self.assertIsNotNone(verified["verifiedAt"])
 
+    def test_admin_authorization_headers(self):
+        # Admin header
+        is_admin, role, meta = payment_api.is_admin_request({"X-Admin-Role": "admin", "X-Admin-Name": "Dr. Admin Mugisha"})
+        self.assertTrue(is_admin)
+        self.assertEqual(role, "admin")
+        self.assertEqual(meta.get("name"), "Dr. Admin Mugisha")
+
+        # Developer header
+        is_admin_dev, role_dev, _ = payment_api.is_admin_request({"X-User-Role": "developer"})
+        self.assertTrue(is_admin_dev)
+        self.assertEqual(role_dev, "developer")
+
+        # Bearer token
+        is_admin_bearer, role_bearer, _ = payment_api.is_admin_request({"Authorization": "Bearer admin"})
+        self.assertTrue(is_admin_bearer)
+        self.assertEqual(role_bearer, "admin")
+
+        # Non-admin roles (customer, pharmacist, visitor) must be rejected
+        for forbidden_role in ["customer", "pharmacist", "assistant_pharmacist", "delivery_person", "visitor"]:
+            is_admin_bad, role_bad, _ = payment_api.is_admin_request({"X-Admin-Role": forbidden_role})
+            self.assertFalse(is_admin_bad)
+
+        # Empty headers
+        is_admin_empty, _, _ = payment_api.is_admin_request({})
+        self.assertFalse(is_admin_empty)
+
+    def test_admin_users_and_audit_store(self):
+        users = payment_api.read_users()
+        self.assertIsInstance(users, list)
+        self.assertGreater(len(users), 0)
+
+        # Verify default roles exist
+        roles = {u["role"] for u in users}
+        self.assertIn("admin", roles)
+        self.assertIn("pharmacist", roles)
+        self.assertIn("customer", roles)
+
+        # Test audit log creation
+        log = payment_api.record_audit_log(
+            admin_name="Dr. Admin Mugisha",
+            admin_role="admin",
+            action="TEST_ACTION",
+            target_user="Grace Nakato",
+            target_user_id="usr-cust-101",
+            description="Automated unit test audit entry"
+        )
+        self.assertIsNotNone(log)
+        self.assertEqual(log["action"], "TEST_ACTION")
+        self.assertEqual(log["affectedUserId"], "usr-cust-101")
+
+        recent_logs = payment_api.read_audit_logs()
+        self.assertGreater(len(recent_logs), 0)
+        self.assertEqual(recent_logs[0]["action"], "TEST_ACTION")
+
+    def test_admin_http_endpoints_rbac_protection(self):
+        import urllib.request
+        import urllib.error
+
+        base_url = "http://127.0.0.1:8787"
+
+        # Check if local server is accessible
+        try:
+            with urllib.request.urlopen(f"{base_url}/health", timeout=2) as resp:
+                if resp.status != 200:
+                    return
+        except Exception:
+            return  # Skip live HTTP tests if server is offline
+
+        # 1. Non-admin request to /api/admin/users should be rejected with 403 Forbidden
+        req_unauth = urllib.request.Request(f"{base_url}/api/admin/users")
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            urllib.request.urlopen(req_unauth)
+        self.assertEqual(ctx.exception.code, 403)
+
+        # 2. Customer role request to /api/admin/users should be rejected with 403 Forbidden
+        req_cust = urllib.request.Request(
+            f"{base_url}/api/admin/users",
+            headers={"X-Admin-Role": "customer"}
+        )
+        with self.assertRaises(urllib.error.HTTPError) as ctx:
+            urllib.request.urlopen(req_cust)
+        self.assertEqual(ctx.exception.code, 403)
+
+        # 3. Authorized admin request to /api/admin/users should return 200 OK
+        req_admin = urllib.request.Request(
+            f"{base_url}/api/admin/users",
+            headers={"X-Admin-Role": "admin"}
+        )
+        with urllib.request.urlopen(req_admin) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertTrue(data.get("success"))
+            self.assertIsInstance(data.get("users"), list)
+
+        # 4. Admin request to /api/admin/stats should return aggregated user counts
+        req_stats = urllib.request.Request(
+            f"{base_url}/api/admin/stats",
+            headers={"X-Admin-Role": "admin"}
+        )
+        with urllib.request.urlopen(req_stats) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertTrue(data.get("success"))
+            stats = data.get("stats")
+            self.assertIn("totalUsers", stats)
+            self.assertIn("activeUsers", stats)
+            self.assertIn("customers", stats)
+            self.assertIn("pharmacists", stats)
+
+        # 5. Admin request to /api/admin/audit-logs should return audit trail
+        req_audit = urllib.request.Request(
+            f"{base_url}/api/admin/audit-logs",
+            headers={"X-Admin-Role": "admin"}
+        )
+        with urllib.request.urlopen(req_audit) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertTrue(data.get("success"))
+            self.assertIsInstance(data.get("auditLogs"), list)
+
+        # 6. Admin POST /api/admin/users/status to suspend and restore test account
+        suspend_payload = json.dumps({
+            "userId": "usr-cust-202",
+            "status": "suspended",
+            "reason": "Test suspension from unit test",
+            "duration": "7"
+        }).encode("utf-8")
+        req_suspend = urllib.request.Request(
+            f"{base_url}/api/admin/users/status",
+            data=suspend_payload,
+            headers={"Content-Type": "application/json", "X-Admin-Role": "admin"}
+        )
+        with urllib.request.urlopen(req_suspend) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertTrue(data.get("success"))
+            self.assertEqual(data.get("user", {}).get("status"), "suspended")
+
+        # Restore user back to active
+        restore_payload = json.dumps({
+            "userId": "usr-cust-202",
+            "status": "active"
+        }).encode("utf-8")
+        req_restore = urllib.request.Request(
+            f"{base_url}/api/admin/users/status",
+            data=restore_payload,
+            headers={"Content-Type": "application/json", "X-Admin-Role": "admin"}
+        )
+        with urllib.request.urlopen(req_restore) as resp:
+            self.assertEqual(resp.status, 200)
+            data = json.loads(resp.read().decode("utf-8"))
+            self.assertTrue(data.get("success"))
+            self.assertEqual(data.get("user", {}).get("status"), "active")
+
 
 if __name__ == "__main__":
     unittest.main()

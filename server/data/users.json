@@ -1,0 +1,114 @@
+[
+  {
+    "id": "usr-staff-1",
+    "name": "Dr. Admin Mugisha",
+    "email": "admin@bloomcare.com",
+    "phone": "0751001122",
+    "role": "admin",
+    "status": "active",
+    "createdAt": "2026-01-01T08:00:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "all"
+    ]
+  },
+  {
+    "id": "usr-dev-001",
+    "name": "Lead Systems Developer",
+    "email": "dev@bloomcare.com",
+    "phone": "0751000999",
+    "role": "developer",
+    "status": "active",
+    "createdAt": "2026-01-01T08:00:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "all"
+    ]
+  },
+  {
+    "id": "usr-staff-2",
+    "name": "Dr. Amina Nanyonga",
+    "email": "amina.n@bloomcare.com",
+    "phone": "0700000002",
+    "role": "pharmacist",
+    "status": "active",
+    "createdAt": "2026-01-10T09:30:00Z",
+    "lastLogin": "Yesterday",
+    "permissions": [
+      "prescription:clinical_review",
+      "consultation:provide",
+      "inventory:adjust"
+    ]
+  },
+  {
+    "id": "usr-staff-3",
+    "name": "Pharm. David Mukasa",
+    "email": "david.m@bloomcare.com",
+    "phone": "0700000003",
+    "role": "pharmacist",
+    "status": "active",
+    "createdAt": "2026-01-15T11:00:00Z",
+    "lastLogin": "03 Sep 2026",
+    "permissions": [
+      "prescription:clinical_review",
+      "consultation:provide"
+    ]
+  },
+  {
+    "id": "usr-staff-4",
+    "name": "Sarah Namusoke",
+    "email": "sarah.n@bloomcare.com",
+    "phone": "0700000004",
+    "role": "assistant_pharmacist",
+    "status": "active",
+    "createdAt": "2026-02-01T08:15:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "order:pack",
+      "inventory:view"
+    ]
+  },
+  {
+    "id": "usr-staff-5",
+    "name": "Moses Kato",
+    "email": "moses.k@bloomcare.com",
+    "phone": "0700000005",
+    "role": "delivery_person",
+    "status": "active",
+    "createdAt": "2026-02-10T14:20:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "order:dispatch",
+      "order:deliver"
+    ]
+  },
+  {
+    "id": "usr-cust-101",
+    "name": "Grace Nakato",
+    "email": "grace.nakato@example.com",
+    "phone": "0751234567",
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-03-01T10:00:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "catalog:browse",
+      "cart:checkout",
+      "prescription:upload"
+    ]
+  },
+  {
+    "id": "usr-cust-202",
+    "name": "Florence Kembabazi",
+    "email": "florence.k@example.com",
+    "phone": "0701889900",
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-03-18T16:45:00Z",
+    "lastLogin": "02 Sep 2026",
+    "permissions": [
+      "catalog:browse",
+      "cart:checkout"
+    ]
+  }
+]
