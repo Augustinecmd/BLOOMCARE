@@ -5893,3 +5893,117 @@ dialog::backdrop {
     align-items: flex-start;
   }
 }
+
+/* ==============================================================
+   16. CATALOG PAGINATION & STAFF DISPENSARY TOOLBAR
+   ============================================================== */
+.catalog-pagination-container {
+  margin-top: 24px;
+  margin-bottom: 20px;
+}
+
+.catalog-pagination-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 16px;
+  background: #ffffff;
+  padding: 14px 20px;
+  border-radius: var(--radius-md, 8px);
+  border: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+}
+
+.pagination-summary {
+  font-size: 13.5px;
+  color: var(--text-muted, #64748b);
+  font-weight: 500;
+}
+
+.pagination-summary strong {
+  color: var(--text-main, #1e293b);
+}
+
+.pagination-controls-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.page-numbers-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.page-nav-btn,
+.page-num-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  font-size: 13.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease-in-out;
+  user-select: none;
+}
+
+.page-nav-btn:hover:not(:disabled),
+.page-num-btn:hover:not(.active-page-btn) {
+  background: #f1f5f9;
+  border-color: #94a3b8;
+  color: #0f172a;
+}
+
+.page-nav-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  border-color: #e2e8f0;
+  background: #f8fafc;
+}
+
+.active-page-btn {
+  background: var(--brand-primary, #0f766e) !important;
+  color: #ffffff !important;
+  border-color: var(--brand-primary, #0f766e) !important;
+  font-weight: 700;
+  box-shadow: 0 1px 2px rgba(15, 118, 110, 0.3);
+}
+
+.pagination-ellipsis {
+  padding: 0 4px;
+  color: #94a3b8;
+  font-size: 14px;
+}
+
+.staff-table-toolbar {
+  background: #f8fafc;
+  padding: 12px 16px;
+  border-radius: var(--radius-sm, 6px);
+  border: 1px solid var(--border-color, #e2e8f0);
+}
+
+.staff-pagination-container {
+  margin-top: 14px;
+}
+
+@media (max-width: 768px) {
+  .catalog-pagination-bar {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+  .pagination-controls-group {
+    justify-content: center;
+  }
+}
+

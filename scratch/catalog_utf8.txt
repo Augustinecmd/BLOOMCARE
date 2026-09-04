@@ -1,0 +1,840 @@
+
+========================================
+CATEGORY: Pain Relief (52 items)
+========================================
+ 1. [DEMO-MED-001] Paracetamol 500mg Tablets | Gen: Paracetamol | Str: 500mg | Form: Pack of 20 Tablets
+ 2. [DEMO-MED-002] Ibuprofen 400mg Tablets | Gen: Ibuprofen | Str: 400mg | Form: Pack of 20 Tablets
+ 3. [DEMO-MED-003] Diclofenac 50mg Tablets | Gen: Diclofenac Sodium | Str: 50mg | Form: Pack of 20 Tablets
+ 4. [DEMO-MED-026] Tramadol Capsules 50mg | Gen: Tramadol Hydrochloride | Str: 50mg | Form: Pack of 10 Capsules
+ 5. [BC-MED-0035] Panadol Extra 500mg/65mg Tablets | Gen: Paracetamol + Caffeine | Str: 500mg/65mg | Form: Film-Coated Tablet
+ 6. [BC-MED-0036] Naproxen 500mg Film-Coated Tablets | Gen: Naproxen | Str: 500mg | Form: Film-Coated Tablet
+ 7. [BC-MED-0037] Meloxicam 15mg Tablets | Gen: Meloxicam | Str: 15mg | Form: Tablet
+ 8. [BC-MED-0038] Meloxicam 7.5mg Tablets | Gen: Meloxicam | Str: 7.5mg | Form: Tablet
+ 9. [BC-MED-0039] Celecoxib 200mg Capsules | Gen: Celecoxib | Str: 200mg | Form: Capsule
+10. [BC-MED-0040] Celecoxib 100mg Capsules | Gen: Celecoxib | Str: 100mg | Form: Capsule
+11. [BC-MED-0041] Etoricoxib 90mg Tablets | Gen: Etoricoxib | Str: 90mg | Form: Film-Coated Tablet
+12. [BC-MED-0042] Etoricoxib 60mg Tablets | Gen: Etoricoxib | Str: 60mg | Form: Film-Coated Tablet
+13. [BC-MED-0043] Etoricoxib 120mg Tablets | Gen: Etoricoxib | Str: 120mg | Form: Film-Coated Tablet
+14. [BC-MED-0044] Piroxicam 20mg Capsules | Gen: Piroxicam | Str: 20mg | Form: Capsule
+15. [BC-MED-0045] Indomethacin 25mg Capsules | Gen: Indomethacin | Str: 25mg | Form: Capsule
+16. [BC-MED-0046] Ketoprofen 100mg Tablets | Gen: Ketoprofen | Str: 100mg | Form: Enteric-Coated Tablet
+17. [BC-MED-0047] Ketoprofen 2.5% Topical Gel 60g | Gen: Ketoprofen | Str: 2.5% w/w | Form: Topical Gel
+18. [BC-MED-0048] Diclofenac 1% Emulgel 50g | Gen: Diclofenac Diethylamine | Str: 1% w/w | Form: Emulgel
+19. [BC-MED-0049] Diclofenac Potassium 50mg Tablets | Gen: Diclofenac Potassium | Str: 50mg | Form: Sugar-Coated Tablet
+20. [BC-MED-0050] Diclofenac Sodium 100mg Retard Tablets | Gen: Diclofenac Sodium Slow Release | Str: 100mg | Form: Sustained-Release Tablet
+21. [BC-MED-0051] Diclofenac Sodium 75mg/3ml Injection | Gen: Diclofenac Sodium | Str: 75mg/3ml | Form: Injection Ampoule
+22. [BC-MED-0052] Diclofenac 50mg Suppositories | Gen: Diclofenac Sodium | Str: 50mg | Form: Rectal Suppository
+23. [BC-MED-0053] Diclofenac 12.5mg Pediatric Suppositories | Gen: Diclofenac Sodium | Str: 12.5mg | Form: Rectal Suppository
+24. [BC-MED-0054] Aceclofenac 100mg Tablets | Gen: Aceclofenac | Str: 100mg | Form: Film-Coated Tablet
+25. [BC-MED-0055] Aceclofenac + Paracetamol Tablets | Gen: Aceclofenac + Paracetamol | Str: 100mg/500mg | Form: Tablet
+26. [BC-MED-0056] Mefenamic Acid 500mg Tablets | Gen: Mefenamic Acid | Str: 500mg | Form: Film-Coated Tablet
+27. [BC-MED-0057] Mefenamic Acid 250mg Capsules | Gen: Mefenamic Acid | Str: 250mg | Form: Capsule
+28. [BC-MED-0058] Aspirin 300mg Soluble Tablets | Gen: Acetylsalicylic Acid | Str: 300mg | Form: Soluble Tablet
+29. [BC-MED-0059] Aspirin 500mg Tablets | Gen: Acetylsalicylic Acid | Str: 500mg | Form: Tablet
+30. [BC-MED-0060] Paracetamol 1000mg Effervescent Tablets | Gen: Paracetamol | Str: 1000mg | Form: Effervescent Tablet
+31. [BC-MED-0061] Paracetamol 1000mg/100ml IV Infusion | Gen: Paracetamol IV Solution | Str: 1000mg/100ml | Form: IV Infusion Bottle
+32. [BC-MED-0062] Paracetamol 125mg Suppositories | Gen: Paracetamol | Str: 125mg | Form: Rectal Suppository
+33. [BC-MED-0063] Paracetamol 250mg Suppositories | Gen: Paracetamol | Str: 250mg | Form: Rectal Suppository
+34. [BC-MED-0064] Ibuprofen 200mg Film-Coated Tablets | Gen: Ibuprofen | Str: 200mg | Form: Film-Coated Tablet
+35. [BC-MED-0065] Ibuprofen 600mg Slow-Release Tablets | Gen: Ibuprofen SR | Str: 600mg | Form: Sustained-Release Tablet
+36. [BC-MED-0066] Ibuprofen 5% Topical Gel 50g | Gen: Ibuprofen | Str: 5% w/w | Form: Topical Gel
+37. [BC-MED-0067] Deep Heat Menthol & Methyl Salicylate Rub 35g | Gen: Methyl Salicylate 12.8% + Menthol 5.9% | Str: Standard Heat Formula | Form: Rub Cream
+38. [BC-MED-0068] Deep Heat Menthol Rub 100g Jumbo | Gen: Methyl Salicylate + Menthol | Str: Warming Therapy | Form: Rub Cream
+39. [BC-MED-0069] Deep Freeze Cold Spray 150ml | Gen: Cryotherapy Cold Spray | Str: Cryotherapy Formula | Form: Aerosol Spray
+40. [BC-MED-0070] Capsaicin 0.075% Pain Relief Cream 45g | Gen: Capsaicin | Str: 0.075% w/w | Form: Topical Cream
+41. [BC-MED-0071] Lidocaine 5% Medicated Hydrogel Patches (Box of 5) | Gen: Lidocaine | Str: 5% w/w | Form: Medicated Adhesive Patch
+42. [BC-MED-0072] Ketorolac Tromethamine 10mg Tablets | Gen: Ketorolac Tromethamine | Str: 10mg | Form: Film-Coated Tablet
+43. [BC-MED-0073] Ketorolac Tromethamine 30mg/ml Injection | Gen: Ketorolac Tromethamine | Str: 30mg/ml | Form: Injection Ampoule
+44. [BC-MED-0074] Tramadol + Paracetamol Tablets (37.5mg/325mg) | Gen: Tramadol Hydrochloride + Paracetamol | Str: 37.5mg/325mg | Form: Film-Coated Tablet
+45. [BC-MED-0075] Tramadol 100mg/2ml Injection Ampoules | Gen: Tramadol Hydrochloride | Str: 100mg/2ml | Form: Injection Ampoule
+46. [BC-MED-0076] Tramadol 100mg Sustained-Release Tablets | Gen: Tramadol Hydrochloride SR | Str: 100mg | Form: Sustained-Release Tablet
+47. [BC-MED-0077] Codeine Phosphate 30mg Tablets | Gen: Codeine Phosphate | Str: 30mg | Form: Tablet
+48. [BC-MED-0078] Co-Codamol 30mg/500mg Tablets | Gen: Codeine Phosphate + Paracetamol | Str: 30mg/500mg | Form: Tablet
+49. [BC-MED-0079] Morphine Oral Solution 10mg/5ml (100ml) | Gen: Morphine Hydrochloride Oral Liquid | Str: 10mg/5ml | Form: Oral Solution
+50. [BC-MED-0080] Nefopam Hydrochloride 30mg Tablets | Gen: Nefopam Hydrochloride | Str: 30mg | Form: Film-Coated Tablet
+51. [BC-MED-0081] Flurbiprofen 8.75mg Throat Lozenges | Gen: Flurbiprofen | Str: 8.75mg | Form: Medicated Lozenge
+52. [BC-MED-0082] Choline Salicylate + Cetalkonium Dental Gel 15g | Gen: Choline Salicylate + Cetalkonium Chloride | Str: 8.7% w/w | Form: Oral Gel
+
+========================================
+CATEGORY: Cold & Flu (52 items)
+========================================
+ 1. [DEMO-MED-004] Amoxicillin 500mg Capsules | Gen: Amoxicillin Trihydrate | Str: 500mg | Form: Pack of 20 Capsules
+ 2. [DEMO-MED-005] Azithromycin 500mg Tablets | Gen: Azithromycin Monohydrate | Str: 500mg | Form: Pack of 3 Tablets
+ 3. [DEMO-MED-021] Cough Syrup | Gen: Guaifenesin Expectorant + Menthol | Str: 100mg/5ml | Form: 100ml Liquid Bottle
+ 4. [DEMO-MED-022] Nasal Saline Drops | Gen: Sodium Chloride 0.9% Isotonic Solution | Str: 0.9% w/v | Form: 15ml Dropper Bottle
+ 5. [BC-MED-0083] Co-Amoxiclav 625mg Tablets | Gen: Amoxicillin 500mg + Clavulanic Acid 125mg | Str: 625mg | Form: Film-Coated Tablet
+ 6. [BC-MED-0084] Co-Amoxiclav 1000mg (1g) Tablets | Gen: Amoxicillin 875mg + Clavulanic Acid 125mg | Str: 1000mg | Form: Film-Coated Tablet
+ 7. [BC-MED-0085] Clarithromycin 500mg Tablets | Gen: Clarithromycin | Str: 500mg | Form: Film-Coated Tablet
+ 8. [BC-MED-0086] Erythromycin 500mg Tablets | Gen: Erythromycin Stearate | Str: 500mg | Form: Enteric-Coated Tablet
+ 9. [BC-MED-0087] Cefixime 400mg Film-Coated Tablets | Gen: Cefixime | Str: 400mg | Form: Film-Coated Tablet
+10. [BC-MED-0088] Cefuroxime Axetil 500mg Tablets | Gen: Cefuroxime Axetil | Str: 500mg | Form: Film-Coated Tablet
+11. [BC-MED-0089] Doxycycline 100mg Capsules | Gen: Doxycycline Hyclate | Str: 100mg | Form: Capsule
+12. [BC-MED-0090] Ciprofloxacin 500mg Tablets | Gen: Ciprofloxacin Hydrochloride | Str: 500mg | Form: Film-Coated Tablet
+13. [BC-MED-0091] Levofloxacin 500mg Tablets | Gen: Levofloxacin | Str: 500mg | Form: Film-Coated Tablet
+14. [BC-MED-0092] Cotrimoxazole 480mg Tablets | Gen: Sulfamethoxazole 400mg + Trimethoprim 80mg | Str: 480mg | Form: Tablet
+15. [BC-MED-0093] Fludrex Multi-Action Cold & Flu Tablets | Gen: Paracetamol + Pseudoephedrine + Chlorpheniramine | Str: Triple Action Formula | Form: Tablet
+16. [BC-MED-0094] Panadol Cold & Flu Night Caplets | Gen: Paracetamol + Phenylephrine + Chlorpheniramine | Str: Night-Time Formulation | Form: Film-Coated Caplet
+17. [BC-MED-0095] Dextromethorphan Dry Cough Syrup 100ml | Gen: Dextromethorphan Hydrobromide | Str: 10mg/5ml | Form: Syrup
+18. [BC-MED-0096] Bromhexine Hydrochloride 8mg Tablets | Gen: Bromhexine Hydrochloride | Str: 8mg | Form: Tablet
+19. [BC-MED-0097] Ambroxol Hydrochloride 30mg Tablets | Gen: Ambroxol Hydrochloride | Str: 30mg | Form: Tablet
+20. [BC-MED-0098] Ambroxol Syrup 30mg/5ml (100ml) | Gen: Ambroxol Hydrochloride | Str: 30mg/5ml | Form: Oral Syrup
+21. [BC-MED-0099] Carbocisteine 375mg Capsules | Gen: Carbocisteine | Str: 375mg | Form: Capsule
+22. [BC-MED-0100] Acetylcysteine 600mg Effervescent Tablets | Gen: N-Acetylcysteine (NAC) | Str: 600mg | Form: Effervescent Tablet
+23. [BC-MED-0101] Xylometazoline 0.1% Adult Nasal Spray 10ml | Gen: Xylometazoline Hydrochloride | Str: 0.1% w/v | Form: Metered Dose Nasal Spray
+24. [BC-MED-0102] Xylometazoline 0.05% Pediatric Nasal Drops | Gen: Xylometazoline Hydrochloride | Str: 0.05% w/v | Form: Nasal Dropper Bottle
+25. [BC-MED-0103] Oxymetazoline 0.05% Nasal Spray 15ml | Gen: Oxymetazoline Hydrochloride | Str: 0.05% | Form: Pump Nasal Spray
+26. [BC-MED-0104] Strepsils Honey & Lemon Lozenges (24s) | Gen: Amylmetacresol + Dichlorobenzyl Alcohol | Str: Double Antibacterial | Form: Medicated Lozenge
+27. [BC-MED-0105] Strepsils Extra Blackcurrant Lozenges (24s) | Gen: Hexylresorcinol | Str: Anesthetic + Antiseptic | Form: Medicated Lozenge
+28. [BC-MED-0106] Vicks VapoRub Ointment 50g | Gen: Menthol 2.8% + Camphor 5.2% + Eucalyptus Oil 1.3% | Str: Traditional Vapor Formula | Form: Topical Ointment
+29. [BC-MED-0107] Vicks VapoRub Ointment 100g Jumbo | Gen: Menthol + Camphor + Eucalyptus | Str: Family Pack | Form: Ointment
+30. [BC-MED-0108] Karvol Decongestant Inhalation Capsules (10s) | Gen: Inhalation Vapor Blend | Str: Concentrated Vapor Essential Oils | Form: Snip-Tip Inhalation Capsule
+31. [BC-MED-0109] Lemsip Max Cold & Flu Hot Drink Lemon (10 Sachets) | Gen: Paracetamol 1000mg + Phenylephrine 12.2mg | Str: 1000mg/12.2mg | Form: Effervescent Hot Drink Sachet
+32. [BC-MED-0110] Salbutamol + Guaifenesin Expectorant Syrup 100ml | Gen: Salbutamol 2mg + Guaifenesin 100mg per 5ml | Str: 2mg/100mg per 5ml | Form: Oral Syrup
+33. [BC-MED-0111] Dequalinium Chloride 0.25mg Throat Lozenges | Gen: Dequalinium Chloride | Str: 0.25mg | Form: Medicated Lozenge
+34. [BC-MED-0112] Benzydamine 0.15% Throat & Mouth Spray 30ml | Gen: Benzydamine Hydrochloride | Str: 0.15% w/v | Form: Oral Mucosal Spray
+35. [BC-MED-0113] Diphenhydramine + Ammonium Chloride Cough Syrup | Gen: Diphenhydramine + Ammonium Chloride + Sodium Citrate | Str: Chesty Cough Formula | Form: Oral Liquid
+36. [BC-MED-0114] Pseudoephedrine 60mg Decongestant Tablets | Gen: Pseudoephedrine Hydrochloride | Str: 60mg | Form: Film-Coated Tablet
+37. [BC-MED-0115] Cefaclor 250mg Capsules | Gen: Cefaclor Monohydrate | Str: 250mg | Form: Capsule
+38. [BC-MED-0116] Ampicillin + Cloxacillin 500mg Capsules | Gen: Ampicillin 250mg + Cloxacillin 250mg | Str: 500mg | Form: Capsule
+39. [BC-MED-0117] Cloxacillin Sodium 500mg Capsules | Gen: Cloxacillin Sodium | Str: 500mg | Form: Capsule
+40. [BC-MED-0118] Phenoxymethylpenicillin (Pen V) 250mg Tablets | Gen: Phenoxymethylpenicillin Potassium | Str: 250mg | Form: Tablet
+41. [BC-MED-0119] Ceftriaxone Sodium 1g Powder for Injection | Gen: Ceftriaxone Sodium Sterile Powder | Str: 1g Vial | Form: Dry Powder for Injection + Solvent
+42. [BC-MED-0120] Cefotaxime Sodium 1g Powder for Injection | Gen: Cefotaxime Sodium | Str: 1g Vial | Form: Injection Vial
+43. [BC-MED-0121] Benzylpenicillin (Pen G) 1 Mega Unit Injection | Gen: Benzylpenicillin Sodium | Str: 1 Mega Unit | Form: Injection Vial
+44. [BC-MED-0122] Benzathine Penicillin 2.4 Mega Units Injection | Gen: Benzathine Benzylpenicillin | Str: 2.4 Mega Units | Form: Sterile Powder Vial
+45. [BC-MED-0123] Oseltamivir Phosphate 75mg Capsules | Gen: Oseltamivir Phosphate | Str: 75mg | Form: Capsule
+46. [BC-MED-0124] Echinacea + Zinc + Vitamin C Cold Defense Tablets | Gen: Echinacea Purpurea + Zinc + Ascorbic Acid | Str: Triple Immune Blend | Form: Chewable Tablet
+47. [BC-MED-0125] Zinc Gluconate 15mg Cold Relief Lozenges | Gen: Zinc Gluconate | Str: 15mg | Form: Medicated Lozenge
+48. [BC-MED-0126] Mentholated Inhalation Crystals B.P. 10g | Gen: Pure Menthol Crystals | Str: 100% Pure Crystal | Form: Solid Crystals
+49. [BC-MED-0127] Eucalyptus Oil B.P. 30ml | Gen: Eucalyptus Globulus Essential Oil | Str: 100% Pure Oil | Form: Liquid Inhalant Drops
+50. [BC-MED-0128] Pholcodine Linctus 5mg/5ml (100ml) | Gen: Pholcodine | Str: 5mg/5ml | Form: Oral Linctus
+51. [BC-MED-0129] Ephedrine Hydrochloride 0.5% Nasal Drops | Gen: Ephedrine Hydrochloride | Str: 0.5% w/v | Form: Nasal Drops
+52. [BC-MED-0130] Cefpodoxime Proxetil 200mg Tablets | Gen: Cefpodoxime Proxetil | Str: 200mg | Form: Film-Coated Tablet
+
+========================================
+CATEGORY: Vitamins & Supplements (52 items)
+========================================
+ 1. [DEMO-MED-011] Vitamin C 500mg Tablets | Gen: Ascorbic Acid | Str: 500mg | Form: Bottle of 30 Chewable Tablets
+ 2. [DEMO-MED-012] Zinc 20mg Tablets | Gen: Zinc Sulfate Monohydrate | Str: 20mg | Form: Pack of 10 Tablets
+ 3. [DEMO-MED-027] Daily Multivitamin Complete | Gen: Complete A-Z Formula | Str: 24 Nutrients | Form: Bottle of 30 Tablets
+ 4. [BC-MED-0230] Vitamin C 1000mg Effervescent Tablets | Gen: Ascorbic Acid + Zinc | Str: 1000mg/10mg | Form: Effervescent Tablet
+ 5. [BC-MED-0231] Vitamin C Chewable 500mg (Orange) | Gen: Ascorbic Acid + Sodium Ascorbate | Str: 500mg | Form: Chewable Tablet
+ 6. [BC-MED-0232] Vitamin C 100mg Pediatric Syrup 100ml | Gen: Ascorbic Acid | Str: 100mg/5ml | Form: Oral Syrup
+ 7. [BC-MED-0233] Vitamin B Complex High Potency Tablets | Gen: B-Vitamins Complex (B1, B2, B6, B12, Nicotinamide) | Str: Fortified B-Complex | Form: Capsule
+ 8. [BC-MED-0234] Vitamin B Complex Syrup 100ml | Gen: B-Complex Pediatric Syrup | Str: Pediatric Formula | Form: Oral Syrup
+ 9. [BC-MED-0235] Neurobion Forte Tablets | Gen: Thiamine + Pyridoxine + Cyanocobalamin | Str: Neurotropic Formulation | Form: Coated Tablet
+10. [BC-MED-0236] Vitamin B1 (Thiamine) 100mg Tablets | Gen: Thiamine Hydrochloride | Str: 100mg | Form: Tablet
+11. [BC-MED-0237] Vitamin B6 (Pyridoxine) 50mg Tablets | Gen: Pyridoxine Hydrochloride | Str: 50mg | Form: Tablet
+12. [BC-MED-0238] Vitamin B12 1000mcg Sublingual Tablets | Gen: Cyanocobalamin / Methylcobalamin | Str: 1000mcg | Form: Sublingual Fast-Dissolve Tablet
+13. [BC-MED-0239] Vitamin D3 1000 IU Tablets | Gen: Cholecalciferol | Str: 1000 IU | Form: Small Tablet
+14. [BC-MED-0240] Vitamin D3 50,000 IU High-Dose Capsules | Gen: Cholecalciferol | Str: 50,000 IU | Form: Soft Gelatin Capsule
+15. [BC-MED-0241] Calcium 500mg + Vitamin D3 Tablets | Gen: Calcium Carbonate + Cholecalciferol | Str: 500mg/200 IU | Form: Film-Coated Tablet
+16. [BC-MED-0242] Calcium Sandoz Effervescent Tablets | Gen: Calcium Lactate Gluconate + Calcium Carbonate | Str: 500mg | Form: Effervescent Tablet
+17. [BC-MED-0243] Ostocare Glucosamine & Chondroitin Complex | Gen: Glucosamine Sulfate + Chondroitin Sulfate + MSM | Str: Triple Joint Complex | Form: Tablet
+18. [BC-MED-0244] Magnesium 250mg Tablets | Gen: Magnesium Oxide / Amino Acid Chelate | Str: 250mg | Form: Tablet
+19. [BC-MED-0245] Vitamin E 400 IU Softgels | Gen: d-Alpha Tocopheryl Acetate | Str: 400 IU | Form: Soft Gelatin Capsule
+20. [BC-MED-0246] Vitamin A 100,000 IU Pediatric Capsules | Gen: Retinol Palmitate | Str: 100,000 IU | Form: Soft Capsule with Snip-Off Neck
+21. [BC-MED-0247] Vitamin A 200,000 IU Capsules | Gen: Retinol Palmitate | Str: 200,000 IU | Form: Soft Gelatin Capsule
+22. [BC-MED-0248] Cod Liver Oil 1000mg Capsules | Gen: Pure Icelandic Cod Liver Oil | Str: 1000mg | Form: Soft Gelatin Capsule
+23. [BC-MED-0249] Seven Seas Cod Liver Oil Liquid 150ml | Gen: Cod Liver Oil Liquid + Vitamin A, D, E | Str: Nutritional Liquid | Form: Oral Liquid
+24. [BC-MED-0250] Iron + Folic Acid Tablets (IFA) | Gen: Dried Ferrous Sulfate + Folic Acid | Str: 200mg/400mcg | Form: Sugar-Coated Tablet
+25. [BC-MED-0251] Feroglobin-B12 Gentle Iron Syrup 200ml | Gen: Iron + Zinc + B-Complex + Honey & Malt Extract | Str: Gentle Liquid Iron | Form: Oral Syrup
+26. [BC-MED-0252] Feroglobin-B12 Slow-Release Capsules | Gen: Iron + Zinc + Vitamin B12 + Folic Acid | Str: Sustained Release | Form: Slow-Release Capsule
+27. [BC-MED-0253] Wellwoman Original Multivitamin | Gen: Multivitamin & Micronutrient Complex for Women | Str: Women's Formula | Form: Capsule
+28. [BC-MED-0254] Wellman Original Multivitamin | Gen: Multivitamin & Micronutrient Complex for Men | Str: Men's Formula | Form: Tablet
+29. [BC-MED-0255] Pharmaton Geriatric Capsules with Ginseng G115 | Gen: Standardized Ginseng Extract G115 + Vitamins & Minerals | Str: Revitalizing Formula | Form: Soft Gelatin Capsule
+30. [BC-MED-0256] Zincovit Multivitamin & Mineral Tablets | Gen: Vitamins + Minerals + Grape Seed Extract | Str: Immuno-Nutrition Formula | Form: Film-Coated Tablet
+31. [BC-MED-0257] Coenzyme Q10 100mg Capsules | Gen: Ubiquinone | Str: 100mg | Form: Soft Gelatin Capsule
+32. [BC-MED-0258] Biotin 5000mcg High-Potency Tablets | Gen: d-Biotin (Vitamin B7) | Str: 5000mcg | Form: Small Tablet
+33. [BC-MED-0259] Perfectil Triple Active Tablets | Gen: Skin, Hair & Nails Nutrient Complex | Str: Triple Active Formula | Form: Tablet
+34. [BC-MED-0260] Glutathione 500mg + Vitamin C Capsules | Gen: Reduced L-Glutathione + Ascorbic Acid | Str: 500mg/250mg | Form: Vegetarian Capsule
+35. [BC-MED-0261] Spirulina 500mg Organic Tablets | Gen: Arthrospira platensis Organic Powder | Str: 500mg | Form: Tablet
+36. [BC-MED-0262] Moringa Oleifera 500mg Herbal Capsules | Gen: Moringa Leaf Pure Extract | Str: 500mg | Form: Capsule
+37. [BC-MED-0263] Echinacea 400mg Immune Support Capsules | Gen: Echinacea purpurea Herb Extract | Str: 400mg | Form: Capsule
+38. [BC-MED-0264] Korean Panax Ginseng 500mg Capsules | Gen: Panax Ginseng Root Standardized Extract | Str: 500mg | Form: Capsule
+39. [BC-MED-0265] Ginkgo Biloba 60mg Neuro Tablets | Gen: Ginkgo Biloba Flavone Glycosides | Str: 60mg | Form: Film-Coated Tablet
+40. [BC-MED-0266] Melatonin 3mg Sleep Aid Tablets | Gen: Melatonin | Str: 3mg | Form: Fast-Dissolving Tablet
+41. [BC-MED-0267] Apple Cider Vinegar 500mg Capsules | Gen: Dehydrated Apple Cider Vinegar with Mother | Str: 500mg | Form: Capsule
+42. [BC-MED-0268] Garlic Oil 1000mg Odorless Softgels | Gen: Allium Sativum Bulb Extract | Str: 1000mg equivalent | Form: Soft Gelatin Capsule
+43. [BC-MED-0269] Cranberry Extract 500mg Capsules | Gen: Vaccinium macrocarpon Concentrated Extract | Str: 500mg | Form: Capsule
+44. [BC-MED-0270] Potassium Gluconate 99mg Tablets | Gen: Potassium Gluconate | Str: 99mg | Form: Tablet
+45. [BC-MED-0271] Selenium 200mcg Antioxidant Tablets | Gen: L-Selenomethionine | Str: 200mcg | Form: Tablet
+46. [BC-MED-0272] L-Arginine 1000mg Stamina Tablets | Gen: L-Arginine Hydrochloride | Str: 1000mg | Form: Tablet
+47. [BC-MED-0273] Glucosamine Sulfate 1500mg Sachets | Gen: Crystalline Glucosamine Sulfate | Str: 1500mg | Form: Powder for Oral Solution
+48. [BC-MED-0274] Turmeric Curcumin 500mg with Bioperine | Gen: Curcuma Longa Extract + Piperine | Str: 500mg/5mg | Form: Vegetarian Capsule
+49. [BC-MED-0275] Astaxanthin 4mg Antioxidant Softgels | Gen: Natural Astaxanthin from Haematococcus pluvialis | Str: 4mg | Form: Soft Gelatin Capsule
+50. [BC-MED-0276] Zinc Gluconate 50mg Tablets | Gen: Zinc Gluconate | Str: 50mg | Form: Tablet
+51. [BC-MED-0277] Vitamin K2 (MK-7) 100mcg Capsules | Gen: Menaquinone-7 | Str: 100mcg | Form: Capsule
+52. [BC-MED-0278] Chromium Picolinate 200mcg Tablets | Gen: Chromium Picolinate | Str: 200mcg | Form: Tablet
+
+========================================
+CATEGORY: Digestive Health (52 items)
+========================================
+ 1. [DEMO-MED-008] Omeprazole 20mg Capsules | Gen: Omeprazole | Str: 20mg | Form: Pack of 14 Capsules
+ 2. [DEMO-MED-009] Oral Rehydration Salts | Gen: WHO Formula Electrolytes | Str: 20.5g/sachet | Form: Box of 5 Sachets
+ 3. [DEMO-MED-010] Antacid Tablets | Gen: Magnesium + Aluminum Hydroxide | Str: 400mg | Form: Pack of 12 Chewable Tablets
+ 4. [BC-MED-0181] Esomeprazole 20mg Tablets | Gen: Esomeprazole Magnesium | Str: 20mg | Form: Delayed-Release Tablet
+ 5. [BC-MED-0182] Esomeprazole 40mg Tablets | Gen: Esomeprazole Magnesium | Str: 40mg | Form: Delayed-Release Tablet
+ 6. [BC-MED-0183] Pantoprazole 40mg Tablets | Gen: Pantoprazole Sodium | Str: 40mg | Form: Enteric-Coated Tablet
+ 7. [BC-MED-0184] Lansoprazole 30mg Capsules | Gen: Lansoprazole | Str: 30mg | Form: Enteric-Coated Capsule
+ 8. [BC-MED-0185] Rabeprazole 20mg Tablets | Gen: Rabeprazole Sodium | Str: 20mg | Form: Gastro-Resistant Tablet
+ 9. [BC-MED-0186] Ranitidine 150mg Tablets | Gen: Ranitidine Hydrochloride | Str: 150mg | Form: Film-Coated Tablet
+10. [BC-MED-0187] Famotidine 20mg Tablets | Gen: Famotidine | Str: 20mg | Form: Film-Coated Tablet
+11. [BC-MED-0188] Famotidine 40mg Tablets | Gen: Famotidine | Str: 40mg | Form: Film-Coated Tablet
+12. [BC-MED-0189] Gaviscon Double Action Liquid 200ml | Gen: Sodium Alginate + Sodium Bicarbonate + Calcium Carbonate | Str: Suspension per 10ml | Form: Oral Suspension
+13. [BC-MED-0190] Gaviscon Peppermint Chewable Tablets | Gen: Sodium Alginate + Sodium Bicarbonate + Calcium Carbonate | Str: Chewable Tablet | Form: Chewable Tablet
+14. [BC-MED-0191] Magnesium Trisilicate Compound Mixture 200ml | Gen: Magnesium Trisilicate + Sodium Bicarbonate + Light Magnesium Carbonate | Str: 5% w/v Compound | Form: Oral Mixture
+15. [BC-MED-0192] Milk of Magnesia Suspension 100ml | Gen: Magnesium Hydroxide | Str: 8% w/v | Form: Oral Suspension
+16. [BC-MED-0193] Sucralfate 1g Tablets | Gen: Sucralfate | Str: 1g | Form: Tablet
+17. [BC-MED-0194] Hyoscine Butylbromide 10mg Tablets | Gen: Hyoscine Butylbromide | Str: 10mg | Form: Sugar-Coated Tablet
+18. [BC-MED-0195] Buscopan Plus 10mg/500mg Tablets | Gen: Hyoscine Butylbromide + Paracetamol | Str: 10mg/500mg | Form: Film-Coated Tablet
+19. [BC-MED-0196] Mebeverine 135mg Tablets | Gen: Mebeverine Hydrochloride | Str: 135mg | Form: Film-Coated Tablet
+20. [BC-MED-0197] Drotaverine 40mg Tablets | Gen: Drotaverine Hydrochloride | Str: 40mg | Form: Tablet
+21. [BC-MED-0198] Metoclopramide 10mg Tablets | Gen: Metoclopramide Hydrochloride | Str: 10mg | Form: Tablet
+22. [BC-MED-0199] Domperidone 10mg Tablets | Gen: Domperidone | Str: 10mg | Form: Film-Coated Tablet
+23. [BC-MED-0200] Domperidone Suspension 1mg/ml 100ml | Gen: Domperidone | Str: 1mg/ml | Form: Oral Suspension
+24. [BC-MED-0201] Ondansetron 4mg Tablets | Gen: Ondansetron Hydrochloride | Str: 4mg | Form: Film-Coated Tablet
+25. [BC-MED-0202] Ondansetron 8mg Tablets | Gen: Ondansetron Hydrochloride | Str: 8mg | Form: Film-Coated Tablet
+26. [BC-MED-0203] Promethazine 25mg Tablets | Gen: Promethazine Hydrochloride | Str: 25mg | Form: Film-Coated Tablet
+27. [BC-MED-0204] Loperamide 2mg Capsules | Gen: Loperamide Hydrochloride | Str: 2mg | Form: Capsule
+28. [BC-MED-0205] Racecadotril 100mg Capsules | Gen: Racecadotril | Str: 100mg | Form: Hard Capsule
+29. [BC-MED-0206] Zinc Sulfate 20mg Dispersible Tablets | Gen: Zinc Sulfate Monohydrate | Str: 20mg | Form: Dispersible Tablet
+30. [BC-MED-0207] ORS Powder Sachets (Pack of 5) | Gen: Oral Rehydration Salts (WHO Low-Osmolarity Formula) | Str: Low-Osmolarity 20.5g/L | Form: Powder for Oral Solution
+31. [BC-MED-0208] Bisacodyl 5mg Tablets | Gen: Bisacodyl | Str: 5mg | Form: Enteric-Coated Tablet
+32. [BC-MED-0209] Bisacodyl 10mg Suppositories | Gen: Bisacodyl | Str: 10mg | Form: Rectal Suppository
+33. [BC-MED-0210] Senna 7.5mg Tablets | Gen: Standardized Senna Extracts | Str: 7.5mg | Form: Tablet
+34. [BC-MED-0211] Lactulose Oral Solution 200ml | Gen: Lactulose | Str: 66.7g/100ml | Form: Oral Syrup
+35. [BC-MED-0212] Macrogol 4000 Laxative Sachets | Gen: Polyethylene Glycol 4000 | Str: 10g per Sachet | Form: Powder for Oral Solution
+36. [BC-MED-0213] Glycerin Adult Suppositories | Gen: Glycerol | Str: 2g | Form: Rectal Suppository
+37. [BC-MED-0214] Ispaghula Husk 3.5g Sachets | Gen: Psyllium Husk | Str: 3.5g | Form: Effervescent Granules
+38. [BC-MED-0215] Simethicone 80mg Chewable Tablets | Gen: Simethicone (Activated Dimeticone) | Str: 80mg | Form: Chewable Tablet
+39. [BC-MED-0216] Infacol Pediatric Colic Drops 50ml | Gen: Simethicone | Str: 40mg/ml | Form: Oral Drops
+40. [BC-MED-0217] Digestive Enzymes Complex Capsules | Gen: Pancreatin + Papain + Bromelain | Str: Multi-Enzyme Complex | Form: Enteric-Coated Capsule
+41. [BC-MED-0218] Probiotic Daily Flora 10 Billion CFU | Gen: Lactobacillus acidophilus + Bifidobacterium bifidum | Str: 10 Billion CFU | Form: Vegetarian Capsule
+42. [BC-MED-0219] Enterogermina 2 Billion Spores Suspension | Gen: Bacillus clausii Spores | Str: 2 Billion Spores/5ml | Form: Oral Suspension Vials
+43. [BC-MED-0220] Activated Charcoal 250mg Tablets | Gen: Activated Charcoal (USP) | Str: 250mg | Form: Compressed Tablet
+44. [BC-MED-0221] Albendazole 400mg Chewable Tablets | Gen: Albendazole | Str: 400mg | Form: Chewable Tablet
+45. [BC-MED-0222] Albendazole Suspension 100mg/5ml 20ml | Gen: Albendazole | Str: 100mg/5ml | Form: Oral Suspension
+46. [BC-MED-0223] Mebendazole 100mg Tablets | Gen: Mebendazole | Str: 100mg | Form: Chewable Tablet
+47. [BC-MED-0224] Mebendazole 500mg Single Dose Tablet | Gen: Mebendazole | Str: 500mg | Form: Chewable Tablet
+48. [BC-MED-0225] Metronidazole 200mg Tablets | Gen: Metronidazole | Str: 200mg | Form: Film-Coated Tablet
+49. [BC-MED-0226] Metronidazole 400mg Tablets | Gen: Metronidazole | Str: 400mg | Form: Film-Coated Tablet
+50. [BC-MED-0227] Tinidazole 500mg Tablets | Gen: Tinidazole | Str: 500mg | Form: Film-Coated Tablet
+51. [BC-MED-0228] Secnidazole 1g Tablets | Gen: Secnidazole | Str: 1g | Form: Film-Coated Tablet
+52. [BC-MED-0229] H. Pylori Kit (Triple Therapy Blister Pack) | Gen: Omeprazole + Amoxicillin + Clarithromycin | Str: Triple Therapy Kit | Form: Combo Blister Pack
+
+========================================
+CATEGORY: First Aid (52 items)
+========================================
+ 1. [DEMO-MED-014] Antiseptic Solution | Gen: Chloroxylenol 4.8% | Str: 4.8% w/v | Form: 500ml Liquid Bottle
+ 2. [DEMO-MED-015] Hydrogen Peroxide 3% | Gen: Hydrogen Peroxide Solution (10 Vol) | Str: 3% w/v | Form: 200ml Liquid Bottle
+ 3. [DEMO-MED-016] Povidone-Iodine 10% | Gen: Povidone-Iodine Topical Solution | Str: 10% w/v | Form: 100ml Liquid Bottle
+ 4. [BC-MED-0329] Chlorhexidine Gluconate 5% Solution 500ml | Gen: Chlorhexidine Gluconate | Str: 5% w/v | Form: Concentrated Antiseptic Solution
+ 5. [BC-MED-0330] Chlorhexidine 7.1% Umbilical Gel 20g | Gen: Chlorhexidine Digluconate Gel | Str: 7.1% (4% chlorhexidine) | Form: Topical Gel
+ 6. [BC-MED-0331] Surgical Spirit (Methylated Spirit 70%) 500ml | Gen: Ethyl Alcohol / Isopropyl Alcohol 70% | Str: 70% v/v | Form: Topical Antiseptic Liquid
+ 7. [BC-MED-0332] Dettol Antiseptic Liquid 250ml | Gen: Chloroxylenol (PCMX) | Str: 4.8% w/v | Form: Antiseptic Liquid Concentrate
+ 8. [BC-MED-0333] Dettol Antiseptic Liquid 500ml | Gen: Chloroxylenol (PCMX) | Str: 4.8% w/v | Form: Antiseptic Liquid Concentrate
+ 9. [BC-MED-0334] Savlon Antiseptic Liquid 250ml | Gen: Chlorhexidine Gluconate + Cetrimide | Str: 0.3%/3.0% w/v | Form: Antiseptic Cleansing Liquid
+10. [BC-MED-0335] Betadine Antiseptic Ointment 10% 20g | Gen: Povidone-Iodine | Str: 10% w/w | Form: Topical Ointment
+11. [BC-MED-0336] Potassium Permanganate Crystals 50g | Gen: Potassium Permanganate | Str: Pure Crystals | Form: Crystals for Topical Solution
+12. [BC-MED-0337] Gentian Violet 1% Aqueous Solution 25ml | Gen: Methylrosanilinium Chloride | Str: 1% w/v | Form: Topical Paint Solution
+13. [BC-MED-0338] Acriflavine 0.1% Antiseptic Lotion 100ml | Gen: Acriflavine Neutral | Str: 0.1% w/v | Form: Topical Liquid
+14. [BC-MED-0339] Hydrogen Peroxide 6% (20 Vol) 200ml | Gen: Hydrogen Peroxide Solution | Str: 6% w/v (20 Vol) | Form: Topical Effervescent Cleanser
+15. [BC-MED-0340] Crepe Bandage 7.5cm x 4.5m (Stretched) | Gen: Cotton Elastic Crepe Bandage | Str: 7.5cm x 4.5m | Form: Compression Bandage Roll
+16. [BC-MED-0341] Crepe Bandage 10cm x 4.5m (Stretched) | Gen: Cotton Elastic Crepe Bandage | Str: 10cm x 4.5m | Form: Compression Bandage Roll
+17. [BC-MED-0342] Crepe Bandage 15cm x 4.5m (Stretched) | Gen: Cotton Elastic Crepe Bandage | Str: 15cm x 4.5m | Form: Compression Bandage Roll
+18. [BC-MED-0343] Conforming Gauze Bandage 5cm x 4m (Pack of 5) | Gen: Open-Wove Conforming Cotton Bandage | Str: 5cm x 4m | Form: Gauze Bandage Roll
+19. [BC-MED-0344] Conforming Gauze Bandage 7.5cm x 4m (Pack of 5) | Gen: Open-Wove Conforming Cotton Bandage | Str: 7.5cm x 4m | Form: Gauze Bandage Roll
+20. [BC-MED-0345] Sterile Gauze Swabs 10cm x 10cm (Pack of 100) | Gen: Absorbent Cotton Gauze Swabs 8-Ply | Str: 10cm x 10cm (8-Ply) | Form: Sterile Dressing Swabs
+21. [BC-MED-0346] Sterile Non-Adherent Dressing Pads 10cm x 10cm (Pack of 10) | Gen: Low-Adherent Absorbent Dressing | Str: 10cm x 10cm | Form: Low-Adherent Sterile Pad
+22. [BC-MED-0347] Paraffin Gauze Dressing (Jelonet) 10cm x 10cm (Box of 10) | Gen: Paraffin Gauze Tulle Gras | Str: 10cm x 10cm | Form: Sterile Medicated Tulle Dressing
+23. [BC-MED-0348] Adhesive Fabric Plaster Strips (Box of 100) | Gen: Elastic Fabric First Aid Plasters | Str: Standard 72mm x 19mm | Form: Adhesive Plaster Strip
+24. [BC-MED-0349] Waterproof Clear Adhesive Plasters (Box of 50) | Gen: Polyurethane Waterproof Bandages | Str: Assorted Shapes (50 Pack) | Form: Waterproof Plaster
+25. [BC-MED-0350] Microporous Surgical Paper Tape (Micropore 1 inch x 10m) | Gen: Hypoallergenic Microporous Paper Tape | Str: 2.5cm x 9.1m (1 inch) | Form: Surgical Adhesive Tape Roll
+26. [BC-MED-0351] Microporous Surgical Paper Tape (Micropore 2 inch x 10m) | Gen: Hypoallergenic Microporous Paper Tape | Str: 5.0cm x 9.1m (2 inch) | Form: Surgical Adhesive Tape Roll
+27. [BC-MED-0352] Zinc Oxide Rigid Adhesive Strapping Tape (2 inch x 5m) | Gen: Zinc Oxide Plaster Tape | Str: 5cm x 5m | Form: High-Strength Strapping Tape
+28. [BC-MED-0353] Absorbent Cotton Wool Roll BPC 100g | Gen: Purified Bleached Absorbent Cotton | Str: 100g Roll | Form: Cotton Wool Roll
+29. [BC-MED-0354] Absorbent Cotton Wool Roll BPC 500g (Clinic Size) | Gen: Purified Bleached Absorbent Cotton | Str: 500g Hospital Roll | Form: Cotton Wool Roll
+30. [BC-MED-0355] Triangular Bandage (Non-Woven Calico 90x90x127cm) | Gen: First Aid Triangular Calico Sling | Str: 90cm x 90cm x 127cm | Form: Triangular Cloth Bandage
+31. [BC-MED-0356] Steri-Strip Reinforced Skin Closures 6mm x 75mm | Gen: Adhesive Skin Closure Strips | Str: 6mm x 75mm (Pack of 6 Strips) | Form: Sterile Wound Closure Strips
+32. [BC-MED-0357] Silver Sulfadiazine 1% Cream (Flamazine) 50g | Gen: Silver Sulfadiazine | Str: 1% w/w | Form: Sterile Topical Cream
+33. [BC-MED-0358] Burnshield Emergency Burn Dressing 10cm x 10cm | Gen: Melaleuca Hydrogel Burn Pad | Str: 10cm x 10cm Pad | Form: Sterile Foam Hydrogel Dressing
+34. [BC-MED-0359] Burnshield Hydrogel Burn Spray 125ml | Gen: Sterile Hydrogel Burn Spray | Str: Hydrogel Liquid Spray | Form: Topical Hydrogel Spray
+35. [BC-MED-0360] Hydrocolloid Blister Plasters (Pack of 6) | Gen: Hydrocolloid Cushioning Dressing | Str: Medium Oval Size (Pack of 6) | Form: Hydrocolloid Plaster
+36. [BC-MED-0361] Sterile Eye Pad with Conforming Bandage | Gen: Oval Sterile Cotton Eye Dressing | Str: Standard Anatomical Oval | Form: Sterile Eye Dressing
+37. [BC-MED-0362] Sterile Eye Wash Solution (0.9% Saline) 500ml | Gen: Sodium Chloride 0.9% Irrigation Solution | Str: 0.9% w/v | Form: Topical Irrigation Solution Bottle
+38. [BC-MED-0363] Instant Cold Ice Pack (Single-Use Disposable) | Gen: Endothermic Urea & Water Cold Compress | Str: Single-Use 15cm x 22cm | Form: Chemical Cold Pack
+39. [BC-MED-0364] Instant Warm Heat Pack (Single-Use Disposable) | Gen: Exothermic Iron Oxidation Heat Pack | Str: Sustained Heat up to 8 Hours | Form: Air-Activated Warm Pack
+40. [BC-MED-0365] Emergency Silver Thermal Foil Blanket | Gen: Reflective Mylar Space Survival Blanket | Str: 130cm x 210cm | Form: Folded Foil Sheet
+41. [BC-MED-0366] Stainless Steel Dressing Scissors (Blunt/Sharp 14cm) | Gen: Surgical Grade Stainless Steel Dressing Scissors | Str: 14cm Length | Form: Surgical Instrument
+42. [BC-MED-0367] Splinter Forceps / Stainless Steel Tweezers 12cm | Gen: Fine-Pointed Surgical Splinter Forceps | Str: 12cm Length with Precision Fine Tips | Form: Surgical Instrument
+43. [BC-MED-0368] Safety Pins (Assorted Sizes Pack of 12) | Gen: Nickel-Plated Steel First Aid Safety Pins | Str: Assorted (Small, Medium, Large) | Form: Hardware Accessory
+44. [BC-MED-0369] Tactical Combat Tourniquet (Windlass System) | Gen: Arterial Hemostatic Windlass Tourniquet | Str: One-Handed Self-Applicable System | Form: Emergency Hemostatic Appliance
+45. [BC-MED-0370] CPR Pocket Resuscitation Mask with One-Way Valve | Gen: Mouth-to-Mask Resuscitator with Filter | Str: Universal Adult/Child with Oxygen Port | Form: Resuscitation Device
+46. [BC-MED-0371] Malleable Aluminum Padded Splint (Roll 90cm) | Gen: Universal SAM-Style Padded Immobilization Splint | Str: 90cm x 11cm (Malleable Roll) | Form: Orthopedic Splint Roll
+47. [BC-MED-0372] Universal Adjustable Arm Sling | Gen: Breathable Mesh Padded Arm Sling | Str: Universal Fit (Left or Right Arm) | Form: Orthopedic Support Appliance
+48. [BC-MED-0373] Antiseptic Wound Cleansing Wipes (Box of 20) | Gen: Alcohol-Free Chlorhexidine Antiseptic Wipes | Str: Alcohol-Free Individual Wipes | Form: Individually Sealed Wet Wipe
+49. [BC-MED-0374] BloomCare Standard Family First Aid Kit (35 Pieces) | Gen: Compact Home & Vehicle First Aid Kit | Str: Complete 35-Piece Assortment | Form: Molded Plastic Kit Box with Handle
+50. [BC-MED-0375] BloomCare Workplace Industrial First Aid Box (75 Pieces) | Gen: OSHA-Compliant Industrial Wall-Mounted Kit | Str: Heavy-Duty Workplace Standard | Form: Lockable Metal/ABS Cabinet
+51. [BC-MED-0376] Travel Emergency First Aid Pouch (Water-Resistant) | Gen: Travel First Aid Softshell Pouch | Str: Compact Travel Size | Form: Zippered Oxford Nylon Pouch
+52. [BC-MED-0377] Aluminum Padded Finger Splint (Set of 3 Sizes) | Gen: Toad & Frog Finger Immobilization Splints | Str: Assorted Small, Medium, Large | Form: Orthopedic Appliance
+
+========================================
+CATEGORY: Skin Care (52 items)
+========================================
+ 1. [DEMO-MED-017] Hydrocortisone 1% Cream | Gen: Hydrocortisone Acetate | Str: 1% w/w | Form: 15g Aluminum Tube
+ 2. [DEMO-MED-018] Clotrimazole 1% Cream | Gen: Clotrimazole | Str: 1% w/w | Form: 20g Aluminum Tube
+ 3. [DEMO-MED-019] Calamine Lotion | Gen: Calamine 15% + Zinc Oxide 5% | Str: 15% w/v | Form: 100ml Suspension Bottle
+ 4. [BC-MED-0378] Ketoconazole 2% Cream 30g | Gen: Ketoconazole | Str: 2% w/w | Form: Topical Cream
+ 5. [BC-MED-0379] Ketoconazole 2% Medicated Shampoo 100ml | Gen: Ketoconazole | Str: 2% w/v | Form: Medicated Scalp Shampoo
+ 6. [BC-MED-0380] Miconazole Nitrate 2% Cream 30g | Gen: Miconazole Nitrate | Str: 2% w/w | Form: Topical Cream
+ 7. [BC-MED-0381] Terbinafine 1% Cream (Lamisil) 15g | Gen: Terbinafine Hydrochloride | Str: 1% w/w | Form: Topical Cream
+ 8. [BC-MED-0382] Candid Dusting Antifungal Powder 100g | Gen: Clotrimazole Topical Powder | Str: 1% w/w | Form: Medicated Dusting Powder
+ 9. [BC-MED-0383] Whitfield's Ointment 50g | Gen: Benzoic Acid + Salicylic Acid | Str: 6% / 3% w/w | Form: Topical Ointment
+10. [BC-MED-0384] Nystatin Ointment 100,000 IU/g 30g | Gen: Nystatin | Str: 100,000 IU/g | Form: Topical Ointment
+11. [BC-MED-0385] Fluconazole 150mg Single Dose Capsule | Gen: Fluconazole | Str: 150mg | Form: Hard Capsule
+12. [BC-MED-0386] Fusidic Acid 2% Cream 15g | Gen: Fusidic Acid | Str: 2% w/w | Form: Topical Cream
+13. [BC-MED-0387] Mupirocin 2% Ointment (Bactroban) 15g | Gen: Mupirocin | Str: 2% w/w | Form: Topical Ointment
+14. [BC-MED-0388] Neomycin + Bacitracin Ointment 20g | Gen: Neomycin Sulfate + Bacitracin Zinc | Str: Combined Topical Ointment | Form: Topical Ointment
+15. [BC-MED-0389] Benzoyl Peroxide 5% Gel 50g | Gen: Benzoyl Peroxide | Str: 5% w/w | Form: Water-Based Topical Gel
+16. [BC-MED-0390] Benzoyl Peroxide 2.5% Gel 50g | Gen: Benzoyl Peroxide | Str: 2.5% w/w | Form: Water-Based Gel
+17. [BC-MED-0391] Clindamycin 1% Topical Solution 30ml | Gen: Clindamycin Phosphate | Str: 1% w/v | Form: Topical Solution with Applicator
+18. [BC-MED-0392] Betamethasone 0.1% Cream (Betnovate) 20g | Gen: Betamethasone Valerate | Str: 0.1% w/w | Form: Topical Cream
+19. [BC-MED-0393] Betamethasone 0.1% Ointment (Betnovate) 20g | Gen: Betamethasone Valerate | Str: 0.1% w/w | Form: Topical Ointment
+20. [BC-MED-0394] Clobetasol Propionate 0.05% Cream (Dermovate) 25g | Gen: Clobetasol Propionate | Str: 0.05% w/w | Form: Topical Cream
+21. [BC-MED-0395] Daktacort Hydrocortisone + Miconazole Cream 15g | Gen: Hydrocortisone + Miconazole Nitrate | Str: 1% / 2% w/w | Form: Dual Action Topical Cream
+22. [BC-MED-0396] Betasone-G (Betamethasone + Gentamicin) Cream 15g | Gen: Betamethasone Dipropionate + Gentamicin Sulfate | Str: 0.05% / 0.1% | Form: Topical Cream
+23. [BC-MED-0397] Aqueous Cream BP Moisturizing Base 500g | Gen: Aqueous Emulsifying Ointment BP | Str: BP Standard | Form: Topical Emollient Cream
+24. [BC-MED-0398] Vaseline Pure Petroleum Jelly Original 250g | Gen: White Soft Paraffin / Petrolatum | Str: 100% Pure | Form: Topical Ointment
+25. [BC-MED-0399] Sudocrem Antiseptic Healing Cream 125g | Gen: Zinc Oxide + Benzyl Benzoate + Lanolin | Str: Multipurpose Medicated Barrier | Form: Thick Topical Cream
+26. [BC-MED-0400] Zinc and Castor Oil Ointment BP 100g | Gen: Zinc Oxide + Castor Oil | Str: BP Standard | Form: Water-Resistant Ointment
+27. [BC-MED-0401] Urea 10% Deep Hydrating Cream 100g | Gen: Urea | Str: 10% w/w | Form: Hydrating Cream
+28. [BC-MED-0402] Urea 20% Cracked Heel Balm 75g | Gen: Urea Intensive Heel Therapy | Str: 20% w/w | Form: Intensive Balm
+29. [BC-MED-0403] Benzyl Benzoate 25% Application 100ml | Gen: Benzyl Benzoate | Str: 25% w/v | Form: Topical Cutaneous Emulsion
+30. [BC-MED-0404] Permethrin 5% Cream (Scabisan) 30g | Gen: Permethrin | Str: 5% w/w | Form: Topical Cream
+31. [BC-MED-0405] Crotamiton 10% Cream (Eurax) 30g | Gen: Crotamiton | Str: 10% w/w | Form: Topical Antipruritic Cream
+32. [BC-MED-0406] Cetaphil Gentle Skin Cleanser 250ml | Gen: Non-Comedogenic Soap-Free Cleanser | Str: Soap-Free & Fragrance-Free | Form: Liquid Dermatological Cleanser
+33. [BC-MED-0407] Cetaphil Moisturizing Cream 100g | Gen: Sweet Almond Oil & Vitamin E Intensive Cream | Str: Rich Hydration | Form: Dermatological Cream
+34. [BC-MED-0408] CeraVe Moisturizing Cream with Ceramides 177ml | Gen: Essential Ceramides + Hyaluronic Acid Cream | Str: Ceramide Complex | Form: Barrier Repair Cream
+35. [BC-MED-0409] Epimax All Purpose Emollient Cream 400g | Gen: Liquid Paraffin + Soft White Paraffin Cream | Str: Dermatological Emollient | Form: Emollient Cream with Pump
+36. [BC-MED-0410] Sunscreen Broad Spectrum Lotion SPF 50+ 100ml | Gen: Avobenzone + Octocrylene + Titanium Dioxide | Str: Very High Protection SPF 50+ | Form: Sunscreen Lotion
+37. [BC-MED-0411] Aloe Vera 99% Pure Soothing Gel 200ml | Gen: Aloe Barbadensis Leaf Juice Gel | Str: 99% Pure Gel | Form: Soothing Gel
+38. [BC-MED-0412] Salicylic Acid 6% Ointment 30g | Gen: Salicylic Acid | Str: 6% w/w | Form: Topical Ointment
+39. [BC-MED-0413] Podophyllin 25% Topical Compound Paint 15ml | Gen: Podophyllum Resin | Str: 25% w/v | Form: Topical Paint Solution
+40. [BC-MED-0414] Wart & Verruca Removal Pen (Salicylic + Lactic Acid) | Gen: Salicylic Acid + Lactic Acid Precision Pen | Str: Dual Acid Formula | Form: Precision Pen Applicator
+41. [BC-MED-0415] Tacrolimus 0.03% Ointment (Protopic) 30g | Gen: Tacrolimus Monohydrate | Str: 0.03% w/w | Form: Topical Ointment
+42. [BC-MED-0416] Pimecrolimus 1% Cream (Elidel) 15g | Gen: Pimecrolimus | Str: 1% w/w | Form: Topical Cream
+43. [BC-MED-0417] Ichthammol 10% Drawing Ointment 30g | Gen: Ammonium Bituminosulfonate | Str: 10% w/w | Form: Drawing Ointment
+44. [BC-MED-0418] Bio-Oil Skincare Oil 60ml | Gen: PurCellin Skincare Oil | Str: Specialist Skincare Oil | Form: Topical Oil
+45. [BC-MED-0419] Kelo-Cote Advanced Scar Gel 15g | Gen: Self-Drying Silicone Scar Gel | Str: 100% Medical Grade Silicone | Form: Topical Silicone Gel
+46. [BC-MED-0420] Vitamin E Dermal Therapy Cream 100g | Gen: Natural Tocopherol Cream | Str: 1% Vitamin E | Form: Topical Cream
+47. [BC-MED-0421] Zinc Oxide Paste BP 50g | Gen: Zinc Oxide BP | Str: 25% w/w | Form: Thick Topical Paste
+48. [BC-MED-0422] Coal Tar 5% Medicated Scalp Solution 100ml | Gen: Coal Tar Solution BP | Str: 5% w/v | Form: Topical Scalp Solution
+49. [BC-MED-0423] Hydrocortisone 1% + Clotrimazole 1% Cream 20g | Gen: Hydrocortisone + Clotrimazole | Str: 1% / 1% w/w | Form: Dual Action Cream
+50. [BC-MED-0424] Sulfur 10% Medicated Antiseptic Soap Bar 100g | Gen: Precipitated Sulfur Soap | Str: 10% w/w | Form: Solid Cleansing Bar
+51. [BC-MED-0425] Tea Tree Oil 100% Pure Essential Oil 15ml | Gen: Melaleuca Alternifolia Leaf Oil | Str: 100% Pure | Form: Topical Essential Oil
+52. [BC-MED-0426] Retinol 0.5% Anti-Aging Night Serum 30ml | Gen: Pure Retinol + Squalane Serum | Str: 0.5% Retinol | Form: Facial Serum
+
+========================================
+CATEGORY: Personal Care (52 items)
+========================================
+ 1. [DEMO-MED-025] Hand Sanitizer 70% | Gen: 70% Isopropyl Alcohol Antiseptic Gel | Str: 70% v/v | Form: 500ml Pump Bottle
+ 2. [BC-MED-0427] Chlorhexidine 0.2% Antiseptic Mouthwash 300ml | Gen: Chlorhexidine Digluconate Mouthwash | Str: 0.2% w/v | Form: Medicated Oral Rinse
+ 3. [BC-MED-0428] Betadine 1% Medicated Gargle & Mouthwash 120ml | Gen: Povidone-Iodine Mouthwash | Str: 1% w/v | Form: Oral Gargle Solution
+ 4. [BC-MED-0429] Bonjela Teething & Mouth Ulcer Gel 15g | Gen: Choline Salicylate + Cetalkonium Chloride | Str: 8.7% / 0.01% | Form: Topical Oral Gel
+ 5. [BC-MED-0430] Triamcinolone in Orabase Dental Paste 5g | Gen: Triamcinolone Acetonide | Str: 0.1% w/w | Form: Mucoadhesive Oral Paste
+ 6. [BC-MED-0431] Sensodyne Rapid Relief Toothpaste 75ml | Gen: Stannous Fluoride Desensitizing Toothpaste | Str: Clinical Desensitizing | Form: Dental Toothpaste
+ 7. [BC-MED-0432] Colgate Total 12-Hour Antibacterial Toothpaste 100ml | Gen: Dual Zinc + Arginine Fluoride Toothpaste | Str: 12-Hour Pro-Defense | Form: Dental Toothpaste
+ 8. [BC-MED-0433] Dental Floss Waxed Mint 50m | Gen: Nylon Waxed Mint Dental Floss | Str: 50 Meters | Form: Interdental Floss Dispenser
+ 9. [BC-MED-0434] Interdental Angle Brushes 0.6mm (Pack of 6) | Gen: Fine Interdental Wire Brushes | Str: Size 3 (0.6mm) | Form: Interdental Cleaning Device
+10. [BC-MED-0435] Polident Denture Adhesive Fixative Cream 40g | Gen: Denture Adhesive Cream Extra Hold | Str: All-Day Hold | Form: Denture Adhesive Cream
+11. [BC-MED-0436] Polident Denture Cleansing Tablets (Pack of 30) | Gen: Effervescent Antimicrobial Denture Cleanser | Str: Fast Effervescent 3-Minute | Form: Effervescent Cleansing Tablet
+12. [BC-MED-0437] Stainless Steel Surgical Tongue Scraper | Gen: Ergonomic Curved Tongue Cleaner | Str: Rust-Proof Lifetime Tool | Form: Oral Tool
+13. [BC-MED-0438] Always Ultra Thin Sanitary Towels (Long with Wings 16s) | Gen: Ultra Thin Absorbent Feminine Pads with Wings | Str: Long (Size 2) | Form: Sanitary Towel Pad
+14. [BC-MED-0439] Always Maxi Thick Sanitary Pads (Night with Wings 8s) | Gen: Thick Cushion Night Menstrual Pads | Str: Night Extra-Long (Size 3) | Form: Sanitary Towel Pad
+15. [BC-MED-0440] Kotex Soft & Smooth Maxi Normal Pads (Pack of 10) | Gen: Cottony Soft Sanitary Pads with Wings | Str: Normal Flow | Form: Sanitary Pad
+16. [BC-MED-0441] Carefree Breathable Daily Panty Liners (Pack of 30) | Gen: Cotton Extract Breathable Panty Liners | Str: Normal Unscented | Form: Panty Liner Pad
+17. [BC-MED-0442] Tampax Pearl Regular Tampons with Applicator (16s) | Gen: Smooth Plastic Applicator Tampons | Str: Regular Absorbency (6-9g) | Form: Internal Menstrual Tampon
+18. [BC-MED-0443] Lactacyd Daily Feminine Intimate Wash 200ml | Gen: Natural L-Lactic Acid Intimate Cleanser | Str: pH 5.2 Balanced | Form: Intimate Wash Liquid
+19. [BC-MED-0444] Sebamed Intimate Wash pH 3.8 Sensitive 200ml | Gen: Alpha-Bisabolol & Aloe Intimate Cleanser | Str: Dermatological pH 3.8 | Form: Intimate Cleansing Gel
+20. [BC-MED-0445] Vagisil Fast-Acting Anti-Itch Intimate Cream 30g | Gen: Lidocaine / Hydrocortisone Soothing Intimate Cream | Str: Instant Anti-Itch | Form: Topical Cream
+21. [BC-MED-0446] Medical Grade Silicone Menstrual Cup (Size M) | Gen: Reusable Intimate Silicone Menstrual Cup | Str: Size M (25ml Capacity) | Form: Intimate Appliance
+22. [BC-MED-0447] Durex Extra Safe Condoms (Pack of 3) | Gen: Thick Lubricated Natural Rubber Latex Condoms | Str: Nominal Width 56mm (Thicker Membrane) | Form: Prophylactic Device
+23. [BC-MED-0448] Durex Invisible Ultra Thin Condoms (Pack of 3) | Gen: Ultra-Thin Latex Condoms | Str: Nominal Width 52mm (Ultra Thin) | Form: Prophylactic Device
+24. [BC-MED-0449] Trust Classic Male Condoms (Pack of 3) | Gen: Lubricated Smooth Latex Condoms | Str: Nominal Width 53mm | Form: Prophylactic Device
+25. [BC-MED-0450] Rough Rider Studded Condoms (Pack of 3) | Gen: Studded Rubber Latex Condoms | Str: Nominal Width 52mm | Form: Prophylactic Device
+26. [BC-MED-0451] K-Y Sterile Water-Based Personal Lubricating Jelly 50g | Gen: Sterile Water-Soluble Lubricant Gel | Str: Pure Water-Soluble Formula | Form: Topical Lubricant Gel
+27. [BC-MED-0452] Durex Play Feel Lubricant Gel 50ml | Gen: Silky Smooth Water-Based Intimate Lube | Str: Water-Based Silky Feel | Form: Intimate Gel Bottle with Pump
+28. [BC-MED-0453] Durex Tingling Pleasure Lube 50ml | Gen: Tingling Water-Based Intimate Lubricant | Str: Tingling Sensual Formula | Form: Pump Bottle
+29. [BC-MED-0454] Lidocaine 10% Male Endurance Delay Spray 20ml | Gen: Lidocaine Topical Delay Aerosol | Str: 9.6% Metered Spray | Form: Topical Aerosol Spray
+30. [BC-MED-0455] Intimate Cleansing Wipes (pH-Balanced Pack of 20) | Gen: Hypoallergenic Intimate Wet Wipes | Str: Alcohol-Free & Soap-Free | Form: Resealable Wipes Pack
+31. [BC-MED-0456] Dettol Original Antibacterial Bar Soap (175g) | Gen: Antibacterial Chloroxylenol Bath Soap | Str: Original Germ Protection | Form: Solid Cleansing Bar
+32. [BC-MED-0457] Lifebuoy Total 10 Antibacterial Soap Bar (175g) | Gen: Silver Active Shield Soap Bar | Str: Advanced Germ Protection | Form: Solid Cleansing Bar
+33. [BC-MED-0458] Medisoft Antiseptic Medicated Soap Bar 100g | Gen: Triclocarban Antiseptic Cleansing Bar | Str: Medicated Antiseptic | Form: Solid Cleansing Bar
+34. [BC-MED-0459] Nivea Dry Comfort Roll-On Deodorant 50ml | Gen: Aluminum Chlorohydrate Antiperspirant Roll-On | Str: 48-Hour Protection | Form: Roll-On Liquid
+35. [BC-MED-0460] Rexona Men Cobalt Dry Roll-On Deodorant 50ml | Gen: MotionSense Antiperspirant Deodorant | Str: 48-Hour Motion Activated | Form: Roll-On Liquid
+36. [BC-MED-0461] Pure Cornstarch Baby & Body Dusting Powder 200g | Gen: Zea Mays Starch Absorbent Body Powder | Str: Talc-Free Absorbent Formula | Form: Dusting Powder
+37. [BC-MED-0462] Medicated Prickly Heat Cooling Powder 150g | Gen: Menthol & Camphor Antiseptic Cooling Powder | Str: Classic Cooling Powder | Form: Medicated Dusting Powder
+38. [BC-MED-0463] Antiperspirant Cooling Foot Spray 150ml | Gen: Tea Tree Oil & Aluminum Chlorohydrate Foot Spray | Str: 24-Hour Odor & Wetness Defense | Form: Aerosol Foot Spray
+39. [BC-MED-0464] Antifungal Odor Defense Shoe Powder 100g | Gen: Tolnaftate & Zinc Undecylenate Shoe Powder | Str: Antimicrobial Powder | Form: Footwear Powder
+40. [BC-MED-0465] Disposable Twin-Blade Medical Prep Razors (Pack of 5) | Gen: Stainless Steel Twin-Blade Disposable Razors | Str: Twin-Blade Pivoting Head | Form: Disposable Shaving Razor
+41. [BC-MED-0466] Dettol Antiseptic Wet Wipes (Pack of 40) | Gen: Benzalkonium Chloride Antibacterial Wipes | Str: Germ Protection Wipes | Form: Moist Wet Wipes
+42. [BC-MED-0467] Cotton Ear Buds 100% Pure Cotton (Pack of 200) | Gen: Paper Stem Pure Cotton Applicator Swabs | Str: Dual-Ended Cotton Swabs | Form: Hygienic Cotton Applicator
+43. [BC-MED-0468] Medical Grade Stainless Steel Nail Clippers (Set of 2) | Gen: Curved Carbon Stainless Steel Nail Clippers | Str: Dual Set (Fingernail + Heavy Toenail Clipper) | Form: Grooming Tool
+44. [BC-MED-0469] Natural Lava Pumice Stone Callus Remover | Gen: Volcanic Lava Exfoliating Pumice Stone | Str: Coarse Exfoliating Density | Form: Pumice Stone Appliance
+45. [BC-MED-0470] Antibacterial Foam Shaving Gel 200ml | Gen: Moisturizing Tea Tree & Aloe Shaving Gel | Str: Anti-Friction Formula | Form: Aerosol Shaving Gel Can
+46. [BC-MED-0471] Tea Tree Medicated Aftershave Balm 100ml | Gen: Soothing Tea Tree & Witch Hazel Lotion | Str: Alcohol-Free Anti-Bump Formula | Form: Soothing Post-Shave Lotion
+47. [BC-MED-0472] Epsom Salt (Pure Magnesium Sulfate) 500g | Gen: Magnesium Sulfate Heptahydrate BP | Str: USP Therapeutic Grade | Form: Bath & Foot Soak Crystals
+48. [BC-MED-0473] Medicated Anti-Fungal Nail Lacquer 5ml | Gen: Amorolfine 5% Medicated Nail Lacquer | Str: 5% w/v | Form: Medicated Lacquer with Files & Swabs
+49. [BC-MED-0474] Boric Acid Ear Drops 2% 15ml | Gen: Boric Acid in Alcohol Ear Drops | Str: 2% w/v | Form: Ear Drops
+50. [BC-MED-0475] Pure Liquid Glycerin BP 100ml | Gen: Glycerol BP Pure | Str: 100% Pure BP | Form: Viscous Topical Emollient
+51. [BC-MED-0476] Castor Oil BP Cold-Pressed 100ml | Gen: Ricinus Communis Seed Oil | Str: 100% Cold Pressed | Form: Viscous Pure Botanical Oil
+52. [BC-MED-0477] Dettol Antibacterial Liquid Hand Wash 250ml | Gen: Antibacterial Liquid Soap with Pump | Str: Germ Defense Liquid | Form: Liquid Hand Wash with Dispenser Pump
+
+========================================
+CATEGORY: Baby & Child Care (52 items)
+========================================
+ 1. [DEMO-MED-033] Pediatric Paracetamol Syrup 100ml | Gen: Paracetamol 120mg/5ml | Str: 120mg/5ml | Form: 100ml Bottle + Spoon
+ 2. [BC-MED-0629] Paracetamol Pediatric Suspension 120mg/5ml 100ml | Gen: Paracetamol Pediatric Oral Suspension | Str: 120mg/5ml | Form: Oral Suspension with Dosing Syringe
+ 3. [BC-MED-0630] Paracetamol Infant Drops 100mg/ml 15ml | Gen: Paracetamol Concentrated Oral Drops | Str: 100mg/ml | Form: Oral Drops with Calibrated Dropper
+ 4. [BC-MED-0631] Ibuprofen Pediatric Suspension 100mg/5ml 100ml | Gen: Ibuprofen Pediatric Suspension | Str: 100mg/5ml | Form: Oral Suspension
+ 5. [BC-MED-0632] Paracetamol 125mg Infant Suppositories (Pack of 5) | Gen: Paracetamol Suppositories | Str: 125mg | Form: Rectal Suppository
+ 6. [BC-MED-0633] Paracetamol 250mg Children Suppositories (Pack of 5) | Gen: Paracetamol Suppositories | Str: 250mg | Form: Rectal Suppository
+ 7. [BC-MED-0634] Ashton & Parsons Teething Powders (Pack of 20) | Gen: Tincture of Matricaria Chamomile | Str: Traditional Phyto-Formula | Form: Oral Sachet Powder
+ 8. [BC-MED-0635] Dentinox Infant Teething Gel 15g | Gen: Lidocaine Hydrochloride + Cetylpyridinium Chloride | Str: Sugar-Free Teething Formula | Form: Topical Oral Gel
+ 9. [BC-MED-0636] Water-Filled BPA-Free Infant Teething Ring | Gen: Cooling Silicone Teether Ring | Str: Chilled Gum Soother | Form: Pediatric Device Appliance
+10. [BC-MED-0637] Woodward's Gripe Water Alcohol-Free 150ml | Gen: Dill Seed Oil + Sodium Bicarbonate | Str: Alcohol-Free Herbal Blend | Form: Oral Liquid
+11. [BC-MED-0638] Pedialyte Pediatric Electrolyte Solution 500ml (Apple) | Gen: Electrolyte & Dextrose Oral Resuscitation Solution | Str: Balanced Pediatric Osmolarity | Form: Ready-to-Drink Oral Solution
+12. [BC-MED-0639] Pedialyte Pediatric Electrolyte Solution 500ml (Bubble Gum) | Gen: Electrolyte & Dextrose Oral Resuscitation Solution | Str: Balanced Pediatric Osmolarity | Form: Ready-to-Drink Oral Solution
+13. [BC-MED-0640] Colief Infant Lactase Enzyme Drops 15ml | Gen: Lactase Enzyme Solution | Str: Natural Enzyme Drops | Form: Oral Drops
+14. [BC-MED-0641] Glycerin Infant Suppositories 1g (Pack of 10) | Gen: Glycerol Pediatric Suppositories | Str: 1g (Infant Size) | Form: Rectal Suppository
+15. [BC-MED-0642] Otrivin Baby Saline Nasal Drops 15ml | Gen: Isotonic Sodium Chloride Nasal Drops | Str: 0.74% Isotonic | Form: Nasal Drops with Soft Pipette
+16. [BC-MED-0643] Sterimar Baby Natural Sea Water Micro-Diffusion Spray 50ml | Gen: Sterile Isotonic Sea Water Nasal Spray | Str: Isotonic Micro-Spray with Safety Nozzle | Form: Nasal Aerosol Spray
+17. [BC-MED-0644] Silicone Bulb Infant Nasal Mucus Aspirator | Gen: Soft Silicone Mucus Suction Bulb | Str: Controlled Manual Suction | Form: Pediatric Device Appliance
+18. [BC-MED-0645] Snufflebabe Gentle Vapour Rub for Babies 35g | Gen: Pediatric Camphor-Free Vapour Ointment | Str: Camphor-Free Mild Formulation | Form: Topical Ointment
+19. [BC-MED-0646] Bepanthen Baby Nappy Care Ointment 30g | Gen: Dexpanthenol (Pro-Vitamin B5) Ointment | Str: 5% Dexpanthenol | Form: Topical Ointment
+20. [BC-MED-0647] Bepanthen Baby Nappy Care Ointment 100g | Gen: Dexpanthenol (Pro-Vitamin B5) Ointment | Str: 5% Dexpanthenol (Economy Size) | Form: Topical Ointment
+21. [BC-MED-0648] Desitin Maximum Strength Diaper Rash Paste 113g | Gen: Zinc Oxide 40% Diaper Rash Treatment | Str: 40% Maximum Strength Zinc | Form: Thick Protective Paste
+22. [BC-MED-0649] Sudocrem Baby Antiseptic Healing Cream 60g | Gen: Zinc Oxide + Benzyl Benzoate Nappy Cream | Str: Pediatric Antiseptic Barrier | Form: Topical Cream
+23. [BC-MED-0650] Sebamed Baby Cleansing Bar pH 5.5 100g | Gen: Soap-Free Gentle Pediatric Cleansing Bar | Str: 100% Soap & Alkali Free | Form: Solid Cleansing Bar
+24. [BC-MED-0651] Sebamed Baby Gentle Wash Extra Soft 200ml | Gen: Pediatric Extra Soft Liquid Cleanser | Str: pH 5.5 Tear-Free Formula | Form: Liquid Body Wash with Pump
+25. [BC-MED-0652] Johnson's Baby Shampoo No More Tears 200ml | Gen: Gentle Pediatric Tear-Free Shampoo | Str: Ophthalmologist-Tested Tear-Free | Form: Liquid Hair Shampoo
+26. [BC-MED-0653] Johnson's Baby Oil with Aloe & Vitamin E 200ml | Gen: Mineral Baby Massage Oil | Str: Locks in 10x More Moisture | Form: Topical Baby Oil
+27. [BC-MED-0654] Aveeno Baby Daily Moisture Lotion 227ml | Gen: Natural Colloidal Oatmeal Pediatric Lotion | Str: 24-Hour Fragrance-Free | Form: Moisturizing Cream Tube
+28. [BC-MED-0655] Dent-O-Cap Cradle Cap Pediatric Shampoo 125ml | Gen: Salicylic Acid + Zinc Pyrithione Baby Shampoo | Str: Mild Keratolytic Wash | Form: Medicated Scalp Shampoo
+29. [BC-MED-0656] Huggies Pure Fragrance-Free Baby Wipes (Pack of 56) | Gen: Pure Water Natural Fiber Infant Wipes | Str: Fragrance-Free & Alcohol-Free | Form: Wet Cleansing Wipes
+30. [BC-MED-0657] Pampers Sensitive Fragrance-Free Wipes (Pack of 56) | Gen: Dermatologically Tested Sensitive Wipes | Str: pH Balancing Formula | Form: Wet Cleansing Wipes
+31. [BC-MED-0658] Safety Cotton Buds with Ear Guard (Pack of 60) | Gen: Pediatric Bulb Safety Cotton Buds | Str: Anti-Insertion Bulbous Tip | Form: Safety Swabs
+32. [BC-MED-0659] NAN Optipro 1 Infant Starter Formula 400g (0-6 Months) | Gen: Whey-Predominant Infant Milk Formula | Str: Stage 1 (Birth to 6 Months) | Form: Powder Infant Formula
+33. [BC-MED-0660] NAN Optipro 2 Follow-Up Formula 400g (6-12 Months) | Gen: Follow-On Infant Formula | Str: Stage 2 (6 to 12 Months) | Form: Powder Formula
+34. [BC-MED-0661] NAN Optipro 3 Growing Up Milk 400g (1-3 Years) | Gen: Growing Up Milk for Toddlers | Str: Stage 3 (1 to 3 Years) | Form: Powder Milk Drink
+35. [BC-MED-0662] Infasoy Soya-Based Infant Formula 400g | Gen: Soy Protein Isolate Infant Formula | Str: 100% Lactose-Free & Cow's Milk Free | Form: Powder Infant Formula
+36. [BC-MED-0663] Aptamil 1 First Infant Milk 400g | Gen: GOS/FOS Prebiotic Infant Formula | Str: From Birth (Stage 1) | Form: Powder Formula
+37. [BC-MED-0664] SMA Pro First Infant Milk 400g | Gen: Demineralized Whey Infant Formula | Str: From Birth (Stage 1) | Form: Powder Formula
+38. [BC-MED-0665] Cerelac Infant Cereal Maize with Milk 400g | Gen: Fortified Maize Infant Cereal with Milk | Str: From 6 Months | Form: Dry Infant Cereal
+39. [BC-MED-0666] Cerelac Infant Cereal Wheat with Milk 400g | Gen: Fortified Wheat Cereal with Milk | Str: From 6 Months | Form: Dry Infant Cereal
+40. [BC-MED-0667] Cerelac Infant Cereal Rice & Milk 400g | Gen: Hypoallergenic Rice Infant Cereal with Milk | Str: From 6 Months (Gentle on Tummy) | Form: Dry Infant Cereal
+41. [BC-MED-0668] Philips Avent Natural Anti-Colic Feeding Bottle 125ml | Gen: BPA-Free Anti-Colic Nursing Bottle | Str: 125ml / 4 oz (Slow Flow Teat 0m+) | Form: Pediatric Device Appliance
+42. [BC-MED-0669] Philips Avent Natural Anti-Colic Feeding Bottle 260ml | Gen: BPA-Free Anti-Colic Nursing Bottle | Str: 260ml / 9 oz (Medium Flow 1m+) | Form: Pediatric Device Appliance
+43. [BC-MED-0670] Philips Avent Replacement Silicone Teats (Medium Flow 2-Pack) | Gen: Silicone Anti-Colic Bottle Teats | Str: Medium Flow 3m+ (Pack of 2) | Form: Silicone Teats
+44. [BC-MED-0671] Orthodontic Silicone Baby Soothers / Pacifiers (Pack of 2) | Gen: BPA-Free Orthodontic Silicone Pacifiers | Str: 0 to 6 Months (Set of 2) | Form: Pediatric Device Appliance
+45. [BC-MED-0672] Infant Oral Medicine Dispenser Syringe with Pacifier Tip | Gen: Pediatric Liquid Medicine Dispenser | Str: 5ml Calibrated Syringe | Form: Pediatric Device Appliance
+46. [BC-MED-0673] Soft Silicone Finger Toothbrush for Infants (with Case) | Gen: Silicone Infant Gum & First Tooth Massager | Str: Dual-Sided (Bristles + Gum Nodule Massager) | Form: Pediatric Oral Device
+47. [BC-MED-0674] Pediatric Milk Bottle Cleaning Brush with Teat Cleaner | Gen: 360-Degree Rotating Bottle & Teat Brush | Str: Dual Head (Long Handle + Hidden Teat Brush) | Form: Cleaning Accessory
+48. [BC-MED-0675] Microwave Steam Sterilizer Bags for Bottles & Pumps (Pack of 5) | Gen: Reusable Microwave Disinfection Bags | Str: Kills 99.9% of Harmful Bacteria in 3 Minutes | Form: Sterilization Bags
+49. [BC-MED-0676] Infant Digital Pacifier Thermometer (LCD) | Gen: Soother-Style Clinical Digital Thermometer | Str: Accurate to ±0.1°C with Fever Alert Beep | Form: Diagnostic Device
+50. [BC-MED-0677] Zinc Sulfate 20mg Pediatric Dispersible Tablets (Strip of 10) | Gen: Zinc Sulfate Monohydrate | Str: 20mg | Form: Dispersible Tablet
+51. [BC-MED-0678] Abidec Multivitamin Infant Drops with Vitamin D 25ml | Gen: Pediatric 7 Essential Vitamins Liquid Drops | Str: Infant Multivitamin Drops | Form: Oral Drops with Syringe
+52. [BC-MED-0679] Wellbaby Multi-Vitamin Liquid 150ml | Gen: 14 Vitamins & Minerals for Babies & Young Children | Str: Infant & Toddler Formula (6m to 4y) | Form: Oral Liquid with Syringe
+
+========================================
+CATEGORY: Maternal Health (52 items)
+========================================
+ 1. [DEMO-MED-013] Ferrous Sulfate Tablets | Gen: Dried Ferrous Sulfate | Str: 200mg (65mg Elemental Iron) | Form: Bottle of 60 Tablets
+ 2. [DEMO-MED-028] Folic Acid 5mg Tablets | Gen: Folic Acid | Str: 5mg | Form: Bottle of 100 Tablets
+ 3. [BC-MED-0279] Pregnacare Original Antenatal Tablets | Gen: Comprehensive Prenatal Micronutrient Formula | Str: Pregnancy Formula | Form: Tablet
+ 4. [BC-MED-0280] Pregnacare Plus Dual Pack (Tablets + Omega-3) | Gen: Antenatal Micronutrients + Pure Marine DHA | Str: Dual Pack Formula | Form: Tablets and Softgel Capsules
+ 5. [BC-MED-0281] Pregnacare Breast-Feeding Dual Pack | Gen: Postnatal Micronutrients + High Purity Omega-3 | Str: Postnatal & Lactation Formula | Form: Tablets and Capsules
+ 6. [BC-MED-0282] Pregnacare Conception Conception Support Tablets | Gen: Pre-conception Micronutrients for Women | Str: Pre-Pregnancy Formula | Form: Tablet
+ 7. [BC-MED-0283] Elevit Pronatal Multivitamin Tablets | Gen: High Iron & Folic Acid Prenatal Formula | Str: Clinically Proven Antenatal Formula | Form: Film-Coated Tablet
+ 8. [BC-MED-0284] Ferrous Fumarate 210mg Tablets | Gen: Ferrous Fumarate | Str: 210mg | Form: Tablet
+ 9. [BC-MED-0285] Ferrous Gluconate 300mg Tablets | Gen: Ferrous Gluconate | Str: 300mg | Form: Coated Tablet
+10. [BC-MED-0286] Folic Acid 400mcg Tablets (Pre-Pregnancy) | Gen: Folic Acid (Vitamin B9) | Str: 400mcg | Form: Small Tablet
+11. [BC-MED-0287] Calcium Carbonate 1250mg (500mg Ca) Antenatal Tablets | Gen: Calcium Carbonate | Str: 500mg Ca | Form: Tablet
+12. [BC-MED-0288] Methyldopa 250mg Tablets | Gen: Methyldopa | Str: 250mg | Form: Film-Coated Tablet
+13. [BC-MED-0289] Methyldopa 500mg Tablets | Gen: Methyldopa | Str: 500mg | Form: Film-Coated Tablet
+14. [BC-MED-0290] Labetalol 100mg Tablets | Gen: Labetalol Hydrochloride | Str: 100mg | Form: Film-Coated Tablet
+15. [BC-MED-0291] Labetalol 200mg Tablets | Gen: Labetalol Hydrochloride | Str: 200mg | Form: Film-Coated Tablet
+16. [BC-MED-0292] Nifedipine Retard 20mg Tablets | Gen: Nifedipine Sustained-Release | Str: 20mg | Form: Sustained-Release Film-Coated Tablet
+17. [BC-MED-0293] Magnesium Sulfate 50% Injection (10 x 10ml) | Gen: Magnesium Sulfate Heptahydrate | Str: 50% w/v (5g/10ml) | Form: Sterile Injection Ampoule
+18. [BC-MED-0294] Oxytocin Injection 10 IU/ml (10 Ampoules) | Gen: Oxytocin (Synthetic) | Str: 10 IU/ml | Form: Sterile Aqueous Injection
+19. [BC-MED-0295] Misoprostol 200mcg Tablets | Gen: Misoprostol | Str: 200mcg | Form: Tablet
+20. [BC-MED-0296] Tranexamic Acid 500mg Tablets | Gen: Tranexamic Acid | Str: 500mg | Form: Film-Coated Tablet
+21. [BC-MED-0297] Tranexamic Acid 500mg/5ml Injection (5 Ampoules) | Gen: Tranexamic Acid | Str: 500mg/5ml | Form: Sterile IV Injection
+22. [BC-MED-0298] Sulfadoxine-Pyrimethamine 500mg/25mg (Fansidar) | Gen: Sulfadoxine + Pyrimethamine | Str: 500mg/25mg | Form: Tablet
+23. [BC-MED-0299] Doxylamine Succinate + Pyridoxine (Pregnancy Nausea) | Gen: Doxylamine Succinate + Pyridoxine HCl | Str: 10mg/10mg | Form: Delayed-Release Tablet
+24. [BC-MED-0300] Metoclopramide 5mg/5ml Syrup 100ml | Gen: Metoclopramide Hydrochloride | Str: 5mg/5ml | Form: Oral Syrup
+25. [BC-MED-0301] Micronized Progesterone 200mg Capsules | Gen: Natural Micronized Progesterone | Str: 200mg | Form: Soft Gelatin Oral/Vaginal Capsule
+26. [BC-MED-0302] Dydrogesterone 10mg Tablets | Gen: Dydrogesterone | Str: 10mg | Form: Film-Coated Tablet
+27. [BC-MED-0303] Clomiphene Citrate 50mg Tablets | Gen: Clomiphene Citrate | Str: 50mg | Form: Tablet
+28. [BC-MED-0304] Letrozole 2.5mg Tablets | Gen: Letrozole | Str: 2.5mg | Form: Film-Coated Tablet
+29. [BC-MED-0305] Inositol + Folic Acid Sachets (PCOS Formula) | Gen: Myo-Inositol + D-Chiro-Inositol + Folic Acid | Str: 40:1 Ratio Formula | Form: Powder for Oral Solution
+30. [BC-MED-0306] Combined Oral Contraceptive (Microgynon 30) | Gen: Levonorgestrel + Ethinylestradiol | Str: 150mcg/30mcg | Form: Sugar-Coated Tablet
+31. [BC-MED-0307] Progestogen-Only Pill (Microlut 35mcg) | Gen: Levonorgestrel | Str: 30mcg | Form: Tablet
+32. [BC-MED-0308] Emergency Contraceptive Pill (Postinor-2) | Gen: Levonorgestrel | Str: 0.75mg | Form: Tablet
+33. [BC-MED-0309] Emergency Contraceptive Pill (Postinor-1 Single Dose) | Gen: Levonorgestrel | Str: 1.5mg | Form: Single Dose Tablet
+34. [BC-MED-0310] Depo-Provera 150mg/ml Contraceptive Injection | Gen: Medroxyprogesterone Acetate | Str: 150mg/ml | Form: Sterile Aqueous Suspension Vial
+35. [BC-MED-0311] Sayana Press 104mg Subcutaneous Injectable | Gen: Medroxyprogesterone Acetate | Str: 104mg/0.65ml | Form: Subcutaneous Injection Uniject Device
+36. [BC-MED-0312] Copper-T 380A Intrauterine Device (IUD) | Gen: Copper Intrauterine Contraceptive Device | Str: 380mm2 Copper | Form: Sterile Intrauterine System with Inserter
+37. [BC-MED-0313] Mirena Levonorgestrel Intrauterine System (IUS) | Gen: Levonorgestrel Releasing Intrauterine System | Str: 52mg LNG | Form: Intrauterine Device with Inserter
+38. [BC-MED-0314] Jadelle 2-Rod Levonorgestrel Subdermal Implants | Gen: Levonorgestrel Subdermal Implants | Str: 150mg total LNG | Form: Subdermal Implantation Rods
+39. [BC-MED-0315] Implanon NXT 1-Rod Contraceptive Implant | Gen: Etonogestrel Radiopaque Implant | Str: 68mg | Form: Preloaded Sterile Subdermal Applicator
+40. [BC-MED-0316] One-Step hCG Urine Pregnancy Test Cassette | Gen: Human Chorionic Gonadotropin Rapid Diagnostic Test | Str: Sensitivity 25 mIU/ml | Form: Diagnostic Test Device
+41. [BC-MED-0317] Clearblue Digital Pregnancy Test with Weeks Indicator | Gen: Digital hCG Detection Device | Str: Ultra-Sensitive 25 mIU/ml | Form: Electronic Digital Stick
+42. [BC-MED-0318] Ovulation LH Rapid Test Strip (Pack of 5) | Gen: Luteinizing Hormone (LH) Detection Strip | Str: 25 mIU/ml LH Surge | Form: Diagnostic Test Strip
+43. [BC-MED-0319] Palmer's Cocoa Butter Cocoa Stretch Mark Massage Lotion 250ml | Gen: Cocoa Butter + Shea Butter + Collagen + Elastin | Str: Dermatological Formula | Form: Body Lotion with Pump
+44. [BC-MED-0320] Bio-Oil Skincare Oil 125ml | Gen: PurCellin Oil + Vitamin A & E + Plant Extracts | Str: PurCellin Specialized Oil | Form: Skincare Oil
+45. [BC-MED-0321] Lansinoh HPA Lanolin Nipple Cream 40g | Gen: Ultra-Pure Modified Lanolin | Str: 100% Pure | Form: Topical Ointment
+46. [BC-MED-0322] Multi-Mam Nipple Compresses (Box of 12) | Gen: Bio-Active 2QR Complex Impregnated Dressing | Str: Bio-Active Gel Compress | Form: Impregnated Dressing Pad
+47. [BC-MED-0323] Postpartum Disposable Maternity Pads (Pack of 10) | Gen: Extra-Long Super Absorbent Maternity Towels | Str: Maxi Absorbency | Form: Maternity Sanitary Pad
+48. [BC-MED-0324] Manual Breast Pump with Feeding Bottle | Gen: Ergonomic Silicone Hand Expression Breast Pump | Str: Manual Dual-Phase Suction | Form: Medical Device Unit
+49. [BC-MED-0325] Sterile Breast Milk Storage Bags (Pack of 25) | Gen: Pre-Sterilized Double Zipper Milk Bags | Str: 180ml / 6 oz Capacity | Form: Sterile Storage Bags
+50. [BC-MED-0326] Pregnancy Support Abdominal Belt | Gen: Maternity Pelvic & Lumbar Support Binder | Str: Adjustable Size M/L/XL | Form: Orthopedic Appliance
+51. [BC-MED-0327] Disposable Postpartum Recovery Briefs (Pack of 5) | Gen: Seamless Stretch Mesh Postnatal Underwear | Str: High-Waist Stretch Fit | Form: Disposable Undergarment
+52. [BC-MED-0328] Silicone Nipple Protectors / Shields (Set of 2) | Gen: Ultra-Thin Silicone Breastfeeding Shields | Str: Medium 20mm | Form: Silicone Appliance
+
+========================================
+CATEGORY: Chronic Care (52 items)
+========================================
+ 1. [DEMO-MED-029] Amlodipine 5mg Tablets | Gen: Amlodipine Besylate | Str: 5mg | Form: Box of 28 Tablets
+ 2. [DEMO-MED-030] Losartan Potassium 50mg Tablets | Gen: Losartan Potassium | Str: 50mg | Form: Box of 30 Tablets
+ 3. [BC-MED-0478] Enalapril 5mg Tablets | Gen: Enalapril Maleate | Str: 5mg | Form: Tablet
+ 4. [BC-MED-0479] Enalapril 10mg Tablets | Gen: Enalapril Maleate | Str: 10mg | Form: Tablet
+ 5. [BC-MED-0480] Enalapril 20mg Tablets | Gen: Enalapril Maleate | Str: 20mg | Form: Tablet
+ 6. [BC-MED-0481] Lisinopril 5mg Tablets | Gen: Lisinopril Dihydrate | Str: 5mg | Form: Tablet
+ 7. [BC-MED-0482] Lisinopril 10mg Tablets | Gen: Lisinopril Dihydrate | Str: 10mg | Form: Tablet
+ 8. [BC-MED-0483] Lisinopril 20mg Tablets | Gen: Lisinopril Dihydrate | Str: 20mg | Form: Tablet
+ 9. [BC-MED-0484] Ramipril 2.5mg Capsules | Gen: Ramipril | Str: 2.5mg | Form: Hard Capsule
+10. [BC-MED-0485] Ramipril 5mg Capsules | Gen: Ramipril | Str: 5mg | Form: Hard Capsule
+11. [BC-MED-0486] Ramipril 10mg Capsules | Gen: Ramipril | Str: 10mg | Form: Hard Capsule
+12. [BC-MED-0487] Captopril 25mg Tablets | Gen: Captopril | Str: 25mg | Form: Tablet
+13. [BC-MED-0488] Losartan 100mg Tablets | Gen: Losartan Potassium | Str: 100mg | Form: Film-Coated Tablet
+14. [BC-MED-0489] Losartan + Hydrochlorothiazide 50mg/12.5mg Tablets | Gen: Losartan Potassium + Hydrochlorothiazide | Str: 50mg/12.5mg | Form: Film-Coated Tablet
+15. [BC-MED-0490] Telmisartan 40mg Tablets | Gen: Telmisartan | Str: 40mg | Form: Tablet
+16. [BC-MED-0491] Telmisartan 80mg Tablets | Gen: Telmisartan | Str: 80mg | Form: Tablet
+17. [BC-MED-0492] Telmisartan + Amlodipine 40mg/5mg Tablets | Gen: Telmisartan + Amlodipine Besylate | Str: 40mg/5mg | Form: Bilayer Tablet
+18. [BC-MED-0493] Valsartan 80mg Tablets | Gen: Valsartan | Str: 80mg | Form: Film-Coated Tablet
+19. [BC-MED-0494] Valsartan 160mg Tablets | Gen: Valsartan | Str: 160mg | Form: Film-Coated Tablet
+20. [BC-MED-0495] Candesartan 8mg Tablets | Gen: Candesartan Cilexetil | Str: 8mg | Form: Scored Tablet
+21. [BC-MED-0496] Candesartan 16mg Tablets | Gen: Candesartan Cilexetil | Str: 16mg | Form: Scored Tablet
+22. [BC-MED-0497] Amlodipine 10mg Tablets | Gen: Amlodipine Besylate | Str: 10mg | Form: Scored Tablet
+23. [BC-MED-0498] Amlodipine + Atenolol 5mg/50mg Tablets | Gen: Amlodipine + Atenolol | Str: 5mg/50mg | Form: Film-Coated Tablet
+24. [BC-MED-0499] Diltiazem 60mg Tablets | Gen: Diltiazem Hydrochloride | Str: 60mg | Form: Film-Coated Tablet
+25. [BC-MED-0500] Verapamil 80mg Tablets | Gen: Verapamil Hydrochloride | Str: 80mg | Form: Film-Coated Tablet
+26. [BC-MED-0501] Atenolol 50mg Tablets | Gen: Atenolol | Str: 50mg | Form: Film-Coated Tablet
+27. [BC-MED-0502] Atenolol 100mg Tablets | Gen: Atenolol | Str: 100mg | Form: Film-Coated Tablet
+28. [BC-MED-0503] Carvedilol 6.25mg Tablets | Gen: Carvedilol | Str: 6.25mg | Form: Scored Tablet
+29. [BC-MED-0504] Carvedilol 12.5mg Tablets | Gen: Carvedilol | Str: 12.5mg | Form: Scored Tablet
+30. [BC-MED-0505] Carvedilol 25mg Tablets | Gen: Carvedilol | Str: 25mg | Form: Scored Tablet
+31. [BC-MED-0506] Bisoprolol 2.5mg Tablets | Gen: Bisoprolol Fumarate | Str: 2.5mg | Form: Heart-Shaped Film-Coated Tablet
+32. [BC-MED-0507] Bisoprolol 5mg Tablets | Gen: Bisoprolol Fumarate | Str: 5mg | Form: Heart-Shaped Scored Tablet
+33. [BC-MED-0508] Bisoprolol 10mg Tablets | Gen: Bisoprolol Fumarate | Str: 10mg | Form: Heart-Shaped Scored Tablet
+34. [BC-MED-0509] Propranolol 40mg Tablets | Gen: Propranolol Hydrochloride | Str: 40mg | Form: Tablet
+35. [BC-MED-0510] Hydrochlorothiazide 25mg Tablets | Gen: Hydrochlorothiazide (HCTZ) | Str: 25mg | Form: Tablet
+36. [BC-MED-0511] Furosemide 40mg Tablets (Lasix) | Gen: Furosemide | Str: 40mg | Form: Scored Tablet
+37. [BC-MED-0512] Spironolactone 25mg Tablets | Gen: Spironolactone | Str: 25mg | Form: Film-Coated Tablet
+38. [BC-MED-0513] Indapamide 1.5mg Sustained-Release Tablets | Gen: Indapamide Hemihydrate SR | Str: 1.5mg SR | Form: Sustained-Release Tablet
+39. [BC-MED-0514] Atorvastatin 10mg Tablets | Gen: Atorvastatin Calcium | Str: 10mg | Form: Film-Coated Tablet
+40. [BC-MED-0515] Atorvastatin 20mg Tablets | Gen: Atorvastatin Calcium | Str: 20mg | Form: Film-Coated Tablet
+41. [BC-MED-0516] Atorvastatin 40mg Tablets | Gen: Atorvastatin Calcium | Str: 40mg | Form: Film-Coated Tablet
+42. [BC-MED-0517] Rosuvastatin 10mg Tablets | Gen: Rosuvastatin Calcium | Str: 10mg | Form: Film-Coated Tablet
+43. [BC-MED-0518] Rosuvastatin 20mg Tablets | Gen: Rosuvastatin Calcium | Str: 20mg | Form: Film-Coated Tablet
+44. [BC-MED-0519] Aspirin 75mg Gastro-Resistant Tablets | Gen: Acetylsalicylic Acid (Low Dose) | Str: 75mg | Form: Enteric-Coated Tablet
+45. [BC-MED-0520] Clopidogrel 75mg Tablets | Gen: Clopidogrel Hydrogen Sulfate | Str: 75mg | Form: Film-Coated Tablet
+46. [BC-MED-0521] Warfarin 5mg Tablets | Gen: Warfarin Sodium | Str: 5mg | Form: Scored Pink Tablet
+47. [BC-MED-0522] Rivaroxaban 20mg Tablets (Xarelto) | Gen: Rivaroxaban | Str: 20mg | Form: Film-Coated Tablet
+48. [BC-MED-0523] Allopurinol 100mg Tablets | Gen: Allopurinol | Str: 100mg | Form: Tablet
+49. [BC-MED-0524] Allopurinol 300mg Tablets | Gen: Allopurinol | Str: 300mg | Form: Tablet
+50. [BC-MED-0525] Colchicine 0.5mg Tablets | Gen: Colchicine | Str: 0.5mg | Form: Small Tablet
+51. [BC-MED-0526] Glyceryl Trinitrate (GTN) 0.5mg Sublingual Tablets | Gen: Nitroglycerin Sublingual | Str: 0.5mg | Form: Sublingual Fast-Absorbing Tablet
+52. [BC-MED-0527] Isosorbide Dinitrate 10mg Tablets | Gen: Isosorbide Dinitrate | Str: 10mg | Form: Tablet
+
+========================================
+CATEGORY: Diabetes Care (52 items)
+========================================
+ 1. [DEMO-MED-031] Metformin 500mg Tablets | Gen: Metformin Hydrochloride | Str: 500mg | Form: Box of 30 Tablets
+ 2. [DEMO-MED-032] Accu-Chek Blood Glucose Test Strips | Gen: Blood Glucose Test Strips (50s) | Str: 50 Test Strips | Form: Vial of 50 Strips
+ 3. [BC-MED-0528] Metformin 850mg Tablets | Gen: Metformin Hydrochloride | Str: 850mg | Form: Film-Coated Tablet
+ 4. [BC-MED-0529] Metformin 1000mg Tablets | Gen: Metformin Hydrochloride | Str: 1000mg | Form: Film-Coated Tablet
+ 5. [BC-MED-0530] Metformin Extended-Release (XR) 500mg Tablets | Gen: Metformin Extended-Release | Str: 500mg XR | Form: Extended-Release Tablet
+ 6. [BC-MED-0531] Metformin Extended-Release (XR) 1000mg Tablets | Gen: Metformin Extended-Release | Str: 1000mg XR | Form: Extended-Release Tablet
+ 7. [BC-MED-0532] Glibenclamide 5mg Tablets (Daonil) | Gen: Glibenclamide | Str: 5mg | Form: Scored Tablet
+ 8. [BC-MED-0533] Glimepiride 1mg Tablets | Gen: Glimepiride | Str: 1mg | Form: Scored Tablet
+ 9. [BC-MED-0534] Glimepiride 2mg Tablets | Gen: Glimepiride | Str: 2mg | Form: Scored Tablet
+10. [BC-MED-0535] Glimepiride 3mg Tablets | Gen: Glimepiride | Str: 3mg | Form: Scored Tablet
+11. [BC-MED-0536] Glimepiride 4mg Tablets | Gen: Glimepiride | Str: 4mg | Form: Scored Tablet
+12. [BC-MED-0537] Gliclazide 80mg Tablets | Gen: Gliclazide | Str: 80mg | Form: Cross-Scored Tablet
+13. [BC-MED-0538] Gliclazide Modified-Release (MR) 30mg Tablets | Gen: Gliclazide Modified-Release | Str: 30mg MR | Form: Modified-Release Tablet
+14. [BC-MED-0539] Gliclazide Modified-Release (MR) 60mg Tablets | Gen: Gliclazide Modified-Release | Str: 60mg MR | Form: Modified-Release Tablet
+15. [BC-MED-0540] Sitagliptin 100mg Tablets (Januvia) | Gen: Sitagliptin Phosphate | Str: 100mg | Form: Film-Coated Tablet
+16. [BC-MED-0541] Sitagliptin + Metformin 50mg/500mg (Janumet) | Gen: Sitagliptin + Metformin Hydrochloride | Str: 50mg/500mg | Form: Film-Coated Tablet
+17. [BC-MED-0542] Sitagliptin + Metformin 50mg/1000mg (Janumet) | Gen: Sitagliptin + Metformin Hydrochloride | Str: 50mg/1000mg | Form: Film-Coated Tablet
+18. [BC-MED-0543] Vildagliptin 50mg Tablets (Galvus) | Gen: Vildagliptin | Str: 50mg | Form: Tablet
+19. [BC-MED-0544] Vildagliptin + Metformin 50mg/850mg (Galvumet) | Gen: Vildagliptin + Metformin | Str: 50mg/850mg | Form: Film-Coated Tablet
+20. [BC-MED-0545] Linagliptin 5mg Tablets (Trajenta) | Gen: Linagliptin | Str: 5mg | Form: Film-Coated Tablet
+21. [BC-MED-0546] Empagliflozin 10mg Tablets (Jardiance) | Gen: Empagliflozin | Str: 10mg | Form: Film-Coated Tablet
+22. [BC-MED-0547] Empagliflozin 25mg Tablets (Jardiance) | Gen: Empagliflozin | Str: 25mg | Form: Film-Coated Tablet
+23. [BC-MED-0548] Dapagliflozin 10mg Tablets (Forxiga) | Gen: Dapagliflozin Propanediol | Str: 10mg | Form: Film-Coated Tablet
+24. [BC-MED-0549] Pioglitazone 15mg Tablets | Gen: Pioglitazone Hydrochloride | Str: 15mg | Form: Tablet
+25. [BC-MED-0550] Pioglitazone 30mg Tablets | Gen: Pioglitazone Hydrochloride | Str: 30mg | Form: Tablet
+26. [BC-MED-0551] Human Soluble Regular Insulin (Actrapid HM) 100 IU/ml 10ml | Gen: Human Insulin (Recombinant DNA) Regular | Str: 100 IU/ml (1000 IU total) | Form: Sterile Aqueous Injection Vial
+27. [BC-MED-0552] Isophane NPH Insulin (Insulatard HM) 100 IU/ml 10ml | Gen: Isophane Insulin Human (NPH) | Str: 100 IU/ml (1000 IU total) | Form: Sterile Cloudy Suspension Vial
+28. [BC-MED-0553] Biphasic Isophane 30/70 (Mixtard 30 HM) 100 IU/ml 10ml | Gen: Biphasic Human Insulin 30% Soluble / 70% Isophane | Str: 100 IU/ml (1000 IU total) | Form: Sterile Pre-Mixed Suspension Vial
+29. [BC-MED-0554] Insulin Glargine (Lantus SoloStar Pen) 100 U/ml (Pack of 5) | Gen: Insulin Glargine (rDNA origin) | Str: 100 U/ml (3ml Pen) | Form: Pre-filled Disposable Pen
+30. [BC-MED-0555] Insulin Aspart (NovoRapid FlexPen) 100 U/ml (Pack of 5) | Gen: Insulin Aspart (rDNA origin) | Str: 100 U/ml (3ml Pen) | Form: Pre-filled Disposable Pen
+31. [BC-MED-0556] Accu-Chek Active Blood Glucose Test Strips (Box of 50) | Gen: Glucose Dehydrogenase Test Strips | Str: Blood Volume 1-2 mcL | Form: Diagnostic Test Strips
+32. [BC-MED-0557] Accu-Chek Instant Blood Glucose Test Strips (Box of 50) | Gen: FAD Glucose Dehydrogenase Test Strips | Str: Ultra-Wide Target Dosing Area | Form: Diagnostic Test Strips
+33. [BC-MED-0558] On Call Plus Blood Glucose Test Strips (Box of 50) | Gen: Glucose Oxidase Biosensor Strips | Str: Capillary Blood 1 mcL | Form: Diagnostic Test Strips
+34. [BC-MED-0559] Contour Plus Blood Glucose Test Strips (Box of 50) | Gen: FAD-GDH Multi-Pulse Biosensor Strips | Str: Second-Chance Sampling Technology | Form: Diagnostic Test Strips
+35. [BC-MED-0560] Accu-Chek Instant Blood Glucose Monitoring Kit | Gen: Blood Glucose Glucometer System | Str: ISO 15197:2013 Certified Accuracy | Form: Diagnostic Meter Kit
+36. [BC-MED-0561] BD Micro-Fine Plus Insulin Syringes 1ml 30G (Box of 100) | Gen: Single-Use Sterile Insulin Syringes with Fixed Needle | Str: 1ml / 100 Units (30G x 8mm) | Form: Sterile Syringe with Needle
+37. [BC-MED-0562] BD Micro-Fine Plus Insulin Syringes 0.5ml 30G (Box of 100) | Gen: Pediatric/Low Dose Sterile Insulin Syringes | Str: 0.5ml / 50 Units (Half-Unit Markings) | Form: Sterile Syringe
+38. [BC-MED-0563] BD Micro-Fine+ Pen Needles 4mm 32G (Box of 100) | Gen: Ultra-Short Insulin Pen Needles | Str: 4mm (32-Gauge) | Form: Sterile Screw-On Pen Needle
+39. [BC-MED-0564] BD Micro-Fine+ Pen Needles 5mm 31G (Box of 100) | Gen: Universal Insulin Pen Needles | Str: 5mm (31-Gauge) | Form: Sterile Screw-On Pen Needle
+40. [BC-MED-0565] BD Micro-Fine+ Pen Needles 8mm 31G (Box of 100) | Gen: Standard Length Insulin Pen Needles | Str: 8mm (31-Gauge) | Form: Sterile Screw-On Pen Needle
+41. [BC-MED-0566] Accu-Chek Softclix Sterile Lancets (Box of 100) | Gen: Silicone-Coated Blood Sampling Lancets | Str: 28-Gauge | Form: Sterile Lancet
+42. [BC-MED-0567] Universal Twist-Off Blood Lancets 30G (Box of 100) | Gen: Sterile Universal Twist-Top Lancets | Str: 30-Gauge Ultra-Fine | Form: Sterile Lancet
+43. [BC-MED-0568] Accu-Chek Softclix Ergonomic Lancing Device | Gen: Adjustable Depth Lancing Pen | Str: Precision Depth 0.8mm to 2.3mm | Form: Medical Lancing Device
+44. [BC-MED-0569] Keto-Diastix Reagent Strips for Urinalysis (Bottle of 50) | Gen: Urinary Glucose & Ketone Reagent Strips | Str: Dual Analyte Detection | Form: Diagnostic Urinalysis Strips
+45. [BC-MED-0570] Glucagon Emergency Injection Kit 1mg | Gen: Glucagon (rDNA Origin) with Diluent Syringe | Str: 1mg (1 Unit) | Form: Lyophilized Powder with Diluent
+46. [BC-MED-0571] Dextrose 40% Oral HypoGel 3x25g (Rapid Glucose) | Gen: Fast-Acting Oral Dextrose Gel | Str: 40% Dextrose Gel | Form: Oral Gel Squeeze Tube
+47. [BC-MED-0572] Dextro Energy Fast Glucose Chewable Tablets (Orange) | Gen: Chewable Dextrose Tablets with Vitamin C | Str: Immediate Energy Release | Form: Chewable Tablet
+48. [BC-MED-0573] Diabetic Foot Hydrating Cream (Urea 10%) 100g | Gen: Urea + L-Arginine Microcirculation Cream | Str: 10% Urea Clinical Formula | Form: Specialist Foot Cream
+49. [BC-MED-0574] Diabetic Non-Binding Seamless Bamboo Socks (Pair) | Gen: Non-Constrictive Diabetic Circulation Socks | Str: Non-Binding Elastic Top | Form: Hosiery Appliance
+50. [BC-MED-0575] Insulin Travel Cooling Case (Isothermal) | Gen: Insulin Cooling Wallet with Ice Packs | Str: Maintains 2-8°C for up to 10 Hours | Form: Medical Storage Bag
+51. [BC-MED-0576] Sharps Disposal Container 1 Liter (Medical Biohazard) | Gen: Puncture-Resistant Sharps Container | Str: 1 Liter Capacity | Form: Biohazard Disposal Bin
+52. [BC-MED-0577] Alpha Lipoic Acid 600mg Neuropathy Capsules | Gen: Thioctic Acid (Alpha Lipoic Acid) | Str: 600mg | Form: Vegetarian Capsule
+
+========================================
+CATEGORY: Respiratory Care (52 items)
+========================================
+ 1. [DEMO-MED-020] Salbutamol Inhaler | Gen: Salbutamol Sulfate | Str: 100mcg/metered dose | Form: 200 Dose Pressurized Inhaler
+ 2. [BC-MED-0578] Salbutamol 2mg Tablets | Gen: Salbutamol Sulfate | Str: 2mg | Form: Scored Tablet
+ 3. [BC-MED-0579] Salbutamol 4mg Tablets | Gen: Salbutamol Sulfate | Str: 4mg | Form: Scored Tablet
+ 4. [BC-MED-0580] Salbutamol Syrup 2mg/5ml 100ml | Gen: Salbutamol Sulfate | Str: 2mg/5ml | Form: Oral Syrup
+ 5. [BC-MED-0581] Salbutamol Respirator Solution 5mg/ml 20ml | Gen: Salbutamol Solution for Nebulization | Str: 5mg/ml (0.5% w/v) | Form: Inhalation Nebulizer Solution
+ 6. [BC-MED-0582] Ipratropium Bromide 20mcg Inhaler (Atrovent) | Gen: Ipratropium Bromide | Str: 20mcg/puff (200 Doses) | Form: Metered Dose Inhaler (MDI)
+ 7. [BC-MED-0583] Ipratropium 0.25mg/ml Nebulizing Respules (Box of 20) | Gen: Ipratropium Bromide Inhalation Solution | Str: 500mcg / 2ml Unit Dose | Form: Sterile Inhalation Respules
+ 8. [BC-MED-0584] Beclomethasone 100mcg Inhaler | Gen: Beclomethasone Dipropionate | Str: 100mcg (200 Doses) | Form: Metered Dose Inhaler (MDI)
+ 9. [BC-MED-0585] Beclomethasone 250mcg High-Strength Inhaler | Gen: Beclomethasone Dipropionate | Str: 250mcg (200 Doses) | Form: Metered Dose Inhaler (MDI)
+10. [BC-MED-0586] Budesonide 200mcg Inhaler (Pulmicort) | Gen: Budesonide | Str: 200mcg (100 Actuations) | Form: Pressurized Inhalation Suspension
+11. [BC-MED-0587] Budesonide 0.5mg/2ml Respules for Nebulization (Box of 20) | Gen: Budesonide Inhalation Suspension | Str: 0.5mg/2ml | Form: Sterile Nebulizing Suspension
+12. [BC-MED-0588] Fluticasone Propionate 125mcg Inhaler (Flixotide) | Gen: Fluticasone Propionate | Str: 125mcg (120 Doses) | Form: Metered Dose Inhaler (MDI)
+13. [BC-MED-0589] Seretide 125 Evohaler (Fluticasone + Salmeterol) | Gen: Fluticasone Propionate + Salmeterol Xinafoate | Str: 125mcg/25mcg (120 Doses) | Form: Metered Dose Inhaler (MDI)
+14. [BC-MED-0590] Seretide 250 Evohaler (Fluticasone + Salmeterol) | Gen: Fluticasone Propionate + Salmeterol Xinafoate | Str: 250mcg/25mcg (120 Doses) | Form: Metered Dose Inhaler (MDI)
+15. [BC-MED-0591] Symbicort Turbuhaler 160mcg/4.5mcg (Budesonide + Formoterol) | Gen: Budesonide + Formoterol Fumarate Dihydrate | Str: 160mcg/4.5mcg (120 Inhalations) | Form: Dry Powder Inhaler (DPI)
+16. [BC-MED-0592] Symbicort Turbuhaler 320mcg/9mcg (Budesonide + Formoterol) | Gen: Budesonide + Formoterol Fumarate Dihydrate | Str: 320mcg/9mcg (60 Inhalations) | Form: Dry Powder Inhaler (DPI)
+17. [BC-MED-0593] Montelukast 4mg Pediatric Chewable Tablets | Gen: Montelukast Sodium | Str: 4mg | Form: Chewable Cherry-Flavored Tablet
+18. [BC-MED-0594] Montelukast 5mg Chewable Tablets | Gen: Montelukast Sodium | Str: 5mg | Form: Chewable Tablet
+19. [BC-MED-0595] Montelukast 10mg Tablets | Gen: Montelukast Sodium | Str: 10mg | Form: Film-Coated Tablet
+20. [BC-MED-0596] Montelukast + Levocetirizine 10mg/5mg Tablets | Gen: Montelukast + Levocetirizine Dihydrochloride | Str: 10mg/5mg | Form: Film-Coated Tablet
+21. [BC-MED-0597] Theophylline 200mg Sustained-Release Tablets | Gen: Theophylline Anhydrous SR | Str: 200mg SR | Form: Sustained-Release Tablet
+22. [BC-MED-0598] Aminophylline 100mg Tablets | Gen: Aminophylline Hydrate | Str: 100mg | Form: Tablet
+23. [BC-MED-0599] Aminophylline Injection 250mg/10ml (5 Ampoules) | Gen: Aminophylline Hydrate Injection | Str: 250mg/10ml | Form: Sterile IV Injection Ampoules
+24. [BC-MED-0600] Carbocisteine 375mg Capsules | Gen: Carbocisteine | Str: 375mg | Form: Hard Capsule
+25. [BC-MED-0601] Carbocisteine Adult Syrup 250mg/5ml 100ml | Gen: Carbocisteine | Str: 250mg/5ml | Form: Oral Syrup
+26. [BC-MED-0602] Acetylcysteine 600mg Effervescent Tablets (Fluimucil) | Gen: N-Acetylcysteine (NAC) | Str: 600mg | Form: Effervescent Tablet
+27. [BC-MED-0603] Ambroxol 30mg Tablets | Gen: Ambroxol Hydrochloride | Str: 30mg | Form: Tablet
+28. [BC-MED-0604] Ambroxol Pediatric Syrup 15mg/5ml 100ml | Gen: Ambroxol Hydrochloride | Str: 15mg/5ml | Form: Oral Syrup
+29. [BC-MED-0605] Bromhexine 8mg Tablets | Gen: Bromhexine Hydrochloride | Str: 8mg | Form: Small Tablet
+30. [BC-MED-0606] AeroChamber Plus Flow-Vu Spacer with Adult Mask | Gen: Valved Holding Chamber with Large Mask | Str: Adult Size with Inhalation Indicator | Form: Inhalation Spacer Device
+31. [BC-MED-0607] AeroChamber Plus Flow-Vu Spacer with Child Mask | Gen: Valved Holding Chamber with Pediatric Mask | Str: Child Size (Ages 1 to 5 Years) | Form: Inhalation Spacer Device
+32. [BC-MED-0608] Universal Inhaler Holding Spacer Chamber (Mouthpiece) | Gen: Valved Inhalation Holding Chamber | Str: Universal Fit for all MDIs | Form: Inhalation Device
+33. [BC-MED-0609] Peak Flow Meter (Standard Adult EU Scale) | Gen: Mechanical Peak Expiratory Flow Meter | Str: Standard Range 60-800 L/min | Form: Diagnostic Respiratory Device
+34. [BC-MED-0610] Peak Flow Meter (Low Range Pediatric Scale) | Gen: Pediatric Peak Expiratory Flow Meter | Str: Low Range 30-400 L/min | Form: Diagnostic Respiratory Device
+35. [BC-MED-0611] Compressor Nebulizer Machine Complete Home System | Gen: Piston Compressor Aerosol Therapy System | Str: High Efficiency MMAD 3.0 mcm | Form: Medical Electromedical Device
+36. [BC-MED-0612] Portable Handheld Mesh Nebulizer (USB Rechargeable) | Gen: Vibrating Mesh Ultrasonic Portable Nebulizer | Str: Whisper-Quiet (<20dB) Pocket Unit | Form: Portable Electronic Device
+37. [BC-MED-0613] Nebulizer Replacement Mask & Chamber Set (Adult) | Gen: Adult Aerosol Nebulizer Mask with Tubing | Str: Adult Anatomical Fit | Form: Nebulizer Accessory Set
+38. [BC-MED-0614] Nebulizer Replacement Mask & Chamber Set (Pediatric) | Gen: Pediatric Aerosol Mask with Medication Cup | Str: Pediatric Size with Soft Straps | Form: Nebulizer Accessory Set
+39. [BC-MED-0615] Fingertip Pulse Oximeter Digital SpO2 Monitor | Gen: Dual-Wavelength Photometric Pulse Oximeter | Str: SpO2 Range 70-100% (Accuracy ±2%) | Form: Electronic Diagnostic Appliance
+40. [BC-MED-0616] Twin-Prong Nasal Oxygen Cannula (Adult 2m) | Gen: Soft Curved Nasal Oxygen Cannula | Str: Flow Rate 1-6 L/min (2m Tubing) | Form: Oxygen Delivery Cannula
+41. [BC-MED-0617] Venturi Oxygen Mask Multi-Percentage Kit | Gen: Fixed-Performance Venturi Entrainment Mask | Str: Calibrated 24%, 28%, 31%, 35%, 40%, 50% FiO2 | Form: Oxygen Delivery Mask Set
+42. [BC-MED-0618] Menthol & Eucalyptus Inhalation Crystals 15g | Gen: Pure Menthol Crystals BP | Str: 100% Pure Crystals | Form: Crystals for Steam Inhalation
+43. [BC-MED-0619] Steam Inhaler Cup with Ergonomic Facial Mask | Gen: Insulated Steam Inhalation Cup | Str: 500ml Reservoir | Form: Inhalation Device Appliance
+44. [BC-MED-0620] Karvol Decongestant Inhalation Capsules (Pack of 10) | Gen: Menthol + Camphor + Chlorothymol + Pine Oil | Str: Snip-Off Capsule | Form: Vaporizing Snip-Off Capsule
+45. [BC-MED-0621] Sterile Normal Saline Inhalation Vials (0.9% 5ml x 20) | Gen: Sodium Chloride 0.9% Inhalation Solution | Str: 0.9% w/v (5ml Ampoules) | Form: Sterile Inhalation Vials
+46. [BC-MED-0622] Hypertonic Saline 3% Inhalation Solution (4ml x 25) | Gen: Sodium Chloride 3% Sterile Inhalation Solution | Str: 3% w/v (4ml Vials) | Form: Sterile Inhalation Vials
+47. [BC-MED-0623] Hypertonic Saline 7% Inhalation Solution (4ml x 25) | Gen: Sodium Chloride 7% Sterile Inhalation Solution | Str: 7% w/v (4ml Vials) | Form: Sterile Inhalation Vials
+48. [BC-MED-0624] Eucalyptus Pure Essential Aromatherapy Oil 20ml | Gen: Eucalyptus Globulus Leaf Oil | Str: 100% Pure Essential Oil | Form: Inhalation Essential Oil
+49. [BC-MED-0625] Olbas Oil Aromatherapy Inhalant Decongestant 15ml | Gen: Essential Oils Inhalant Mixture | Str: Pure Concentrated Botanical Blend | Form: Inhalation Drops
+50. [BC-MED-0626] Vicks VapoRub Medicated Chest Rub Ointment 50g | Gen: Camphor + Menthol + Eucalyptus Oil Ointment | Str: Topical & Inhalation Ointment | Form: Vaporizing Ointment
+51. [BC-MED-0627] Respirator N95 Particulate Protective Mask (Pack of 5) | Gen: N95 / FFP2 Particulate Filtering Mask | Str: NIOSH N95 Certified (>95% Filtration) | Form: Protective Respirator Mask
+52. [BC-MED-0628] Surgical 3-Ply Face Masks with Ear Loops (Box of 50) | Gen: 3-Ply Meltblown Medical Face Masks | Str: Bacterial Filtration Efficiency > 99% | Form: Protective Procedure Mask
+
+========================================
+CATEGORY: Allergy Care (52 items)
+========================================
+ 1. [DEMO-MED-006] Cetirizine 10mg Tablets | Gen: Cetirizine Hydrochloride | Str: 10mg | Form: Pack of 10 Tablets
+ 2. [DEMO-MED-007] Loratadine 10mg Tablets | Gen: Loratadine | Str: 10mg | Form: Pack of 10 Tablets
+ 3. [BC-MED-0131] Levocetirizine 5mg Film-Coated Tablets | Gen: Levocetirizine Dihydrochloride | Str: 5mg | Form: Film-Coated Tablet
+ 4. [BC-MED-0132] Levocetirizine Oral Solution 2.5mg/5ml (100ml) | Gen: Levocetirizine Dihydrochloride | Str: 2.5mg/5ml | Form: Oral Liquid
+ 5. [BC-MED-0133] Desloratadine 5mg Film-Coated Tablets | Gen: Desloratadine | Str: 5mg | Form: Film-Coated Tablet
+ 6. [BC-MED-0134] Desloratadine Syrup 0.5mg/ml (100ml) | Gen: Desloratadine | Str: 0.5mg/ml | Form: Oral Syrup
+ 7. [BC-MED-0135] Fexofenadine 120mg Tablets | Gen: Fexofenadine Hydrochloride | Str: 120mg | Form: Film-Coated Tablet
+ 8. [BC-MED-0136] Fexofenadine 180mg Tablets | Gen: Fexofenadine Hydrochloride | Str: 180mg | Form: Film-Coated Tablet
+ 9. [BC-MED-0137] Bilastine 20mg Tablets | Gen: Bilastine | Str: 20mg | Form: Tablet
+10. [BC-MED-0138] Rupatadine 10mg Tablets | Gen: Rupatadine Fumarate | Str: 10mg | Form: Tablet
+11. [BC-MED-0139] Chlorpheniramine Maleate 4mg Tablets | Gen: Chlorpheniramine Maleate | Str: 4mg | Form: Tablet
+12. [BC-MED-0140] Chlorpheniramine Syrup 2mg/5ml (100ml) | Gen: Chlorpheniramine Maleate | Str: 2mg/5ml | Form: Oral Syrup
+13. [BC-MED-0141] Promethazine Hydrochloride 25mg Tablets | Gen: Promethazine Hydrochloride | Str: 25mg | Form: Film-Coated Tablet
+14. [BC-MED-0142] Promethazine Elixir 5mg/5ml (100ml) | Gen: Promethazine Hydrochloride | Str: 5mg/5ml | Form: Oral Elixir
+15. [BC-MED-0143] Diphenhydramine 25mg Capsules | Gen: Diphenhydramine Hydrochloride | Str: 25mg | Form: Capsule
+16. [BC-MED-0144] Hydroxyzine Hydrochloride 25mg Tablets | Gen: Hydroxyzine Hydrochloride | Str: 25mg | Form: Film-Coated Tablet
+17. [BC-MED-0145] Cyproheptadine 4mg Tablets | Gen: Cyproheptadine Hydrochloride | Str: 4mg | Form: Tablet
+18. [BC-MED-0146] Cyproheptadine Syrup 2mg/5ml (100ml) | Gen: Cyproheptadine Hydrochloride | Str: 2mg/5ml | Form: Oral Liquid
+19. [BC-MED-0147] Fluticasone Propionate 50mcg Nasal Spray | Gen: Fluticasone Propionate | Str: 50mcg/actuation | Form: Metered Dose Nasal Spray
+20. [BC-MED-0148] Mometasone Furoate 50mcg Nasal Spray | Gen: Mometasone Furoate | Str: 50mcg | Form: Intranasal Spray
+21. [BC-MED-0149] Budesonide 64mcg Aqueous Nasal Spray | Gen: Budesonide | Str: 64mcg/actuation | Form: Aqueous Nasal Spray
+22. [BC-MED-0150] Triamcinolone Acetonide 55mcg Nasal Spray | Gen: Triamcinolone Acetonide | Str: 55mcg/actuation | Form: Nasal Spray Pump
+23. [BC-MED-0151] Olopatadine 0.1% Antihistamine Eye Drops 5ml | Gen: Olopatadine Hydrochloride | Str: 0.1% w/v | Form: Ophthalmic Solution
+24. [BC-MED-0152] Olopatadine 0.2% Once-Daily Eye Drops 2.5ml | Gen: Olopatadine Hydrochloride | Str: 0.2% w/v | Form: Ophthalmic Solution
+25. [BC-MED-0153] Ketotifen Fumarate 0.025% Eye Drops 5ml | Gen: Ketotifen Fumarate | Str: 0.025% w/v | Form: Ophthalmic Drops
+26. [BC-MED-0154] Azelastine 0.05% Eye Drops 6ml | Gen: Azelastine Hydrochloride | Str: 0.05% w/v | Form: Ophthalmic Drops
+27. [BC-MED-0155] Azelastine 0.1% Antihistamine Nasal Spray 10ml | Gen: Azelastine Hydrochloride | Str: 0.1% w/v | Form: Nasal Spray
+28. [BC-MED-0156] Azelastine + Fluticasone Nasal Spray 23g | Gen: Azelastine HCl 137mcg + Fluticasone 50mcg | Str: 137mcg/50mcg | Form: Nasal Spray Suspension
+29. [BC-MED-0157] Sodium Cromoglycate 2% Eye Drops 13.5ml | Gen: Sodium Cromoglycate | Str: 2% w/v | Form: Ophthalmic Drops
+30. [BC-MED-0158] Sodium Cromoglycate 4% Nasal Spray 15ml | Gen: Sodium Cromoglycate | Str: 4% w/v | Form: Metered Nasal Spray
+31. [BC-MED-0159] Adrenaline (Epinephrine) 1:1000 (1mg/ml) Injection | Gen: Adrenaline Acid Tartrate | Str: 1mg/ml (1:1000) | Form: Injection Ampoule
+32. [BC-MED-0160] EpiPen Adult 0.3mg Auto-Injector | Gen: Epinephrine Auto-Injector | Str: 0.3mg / 0.3ml | Form: Single-Dose Auto-Injector
+33. [BC-MED-0161] EpiPen Junior 0.15mg Auto-Injector | Gen: Epinephrine Auto-Injector Pediatric | Str: 0.15mg / 0.3ml | Form: Pediatric Auto-Injector
+34. [BC-MED-0162] Prednisolone 5mg Tablets | Gen: Prednisolone | Str: 5mg | Form: Tablet
+35. [BC-MED-0163] Prednisolone 20mg Tablets | Gen: Prednisolone | Str: 20mg | Form: Gastro-Resistant Tablet
+36. [BC-MED-0164] Dexamethasone 4mg Tablets | Gen: Dexamethasone | Str: 4mg | Form: Tablet
+37. [BC-MED-0165] Dexamethasone 4mg/ml Injection (Box of 10) | Gen: Dexamethasone Sodium Phosphate | Str: 4mg/ml | Form: Injection Ampoule
+38. [BC-MED-0166] Hydrocortisone 100mg Powder for Injection | Gen: Hydrocortisone Sodium Succinate | Str: 100mg Vial | Form: Lyophilized Powder for Injection
+39. [BC-MED-0167] Betamethasone 0.5mg Soluble Tablets | Gen: Betamethasone | Str: 0.5mg | Form: Soluble Tablet
+40. [BC-MED-0168] Methylprednisolone 16mg Tablets | Gen: Methylprednisolone | Str: 16mg | Form: Tablet
+41. [BC-MED-0169] Antazoline + Naphazoline Allergic Eye Drops 10ml | Gen: Antazoline Phosphate + Naphazoline Hydrochloride | Str: Dual Allergy Formula | Form: Ophthalmic Drops
+42. [BC-MED-0170] Calamine + Diphenhydramine Anti-Itch Lotion 100ml | Gen: Calamine 8% + Diphenhydramine HCl 1% | Str: Topical Anti-Itch | Form: Topical Lotion
+43. [BC-MED-0171] Hydrocortisone 1% Anti-Itch Ointment 30g | Gen: Hydrocortisone Acetate | Str: 1% w/w | Form: Topical Ointment
+44. [BC-MED-0172] Crotamiton 10% Anti-Pruritic Cream 30g | Gen: Crotamiton | Str: 10% w/w | Form: Cream
+45. [BC-MED-0173] Cetirizine + Pseudoephedrine ER Tablets (14s) | Gen: Cetirizine 5mg + Pseudoephedrine 120mg | Str: 5mg/120mg ER | Form: Extended-Release Tablet
+46. [BC-MED-0174] Loratadine + Pseudoephedrine 12-Hour Tablets (14s) | Gen: Loratadine 5mg + Pseudoephedrine 120mg | Str: 12-Hour Extended Release | Form: Repetab Tablet
+47. [BC-MED-0175] Fexofenadine + Pseudoephedrine ER Tablets (10s) | Gen: Fexofenadine 60mg + Pseudoephedrine 120mg | Str: 60mg/120mg | Form: Extended-Release Tablet
+48. [BC-MED-0176] Levocetirizine + Montelukast Tablets (10s) | Gen: Levocetirizine 5mg + Montelukast 10mg | Str: 5mg/10mg | Form: Film-Coated Tablet
+49. [BC-MED-0177] Bilastine + Montelukast Tablets (10s) | Gen: Bilastine 20mg + Montelukast 10mg | Str: 20mg/10mg | Form: Tablet
+50. [BC-MED-0178] Ebastine 10mg Fast-Dissolving Tablets (20s) | Gen: Ebastine | Str: 10mg | Form: Orally Disintegrating Tablet
+51. [BC-MED-0179] Dimetindene Maleate 0.1% Gel 30g | Gen: Dimetindene Maleate | Str: 0.1% w/w | Form: Cooling Topical Gel
+52. [BC-MED-0180] Preservative-Free Saline Eye Wash Drops 15ml | Gen: Sodium Chloride 0.9% Sterile Ophthalmic Wash | Str: 0.9% Sterile Wash | Form: Eye Wash Bottle + Eyecup
+
+========================================
+CATEGORY: Medical Devices (52 items)
+========================================
+ 1. [DEMO-MED-023] Digital Thermometer | Gen: Electronic Clinical Fever Thermometer | Str: Digital Sensor (+/-0.1 C) | Form: 1 Digital Unit in Case
+ 2. [DEMO-MED-024] Blood Pressure Monitor | Gen: Automatic Upper Arm Digital BP Monitor | Str: Digital Oscillometric Sensor | Form: 1 Digital Monitor Unit + Cuff
+ 3. [BC-MED-0680] Omron M2 Basic Upper Arm Blood Pressure Monitor | Gen: Automatic Oscillometric Blood Pressure Monitor | Str: Clinical Validation (ESH/AAMI) | Form: Electromedical Device Unit
+ 4. [BC-MED-0681] Omron M3 Comfort Upper Arm Blood Pressure Monitor | Gen: Intelli Wrap 360-Degree Blood Pressure Monitor | Str: Wide Range Cuff (22-42cm) | Form: Electromedical Device Unit
+ 5. [BC-MED-0682] Aneroid Sphygmomanometer with Dual-Head Stethoscope Kit | Gen: Manual Dial Blood Pressure Kit with Stethoscope | Str: Calibrated 0-300 mmHg Scale | Form: Diagnostic Medical Kit
+ 6. [BC-MED-0683] Adult Blood Pressure Replacement Wide Cuff (22-42cm) | Gen: Universal D-Ring Blood Pressure Cuff | Str: Universal Arm Circumference 22-42cm | Form: Sphygmomanometer Accessory
+ 7. [BC-MED-0684] Littmann Classic III Monitoring Stethoscope (Black Edition) | Gen: Dual-Sided Tunable Diaphragm Stethoscope | Str: High Acoustic Sensitivity (Rating 7/10) | Form: Acoustic Diagnostic Instrument
+ 8. [BC-MED-0685] Dual-Head Stainless Steel Professional Stethoscope | Gen: Acoustic Nurse & Student Stethoscope | Str: Standard Hospital Diagnostic Grade | Form: Acoustic Diagnostic Instrument
+ 9. [BC-MED-0686] Infrared Non-Contact Forehead Thermometer (Medical Grade) | Gen: Infrared Pyrometer Clinical Thermometer | Str: Instant 1-Second Reading (32.0°C to 42.9°C) | Form: Electronic Thermometric Device
+10. [BC-MED-0687] Digital Clinical Thermometer (Flexible Tip, Waterproof) | Gen: Fast-Read Oral / Axillary Digital Thermometer | Str: 10-Second Fast Read (Accuracy ±0.1°C) | Form: Electronic Thermometer
+11. [BC-MED-0688] Handheld Ultrasonic Fetal Doppler Heartbeat Detector | Gen: Pocket Ultrasound Fetal Heart Rate Monitor | Str: 3.0 MHz Waterproof Probe | Form: Diagnostic Electromedical Device
+12. [BC-MED-0689] Diagnostic Medical Penlight with Pupil Gauge (LED) | Gen: Reusable Aluminum Clinical Diagnostic Penlight | Str: Focused Concentrated Beam (2 AAA Powered) | Form: Clinical Diagnostic Tool
+13. [BC-MED-0690] Adjustable Aluminum Underarm Crutches (Pair, Adult Medium) | Gen: Anodized Lightweight Aluminum Axillary Crutches | Str: User Height 157cm to 178cm (Weight Capacity 136kg) | Form: Mobility Orthopedic Appliance
+14. [BC-MED-0691] Adjustable Elbow / Forearm Crutches (Pair, Adult) | Gen: Ergonomic Forearm Walking Crutches | Str: Weight Capacity 125kg | Form: Mobility Orthopedic Appliance
+15. [BC-MED-0692] Folding Lightweight Aluminum Walking Stick / Cane | Gen: Four-Section Collapsible Mobility Walking Cane | Str: Adjustable Height 82cm to 92cm | Form: Mobility Walking Stick
+16. [BC-MED-0693] Quad Cane (4-Prong Stable Base Walking Cane) | Gen: Four-Point Base Orthopedic Walking Cane | Str: Wide-Base 4-Point Ground Contact | Form: Mobility Orthopedic Appliance
+17. [BC-MED-0694] Folding Lightweight Mobility Walker / Walking Frame | Gen: Single-Button Folding Aluminum Walker | Str: Weight Capacity 150kg | Form: Mobility Orthopedic Appliance
+18. [BC-MED-0695] Soft Foam Cervical Neck Collar (Medium) | Gen: Orthopedic Supportive Foam Neck Collar | Str: Medium (Neck Circumference 34-42cm) | Form: Orthopedic Support Appliance
+19. [BC-MED-0696] Neoprene Hinged Knee Support Brace (with Dual Metal Hinges) | Gen: Dual-Axis Hinged Ligament Knee Brace | Str: Adjustable Open-Patella Universal | Form: Orthopedic Support Appliance
+20. [BC-MED-0697] Elastic Knee Compression Sleeve (Pair) | Gen: Four-Way Stretch Elastic Knee Sleeves | Str: Graduated Compression (Size L) | Form: Orthopedic Support Appliance
+21. [BC-MED-0698] Carpal Tunnel Wrist Splint with Palmar Metal Stay | Gen: Immobilizing Wrist Support Splint | Str: Universal Left/Right Adjustable | Form: Orthopedic Support Appliance
+22. [BC-MED-0699] Heavy-Duty Lumbar Sacral Support Back Brace (Large) | Gen: Double-Pull Lumbar Support Belt | Str: Size Large (Waist 90-105cm) | Form: Orthopedic Support Appliance
+23. [BC-MED-0700] Clavicle Fracture & Posture Corrector Brace | Gen: Figure-8 Clavicular Support Splint | Str: Adjustable Adult Universal | Form: Orthopedic Support Appliance
+24. [BC-MED-0701] Adult Incontinence Diapers Maxi (Size L, Pack of 10) | Gen: High-Absorbency Adult Incontinence Slip Briefs | Str: Maxi Night Absorbency (Waist 100-150cm) | Form: Incontinence Brief
+25. [BC-MED-0702] Adult Incontinence Diapers Maxi (Size M, Pack of 10) | Gen: High-Absorbency Adult Incontinence Slip Briefs | Str: Maxi Absorbency (Waist 80-120cm) | Form: Incontinence Brief
+26. [BC-MED-0703] Disposable Hospital Bed Underpads 60x90cm (Pack of 10) | Gen: Waterproof Bed & Furniture Protective Underpads | Str: Large 60cm x 90cm | Form: Absorbent Disposable Sheet
+27. [BC-MED-0704] Disposable Vinyl Examination Gloves Powder-Free (Box of 100) | Gen: Non-Latex Medical Examination Gloves | Str: Medium Powder-Free | Form: Examination Gloves
+28. [BC-MED-0705] Disposable Nitrile Medical Gloves Blue Powder-Free (Box of 100) | Gen: Medical-Grade Puncture-Resistant Nitrile Gloves | Str: Medium Powder-Free (EN 455 Certified) | Form: Medical Examination Gloves
+29. [BC-MED-0706] Sterile Surgical Latex Gloves Size 7.5 (Box of 50 Pairs) | Gen: Anatomical Sterile Surgical Powder-Free Gloves | Str: Size 7.5 Anatomical Fit | Form: Sterile Surgical Gloves
+30. [BC-MED-0707] 2-Way Silicone-Elastomer Foley Catheter 16 Fr (Pack of 5) | Gen: Indwelling Urinary Foley Catheter | Str: 16 French (OD 5.3mm) | Form: Sterile Urinary Catheter
+31. [BC-MED-0708] 2-Way Silicone-Elastomer Foley Catheter 18 Fr (Pack of 5) | Gen: Indwelling Urinary Foley Catheter | Str: 18 French (OD 6.0mm) | Form: Sterile Urinary Catheter
+32. [BC-MED-0709] Sterile Urine Drainage Bag 2000ml with Anti-Reflux Valve (5s) | Gen: Closed System Urinary Drainage Collection Bag | Str: 2000ml Capacity with 90cm Tubing | Form: Sterile Drainage Device
+33. [BC-MED-0710] Pediatric Sterile Urine Collector Bags 100ml (Pack of 10) | Gen: Paediatric Adhesive Urine Specimen Bags | Str: 100ml Graduated Scale | Form: Sterile Specimen Collector
+34. [BC-MED-0711] Nasogastric (NG) Feeding Tube 16 Fr (Pack of 5) | Gen: Radio-Opaque Enteral Feeding Tube | Str: 16 Fr x 105cm Length | Form: Sterile Enteral Tube
+35. [BC-MED-0712] IV Infusion Giving Set with Needle and Air Vent (Pack of 10) | Gen: Intravenous Gravity Infusion Set | Str: Standard 20 Drops = 1ml (with Air Vent) | Form: Sterile Infusion Line
+36. [BC-MED-0713] Scalp Vein Butterfly Infusion Sets 21G (Box of 50) | Gen: Winged Infusion Blood Collection Sets | Str: 21-Gauge (Green Hub) | Form: Sterile Butterfly Set
+37. [BC-MED-0714] Disposable Hypodermic Syringes 2ml with 23G Needles (Box of 100) | Gen: 3-Piece Luer Slip Syringes with Mounted Needles | Str: 2ml / 23G x 1 inch | Form: Sterile Injection Syringe
+38. [BC-MED-0715] Disposable Hypodermic Syringes 5ml with 21G Needles (Box of 100) | Gen: 3-Piece Luer Slip Syringes with Mounted Needles | Str: 5ml / 21G x 1.5 inch | Form: Sterile Injection Syringe
+39. [BC-MED-0716] Disposable Hypodermic Syringes 10ml with 21G Needles (Box of 100) | Gen: 3-Piece Luer Slip Syringes with Mounted Needles | Str: 10ml / 21G x 1.5 inch | Form: Sterile Injection Syringe
+40. [BC-MED-0717] Hospital Heavy-Duty Plastic Bedpan with Lid | Gen: Ergonomic Autoclavable Plastic Bedpan | Str: Capacity 1500ml (Weight Capacity 130kg) | Form: Sanitary Nursing Appliance
+41. [BC-MED-0718] Male Urinal Bottle 1000ml with Ergonomic Handle & Cap | Gen: Graduated Translucent Male Urinal Container | Str: 1000ml Graduated Scale | Form: Sanitary Nursing Appliance
+42. [BC-MED-0719] Waterproof Cast & Bandage Protector for Showering (Full Arm) | Gen: Reusable Watertight Arm Cast Shower Bag | Str: Adult Full Arm (Length 66cm) | Form: Orthopedic Appliance
+43. [BC-MED-0720] Waterproof Cast & Bandage Protector for Showering (Full Leg) | Gen: Reusable Watertight Leg Cast Shower Sleeve | Str: Adult Full Leg (Length 100cm) | Form: Orthopedic Appliance
+44. [BC-MED-0721] Sterile Disposable Surgical Scalpel Blades #10 (Box of 100) | Gen: Carbon Steel Surgical Scalpel Blades | Str: Size No. 10 (Curved Cutting Edge) | Form: Sterile Surgical Blade
+45. [BC-MED-0722] Sterile Disposable Surgical Scalpel Blades #15 (Box of 100) | Gen: Carbon Steel Fine Surgical Scalpel Blades | Str: Size No. 15 (Precision Tip) | Form: Sterile Surgical Blade
+46. [BC-MED-0723] Sterile Suture Needle with Black Braided Silk (Box of 12) | Gen: Non-Absorbable Silk Suture with Reverse Cutting Needle | Str: USP 2-0 with 26mm Reverse Cutting Needle | Form: Sterile Suture Unit
+47. [BC-MED-0724] Sterile Chromic Catgut Absorbable Suture (Box of 12) | Gen: Absorbable Chromic Gut Suture | Str: USP 2-0 with 30mm Curved Round Body Needle | Form: Sterile Suture Unit
+48. [BC-MED-0725] Surgical Stainless Steel Needle Holder (Mayo-Hegar 16cm) | Gen: Mayo-Hegar Suture Needle Holder Forceps | Str: 16cm Length with Ratchet Lock | Form: Surgical Instrument
+49. [BC-MED-0726] Stainless Steel Hemostatic Artery Forceps (Halsted Mosquito 12.5cm) | Gen: Curved Mosquito Hemostatic Forceps | Str: 12.5cm Curved with Multi-Position Ratchet | Form: Surgical Instrument
+50. [BC-MED-0727] Clinical Diagnostic Tuning Fork Set (128Hz & 256Hz) | Gen: Medical Neurological Aluminum Tuning Forks | Str: C 128 Hz & C 256 Hz | Form: Diagnostic Tool Set
+51. [BC-MED-0728] Stainless Steel Kidney Dish Tray (8 inch / 20cm) | Gen: Autoclavable Surgical Emesis Kidney Basin | Str: 8 Inch / 500ml Capacity | Form: Surgical Holloware
+52. [BC-MED-0729] Disposable Wooden Tongue Depressors (Box of 100) | Gen: Natural Birchwood Tongue Depressors | Str: Smooth Beveled Edges (15cm x 1.8cm) | Form: Disposable Diagnostic Tongue Blades
+
+========================================
+CATEGORY: Wellness Products (52 items)
+========================================
+ 1. [DEMO-MED-034] Omega-3 Fish Oil 1000mg Capsules | Gen: Fish Oil EPA 180mg / DHA 120mg | Str: 1000mg | Form: Bottle of 60 Capsules
+ 2. [BC-MED-0730] Organic Ashwagandha 500mg (KSM-66) Capsules | Gen: Withania Somnifera Standardized Root Extract | Str: 500mg Full-Spectrum | Form: Vegetarian Capsule
+ 3. [BC-MED-0731] Valerian Root 500mg Herbal Night Rest Tablets | Gen: Valeriana Officinalis Standardized Extract | Str: 500mg | Form: Film-Coated Tablet
+ 4. [BC-MED-0732] Pure Chamomile Calming Organic Herbal Tea (25 Bags) | Gen: Matricaria Chamomilla Dried Flowers | Str: Naturally Caffeine-Free | Form: Herbal Tea Bags
+ 5. [BC-MED-0733] L-Theanine 200mg Calm Focus Capsules | Gen: Suntheanine Pure L-Theanine | Str: 200mg | Form: Vegetarian Capsule
+ 6. [BC-MED-0734] 5-HTP 100mg Positive Mood Support Capsules | Gen: 5-Hydroxytryptophan (from Griffonia simplicifolia) | Str: 100mg | Form: Vegetarian Capsule
+ 7. [BC-MED-0735] St. John's Wort 300mg Standardized Extract | Gen: Hypericum Perforatum Flower Extract | Str: 300mg | Form: Coated Tablet
+ 8. [BC-MED-0736] Magnesium Glycinate 200mg Chelate Capsules | Gen: Magnesium Bisglycinate Chelate | Str: 200mg High Bioavailability | Form: Vegetarian Capsule
+ 9. [BC-MED-0737] Pure French Lavender Essential Aromatherapy Oil 15ml | Gen: Lavandula Angustifolia Flower Oil | Str: 100% Pure Therapeutic Grade | Form: Aromatherapy Essential Oil
+10. [BC-MED-0738] Green Tea Extract 500mg with EGCG Capsules | Gen: Camellia Sinensis Standardized Extract | Str: 500mg High-EGCG | Form: Capsule
+11. [BC-MED-0739] Garcinia Cambogia 1000mg with 60% HCA Tablets | Gen: Garcinia Gummi-Gutta Fruit Extract | Str: 1000mg (60% HCA) | Form: Tablet
+12. [BC-MED-0740] Apple Cider Vinegar Gummies with Mother & Ginger (60s) | Gen: Raw Apple Cider Vinegar Gummy Vitamins | Str: Delicious Taste with Mother | Form: Pectin Chewable Gummy
+13. [BC-MED-0741] Colon Cleanse 7-Day Herbal Detox Formula | Gen: Herbal Laxative & Botanical Cleansing Complex | Str: Intensive Cleansing Complex | Form: Vegetarian Capsule
+14. [BC-MED-0742] Milk Thistle (Silymarin 175mg) Liver Support Capsules | Gen: Silybum Marianum Standardized Extract | Str: 175mg Silymarin | Form: Capsule
+15. [BC-MED-0743] Dandelion Root 500mg Natural Diuretic Capsules | Gen: Taraxacum Officinale Root Powder | Str: 520mg | Form: Capsule
+16. [BC-MED-0744] Chlorophyll Liquid Detox Drops 50ml | Gen: Sodium Copper Chlorophyllin Liquid | Str: Concentrated Liquid Extract (Spearmint) | Form: Oral Drops
+17. [BC-MED-0745] Activated Coconut Charcoal Pure Powder 100g | Gen: Steam-Activated Coconut Shell Carbon | Str: Ultra-Fine Powder | Form: Oral & Cosmetic Powder
+18. [BC-MED-0746] Maca Root 1000mg Andean Vitality Capsules | Gen: Lepidium Meyenii Root Extract | Str: 1000mg (4:1 Concentrate) | Form: Vegetarian Capsule
+19. [BC-MED-0747] Tongkat Ali 200mg (Eurycoma Longifolia) Extract | Gen: Standardized Tongkat Ali Root Extract | Str: 200mg (100:1) | Form: Capsule
+20. [BC-MED-0748] Tribulus Terrestris 500mg Energy Tablets | Gen: Tribulus Terrestris Fruit Extract | Str: 500mg | Form: Tablet
+21. [BC-MED-0749] Pure Himalayan Shilajit Resin Natural 30g | Gen: Purified Himalayan Asphaltum Mineral Pitch | Str: 100% Pure Resin with Measuring Spoon | Form: Viscous Resin Paste
+22. [BC-MED-0750] Cordyceps Sinensis 500mg Energy & Endurance Capsules | Gen: Cordyceps Mushroom Mycelium Extract | Str: 500mg | Form: Vegetarian Capsule
+23. [BC-MED-0751] Rhodiola Rosea 300mg Stress-Defense Capsules | Gen: Golden Root Standardized Phyto-Extract | Str: 300mg | Form: Capsule
+24. [BC-MED-0752] CoQ10 200mg High Potency Cardio Softgels | Gen: Coenzyme Q10 (Ubiquinone) | Str: 200mg Maximum Strength | Form: Soft Gelatin Capsule
+25. [BC-MED-0753] Royal Jelly 1000mg Natural Hive Softgels | Gen: Pure Queen Bee Royal Jelly Concentrate | Str: 1000mg | Form: Soft Gelatin Capsule
+26. [BC-MED-0754] Pure Raw Forest Honey from Northern Uganda 500g | Gen: 100% Pure Unfiltered Organic Honey | Str: Pure Raw Honey | Form: Viscous Food Liquid
+27. [BC-MED-0755] Bee Propolis Immune Throat Spray 30ml | Gen: Standardized Bee Propolis Extract Spray | Str: High CAPE Bioflavonoid Concentration | Form: Oral Throat Spray
+28. [BC-MED-0756] Raw Organic Chia Seeds 500g | Gen: Salvia Hispanica Whole Seeds | Str: Whole Superfood Seeds | Form: Dietary Seeds
+29. [BC-MED-0757] Raw Golden Flaxseeds (Linseeds) Organic 500g | Gen: Linum Usitatissimum Golden Seeds | Str: Whole Raw Seeds | Form: Dietary Seeds
+30. [BC-MED-0758] Organic Moringa Leaf Powder 250g (Ugandan Grown) | Gen: Moringa Oleifera Dehydrated Leaf Powder | Str: Nutrient-Dense Green Powder | Form: Dietary Powder
+31. [BC-MED-0759] Wild Harvested Baobab Superfruit Powder 200g | Gen: Adansonia Digitata Fruit Pulp Powder | Str: Natural Vitamin C & Prebiotic | Form: Dietary Powder
+32. [BC-MED-0760] Hibiscus Roselle Dried Flowers 250g (Karkadeh) | Gen: Hibiscus Sabdariffa Calyces | Str: Whole Herbal Flowers | Form: Herbal Infusion Calyces
+33. [BC-MED-0761] Pure Organic Wheatgrass Juice Powder 150g | Gen: Triticum Aestivum Organic Juice Powder | Str: 100% Raw Bioactive Chlorophyll | Form: Dietary Green Powder
+34. [BC-MED-0762] Spirulina & Chlorella 50/50 Super Algae Tablets (120s) | Gen: Arthrospira Platensis & Chlorella Pyrenoidosa | Str: 500mg Blend per Tablet | Form: Compressed Tablet
+35. [BC-MED-0763] Ceremonial Grade Japanese Matcha Green Tea 100g | Gen: Camellia Sinensis Stone-Ground Powder | Str: First-Harvest Ceremonial Grade | Form: Stone-Ground Green Powder
+36. [BC-MED-0764] Hydrolyzed Bovine Collagen Peptides Powder 300g | Gen: Hydrolyzed Collagen Types I & III | Str: Unflavored Types I & III | Form: Soluble Peptide Powder
+37. [BC-MED-0765] Whey Protein Isolate 100% Powder (Vanilla 1kg) | Gen: Cross-Flow Microfiltered Whey Protein Isolate | Str: Ultra-Pure Microfiltered | Form: Protein Powder
+38. [BC-MED-0766] Micronized Creatine Monohydrate Powder 300g | Gen: Pure Micronized Creatine Monohydrate | Str: 5g Pure Creatine per Scoop | Form: Unflavored Micronized Powder
+39. [BC-MED-0767] BCAA 2:1:1 Amino Recovery Powder 300g (Watermelon) | Gen: Branched-Chain Amino Acids (Leucine, Isoleucine, Valine) | Str: Proven 2:1:1 Ratio | Form: Drink Mix Powder
+40. [BC-MED-0768] Turmeric, Ginger & Boswellia Joint Relief Capsules | Gen: Triple Botanical Joint Inflammation Complex | Str: Synergistic Phyto-Complex | Form: Vegetarian Capsule
+41. [BC-MED-0769] Omega 3-6-9 Complete Fatty Acid Balance Softgels | Gen: Fish Oil, Flaxseed Oil & Borage Starflower Oil | Str: 1200mg Complete Blend | Form: Soft Gelatin Capsule
+42. [BC-MED-0770] Electrolyte Hydration Multiplier Sticks (Pack of 10) | Gen: Cellular Hydration Electrolyte Drink Mix | Str: Cellular Transport Technology | Form: Powder Stick Sachets
+43. [BC-MED-0771] Deep Tissue Muscle Massage Roller Stick | Gen: Myofascial Trigger Point Massage Roller | Str: Deep Tissue Self-Myofascial Tool | Form: Physiotherapy Appliance
+44. [BC-MED-0772] Resistance Exercise Loop Bands (Set of 5 Levels) | Gen: Latex Physical Therapy Resistance Loop Bands | Str: 5 Calibrated Levels (X-Light to X-Heavy) | Form: Physiotherapy Appliance
+45. [BC-MED-0773] Hot & Cold Gel Beaded Therapeutic Eye Mask | Gen: Reusable Beaded Thermal Eye Compress | Str: Dual-Sided Microwaveable / Freezable | Form: Thermotherapy Appliance
+46. [BC-MED-0774] Orthopedic Memory Foam Lumbar Cushion for Office Chairs | Gen: Ergonomic Spinal Support Memory Foam Cushion | Str: Ergonomic Contoured Shape with Elastic Strap | Form: Orthopedic Pillow Appliance
+47. [BC-MED-0775] Acupressure Foot Reflexology Massage Mat | Gen: Reflexology Stone Pebble Stimulation Mat | Str: Targeted Foot Reflexology Zones | Form: Wellness Floor Appliance
+48. [BC-MED-0776] Organic Peppermint Essential Oil 15ml | Gen: Mentha Piperita Leaf Oil | Str: 100% Pure Therapeutic Grade | Form: Aromatherapy Essential Oil
+49. [BC-MED-0777] Echinacea & Elderberry Immune Syrup 150ml | Gen: Sambucus Nigra + Echinacea Purpurea + Vitamin C | Str: Concentrated Berry Formula | Form: Oral Syrup
+50. [BC-MED-0778] Propolis & Honey Throat Lozenges (Box of 24) | Gen: Standardized Propolis + Eucalyptus Honey Lozenges | Str: Soothing Demulcent Lozenge | Form: Sucking Lozenge
+51. [BC-MED-0779] Cinnamon Bark 500mg Blood Sugar Balance Capsules | Gen: Cinnamomum Cassia Standardized Extract | Str: 500mg | Form: Capsule
+52. [BC-MED-0780] Organic Cold-Pressed Virgin Coconut Oil 250ml | Gen: Unrefined Extra Virgin Coconut Oil | Str: Cold-Pressed Raw Oil | Form: Pure Botanical Oil

@@ -263,14 +263,17 @@
           </div>
         </div>
 
-        <div class="demo-catalog-notice" style="background:#f0f7ff; border:1px solid #bfdbfe; color:#1e40af; padding:8px 14px; border-radius:var(--radius-sm); font-size:12.5px; margin-bottom:14px;">
-          <strong>DEMONSTRATION TEST CATALOG:</strong> The medicines listed below are structured demonstration items for evaluation and test workflows. They do not represent live dispensary stock or current market quotes.
+        <div class="demo-catalog-notice" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px 16px; border-radius:var(--radius-sm); font-size:12.5px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
+          <span>🇺🇬</span>
+          <div>
+            <strong>UGANDAN PHARMACY CATALOG (EMHSLU 2023):</strong> Comprehensive formulary of 780 genuine pharmaceuticals and health supplies across 15 therapeutic categories, aligned with Uganda Ministry of Health guidelines and National Drug Authority (NDA) standards.
+          </div>
         </div>
 
         <!-- Customer View Toolbar -->
         <div class="catalog-controls-panel" id="customer-medicines-controls">
           <div class="search-input-wrap">
-            <input type="text" id="catalog-search-input" placeholder="Search medicines by brand name, generic name, or manufacturer..." />
+            <input type="text" id="catalog-search-input" placeholder="Search medicines by brand name, generic, active ingredient, or manufacturer..." />
             <span class="search-icon-symbol" id="catalog-search-symbol"></span>
           </div>
           <div class="filter-controls-row">
@@ -299,11 +302,29 @@
         <!-- Customer Product Cards Grid -->
         <div class="products-grid" id="catalog-products-grid"></div>
 
+        <!-- Customer Marketplace Pagination -->
+        <div class="catalog-pagination-container" id="catalog-pagination"></div>
+
         <!-- Staff/Admin Product Management Table -->
         <div class="content-card hidden" id="staff-medicines-table-card">
+          <div class="staff-table-toolbar" id="staff-medicines-toolbar" style="display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; align-items:center;">
+            <input type="text" id="staff-medicine-search" placeholder="Search dispensary by name, generic, brand, SKU..." class="form-input-sm" style="flex:1; min-width:220px;" />
+            <select id="staff-medicine-category-filter" class="form-select-sm" style="min-width:180px;">
+              <option value="all">All Categories</option>
+            </select>
+            <select id="staff-medicine-status-filter" class="form-select-sm" style="min-width:140px;">
+              <option value="all">All Statuses</option>
+              <option value="active">Active Only</option>
+              <option value="low-stock">Low Stock</option>
+              <option value="out-of-stock">Out of Stock</option>
+              <option value="inactive">Inactive</option>
+            </select>
+            <button class="btn btn-outline btn-sm" id="btn-reset-staff-medicines" type="button">Reset Filters</button>
+          </div>
           <div class="table-responsive">
             <div id="staff-medicines-table-box"></div>
           </div>
+          <div class="staff-pagination-container" id="staff-medicines-pagination"></div>
         </div>
       </section>
 

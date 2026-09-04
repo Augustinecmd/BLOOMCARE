@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="cardGrad_BC-MED-0316" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ffffff"/>
+      <stop offset="100%" stop-color="#faf5ff"/>
+    </linearGradient>
+    <filter id="cardShadow_BC-MED-0316" x="-5%" y="-5%" width="110%" height="110%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-opacity="0.06"/>
+    </filter>
+  </defs>
+
+  <!-- Container Box -->
+  <rect x="12" y="12" width="376" height="376" rx="20" fill="url(#cardGrad_BC-MED-0316)" stroke="#e2e8f0" stroke-width="1.5" filter="url(#cardShadow_BC-MED-0316)"/>
+
+  <!-- Top Category Header Strip -->
+  <path d="M12 32 Q12 12 32 12 L368 12 Q388 12 388 32 L388 42 L12 42 Z" fill="#9333ea"/>
+  <text x="26" y="29" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#ffffff" letter-spacing="0.5">BLOOMCARE &bull; MATERNAL HEALTH</text>
+
+  
+    <g transform="translate(305, 20)">
+      <rect width="75" height="24" rx="12" fill="#ecfdf5" stroke="#10b981" stroke-width="1.2"/>
+      <text x="37" y="16" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="700" fill="#059669" text-anchor="middle">
+        OTC
+      </text>
+    </g>
+    
+
+  <!-- Visual Dosage Graphic -->
+  
+        <g transform="translate(155, 48)">
+          <rect x="10" y="10" width="70" height="90" rx="10" fill="#ffffff" stroke="#9333ea" stroke-width="3"/>
+          <rect x="20" y="24" width="50" height="35" rx="4" fill="#0f172a"/>
+          <text x="45" y="48" font-family="monospace" font-size="16" font-weight="700" fill="#10b981" text-anchor="middle">120/80</text>
+          <circle cx="32" cy="78" r="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+          <circle cx="58" cy="78" r="8" fill="#faf5ff" stroke="#9333ea" stroke-width="1.5"/>
+        </g>
+        
+
+  <!-- Dosage Form Pill Badge -->
+  <g transform="translate(125, 175)">
+    <rect width="150" height="22" rx="11" fill="#ffffff" stroke="#9333ea" stroke-width="1.2"/>
+    <text x="75" y="15" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="700" fill="#6b21a8" text-anchor="middle" letter-spacing="0.5">
+      MEDICAL DEVICE
+    </text>
+  </g>
+
+  <!-- Medicine Name -->
+  
+        <text x="200" y="215" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">One-Step hCG Urine</text>
+        <text x="200" y="235" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="15" font-weight="700" fill="#0f172a" text-anchor="middle">Pregnancy Test Cassette</text>
+        
+
+  <!-- Generic & Strength Specification -->
+  <text x="200" y="260" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12.5" font-weight="600" fill="#6b21a8" text-anchor="middle">
+    Human Chorionic Gonadotropin Rapid Diagnostic Test &bull; Sensitivity 25 mIU/ml
+  </text>
+
+  <text x="200" y="280" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="500" fill="#64748b" text-anchor="middle">
+    Diagnostic Test Device &bull; Authentic Dispensary Pack
+  </text>
+
+  <!-- Security & Authenticity Stamp -->
+  <g transform="translate(30, 318)">
+    <rect width="340" height="34" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+    <circle cx="20" cy="17" r="5" fill="#9333ea"/>
+    <text x="34" y="21" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="600" fill="#334155">
+      NDA LICENSED &bull; EMHSLU 2023 FORMULARY
+    </text>
+    <text x="325" y="21" font-family="monospace" font-size="10" font-weight="700" fill="#94a3b8" text-anchor="end">
+      BC-MED-0316
+    </text>
+  </g>
+
+  <!-- Footer Watermark -->
+  <text x="200" y="372" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10" font-weight="500" fill="#94a3b8" text-anchor="middle">
+    BloomCare Pharmacy &bull; National Drug Authority Registered
+  </text>
+</svg>

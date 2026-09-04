@@ -43,6 +43,7 @@ import {
   getSystemSettings,
   updateSystemSettings
 } from "./firebase.js";
+import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
 import {
   validateUgandanPhone,
@@ -93,89 +94,130 @@ export const ICONS = {
 // 2. 15 PHARMACY HEALTH DEPARTMENTS
 // -------------------------------------------------------------
 const ESSENTIAL_CATEGORIES = [
-  { id: "cat-pain", name: "Pain Relief", iconKey: "medicines", desc: "Headache, body pain, fever, joint and muscle relief.", productCount: 7, status: "active" },
-  { id: "cat-cold", name: "Cold & Flu", iconKey: "medicines", desc: "Cough syrups, decongestants, antibiotics and lozenges.", productCount: 7, status: "active" },
-  { id: "cat-vitamins", name: "Vitamins & Supplements", iconKey: "prescriptions", desc: "Immunity boosters, minerals and daily multivitamins.", productCount: 6, status: "active" },
-  { id: "cat-digestive", name: "Digestive Health", iconKey: "medicines", desc: "Antacids, ORS hydration, laxatives and probiotics.", productCount: 6, status: "active" },
-  { id: "cat-firstaid", name: "First Aid", iconKey: "shield", desc: "Antiseptics, bandages, surgical gauze and emergency kits.", productCount: 5, status: "active" },
-  { id: "cat-skin", name: "Skin Care", iconKey: "prescriptions", desc: "Medicated lotions, moisturizing creams and ointments.", productCount: 5, status: "active" },
-  { id: "cat-personal", name: "Personal Care", iconKey: "prescriptions", desc: "Sanitizers, oral hygiene and daily personal care.", productCount: 3, status: "active" },
-  { id: "cat-baby", name: "Baby & Child Care", iconKey: "customers", desc: "Pediatric syrups, infant drops and baby supplements.", productCount: 4, status: "active" },
-  { id: "cat-maternal", name: "Maternal Health", iconKey: "prescriptions", desc: "Folic acid, prenatal multivitamins and calcium supplements.", productCount: 4, status: "active" },
-  { id: "cat-chronic", name: "Chronic Care", iconKey: "medicines", desc: "Blood pressure, heart and cardiovascular medications.", productCount: 5, status: "active" },
-  { id: "cat-diabetes", name: "Diabetes Care", iconKey: "medicines", desc: "Glucose control, test strips and diabetic care.", productCount: 4, status: "active" },
-  { id: "cat-respiratory", name: "Respiratory Care", iconKey: "medicines", desc: "Salbutamol inhalers, nebulizer solutions and respiratory therapy.", productCount: 4, status: "active" },
-  { id: "cat-allergy", name: "Allergy Care", iconKey: "medicines", desc: "Antihistamines, eye drops and non-drowsy allergy relief.", productCount: 4, status: "active" },
-  { id: "cat-devices", name: "Medical Devices", iconKey: "inventory", desc: "Digital thermometers, BP monitors, oximeters and lancets.", productCount: 4, status: "active" },
-  { id: "cat-wellness", name: "Wellness Products", iconKey: "shield", desc: "Nutritional shakes, dietary minerals and wellness essentials.", productCount: 4, status: "active" }
+  { id: "cat-pain", name: "Pain Relief", iconKey: "medicines", desc: "Headache, body pain, fever, joint and muscle relief.", productCount: 49, status: "active" },
+  { id: "cat-cold", name: "Cold & Flu", iconKey: "medicines", desc: "Cough syrups, decongestants, antibiotics and lozenges.", productCount: 47, status: "active" },
+  { id: "cat-vitamins", name: "Vitamins & Supplements", iconKey: "prescriptions", desc: "Immunity boosters, minerals and daily multivitamins.", productCount: 51, status: "active" },
+  { id: "cat-digestive", name: "Digestive Health", iconKey: "medicines", desc: "Antacids, ORS hydration, laxatives and probiotics.", productCount: 49, status: "active" },
+  { id: "cat-firstaid", name: "First Aid", iconKey: "shield", desc: "Antiseptics, bandages, surgical gauze and emergency kits.", productCount: 48, status: "active" },
+  { id: "cat-skin", name: "Skin Care", iconKey: "prescriptions", desc: "Medicated lotions, moisturizing creams and ointments.", productCount: 51, status: "active" },
+  { id: "cat-personal", name: "Personal Care", iconKey: "prescriptions", desc: "Sanitizers, oral hygiene and daily personal care.", productCount: 52, status: "active" },
+  { id: "cat-baby", name: "Baby & Child Care", iconKey: "customers", desc: "Pediatric syrups, infant drops and baby supplements.", productCount: 48, status: "active" },
+  { id: "cat-maternal", name: "Maternal Health", iconKey: "prescriptions", desc: "Folic acid, prenatal multivitamins and calcium supplements.", productCount: 51, status: "active" },
+  { id: "cat-chronic", name: "Chronic Care", iconKey: "medicines", desc: "Blood pressure, heart and cardiovascular medications.", productCount: 52, status: "active" },
+  { id: "cat-diabetes", name: "Diabetes Care", iconKey: "medicines", desc: "Glucose control, test strips and diabetic care.", productCount: 52, status: "active" },
+  { id: "cat-respiratory", name: "Respiratory Care", iconKey: "medicines", desc: "Salbutamol inhalers, nebulizer solutions and respiratory therapy.", productCount: 48, status: "active" },
+  { id: "cat-allergy", name: "Allergy Care", iconKey: "medicines", desc: "Antihistamines, eye drops and non-drowsy allergy relief.", productCount: 51, status: "active" },
+  { id: "cat-devices", name: "Medical Devices", iconKey: "inventory", desc: "Digital thermometers, BP monitors, oximeters and lancets.", productCount: 48, status: "active" },
+  { id: "cat-wellness", name: "Wellness Products", iconKey: "shield", desc: "Nutritional shakes, dietary minerals and wellness essentials.", productCount: 52, status: "active" }
 ];
 
 // Product Catalog (Demonstration Medicine Catalog with All 14 Required Structured Fields)
 const INITIAL_MEDICINES = [
-  // 1. Pain Relief
-  { id: "DEMO-MED-001", name: "Paracetamol 500mg Tablets", genericName: "Paracetamol", strength: "500mg", dosageForm: "Pack of 20 Tablets", category: "Pain Relief", price: 5000, stockQuantity: 150, reorderLevel: 20, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Fast-acting analgesic and antipyretic for mild to moderate headache, muscle pain, and fever reduction.", manufacturer: "GSK Consumer Healthcare", batchNumber: "DEMO-2026-PA50", expiryDate: "2028-08-31", imageUrl: "products/paracetamol-500mg.webp" },
-  { id: "DEMO-MED-002", name: "Ibuprofen 400mg Tablets", genericName: "Ibuprofen", strength: "400mg", dosageForm: "Pack of 20 Tablets", category: "Pain Relief", price: 8000, stockQuantity: 95, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Non-steroidal anti-inflammatory drug (NSAID) for dental pain, backache, and inflammatory joint stiffness.", manufacturer: "Abbott Laboratories", batchNumber: "DEMO-2026-IB40", expiryDate: "2028-11-30", imageUrl: "products/ibuprofen-400mg.webp" },
-  { id: "DEMO-MED-003", name: "Diclofenac 50mg Tablets", genericName: "Diclofenac Sodium", strength: "50mg", dosageForm: "Pack of 20 Tablets", category: "Pain Relief", price: 12000, stockQuantity: 60, reorderLevel: 12, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Potent targeted anti-inflammatory analgesic for acute musculoskeletal strain and arthritis.", manufacturer: "Novartis", batchNumber: "DEMO-2026-DC50", expiryDate: "2028-04-15", imageUrl: "products/diclofenac-50mg.webp" },
-  { id: "DEMO-MED-026", name: "Tramadol Capsules 50mg", genericName: "Tramadol Hydrochloride", strength: "50mg", dosageForm: "Pack of 10 Capsules", category: "Pain Relief", price: 18000, stockQuantity: 30, reorderLevel: 10, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Centrally acting opioid analgesic for moderate to severe postoperative pain management.", manufacturer: "Grunenthal Pharma", batchNumber: "DEMO-2026-TR50", expiryDate: "2027-11-20", imageUrl: "products/tramadol-50mg.webp" },
+  {"id":"DEMO-MED-001","name":"Paracetamol 500mg Tablets","genericName":"Paracetamol","strength":"500mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":5000,"stockQuantity":150,"reorderLevel":20,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Fast-acting analgesic and antipyretic for mild to moderate headache, muscle pain, and fever reduction.","manufacturer":"GSK Consumer Healthcare","batchNumber":"DEMO-2026-PA50","expiryDate":"2028-08-31","imageUrl":"products/paracetamol-500mg.webp","sku":"BC-SKU-0001","brandName":"Paracetamol","activeIngredients":"Paracetamol","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-002","name":"Ibuprofen 400mg Tablets","genericName":"Ibuprofen","strength":"400mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":8000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Non-steroidal anti-inflammatory drug (NSAID) for dental pain, backache, and inflammatory joint stiffness.","manufacturer":"Abbott Laboratories","batchNumber":"DEMO-2026-IB40","expiryDate":"2028-11-30","imageUrl":"products/ibuprofen-400mg.webp","sku":"BC-SKU-0002","brandName":"Ibuprofen","activeIngredients":"Ibuprofen","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-003","name":"Diclofenac 50mg Tablets","genericName":"Diclofenac Sodium","strength":"50mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":12000,"stockQuantity":60,"reorderLevel":12,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Potent targeted anti-inflammatory analgesic for acute musculoskeletal strain and arthritis.","manufacturer":"Novartis","batchNumber":"DEMO-2026-DC50","expiryDate":"2028-04-15","imageUrl":"products/diclofenac-50mg.webp","sku":"BC-SKU-0003","brandName":"Diclofenac","activeIngredients":"Diclofenac Sodium","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-026","name":"Tramadol Capsules 50mg","genericName":"Tramadol Hydrochloride","strength":"50mg","dosageForm":"Pack of 10 Capsules","category":"Pain Relief","price":18000,"stockQuantity":30,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Centrally acting opioid analgesic for moderate to severe postoperative pain management.","manufacturer":"Grunenthal Pharma","batchNumber":"DEMO-2026-TR50","expiryDate":"2027-11-20","imageUrl":"products/tramadol-50mg.webp","sku":"BC-SKU-0004","brandName":"Tramadol","activeIngredients":"Tramadol Hydrochloride","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-004","name":"Amoxicillin 500mg Capsules","genericName":"Amoxicillin Trihydrate","strength":"500mg","dosageForm":"Pack of 20 Capsules","category":"Cold & Flu","price":18000,"stockQuantity":45,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum penicillin antibiotic for bacterial respiratory tract, ENT, and dental infections.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-AM50","expiryDate":"2027-10-15","imageUrl":"products/amoxicillin-500mg.webp","sku":"BC-SKU-0005","brandName":"Amoxicillin","activeIngredients":"Amoxicillin Trihydrate","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-005","name":"Azithromycin 500mg Tablets","genericName":"Azithromycin Monohydrate","strength":"500mg","dosageForm":"Pack of 3 Tablets","category":"Cold & Flu","price":28000,"stockQuantity":40,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Short-course macrolide antibiotic for upper and lower respiratory bacterial infections.","manufacturer":"Pfizer","batchNumber":"DEMO-2026-AZ50","expiryDate":"2028-05-30","imageUrl":"products/azithromycin-500mg.webp","sku":"BC-SKU-0006","brandName":"Azithromycin","activeIngredients":"Azithromycin Monohydrate","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-021","name":"Cough Syrup","genericName":"Guaifenesin Expectorant + Menthol","strength":"100mg/5ml","dosageForm":"100ml Liquid Bottle","category":"Cold & Flu","price":14000,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Soothing expectorant cough formulation to liquefy chest mucus and relieve dry irritated throat coughs.","manufacturer":"Johnson & Johnson","batchNumber":"DEMO-2026-CS10","expiryDate":"2028-07-15","imageUrl":"products/cough-syrup.webp","sku":"BC-SKU-0007","brandName":"Cough","activeIngredients":"Guaifenesin Expectorant + Menthol","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-022","name":"Nasal Saline Drops","genericName":"Sodium Chloride 0.9% Isotonic Solution","strength":"0.9% w/v","dosageForm":"15ml Dropper Bottle","category":"Cold & Flu","price":7000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Natural preservative-free isotonic nasal saline drops to clear blocked nasal passages and relieve dryness.","manufacturer":"SurgiPharm Uganda","batchNumber":"DEMO-2026-NS15","expiryDate":"2028-11-30","imageUrl":"products/nasal-saline-drops.webp","sku":"BC-SKU-0008","brandName":"Nasal","activeIngredients":"Sodium Chloride 0.9% Isotonic Solution","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-006","name":"Cetirizine 10mg Tablets","genericName":"Cetirizine Hydrochloride","strength":"10mg","dosageForm":"Pack of 10 Tablets","category":"Allergy Care","price":8500,"stockQuantity":85,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Non-drowsy second-generation antihistamine for allergic rhinitis, sneezing, and skin urticaria.","manufacturer":"UCB Pharma","batchNumber":"DEMO-2026-CT10","expiryDate":"2028-06-20","imageUrl":"products/cetirizine-10mg.webp","sku":"BC-SKU-0009","brandName":"Cetirizine","activeIngredients":"Cetirizine Hydrochloride","subcategory":"Allergy Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-007","name":"Loratadine 10mg Tablets","genericName":"Loratadine","strength":"10mg","dosageForm":"Pack of 10 Tablets","category":"Allergy Care","price":10500,"stockQuantity":70,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] 24-hour non-sedating antihistamine for seasonal hay fever and chronic allergic skin conditions.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-LR10","expiryDate":"2028-08-31","imageUrl":"products/loratadine-10mg.webp","sku":"BC-SKU-0010","brandName":"Loratadine","activeIngredients":"Loratadine","subcategory":"Allergy Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-008","name":"Omeprazole 20mg Capsules","genericName":"Omeprazole","strength":"20mg","dosageForm":"Pack of 14 Capsules","category":"Digestive Health","price":15000,"stockQuantity":75,"reorderLevel":15,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Proton pump inhibitor for gastric acid reduction, peptic ulcer healing, and GERD acid reflux.","manufacturer":"AstraZeneca","batchNumber":"DEMO-2026-OM20","expiryDate":"2028-03-31","imageUrl":"products/omeprazole-20mg.webp","sku":"BC-SKU-0011","brandName":"Omeprazole","activeIngredients":"Omeprazole","subcategory":"Digestive Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-009","name":"Oral Rehydration Salts","genericName":"WHO Formula Electrolytes","strength":"20.5g/sachet","dosageForm":"Box of 5 Sachets","category":"Digestive Health","price":3500,"stockQuantity":200,"reorderLevel":30,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Balanced glucose-electrolyte solution for rehydration therapy during acute diarrhea and dehydration.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-ORS1","expiryDate":"2029-01-30","imageUrl":"products/oral-rehydration-salts.webp","sku":"BC-SKU-0012","brandName":"Oral","activeIngredients":"WHO Formula Electrolytes","subcategory":"Digestive Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-010","name":"Antacid Tablets","genericName":"Magnesium + Aluminum Hydroxide","strength":"400mg","dosageForm":"Pack of 12 Chewable Tablets","category":"Digestive Health","price":6000,"stockQuantity":130,"reorderLevel":20,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Fast-acting chewable tablets for immediate neutralization of stomach acid, heartburn, and sour stomach.","manufacturer":"Reckitt Benckiser","batchNumber":"DEMO-2026-ANT1","expiryDate":"2028-07-25","imageUrl":"products/antacid-tablets.webp","sku":"BC-SKU-0013","brandName":"Antacid","activeIngredients":"Magnesium + Aluminum Hydroxide","subcategory":"Digestive Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-011","name":"Vitamin C 500mg Tablets","genericName":"Ascorbic Acid","strength":"500mg","dosageForm":"Bottle of 30 Chewable Tablets","category":"Vitamins & Supplements","price":12000,"stockQuantity":110,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Daily immune defense booster and antioxidant supplement supporting collagen synthesis.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-VC50","expiryDate":"2028-04-10","imageUrl":"products/vitamin-c-500mg.webp","sku":"BC-SKU-0014","brandName":"Vitamin","activeIngredients":"Ascorbic Acid","subcategory":"Vitamins & Supplements","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-012","name":"Zinc 20mg Tablets","genericName":"Zinc Sulfate Monohydrate","strength":"20mg","dosageForm":"Pack of 10 Tablets","category":"Vitamins & Supplements","price":6500,"stockQuantity":140,"reorderLevel":25,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Essential trace mineral for cellular immunity, tissue repair, and diarrhea recovery.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-ZN20","expiryDate":"2029-02-28","imageUrl":"products/zinc-20mg.webp","sku":"BC-SKU-0015","brandName":"Zinc","activeIngredients":"Zinc Sulfate Monohydrate","subcategory":"Vitamins & Supplements","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-027","name":"Daily Multivitamin Complete","genericName":"Complete A-Z Formula","strength":"24 Nutrients","dosageForm":"Bottle of 30 Tablets","category":"Vitamins & Supplements","price":25000,"stockQuantity":60,"reorderLevel":10,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Complete daily micronutrient supplement supporting physical vitality and mental clarity.","manufacturer":"Vitabiotics","batchNumber":"DEMO-2026-MV30","expiryDate":"2028-09-15","imageUrl":"products/daily-multivitamin.webp","sku":"BC-SKU-0016","brandName":"Daily","activeIngredients":"Complete A-Z Formula","subcategory":"Vitamins & Supplements","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-013","name":"Ferrous Sulfate Tablets","genericName":"Dried Ferrous Sulfate","strength":"200mg (65mg Elemental Iron)","dosageForm":"Bottle of 60 Tablets","category":"Maternal Health","price":9000,"stockQuantity":80,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Essential iron supplement for prevention and treatment of iron deficiency anemia in pregnancy and convalescence.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-FE20","expiryDate":"2028-10-31","imageUrl":"products/ferrous-sulfate.webp","sku":"BC-SKU-0017","brandName":"Ferrous","activeIngredients":"Dried Ferrous Sulfate","subcategory":"Maternal Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-028","name":"Folic Acid 5mg Tablets","genericName":"Folic Acid","strength":"5mg","dosageForm":"Bottle of 100 Tablets","category":"Maternal Health","price":7000,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Crucial folate supplement for neural tube defect prevention during conception and early pregnancy.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-FA05","expiryDate":"2028-11-15","imageUrl":"products/folic-acid-5mg.webp","sku":"BC-SKU-0018","brandName":"Folic","activeIngredients":"Folic Acid","subcategory":"Maternal Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-014","name":"Antiseptic Solution","genericName":"Chloroxylenol 4.8%","strength":"4.8% w/v","dosageForm":"500ml Liquid Bottle","category":"First Aid","price":14000,"stockQuantity":75,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Concentrated antiseptic liquid for wound cleansing, disinfection of cuts, abrasions, and skin hygiene.","manufacturer":"Reckitt Benckiser","batchNumber":"DEMO-2026-AS50","expiryDate":"2029-03-31","imageUrl":"products/antiseptic-solution.webp","sku":"BC-SKU-0019","brandName":"Antiseptic","activeIngredients":"Chloroxylenol 4.8%","subcategory":"First Aid","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-015","name":"Hydrogen Peroxide 3%","genericName":"Hydrogen Peroxide Solution (10 Vol)","strength":"3% w/v","dosageForm":"200ml Liquid Bottle","category":"First Aid","price":6500,"stockQuantity":90,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Mild topical antiseptic for minor wound debridement, effervescent cleansing of cuts, and hygiene.","manufacturer":"SurgiPharm Uganda","batchNumber":"DEMO-2026-HP03","expiryDate":"2028-09-30","imageUrl":"products/hydrogen-peroxide.webp","sku":"BC-SKU-0020","brandName":"Hydrogen","activeIngredients":"Hydrogen Peroxide Solution (10 Vol)","subcategory":"First Aid","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-016","name":"Povidone-Iodine 10%","genericName":"Povidone-Iodine Topical Solution","strength":"10% w/v","dosageForm":"100ml Liquid Bottle","category":"First Aid","price":9500,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum non-stinging microbicidal antiseptic for skin disinfection, minor burns, and wound asepsis.","manufacturer":"Mundipharma","batchNumber":"DEMO-2026-PI10","expiryDate":"2029-04-30","imageUrl":"products/povidone-iodine.webp","sku":"BC-SKU-0021","brandName":"Povidone-Iodine","activeIngredients":"Povidone-Iodine Topical Solution","subcategory":"First Aid","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-017","name":"Hydrocortisone 1% Cream","genericName":"Hydrocortisone Acetate","strength":"1% w/w","dosageForm":"15g Aluminum Tube","category":"Skin Care","price":7500,"stockQuantity":50,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Mild topical corticosteroid cream for inflammatory dermatitis, allergic eczema, and insect bite irritation.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-HC01","expiryDate":"2027-11-30","imageUrl":"products/hydrocortisone-cream.webp","sku":"BC-SKU-0022","brandName":"Hydrocortisone","activeIngredients":"Hydrocortisone Acetate","subcategory":"Skin Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-018","name":"Clotrimazole 1% Cream","genericName":"Clotrimazole","strength":"1% w/w","dosageForm":"20g Aluminum Tube","category":"Skin Care","price":9000,"stockQuantity":65,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum topical imidazole antifungal cream for ringworm (tinea corporis), athlete's foot, and candidiasis.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-CL01","expiryDate":"2028-09-30","imageUrl":"products/clotrimazole-cream.webp","sku":"BC-SKU-0023","brandName":"Clotrimazole","activeIngredients":"Clotrimazole","subcategory":"Skin Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-019","name":"Calamine Lotion","genericName":"Calamine 15% + Zinc Oxide 5%","strength":"15% w/v","dosageForm":"100ml Suspension Bottle","category":"Skin Care","price":8000,"stockQuantity":70,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Soothing, cooling astringent protective lotion for itch relief, sunburn, chickenpox rash, and prickly heat.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-CAL1","expiryDate":"2028-12-31","imageUrl":"products/calamine-lotion.webp","sku":"BC-SKU-0024","brandName":"Calamine","activeIngredients":"Calamine 15% + Zinc Oxide 5%","subcategory":"Skin Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-020","name":"Salbutamol Inhaler","genericName":"Salbutamol Sulfate","strength":"100mcg/metered dose","dosageForm":"200 Dose Pressurized Inhaler","category":"Respiratory Care","price":22000,"stockQuantity":28,"reorderLevel":8,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Rapid-acting selective beta-2 agonist bronchodilator for prompt relief of acute asthma bronchospasm.","manufacturer":"GSK","batchNumber":"DEMO-2026-SL10","expiryDate":"2027-09-30","imageUrl":"products/salbutamol-inhaler.webp","sku":"BC-SKU-0025","brandName":"Salbutamol","activeIngredients":"Salbutamol Sulfate","subcategory":"Respiratory Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-023","name":"Digital Thermometer","genericName":"Electronic Clinical Fever Thermometer","strength":"Digital Sensor (+/-0.1 C)","dosageForm":"1 Digital Unit in Case","category":"Medical Devices","price":25000,"stockQuantity":40,"reorderLevel":8,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] High-speed clinical digital oral, axillary, and rectal thermometer with fever beep indicator and auto shut-off.","manufacturer":"Omron Healthcare","batchNumber":"DEMO-2026-DT01","expiryDate":"2032-12-31","imageUrl":"products/digital-thermometer.webp","sku":"BC-SKU-0026","brandName":"Digital","activeIngredients":"Electronic Clinical Fever Thermometer","subcategory":"Medical Devices","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-024","name":"Blood Pressure Monitor","genericName":"Automatic Upper Arm Digital BP Monitor","strength":"Digital Oscillometric Sensor","dosageForm":"1 Digital Monitor Unit + Cuff","category":"Medical Devices","price":185000,"stockQuantity":18,"reorderLevel":5,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Clinically validated automatic digital upper-arm blood pressure and pulse monitor with hypertension indicator.","manufacturer":"Omron Healthcare","batchNumber":"DEMO-2026-BP02","expiryDate":"2032-12-31","imageUrl":"products/blood-pressure-monitor.webp","sku":"BC-SKU-0027","brandName":"Blood","activeIngredients":"Automatic Upper Arm Digital BP Monitor","subcategory":"Medical Devices","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-025","name":"Hand Sanitizer 70%","genericName":"70% Isopropyl Alcohol Antiseptic Gel","strength":"70% v/v","dosageForm":"500ml Pump Bottle","category":"Personal Care","price":10000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Hospital-grade 70% alcohol hand rub with moisturizers for rapid destruction of germs and pathogens.","manufacturer":"Saraya East Africa","batchNumber":"DEMO-2026-HS70","expiryDate":"2029-06-30","imageUrl":"products/hand-sanitizer.webp","sku":"BC-SKU-0028","brandName":"Hand","activeIngredients":"70% Isopropyl Alcohol Antiseptic Gel","subcategory":"Personal Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-029","name":"Amlodipine 5mg Tablets","genericName":"Amlodipine Besylate","strength":"5mg","dosageForm":"Box of 28 Tablets","category":"Chronic Care","price":24000,"stockQuantity":50,"reorderLevel":15,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Calcium channel blocker for arterial hypertension and chronic stable angina management.","manufacturer":"Pfizer","batchNumber":"DEMO-2026-AM05","expiryDate":"2027-12-31","imageUrl":"products/amlodipine-5mg.webp","sku":"BC-SKU-0029","brandName":"Amlodipine","activeIngredients":"Amlodipine Besylate","subcategory":"Chronic Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-030","name":"Losartan Potassium 50mg Tablets","genericName":"Losartan Potassium","strength":"50mg","dosageForm":"Box of 30 Tablets","category":"Chronic Care","price":28000,"stockQuantity":42,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Angiotensin II receptor blocker for blood pressure regulation and renal protection in diabetes.","manufacturer":"Organon Pharma","batchNumber":"DEMO-2026-LS50","expiryDate":"2028-02-28","imageUrl":"products/losartan-50mg.webp","sku":"BC-SKU-0030","brandName":"Losartan","activeIngredients":"Losartan Potassium","subcategory":"Chronic Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-031","name":"Metformin 500mg Tablets","genericName":"Metformin Hydrochloride","strength":"500mg","dosageForm":"Box of 30 Tablets","category":"Diabetes Care","price":15000,"stockQuantity":40,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] First-line oral biguanide antidiabetic for glycemic control in adult Type 2 Diabetes.","manufacturer":"Merck Healthcare","batchNumber":"DEMO-2026-MF50","expiryDate":"2028-05-30","imageUrl":"products/metformin-500mg.webp","sku":"BC-SKU-0031","brandName":"Metformin","activeIngredients":"Metformin Hydrochloride","subcategory":"Diabetes Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-032","name":"Accu-Chek Blood Glucose Test Strips","genericName":"Blood Glucose Test Strips (50s)","strength":"50 Test Strips","dosageForm":"Vial of 50 Strips","category":"Diabetes Care","price":65000,"stockQuantity":30,"reorderLevel":8,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] High-precision capillary blood glucose test strips for regular home blood sugar monitoring.","manufacturer":"Roche Diabetes Care","batchNumber":"DEMO-2026-AC50","expiryDate":"2027-11-30","imageUrl":"products/glucose-test-strips.webp","sku":"BC-SKU-0032","brandName":"Accu-Chek","activeIngredients":"Blood Glucose Test Strips (50s)","subcategory":"Diabetes Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-033","name":"Pediatric Paracetamol Syrup 100ml","genericName":"Paracetamol 120mg/5ml","strength":"120mg/5ml","dosageForm":"100ml Bottle + Spoon","category":"Baby & Child Care","price":9500,"stockQuantity":80,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Sugar-free strawberry flavored pediatric suspension for infant fever, pain, and immunization discomfort.","manufacturer":"GSK Consumer Healthcare","batchNumber":"DEMO-2026-CP10","expiryDate":"2028-08-31","imageUrl":"products/pediatric-paracetamol.webp","sku":"BC-SKU-0033","brandName":"Pediatric","activeIngredients":"Paracetamol 120mg/5ml","subcategory":"Baby & Child Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-034","name":"Omega-3 Fish Oil 1000mg Capsules","genericName":"Fish Oil EPA 180mg / DHA 120mg","strength":"1000mg","dosageForm":"Bottle of 60 Capsules","category":"Wellness Products","price":32000,"stockQuantity":48,"reorderLevel":10,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Concentrated essential fatty acids supporting cardiovascular wellness, brain health, and joint mobility.","manufacturer":"P&G Health","batchNumber":"DEMO-2026-OM03","expiryDate":"2028-10-31","imageUrl":"products/omega-3-fish-oil.webp","sku":"BC-SKU-0034","brandName":"Omega-3","activeIngredients":"Fish Oil EPA 180mg / DHA 120mg","subcategory":"Wellness Products","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
 
-  // 2. Cold & Flu
-  { id: "DEMO-MED-004", name: "Amoxicillin 500mg Capsules", genericName: "Amoxicillin Trihydrate", strength: "500mg", dosageForm: "Pack of 20 Capsules", category: "Cold & Flu", price: 18000, stockQuantity: 45, reorderLevel: 10, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Broad-spectrum penicillin antibiotic for bacterial respiratory tract, ENT, and dental infections.", manufacturer: "Medreich Laboratories", batchNumber: "DEMO-2026-AM50", expiryDate: "2027-10-15", imageUrl: "products/amoxicillin-500mg.webp" },
-  { id: "DEMO-MED-005", name: "Azithromycin 500mg Tablets", genericName: "Azithromycin Monohydrate", strength: "500mg", dosageForm: "Pack of 3 Tablets", category: "Cold & Flu", price: 28000, stockQuantity: 40, reorderLevel: 10, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Short-course macrolide antibiotic for upper and lower respiratory bacterial infections.", manufacturer: "Pfizer", batchNumber: "DEMO-2026-AZ50", expiryDate: "2028-05-30", imageUrl: "products/azithromycin-500mg.webp" },
-  { id: "DEMO-MED-021", name: "Cough Syrup", genericName: "Guaifenesin Expectorant + Menthol", strength: "100mg/5ml", dosageForm: "100ml Liquid Bottle", category: "Cold & Flu", price: 14000, stockQuantity: 85, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Soothing expectorant cough formulation to liquefy chest mucus and relieve dry irritated throat coughs.", manufacturer: "Johnson & Johnson", batchNumber: "DEMO-2026-CS10", expiryDate: "2028-07-15", imageUrl: "products/cough-syrup.webp" },
-  { id: "DEMO-MED-022", name: "Nasal Saline Drops", genericName: "Sodium Chloride 0.9% Isotonic Solution", strength: "0.9% w/v", dosageForm: "15ml Dropper Bottle", category: "Cold & Flu", price: 7000, stockQuantity: 95, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Natural preservative-free isotonic nasal saline drops to clear blocked nasal passages and relieve dryness.", manufacturer: "SurgiPharm Uganda", batchNumber: "DEMO-2026-NS15", expiryDate: "2028-11-30", imageUrl: "products/nasal-saline-drops.webp" },
-
-  // 3. Allergy Care
-  { id: "DEMO-MED-006", name: "Cetirizine 10mg Tablets", genericName: "Cetirizine Hydrochloride", strength: "10mg", dosageForm: "Pack of 10 Tablets", category: "Allergy Care", price: 8500, stockQuantity: 85, reorderLevel: 12, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Non-drowsy second-generation antihistamine for allergic rhinitis, sneezing, and skin urticaria.", manufacturer: "UCB Pharma", batchNumber: "DEMO-2026-CT10", expiryDate: "2028-06-20", imageUrl: "products/cetirizine-10mg.webp" },
-  { id: "DEMO-MED-007", name: "Loratadine 10mg Tablets", genericName: "Loratadine", strength: "10mg", dosageForm: "Pack of 10 Tablets", category: "Allergy Care", price: 10500, stockQuantity: 70, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] 24-hour non-sedating antihistamine for seasonal hay fever and chronic allergic skin conditions.", manufacturer: "Bayer Healthcare", batchNumber: "DEMO-2026-LR10", expiryDate: "2028-08-31", imageUrl: "products/loratadine-10mg.webp" },
-
-  // 4. Digestive Health
-  { id: "DEMO-MED-008", name: "Omeprazole 20mg Capsules", genericName: "Omeprazole", strength: "20mg", dosageForm: "Pack of 14 Capsules", category: "Digestive Health", price: 15000, stockQuantity: 75, reorderLevel: 15, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Proton pump inhibitor for gastric acid reduction, peptic ulcer healing, and GERD acid reflux.", manufacturer: "AstraZeneca", batchNumber: "DEMO-2026-OM20", expiryDate: "2028-03-31", imageUrl: "products/omeprazole-20mg.webp" },
-  { id: "DEMO-MED-009", name: "Oral Rehydration Salts", genericName: "WHO Formula Electrolytes", strength: "20.5g/sachet", dosageForm: "Box of 5 Sachets", category: "Digestive Health", price: 3500, stockQuantity: 200, reorderLevel: 30, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Balanced glucose-electrolyte solution for rehydration therapy during acute diarrhea and dehydration.", manufacturer: "Cipla Uganda", batchNumber: "DEMO-2026-ORS1", expiryDate: "2029-01-30", imageUrl: "products/oral-rehydration-salts.webp" },
-  { id: "DEMO-MED-010", name: "Antacid Tablets", genericName: "Magnesium + Aluminum Hydroxide", strength: "400mg", dosageForm: "Pack of 12 Chewable Tablets", category: "Digestive Health", price: 6000, stockQuantity: 130, reorderLevel: 20, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Fast-acting chewable tablets for immediate neutralization of stomach acid, heartburn, and sour stomach.", manufacturer: "Reckitt Benckiser", batchNumber: "DEMO-2026-ANT1", expiryDate: "2028-07-25", imageUrl: "products/antacid-tablets.webp" },
-
-  // 5. Vitamins & Supplements
-  { id: "DEMO-MED-011", name: "Vitamin C 500mg Tablets", genericName: "Ascorbic Acid", strength: "500mg", dosageForm: "Bottle of 30 Chewable Tablets", category: "Vitamins & Supplements", price: 12000, stockQuantity: 110, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Daily immune defense booster and antioxidant supplement supporting collagen synthesis.", manufacturer: "Bayer Healthcare", batchNumber: "DEMO-2026-VC50", expiryDate: "2028-04-10", imageUrl: "products/vitamin-c-500mg.webp" },
-  { id: "DEMO-MED-012", name: "Zinc 20mg Tablets", genericName: "Zinc Sulfate Monohydrate", strength: "20mg", dosageForm: "Pack of 10 Tablets", category: "Vitamins & Supplements", price: 6500, stockQuantity: 140, reorderLevel: 25, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Essential trace mineral for cellular immunity, tissue repair, and diarrhea recovery.", manufacturer: "Cipla Uganda", batchNumber: "DEMO-2026-ZN20", expiryDate: "2029-02-28", imageUrl: "products/zinc-20mg.webp" },
-  { id: "DEMO-MED-027", name: "Daily Multivitamin Complete", genericName: "Complete A-Z Formula", strength: "24 Nutrients", dosageForm: "Bottle of 30 Tablets", category: "Vitamins & Supplements", price: 25000, stockQuantity: 60, reorderLevel: 10, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Complete daily micronutrient supplement supporting physical vitality and mental clarity.", manufacturer: "Vitabiotics", batchNumber: "DEMO-2026-MV30", expiryDate: "2028-09-15", imageUrl: "products/daily-multivitamin.webp" },
-
-  // 6. Maternal Health
-  { id: "DEMO-MED-013", name: "Ferrous Sulfate Tablets", genericName: "Dried Ferrous Sulfate", strength: "200mg (65mg Elemental Iron)", dosageForm: "Bottle of 60 Tablets", category: "Maternal Health", price: 9000, stockQuantity: 80, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Essential iron supplement for prevention and treatment of iron deficiency anemia in pregnancy and convalescence.", manufacturer: "Medreich Laboratories", batchNumber: "DEMO-2026-FE20", expiryDate: "2028-10-31", imageUrl: "products/ferrous-sulfate.webp" },
-  { id: "DEMO-MED-028", name: "Folic Acid 5mg Tablets", genericName: "Folic Acid", strength: "5mg", dosageForm: "Bottle of 100 Tablets", category: "Maternal Health", price: 7000, stockQuantity: 85, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Crucial folate supplement for neural tube defect prevention during conception and early pregnancy.", manufacturer: "Cipla Uganda", batchNumber: "DEMO-2026-FA05", expiryDate: "2028-11-15", imageUrl: "products/folic-acid-5mg.webp" },
-
-  // 7. First Aid
-  { id: "DEMO-MED-014", name: "Antiseptic Solution", genericName: "Chloroxylenol 4.8%", strength: "4.8% w/v", dosageForm: "500ml Liquid Bottle", category: "First Aid", price: 14000, stockQuantity: 75, reorderLevel: 12, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Concentrated antiseptic liquid for wound cleansing, disinfection of cuts, abrasions, and skin hygiene.", manufacturer: "Reckitt Benckiser", batchNumber: "DEMO-2026-AS50", expiryDate: "2029-03-31", imageUrl: "products/antiseptic-solution.webp" },
-  { id: "DEMO-MED-015", name: "Hydrogen Peroxide 3%", genericName: "Hydrogen Peroxide Solution (10 Vol)", strength: "3% w/v", dosageForm: "200ml Liquid Bottle", category: "First Aid", price: 6500, stockQuantity: 90, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Mild topical antiseptic for minor wound debridement, effervescent cleansing of cuts, and hygiene.", manufacturer: "SurgiPharm Uganda", batchNumber: "DEMO-2026-HP03", expiryDate: "2028-09-30", imageUrl: "products/hydrogen-peroxide.webp" },
-  { id: "DEMO-MED-016", name: "Povidone-Iodine 10%", genericName: "Povidone-Iodine Topical Solution", strength: "10% w/v", dosageForm: "100ml Liquid Bottle", category: "First Aid", price: 9500, stockQuantity: 85, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Broad-spectrum non-stinging microbicidal antiseptic for skin disinfection, minor burns, and wound asepsis.", manufacturer: "Mundipharma", batchNumber: "DEMO-2026-PI10", expiryDate: "2029-04-30", imageUrl: "products/povidone-iodine.webp" },
-
-  // 8. Skin Care
-  { id: "DEMO-MED-017", name: "Hydrocortisone 1% Cream", genericName: "Hydrocortisone Acetate", strength: "1% w/w", dosageForm: "15g Aluminum Tube", category: "Skin Care", price: 7500, stockQuantity: 50, reorderLevel: 10, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Mild topical corticosteroid cream for inflammatory dermatitis, allergic eczema, and insect bite irritation.", manufacturer: "Medreich Laboratories", batchNumber: "DEMO-2026-HC01", expiryDate: "2027-11-30", imageUrl: "products/hydrocortisone-cream.webp" },
-  { id: "DEMO-MED-018", name: "Clotrimazole 1% Cream", genericName: "Clotrimazole", strength: "1% w/w", dosageForm: "20g Aluminum Tube", category: "Skin Care", price: 9000, stockQuantity: 65, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Broad-spectrum topical imidazole antifungal cream for ringworm (tinea corporis), athlete's foot, and candidiasis.", manufacturer: "Bayer Healthcare", batchNumber: "DEMO-2026-CL01", expiryDate: "2028-09-30", imageUrl: "products/clotrimazole-cream.webp" },
-  { id: "DEMO-MED-019", name: "Calamine Lotion", genericName: "Calamine 15% + Zinc Oxide 5%", strength: "15% w/v", dosageForm: "100ml Suspension Bottle", category: "Skin Care", price: 8000, stockQuantity: 70, reorderLevel: 12, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Soothing, cooling astringent protective lotion for itch relief, sunburn, chickenpox rash, and prickly heat.", manufacturer: "Cipla Uganda", batchNumber: "DEMO-2026-CAL1", expiryDate: "2028-12-31", imageUrl: "products/calamine-lotion.webp" },
-
-  // 9. Respiratory Care
-  { id: "DEMO-MED-020", name: "Salbutamol Inhaler", genericName: "Salbutamol Sulfate", strength: "100mcg/metered dose", dosageForm: "200 Dose Pressurized Inhaler", category: "Respiratory Care", price: 22000, stockQuantity: 28, reorderLevel: 8, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Rapid-acting selective beta-2 agonist bronchodilator for prompt relief of acute asthma bronchospasm.", manufacturer: "GSK", batchNumber: "DEMO-2026-SL10", expiryDate: "2027-09-30", imageUrl: "products/salbutamol-inhaler.webp" },
-
-  // 10. Medical Devices
-  { id: "DEMO-MED-023", name: "Digital Thermometer", genericName: "Electronic Clinical Fever Thermometer", strength: "Digital Sensor (+/-0.1 C)", dosageForm: "1 Digital Unit in Case", category: "Medical Devices", price: 25000, stockQuantity: 40, reorderLevel: 8, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] High-speed clinical digital oral, axillary, and rectal thermometer with fever beep indicator and auto shut-off.", manufacturer: "Omron Healthcare", batchNumber: "DEMO-2026-DT01", expiryDate: "2032-12-31", imageUrl: "products/digital-thermometer.webp" },
-  { id: "DEMO-MED-024", name: "Blood Pressure Monitor", genericName: "Automatic Upper Arm Digital BP Monitor", strength: "Digital Oscillometric Sensor", dosageForm: "1 Digital Monitor Unit + Cuff", category: "Medical Devices", price: 185000, stockQuantity: 18, reorderLevel: 5, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Clinically validated automatic digital upper-arm blood pressure and pulse monitor with hypertension indicator.", manufacturer: "Omron Healthcare", batchNumber: "DEMO-2026-BP02", expiryDate: "2032-12-31", imageUrl: "products/blood-pressure-monitor.webp" },
-
-  // 11. Personal Care
-  { id: "DEMO-MED-025", name: "Hand Sanitizer 70%", genericName: "70% Isopropyl Alcohol Antiseptic Gel", strength: "70% v/v", dosageForm: "500ml Pump Bottle", category: "Personal Care", price: 10000, stockQuantity: 95, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Hospital-grade 70% alcohol hand rub with moisturizers for rapid destruction of germs and pathogens.", manufacturer: "Saraya East Africa", batchNumber: "DEMO-2026-HS70", expiryDate: "2029-06-30", imageUrl: "products/hand-sanitizer.webp" },
-
-  // 12. Chronic Care
-  { id: "DEMO-MED-029", name: "Amlodipine 5mg Tablets", genericName: "Amlodipine Besylate", strength: "5mg", dosageForm: "Box of 28 Tablets", category: "Chronic Care", price: 24000, stockQuantity: 50, reorderLevel: 15, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Calcium channel blocker for arterial hypertension and chronic stable angina management.", manufacturer: "Pfizer", batchNumber: "DEMO-2026-AM05", expiryDate: "2027-12-31", imageUrl: "products/amlodipine-5mg.webp" },
-  { id: "DEMO-MED-030", name: "Losartan Potassium 50mg Tablets", genericName: "Losartan Potassium", strength: "50mg", dosageForm: "Box of 30 Tablets", category: "Chronic Care", price: 28000, stockQuantity: 42, reorderLevel: 10, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] Angiotensin II receptor blocker for blood pressure regulation and renal protection in diabetes.", manufacturer: "Organon Pharma", batchNumber: "DEMO-2026-LS50", expiryDate: "2028-02-28", imageUrl: "products/losartan-50mg.webp" },
-
-  // 13. Diabetes Care
-  { id: "DEMO-MED-031", name: "Metformin 500mg Tablets", genericName: "Metformin Hydrochloride", strength: "500mg", dosageForm: "Box of 30 Tablets", category: "Diabetes Care", price: 15000, stockQuantity: 40, reorderLevel: 10, requiresPrescription: true, status: "active", description: "[DEMONSTRATION TEST DATA] First-line oral biguanide antidiabetic for glycemic control in adult Type 2 Diabetes.", manufacturer: "Merck Healthcare", batchNumber: "DEMO-2026-MF50", expiryDate: "2028-05-30", imageUrl: "products/metformin-500mg.webp" },
-  { id: "DEMO-MED-032", name: "Accu-Chek Blood Glucose Test Strips", genericName: "Blood Glucose Test Strips (50s)", strength: "50 Test Strips", dosageForm: "Vial of 50 Strips", category: "Diabetes Care", price: 65000, stockQuantity: 30, reorderLevel: 8, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] High-precision capillary blood glucose test strips for regular home blood sugar monitoring.", manufacturer: "Roche Diabetes Care", batchNumber: "DEMO-2026-AC50", expiryDate: "2027-11-30", imageUrl: "products/glucose-test-strips.webp" },
-
-  // 14. Baby & Child Care
-  { id: "DEMO-MED-033", name: "Pediatric Paracetamol Syrup 100ml", genericName: "Paracetamol 120mg/5ml", strength: "120mg/5ml", dosageForm: "100ml Bottle + Spoon", category: "Baby & Child Care", price: 9500, stockQuantity: 80, reorderLevel: 15, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Sugar-free strawberry flavored pediatric suspension for infant fever, pain, and immunization discomfort.", manufacturer: "GSK Consumer Healthcare", batchNumber: "DEMO-2026-CP10", expiryDate: "2028-08-31", imageUrl: "products/pediatric-paracetamol.webp" },
-
-  // 15. Wellness Products
-  { id: "DEMO-MED-034", name: "Omega-3 Fish Oil 1000mg Capsules", genericName: "Fish Oil EPA 180mg / DHA 120mg", strength: "1000mg", dosageForm: "Bottle of 60 Capsules", category: "Wellness Products", price: 32000, stockQuantity: 48, reorderLevel: 10, requiresPrescription: false, status: "active", description: "[DEMONSTRATION TEST DATA] Concentrated essential fatty acids supporting cardiovascular wellness, brain health, and joint mobility.", manufacturer: "P&G Health", batchNumber: "DEMO-2026-OM03", expiryDate: "2028-10-31", imageUrl: "products/omega-3-fish-oil.webp" }
+  // Expanded EMHSLU 2023 Ugandan Pharmacy Catalog (715 additional clinical products, strictly deduped)
+  ...(typeof UGANDA_PHARMACY_CATALOG !== "undefined" ? UGANDA_PHARMACY_CATALOG.filter(m => !m.id.startsWith("DEMO-MED-")) : [])
 ];
+
+// -------------------------------------------------------------
+// 2B. PHARMACEUTICAL CATALOG UNIQUENESS & DEDUPLICATION LOGIC
+// -------------------------------------------------------------
+export function normalizeClinicalText(text) {
+  if (!text) return "";
+  return String(text).toLowerCase().replace(/[^\w\d]/g, " ").replace(/\s+/g, " ").trim();
+}
+
+export function getProductClinicalSignature(product) {
+  if (!product) return "";
+  const generic = normalizeClinicalText(product.genericName || product.name || "");
+  const strength = normalizeClinicalText(product.strength || "");
+  const form = normalizeClinicalText(product.dosageForm || "");
+  return `${generic}___${strength}___${form}`;
+}
+
+export function deduplicateCatalog(items) {
+  if (!Array.isArray(items)) return [];
+  const seenIds = new Set();
+  const seenSkus = new Set();
+  const seenNames = new Set();
+  const seenSignatures = new Set();
+  const result = [];
+
+  for (const item of items) {
+    if (!item || !item.id) continue;
+    // 1. Strict ID uniqueness
+    if (seenIds.has(item.id)) continue;
+    
+    // 2. Strict SKU uniqueness
+    if (item.sku && seenSkus.has(item.sku)) continue;
+
+    // 3. Strict Normalized Name uniqueness
+    const normName = normalizeClinicalText(item.name);
+    if (normName && seenNames.has(normName)) continue;
+
+    // 4. Strict Clinical Signature uniqueness (Generic + Strength + Form)
+    const sig = getProductClinicalSignature(item);
+    if (sig && item.genericName && item.strength && seenSignatures.has(sig)) continue;
+
+    seenIds.add(item.id);
+    if (item.sku) seenSkus.add(item.sku);
+    if (normName) seenNames.add(normName);
+    if (sig) seenSignatures.add(sig);
+    result.push(item);
+  }
+
+  return result;
+}
+
+export function isDuplicateProduct(prodData, existingList = [], ignoreId = null) {
+  if (!prodData) return false;
+  const targetName = normalizeClinicalText(prodData.name);
+  const targetSig = getProductClinicalSignature(prodData);
+  const targetSku = prodData.sku ? String(prodData.sku).trim().toUpperCase() : null;
+
+  return existingList.some(p => {
+    if (ignoreId && p.id === ignoreId) return false;
+    if (p.id === prodData.id) return true;
+    if (targetSku && p.sku && String(p.sku).trim().toUpperCase() === targetSku) return true;
+    if (targetName && normalizeClinicalText(p.name) === targetName) return true;
+    if (targetSig && p.genericName && p.strength && getProductClinicalSignature(p) === targetSig) return true;
+    return false;
+  });
+}
+
 
 
 // Prescriptions Desk Seed Data
@@ -1067,7 +1109,7 @@ export const STATE = {
   currentRoute: "",
   activeReceiptOrder: null,
   pendingRxFile: null,
-  products: [...INITIAL_MEDICINES],
+  products: deduplicateCatalog([...INITIAL_MEDICINES]),
   categories: [...ESSENTIAL_CATEGORIES],
   cart: [],
   orders: [...INITIAL_ORDERS],
@@ -1104,6 +1146,13 @@ export const STATE = {
   filterAvailability: "all",
   filterPrescription: "all",
   sortMedicines: "name-asc",
+  marketplacePage: 1,
+  marketplacePageSize: 24,
+  staffMedicinesPage: 1,
+  staffMedicinesPageSize: 25,
+  staffMedicineSearch: "",
+  staffMedicineCategory: "all",
+  staffMedicineStatus: "all",
   orderFilter: "all",
   reportsDateFilter: "month",
   fulfillmentOption: "delivery", // delivery | pickup
@@ -1220,7 +1269,42 @@ export function getProductImage(prod) {
   if (prod.image && typeof prod.image === "string" && prod.image.trim()) {
     return prod.image.trim();
   }
+  // Fall back to dedicated unique packshot if product ID is known
+  if (prod.id) {
+    return `products/packshots/${prod.id}.svg`;
+  }
   return BLOOMCARE_PLACEHOLDER_IMAGE;
+}
+
+export function enforceCategoryUniqueImages(products) {
+  if (!Array.isArray(products)) return products;
+  const categorySeen = new Map();
+
+  for (const p of products) {
+    if (!p || !p.category) continue;
+    if (!categorySeen.has(p.category)) {
+      categorySeen.set(p.category, new Set());
+    }
+    const seen = categorySeen.get(p.category);
+    let img = (p.imageUrl || p.image || "").trim();
+
+    // If image is missing, placeholder, or already seen in this category, enforce unique packshot
+    const isInvalidOrDuplicate = !img ||
+      img === BLOOMCARE_PLACEHOLDER_IMAGE ||
+      img === "products/placeholder-medicine.svg" ||
+      seen.has(img);
+
+    if (isInvalidOrDuplicate) {
+      const initMed = INITIAL_MEDICINES.find(m => m.id === p.id);
+      if (initMed && initMed.imageUrl && !seen.has(initMed.imageUrl)) {
+        p.imageUrl = initMed.imageUrl;
+      } else {
+        p.imageUrl = `products/packshots/${p.id}.svg`;
+      }
+    }
+    seen.add(p.imageUrl);
+  }
+  return products;
 }
 
 const CART_STORAGE_KEY = "bloomcare_cart_items";
@@ -1348,10 +1432,9 @@ async function loadAppData(userId = null) {
     if (fetchedProducts && fetchedProducts.length > 0) {
       STATE.products = fetchedProducts.map(fp => {
         const init = INITIAL_MEDICINES.find(m => m.id === fp.id);
-        if (init) {
-          if (!fp.imageUrl || fp.imageUrl === BLOOMCARE_PLACEHOLDER_IMAGE || fp.imageUrl === "products/placeholder-medicine.svg") {
-            fp.imageUrl = init.imageUrl;
-          }
+        if (init && init.imageUrl) {
+          // Synchronize with authoritative packshot image
+          fp.imageUrl = init.imageUrl;
         }
         return fp;
       });
@@ -1361,15 +1444,25 @@ async function loadAppData(userId = null) {
         }
       }
     } else {
-      STATE.products = [...INITIAL_MEDICINES];
+      STATE.products = deduplicateCatalog([...INITIAL_MEDICINES]);
       try { seedInitialCatalogIfEmpty(INITIAL_MEDICINES, ESSENTIAL_CATEGORIES); } catch (_) {}
     }
+
+    // Enforce strict uniqueness and category-level unique images on runtime catalog
+    STATE.products = deduplicateCatalog(STATE.products);
+    STATE.products = enforceCategoryUniqueImages(STATE.products);
 
     if (fetchedCategories && fetchedCategories.length > 0) {
       STATE.categories = fetchedCategories;
     } else {
       STATE.categories = [...ESSENTIAL_CATEGORIES];
     }
+
+    // Dynamically synchronize category counts with actual active products
+    STATE.categories.forEach(c => {
+      const realCount = STATE.products.filter(p => p.category === c.name && p.status === "active").length;
+      if (realCount > 0) c.productCount = realCount;
+    });
 
     if (fetchedSettings) {
       STATE.systemSettings = { ...STATE.systemSettings, ...fetchedSettings };
@@ -3202,50 +3295,130 @@ function renderMedicinesView() {
   $("#staff-medicines-table-card")?.classList.toggle("hidden", !isStaff);
   $("#customer-medicines-controls")?.classList.toggle("hidden", isStaff);
   $("#catalog-products-grid")?.classList.toggle("hidden", isStaff);
+  $("#catalog-pagination")?.classList.toggle("hidden", isStaff);
 
   if (isStaff) {
-    // Render Staff Product Table with Expiry & Stock Controls
+    // Staff filter logic
+    let staffList = [...STATE.products];
+    const sSearch = (STATE.staffMedicineSearch || "").trim().toLowerCase();
+    if (sSearch) {
+      staffList = staffList.filter(p =>
+        (p.name && p.name.toLowerCase().includes(sSearch)) ||
+        (p.genericName && p.genericName.toLowerCase().includes(sSearch)) ||
+        (p.brandName && p.brandName.toLowerCase().includes(sSearch)) ||
+        (p.activeIngredients && p.activeIngredients.toLowerCase().includes(sSearch)) ||
+        (p.sku && p.sku.toLowerCase().includes(sSearch)) ||
+        (p.batchNumber && p.batchNumber.toLowerCase().includes(sSearch)) ||
+        (p.manufacturer && p.manufacturer.toLowerCase().includes(sSearch)) ||
+        (p.category && p.category.toLowerCase().includes(sSearch))
+      );
+    }
+    if (STATE.staffMedicineCategory && STATE.staffMedicineCategory !== "all") {
+      staffList = staffList.filter(p => p.category === STATE.staffMedicineCategory);
+    }
+    if (STATE.staffMedicineStatus && STATE.staffMedicineStatus !== "all") {
+      if (STATE.staffMedicineStatus === "active") staffList = staffList.filter(p => p.status === "active");
+      if (STATE.staffMedicineStatus === "inactive") staffList = staffList.filter(p => p.status === "inactive");
+      if (STATE.staffMedicineStatus === "low-stock") staffList = staffList.filter(p => (p.stockQuantity <= (p.reorderLevel || 10)) && p.stockQuantity > 0);
+      if (STATE.staffMedicineStatus === "out-of-stock") staffList = staffList.filter(p => p.stockQuantity === 0);
+    }
+
+    const staffPageSize = STATE.staffMedicinesPageSize || 25;
+    const totalStaffItems = staffList.length;
+    const totalStaffPages = Math.max(1, Math.ceil(totalStaffItems / staffPageSize));
+    if (STATE.staffMedicinesPage > totalStaffPages) STATE.staffMedicinesPage = totalStaffPages;
+    if (STATE.staffMedicinesPage < 1) STATE.staffMedicinesPage = 1;
+    const currentStaffPage = STATE.staffMedicinesPage;
+    const startStaffIdx = (currentStaffPage - 1) * staffPageSize;
+    const endStaffIdx = Math.min(startStaffIdx + staffPageSize, totalStaffItems);
+    const pagedStaffList = staffList.slice(startStaffIdx, endStaffIdx);
+
+    // Populate or update toolbar inputs
+    const searchInp = $("#staff-medicine-search");
+    if (searchInp && searchInp.value !== (STATE.staffMedicineSearch || "")) {
+      searchInp.value = STATE.staffMedicineSearch || "";
+    }
+    const catSelect = $("#staff-medicine-category-filter");
+    if (catSelect && catSelect.options.length <= 1) {
+      catSelect.innerHTML = `<option value="all">All Categories (${STATE.products.length})</option>` +
+        STATE.categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${STATE.products.filter(p => p.category === c.name).length})</option>`).join("");
+      catSelect.value = STATE.staffMedicineCategory || "all";
+    }
+
     const box = $("#staff-medicines-table-box");
     if (box) {
-      box.innerHTML = `
-        <table class="standard-table">
-          <thead>
-            <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Min</th><th>Rx</th><th>Batch</th><th>Expiry</th><th>Availability</th><th>Actions</th></tr>
-          </thead>
-          <tbody>
-            ${STATE.products.map(p => {
-              const avail = getProductAvailability(p);
-              return `
-                <tr>
-                  <td><strong>${escapeHtml(p.name)}</strong><br><small class="muted">${escapeHtml(p.genericName)}</small></td>
-                  <td>${escapeHtml(p.category)}</td>
-                  <td><strong>${formatUGX(p.price)}</strong></td>
-                  <td><span class="stock-pill ${avail.badgeClass}">${p.stockQuantity}</span></td>
-                  <td>${p.reorderLevel}</td>
-                  <td>${p.requiresPrescription ? '<span class="rx-pill rx-req">Rx</span>' : '<span class="rx-pill otc-ok">OTC</span>'}</td>
-                  <td><code>${escapeHtml(p.batchNumber)}</code></td>
-                  <td>${escapeHtml(p.expiryDate)}</td>
-                  <td><span class="status-pill status-${avail.badgeClass.replace(/-/g, "_")}">${avail.status}</span></td>
-                  <td>
-                    <button class="btn btn-secondary btn-sm edit-prod-btn" data-id="${p.id}">Edit</button>
-                    <button class="btn btn-outline btn-sm toggle-prod-btn" data-id="${p.id}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
-                  </td>
-                </tr>
-              `;
-            }).join("")}
-          </tbody>
-        </table>
-      `;
+      if (totalStaffItems === 0) {
+        box.innerHTML = `
+          <div class="empty-state-box" style="padding: 30px; text-align:center;">
+            <p class="empty-title">No matching medicines found in dispensary.</p>
+            <p class="empty-desc">Try clearing your search query or adjusting the category and status filters.</p>
+          </div>
+        `;
+      } else {
+        box.innerHTML = `
+          <table class="standard-table">
+            <thead>
+              <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Min</th><th>Rx</th><th>Batch</th><th>Expiry</th><th>Availability</th><th>Actions</th></tr>
+            </thead>
+            <tbody>
+              ${pagedStaffList.map(p => {
+                const avail = getProductAvailability(p);
+                return `
+                  <tr>
+                    <td><strong>${escapeHtml(p.name)}</strong><br><small class="muted">${escapeHtml(p.genericName)} ${p.sku ? `&bull; <code>${escapeHtml(p.sku)}</code>` : ''}</small></td>
+                    <td>${escapeHtml(p.category)}</td>
+                    <td><strong>${formatUGX(p.price)}</strong></td>
+                    <td><span class="stock-pill ${avail.badgeClass}">${p.stockQuantity}</span></td>
+                    <td>${p.reorderLevel}</td>
+                    <td>${p.requiresPrescription ? '<span class="rx-pill rx-req">Rx</span>' : '<span class="rx-pill otc-ok">OTC</span>'}</td>
+                    <td><code>${escapeHtml(p.batchNumber)}</code></td>
+                    <td>${escapeHtml(p.expiryDate)}</td>
+                    <td><span class="status-pill status-${avail.badgeClass.replace(/-/g, "_")}">${avail.status}</span></td>
+                    <td>
+                      <button class="btn btn-secondary btn-sm edit-prod-btn" data-id="${p.id}">Edit</button>
+                      <button class="btn btn-outline btn-sm toggle-prod-btn" data-id="${p.id}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
+                    </td>
+                  </tr>
+                `;
+              }).join("")}
+            </tbody>
+          </table>
+        `;
+      }
+    }
+
+    // Render Staff Pagination
+    const staffPagination = $("#staff-medicines-pagination");
+    if (staffPagination) {
+      if (totalStaffItems <= staffPageSize) {
+        staffPagination.innerHTML = totalStaffItems > 0 ? `<div class="pagination-summary" style="padding:10px 0; color:var(--text-muted); font-size:13px;">Showing all <strong>${totalStaffItems}</strong> products</div>` : "";
+      } else {
+        staffPagination.innerHTML = `
+          <div class="catalog-pagination-bar" style="border-top:1px solid var(--border-color); padding-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+            <div class="pagination-summary" style="color:var(--text-muted); font-size:13px;">
+              Showing <strong>${startStaffIdx + 1}–${endStaffIdx}</strong> of <strong>${totalStaffItems}</strong> products
+            </div>
+            <div class="pagination-controls-group" style="display:flex; align-items:center; gap:8px;">
+              <button type="button" class="btn btn-sm btn-outline" data-staff-page="${currentStaffPage - 1}" ${currentStaffPage === 1 ? "disabled" : ""}>&larr; Prev</button>
+              <span style="font-size:13px; font-weight:600; padding:0 8px;">Page ${currentStaffPage} of ${totalStaffPages}</span>
+              <button type="button" class="btn btn-sm btn-outline" data-staff-page="${currentStaffPage + 1}" ${currentStaffPage === totalStaffPages ? "disabled" : ""}>Next &rarr;</button>
+            </div>
+          </div>
+        `;
+      }
     }
   } else {
     // Render Customer / Visitor Catalog View
     const pills = $("#catalog-category-pills");
     if (pills) {
+      const activeProds = STATE.products.filter(p => p && p.status !== "inactive");
+      const totalActive = activeProds.length;
       pills.innerHTML = `
-        <button class="pill-btn ${STATE.selectedCategory === "All" ? "active" : ""}" data-filter="All">All Categories</button>
-        ${STATE.categories.map(c => `
-          <button class="pill-btn ${STATE.selectedCategory === c.name ? "active" : ""}" data-filter="${escapeHtml(c.name)}">${escapeHtml(c.name)}</button>
-        `).join("")}
+        <button class="pill-btn ${STATE.selectedCategory === "All" ? "active" : ""}" data-filter="All">All Categories (${totalActive})</button>
+        ${STATE.categories.map(c => {
+          const count = activeProds.filter(p => p.category === c.name).length;
+          return `<button class="pill-btn ${STATE.selectedCategory === c.name ? "active" : ""}" data-filter="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${count})</button>`;
+        }).join("")}
       `;
     }
 
@@ -3259,8 +3432,11 @@ function renderMedicinesView() {
         (p.name && p.name.toLowerCase().includes(q)) || 
         (p.genericName && p.genericName.toLowerCase().includes(q)) || 
         (p.brandName && p.brandName.toLowerCase().includes(q)) || 
+        (p.activeIngredients && p.activeIngredients.toLowerCase().includes(q)) ||
+        (p.subcategory && p.subcategory.toLowerCase().includes(q)) ||
         (p.manufacturer && p.manufacturer.toLowerCase().includes(q)) ||
-        (p.category && p.category.toLowerCase().includes(q))
+        (p.category && p.category.toLowerCase().includes(q)) ||
+        (p.sku && p.sku.toLowerCase().includes(q))
       );
     }
     if (STATE.filterAvailability === "in-stock") list = list.filter(p => getProductAvailability(p).isAvailable);
@@ -3273,9 +3449,19 @@ function renderMedicinesView() {
     if (STATE.sortMedicines === "price-asc") list.sort((a, b) => (a.price || 0) - (b.price || 0));
     if (STATE.sortMedicines === "price-desc") list.sort((a, b) => (b.price || 0) - (a.price || 0));
 
+    const totalItems = list.length;
+    const pageSize = STATE.marketplacePageSize || 24;
+    const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+    if (STATE.marketplacePage > totalPages) STATE.marketplacePage = totalPages;
+    if (STATE.marketplacePage < 1) STATE.marketplacePage = 1;
+    const currentPage = STATE.marketplacePage;
+    const startIndex = (currentPage - 1) * pageSize;
+    const endIndex = Math.min(startIndex + pageSize, totalItems);
+    const pagedList = list.slice(startIndex, endIndex);
+
     const grid = $("#catalog-products-grid");
     if (grid) {
-      if (list.length === 0) {
+      if (totalItems === 0) {
         grid.innerHTML = `
           <div class="empty-state-box" style="grid-column: 1 / -1;">
             <p class="empty-title">No medicines found.</p>
@@ -3289,6 +3475,7 @@ function renderMedicinesView() {
           STATE.filterAvailability = "all";
           STATE.filterPrescription = "all";
           STATE.sortMedicines = "name-asc";
+          STATE.marketplacePage = 1;
           const inp1 = $("#top-search-input"); if (inp1) inp1.value = "";
           const inp2 = $("#catalog-search-input"); if (inp2) inp2.value = "";
           const selA = $("#filter-availability"); if (selA) selA.value = "all";
@@ -3297,17 +3484,75 @@ function renderMedicinesView() {
           renderMedicinesView();
         });
       } else {
-        grid.innerHTML = list.map(renderProductCardHtml).join("");
+        const seenCatImages = new Set();
+        grid.innerHTML = pagedList.map(prod => renderProductCardHtml(prod, seenCatImages)).join("");
+      }
+    }
+
+    // Render Customer Marketplace Pagination
+    const paginationContainer = $("#catalog-pagination");
+    if (paginationContainer) {
+      if (totalItems <= pageSize) {
+        paginationContainer.innerHTML = totalItems > 0 ? `
+          <div class="catalog-pagination-bar" style="justify-content:center;">
+            <span class="pagination-summary">Showing all <strong>${totalItems}</strong> medicines</span>
+          </div>
+        ` : "";
+      } else {
+        let pageButtonsHtml = "";
+        const maxButtons = 7;
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+        if (endPage - startPage < maxButtons - 1) {
+          startPage = Math.max(1, endPage - maxButtons + 1);
+        }
+
+        if (startPage > 1) {
+          pageButtonsHtml += `<button type="button" class="page-num-btn" data-catalog-page="1">1</button>`;
+          if (startPage > 2) pageButtonsHtml += `<span class="pagination-ellipsis">&hellip;</span>`;
+        }
+
+        for (let p = startPage; p <= endPage; p++) {
+          const isActive = p === currentPage;
+          pageButtonsHtml += `<button type="button" class="page-num-btn ${isActive ? 'active-page-btn' : ''}" data-catalog-page="${p}">${p}</button>`;
+        }
+
+        if (endPage < totalPages) {
+          if (endPage < totalPages - 1) pageButtonsHtml += `<span class="pagination-ellipsis">&hellip;</span>`;
+          pageButtonsHtml += `<button type="button" class="page-num-btn" data-catalog-page="${totalPages}">${totalPages}</button>`;
+        }
+
+        paginationContainer.innerHTML = `
+          <div class="catalog-pagination-bar">
+            <div class="pagination-summary">
+              Showing <strong>${startIndex + 1}–${endIndex}</strong> of <strong>${totalItems}</strong> medicines (Page ${currentPage} of ${totalPages})
+            </div>
+            <div class="pagination-controls-group">
+              <button type="button" class="page-nav-btn" data-catalog-page="${currentPage - 1}" ${currentPage === 1 ? "disabled" : ""}>&larr; Previous</button>
+              <div class="page-numbers-row">
+                ${pageButtonsHtml}
+              </div>
+              <button type="button" class="page-nav-btn" data-catalog-page="${currentPage + 1}" ${currentPage === totalPages ? "disabled" : ""}>Next &rarr;</button>
+            </div>
+          </div>
+        `;
       }
     }
   }
 }
 
 function renderProductCardHtml(prod) {
+  const seenSet = arguments[1];
   const avail = getProductAvailability(prod);
   const rxBadge = prod.requiresPrescription ? `<span class="rx-pill rx-req">Rx Required</span>` : `<span class="rx-pill otc-ok">OTC (No Rx)</span>`;
   const stockBadge = `<span class="stock-pill ${avail.badgeClass}">${avail.label}</span>`;
-  const img = getProductImage(prod);
+  let img = getProductImage(prod);
+  if (seenSet instanceof Set) {
+    if (seenSet.has(img)) {
+      img = prod.id ? `products/packshots/${prod.id}.svg` : BLOOMCARE_PLACEHOLDER_IMAGE;
+    }
+    seenSet.add(img);
+  }
 
   const strengthMatch = prod.name.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i) || prod.genericName?.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i);
   const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "Standard Dose");
@@ -5905,7 +6150,11 @@ function addToCart(productId, quantity = 1) {
 
   saveCartToStorage();
   updateCartBadge();
-  openNotice("Product Added", `<strong>${escapeHtml(prod.name)}</strong> (${quantity}x) added to cart.`);
+  if (prod.requiresPrescription) {
+    openNotice("Prescription Item Added", `<strong>${escapeHtml(prod.name)}</strong> (${quantity}x) added to cart.<br><br><span style="color:#dc2626; font-weight:600;">⚠️ Prescription Required:</span> This medicine requires a verified doctor's prescription before dispensing. Please upload your prescription via the <a href="#prescriptions" style="color:var(--brand-primary); text-decoration:underline;">Prescriptions Desk</a> or our clinical team will review your order.`);
+  } else {
+    openNotice("Product Added", `<strong>${escapeHtml(prod.name)}</strong> (${quantity}x) added to cart.`);
+  }
   return true;
 }
 
@@ -6653,25 +6902,57 @@ function bindEventListeners() {
   // Global & Catalog Search Inputs
   $("#top-search-input")?.addEventListener("input", (e) => {
     STATE.searchQuery = e.target.value;
+    STATE.marketplacePage = 1;
     if (STATE.currentRoute !== "medicines") navigateTo("medicines");
     else renderMedicinesView();
   });
   $("#catalog-search-input")?.addEventListener("input", (e) => {
     STATE.searchQuery = e.target.value;
+    STATE.marketplacePage = 1;
     renderMedicinesView();
   });
 
   // Medicine Filters
   $("#filter-availability")?.addEventListener("change", (e) => {
     STATE.filterAvailability = e.target.value;
+    STATE.marketplacePage = 1;
     renderMedicinesView();
   });
   $("#filter-prescription")?.addEventListener("change", (e) => {
     STATE.filterPrescription = e.target.value;
+    STATE.marketplacePage = 1;
     renderMedicinesView();
   });
   $("#sort-medicines")?.addEventListener("change", (e) => {
     STATE.sortMedicines = e.target.value;
+    STATE.marketplacePage = 1;
+    renderMedicinesView();
+  });
+
+  // Staff Dispensary Filter Controls
+  $("#staff-medicine-search")?.addEventListener("input", (e) => {
+    STATE.staffMedicineSearch = e.target.value;
+    STATE.staffMedicinesPage = 1;
+    renderMedicinesView();
+  });
+  $("#staff-medicine-category-filter")?.addEventListener("change", (e) => {
+    STATE.staffMedicineCategory = e.target.value;
+    STATE.staffMedicinesPage = 1;
+    renderMedicinesView();
+  });
+  $("#staff-medicine-status-filter")?.addEventListener("change", (e) => {
+    STATE.staffMedicineStatus = e.target.value;
+    STATE.staffMedicinesPage = 1;
+    renderMedicinesView();
+  });
+  $("#btn-reset-staff-medicines")?.addEventListener("click", () => {
+    STATE.staffMedicineSearch = "";
+    STATE.staffMedicineCategory = "all";
+    STATE.staffMedicineStatus = "all";
+    STATE.staffMedicinesPage = 1;
+    const sInp = $("#staff-medicine-search"); if (sInp) sInp.value = "";
+    const sCat = $("#staff-medicine-category-filter"); if (sCat) sCat.value = "all";
+    const sStat = $("#staff-medicine-status-filter"); if (sStat) sStat.value = "all";
     renderMedicinesView();
   });
 
@@ -6682,17 +6963,38 @@ function bindEventListeners() {
   });
   $("#btn-print-sales-report")?.addEventListener("click", () => window.print());
 
-  // Category & Order Filtering
+  // Category, Pagination & Order Filtering Delegation
   document.addEventListener("click", (e) => {
     const pill = e.target.closest("[data-filter]");
     if (pill) {
       STATE.selectedCategory = pill.dataset.filter;
+      STATE.marketplacePage = 1;
       renderMedicinesView();
     }
     const catCard = e.target.closest("[data-category]");
     if (catCard) {
       STATE.selectedCategory = catCard.dataset.category;
+      STATE.marketplacePage = 1;
       navigateTo("medicines");
+    }
+    const catPageBtn = e.target.closest("[data-catalog-page]");
+    if (catPageBtn) {
+      const pageNum = parseInt(catPageBtn.dataset.catalogPage, 10);
+      if (!isNaN(pageNum) && pageNum >= 1) {
+        STATE.marketplacePage = pageNum;
+        renderMedicinesView();
+        const topSec = $("#customer-medicines-controls") || $("#view-medicines");
+        if (topSec) topSec.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    }
+    const staffPageBtn = e.target.closest("[data-staff-page]");
+    if (staffPageBtn) {
+      const pageNum = parseInt(staffPageBtn.dataset.staffPage, 10);
+      if (!isNaN(pageNum) && pageNum >= 1) {
+        STATE.staffMedicinesPage = pageNum;
+        renderMedicinesView();
+        $("#staff-medicines-table-card")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
     }
     const orderPill = e.target.closest("[data-order-filter]");
     if (orderPill) {
@@ -7117,6 +7419,11 @@ function bindEventListeners() {
       requiresPrescription: $("#prod-requires-rx").checked,
       status: $("#prod-active-status").checked ? "active" : "inactive"
     };
+
+    if (isDuplicateProduct(prodData, STATE.products, existing ? existing.id : null)) {
+      openNotice("Duplicate Medicine Blocked", `A product matching "<strong>${escapeHtml(prodData.name)}</strong>" (generic: ${escapeHtml(prodData.genericName)}, strength: ${escapeHtml(prodData.strength)}) already exists in the catalog. BloomCare enforces one authoritative record per medicine.`);
+      return;
+    }
 
     if (existing) {
       Object.assign(existing, prodData);
