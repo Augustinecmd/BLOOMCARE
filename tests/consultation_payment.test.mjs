@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { validateProviderPhone, UGANDA_CARRIER_PREFIXES } from '../validators.js';
 
 // 1. Validation Logic
 function validateUgandanPhone(phone) {
@@ -274,3 +275,147 @@ test('clinical safeguard strictly prevents pharmacist from starting/completing u
   const checkConfirmed = checkPharmacistClinicalGate(booking);
   assert.equal(checkConfirmed.canStart, true);
 });
+
+test('AIRTEL MONEY: validates exactly 10 digits with Airtel prefixes (070, 074, 075) and rejects MTN prefixes', () => {
+  // Valid Airtel numbers
+  for (const validNum of ['0701234567', '0741234567', '0751234567']) {
+    const res = validateProviderPhone('Airtel Money', validNum);
+    assert.equal(res.valid, true, `Expected ${validNum} to be valid for Airtel Money`);
+    assert.equal(res.carrier, 'Airtel');
+    assert.equal(res.message, '✓ Valid Airtel Uganda number');
+  }
+
+  // Reject MTN prefixes when Airtel Money selected
+  for (const mtnNum of ['0771234567', '0781234567', '0761234567']) {
+    const res = validateProviderPhone('Airtel Money', mtnNum);
+    assert.equal(res.valid, false, `Expected ${mtnNum} to be rejected for Airtel Money`);
+    assert.equal(res.carrierMismatch, true);
+    assert.equal(
+      res.message,
+      'Invalid Airtel number. Please enter a valid Airtel Uganda number beginning with 070, 074 or 075.'
+    );
+  }
+
+  // Reject incomplete numbers
+  const shortRes = validateProviderPhone('Airtel Money', '07512345');
+  assert.equal(shortRes.valid, false);
+  assert.equal(shortRes.message, 'Please enter a valid 10-digit Ugandan mobile number.');
+
+  // Reject numbers with more than 10 digits
+  const longRes = validateProviderPhone('Airtel Money', '075123456789');
+  assert.equal(longRes.valid, false);
+  assert.equal(longRes.message, 'Phone number cannot exceed 10 digits.');
+
+  // Reject letters and special characters
+  const alphaRes = validateProviderPhone('Airtel Money', '075123abcd');
+  assert.equal(alphaRes.valid, false);
+  assert.equal(alphaRes.message, 'Please enter digits only with no letters or special characters.');
+
+  // Empty number
+  const emptyRes = validateProviderPhone('Airtel Money', '');
+  assert.equal(emptyRes.valid, false);
+  assert.equal(emptyRes.empty, true);
+});
+
+test('MTN MOBILE MONEY: validates exactly 10 digits with MTN prefixes (076, 077, 078) and rejects Airtel prefixes', () => {
+  // Valid MTN numbers
+  for (const validNum of ['0761234567', '0771234567', '0781234567']) {
+    const res = validateProviderPhone('MTN Mobile Money', validNum);
+    assert.equal(res.valid, true, `Expected ${validNum} to be valid for MTN Mobile Money`);
+    assert.equal(res.carrier, 'MTN');
+    assert.equal(res.message, '✓ Valid MTN Uganda number');
+  }
+
+  // Reject Airtel prefixes when MTN selected
+  for (const airtelNum of ['0701234567', '0741234567', '0751234567']) {
+    const res = validateProviderPhone('MTN Mobile Money', airtelNum);
+    assert.equal(res.valid, false, `Expected ${airtelNum} to be rejected for MTN Mobile Money`);
+    assert.equal(res.carrierMismatch, true);
+    assert.equal(
+      res.message,
+      'Invalid MTN number. Please enter a valid MTN Uganda number beginning with 076, 077 or 078.'
+    );
+  }
+
+  // Reject incomplete numbers
+  const shortRes = validateProviderPhone('MTN Mobile Money', '077123');
+  assert.equal(shortRes.valid, false);
+  assert.equal(shortRes.message, 'Please enter a valid 10-digit Ugandan mobile number.');
+
+  // Reject numbers with more than 10 digits
+  const longRes = validateProviderPhone('MTN Mobile Money', '077123456789');
+  assert.equal(longRes.valid, false);
+  assert.equal(longRes.message, 'Phone number cannot exceed 10 digits.');
+
+  // Reject letters and special characters
+  const alphaRes = validateProviderPhone('MTN Mobile Money', '077123TEST');
+  assert.equal(alphaRes.valid, false);
+  assert.equal(alphaRes.message, 'Please enter digits only with no letters or special characters.');
+
+  // Empty number
+  const emptyRes = validateProviderPhone('MTN Mobile Money', '');
+  assert.equal(emptyRes.valid, false);
+  assert.equal(emptyRes.empty, true);
+});
+
+test('SWITCHING PAYMENT METHODS: immediately revalidates entered phone number on provider switch', () => {
+  const mtnPhone = '0771234567';
+
+  // Step 1: User types MTN number under MTN
+  const mtnInitial = validateProviderPhone('MTN Mobile Money', mtnPhone);
+  assert.equal(mtnInitial.valid, true);
+  assert.equal(mtnInitial.message, '✓ Valid MTN Uganda number');
+
+  // Step 2: User switches method to Airtel Money -> must immediately fail with Airtel carrier hint
+  const switchedToAirtel = validateProviderPhone('Airtel Money', mtnPhone);
+  assert.equal(switchedToAirtel.valid, false);
+  assert.equal(
+    switchedToAirtel.message,
+    'Invalid Airtel number. Please enter a valid Airtel Uganda number beginning with 070, 074 or 075.'
+  );
+
+  const airtelPhone = '0751234567';
+
+  // Step 3: User enters valid Airtel number under Airtel
+  const airtelInitial = validateProviderPhone('Airtel Money', airtelPhone);
+  assert.equal(airtelInitial.valid, true);
+  assert.equal(airtelInitial.message, '✓ Valid Airtel Uganda number');
+
+  // Step 4: User switches method to MTN Mobile Money -> must immediately fail with MTN carrier hint
+  const switchedToMTN = validateProviderPhone('MTN Mobile Money', airtelPhone);
+  assert.equal(switchedToMTN.valid, false);
+  assert.equal(
+    switchedToMTN.message,
+    'Invalid MTN number. Please enter a valid MTN Uganda number beginning with 076, 077 or 078.'
+  );
+});
+
+test('PAYMENT BUTTON GATE: pay button is enabled ONLY when phone and provider pass validation', () => {
+  function computeSubmitBtnDisabled(provider, phone) {
+    const res = validateProviderPhone(provider, phone);
+    return !res.valid;
+  }
+
+  // Disabled when empty
+  assert.equal(computeSubmitBtnDisabled('Airtel Money', ''), true);
+  assert.equal(computeSubmitBtnDisabled('MTN Mobile Money', ''), true);
+
+  // Disabled when incomplete (<10 digits)
+  assert.equal(computeSubmitBtnDisabled('Airtel Money', '075123'), true);
+  assert.equal(computeSubmitBtnDisabled('MTN Mobile Money', '077123'), true);
+
+  // Disabled when carrier mismatch
+  assert.equal(computeSubmitBtnDisabled('Airtel Money', '0771234567'), true);
+  assert.equal(computeSubmitBtnDisabled('MTN Mobile Money', '0751234567'), true);
+
+  // Disabled when containing letters
+  assert.equal(computeSubmitBtnDisabled('Airtel Money', '075123456a'), true);
+
+  // Enabled ONLY when valid
+  assert.equal(computeSubmitBtnDisabled('Airtel Money', '0751234567'), false);
+  assert.equal(computeSubmitBtnDisabled('Airtel Money', '0701234567'), false);
+  assert.equal(computeSubmitBtnDisabled('MTN Mobile Money', '0771234567'), false);
+  assert.equal(computeSubmitBtnDisabled('MTN Mobile Money', '0781234567'), false);
+});
+
+

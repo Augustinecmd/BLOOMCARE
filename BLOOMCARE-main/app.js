@@ -46,6 +46,8 @@ import {
 import { createWhatsAppUrl } from "./whatsapp.js";
 import {
   validateUgandanPhone,
+  validateProviderPhone,
+  UGANDA_CARRIER_PREFIXES,
   validateEmail,
   validatePassword,
   validateName
@@ -6068,6 +6070,55 @@ function bindEventListeners() {
   // -------------------------------------------------------------
   // CONSULTATION PAYMENT MODAL CONTROLLER & WORKFLOW
   // -------------------------------------------------------------
+  function validateConsultationPhoneInput() {
+    const phoneInput = $("#consult-pay-phone-input");
+    const feedbackEl = $("#consult-phone-feedback");
+    const submitBtn = $("#consult-submit-pay-btn");
+    const provider = $("#consult-active-provider")?.value || "Airtel Money";
+
+    if (!phoneInput) return { valid: false };
+
+    // Strict numeric-only sanitizer up to 10 digits
+    const rawVal = phoneInput.value;
+    const sanitized = rawVal.replace(/\D/g, "").slice(0, 10);
+    if (rawVal !== sanitized) {
+      phoneInput.value = sanitized;
+    }
+
+    const res = validateProviderPhone(provider, sanitized);
+
+    if (res.empty || sanitized.length === 0) {
+      phoneInput.classList.remove("input-invalid", "input-valid");
+      if (feedbackEl) {
+        feedbackEl.textContent = "";
+        feedbackEl.className = "phone-validation-feedback";
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      return res;
+    }
+
+    if (!res.valid) {
+      phoneInput.classList.add("input-invalid");
+      phoneInput.classList.remove("input-valid");
+      if (feedbackEl) {
+        feedbackEl.textContent = res.message;
+        feedbackEl.className = "phone-validation-feedback feedback-error";
+      }
+      if (submitBtn) submitBtn.disabled = true;
+      return res;
+    }
+
+    // Valid state
+    phoneInput.classList.remove("input-invalid");
+    phoneInput.classList.add("input-valid");
+    if (feedbackEl) {
+      feedbackEl.textContent = res.message;
+      feedbackEl.className = "phone-validation-feedback feedback-success";
+    }
+    if (submitBtn) submitBtn.disabled = false;
+    return res;
+  }
+
   function openConsultationPaymentModal(booking) {
     if (!booking) return;
 
@@ -6085,18 +6136,27 @@ function bindEventListeners() {
     $("#consult-pay-step-confirmed")?.classList.add("hidden");
     $("#consult-pay-step-failed")?.classList.add("hidden");
 
-    // Set phone input
+    // Populate phone input
+    const candidatePhone = booking.paymentPhone || booking.customerPhone || (STATE.currentUser ? STATE.currentUser.phone : "") || "";
+    const cleanPhone = String(candidatePhone).replace(/\D/g, "").slice(0, 10);
     const phoneInput = $("#consult-pay-phone-input");
     if (phoneInput) {
-      phoneInput.value = booking.paymentPhone || booking.customerPhone || (STATE.currentUser ? STATE.currentUser.phone : "") || "";
+      phoneInput.value = cleanPhone;
     }
 
-    // Set default provider
-    const initialProvider = booking.paymentMethod === "MTN Mobile Money" ? "MTN Mobile Money" : "Airtel Money";
-    setConsultationPaymentProvider(initialProvider);
+    // Set initial provider based on phone prefix if available, otherwise booking payment method
+    let initialProvider = booking.paymentMethod === "MTN Mobile Money" ? "MTN Mobile Money" : "Airtel Money";
+    if (cleanPhone.length >= 3) {
+      const prefix = cleanPhone.slice(0, 3);
+      if (UGANDA_CARRIER_PREFIXES.MTN.includes(prefix)) {
+        initialProvider = "MTN Mobile Money";
+      } else if (UGANDA_CARRIER_PREFIXES.Airtel.includes(prefix)) {
+        initialProvider = "Airtel Money";
+      }
+    }
 
-    const submitBtn = $("#consult-submit-pay-btn");
-    if (submitBtn) submitBtn.disabled = false;
+    setConsultationPaymentProvider(initialProvider);
+    validateConsultationPhoneInput();
 
     $("#consultation-payment-dialog")?.showModal();
   }
@@ -6108,6 +6168,7 @@ function bindEventListeners() {
     const airtelCard = $("#pay-select-airtel");
     const mtnCard = $("#pay-select-mtn");
     const phoneLabel = $("#consult-phone-field-label");
+    const phoneInput = $("#consult-pay-phone-input");
     const phoneHint = $("#consult-phone-hint");
     const carrierNotice = $("#consult-carrier-notice-strong");
 
@@ -6115,20 +6176,30 @@ function bindEventListeners() {
       mtnCard?.classList.add("active-method");
       airtelCard?.classList.remove("active-method");
       if (phoneLabel) phoneLabel.firstChild.textContent = "MTN Phone Number ";
-      if (phoneHint) phoneHint.textContent = "Enter your 10-digit Ugandan MTN number (e.g. 0772123456, 078...)";
+      if (phoneInput) phoneInput.placeholder = "e.g. 0771234567";
+      if (phoneHint) phoneHint.textContent = "Enter your 10-digit Ugandan MTN number (076, 077, 078)";
       if (carrierNotice) carrierNotice.textContent = "You will receive a payment prompt on your MTN phone.";
     } else {
       airtelCard?.classList.add("active-method");
       mtnCard?.classList.remove("active-method");
       if (phoneLabel) phoneLabel.firstChild.textContent = "Airtel Phone Number ";
-      if (phoneHint) phoneHint.textContent = "Enter your 10-digit Ugandan Airtel number (e.g. 0751234567, 070...)";
+      if (phoneInput) phoneInput.placeholder = "e.g. 0751234567";
+      if (phoneHint) phoneHint.textContent = "Enter your 10-digit Ugandan Airtel number (070, 074, 075)";
       if (carrierNotice) carrierNotice.textContent = "You will receive a payment prompt on your Airtel phone.";
     }
+
+    // Immediately revalidate phone number for newly selected carrier
+    validateConsultationPhoneInput();
   }
 
   async function handleConsultationPaymentSubmit(e) {
     e.preventDefault();
     if (STATE._isPaymentInFlight) return;
+
+    const valRes = validateConsultationPhoneInput();
+    if (!valRes || !valRes.valid) {
+      return; // Do not allow submission when validation fails
+    }
 
     const bookingId = $("#consult-active-booking-id")?.value;
     const booking = STATE.consultations.find(c => c.id === bookingId);
@@ -6137,13 +6208,7 @@ function bindEventListeners() {
     }
 
     const provider = $("#consult-active-provider")?.value || "Airtel Money";
-    const phone = $("#consult-pay-phone-input")?.value.trim() || "";
-
-    const phoneVal = validateUgandanPhone(phone);
-    if (!phoneVal.valid) {
-      openNotice("Invalid Phone Number", phoneVal.message || "Please enter a valid Ugandan phone number.");
-      return;
-    }
+    const phone = valRes.normalized;
 
     // In-flight Lock & Disable Button to Prevent Double-Clicking
     STATE._isPaymentInFlight = true;
@@ -6153,13 +6218,13 @@ function bindEventListeners() {
     // Switch to Processing View
     $("#consult-pay-step-form")?.classList.add("hidden");
     $("#consult-pay-step-processing")?.classList.remove("hidden");
-    $("#processing-carrier-tag").textContent = `${provider} • ${phoneVal.normalized}`;
+    $("#processing-carrier-tag").textContent = `${provider} • ${phone}`;
     $("#processing-prompt-msg").textContent = `Please check your phone and approve the UGX 15,000 payment request.`;
 
     try {
       const payload = {
         provider: provider === "MTN Mobile Money" ? "MTN Mobile Money" : "Airtel Money",
-        phone: phoneVal.normalized,
+        phone: phone,
         amount: 15000,
         type: "consultation",
         reference: booking.paymentReference || booking.consultationNumber || null,
@@ -6169,7 +6234,7 @@ function bindEventListeners() {
           date: booking.date,
           time: booking.time,
           customerName: booking.customerName,
-          customerPhone: phoneVal.normalized
+          customerPhone: phone
         }
       };
 
@@ -6187,7 +6252,7 @@ function bindEventListeners() {
       const paymentRef = initData.reference;
       booking.paymentReference = paymentRef;
       booking.paymentMethod = provider;
-      booking.paymentPhone = phoneVal.normalized;
+      booking.paymentPhone = phone;
 
       // Poll verification endpoint
       let verified = null;
@@ -6225,7 +6290,7 @@ function bindEventListeners() {
           status: "Confirmed",
           transactionId: booking.transactionId,
           paymentMethod: provider,
-          paymentPhone: phoneVal.normalized,
+          paymentPhone: phone,
           verifiedAt: booking.verifiedAt
         });
       } catch (_) {}
@@ -6238,7 +6303,7 @@ function bindEventListeners() {
           orderId: booking.id,
           customerId: booking.customerId,
           customerName: booking.customerName,
-          customerPhone: phoneVal.normalized,
+          customerPhone: phone,
           amount: 15000,
           currency: "UGX",
           paymentMethod: provider,
@@ -6253,7 +6318,7 @@ function bindEventListeners() {
       $("#conf-pharm-val").textContent = booking.pharmacist;
       $("#conf-datetime-val").textContent = `${booking.date} at ${booking.time}`;
       $("#conf-method-val").textContent = provider;
-      $("#conf-phone-val").textContent = phoneVal.normalized;
+      $("#conf-phone-val").textContent = phone;
       $("#conf-txid-val").textContent = booking.transactionId;
       $("#conf-status-val").textContent = "PAID";
 
@@ -6277,7 +6342,7 @@ function bindEventListeners() {
       renderRoleDashboard();
     } finally {
       STATE._isPaymentInFlight = false;
-      if (submitBtn) submitBtn.disabled = false;
+      validateConsultationPhoneInput();
     }
   }
 
@@ -6287,9 +6352,19 @@ function bindEventListeners() {
   $("#consult-payment-action-form")?.addEventListener("submit", handleConsultationPaymentSubmit);
   $("#close-consult-pay-modal")?.addEventListener("click", () => $("#consultation-payment-dialog")?.close());
 
+  // Real-time phone input listeners
+  const consultPhoneInput = $("#consult-pay-phone-input");
+  if (consultPhoneInput) {
+    consultPhoneInput.addEventListener("input", validateConsultationPhoneInput);
+    consultPhoneInput.addEventListener("keyup", validateConsultationPhoneInput);
+    consultPhoneInput.addEventListener("paste", () => setTimeout(validateConsultationPhoneInput, 0));
+    consultPhoneInput.addEventListener("blur", validateConsultationPhoneInput);
+  }
+
   $("#btn-pay-try-again")?.addEventListener("click", () => {
     $("#consult-pay-step-failed")?.classList.add("hidden");
     $("#consult-pay-step-form")?.classList.remove("hidden");
+    validateConsultationPhoneInput();
   });
 
   $("#btn-pay-change-method")?.addEventListener("click", () => {
@@ -6297,6 +6372,7 @@ function bindEventListeners() {
     setConsultationPaymentProvider(current === "Airtel Money" ? "MTN Mobile Money" : "Airtel Money");
     $("#consult-pay-step-failed")?.classList.add("hidden");
     $("#consult-pay-step-form")?.classList.remove("hidden");
+    validateConsultationPhoneInput();
   });
 
   $("#btn-pay-cancel-booking")?.addEventListener("click", async () => {

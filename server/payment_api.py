@@ -24,6 +24,9 @@ PHONE_PATTERN = re.compile(r"^07\d{8}$")
 INTERNATIONAL_PHONE_PATTERN = re.compile(r"^\+2567\d{8}$")
 REFERENCE_PATTERN = re.compile(r"^BC-\d{8}-[A-F0-9]{8}$")
 
+AIRTEL_PREFIXES = ("070", "074", "075")
+MTN_PREFIXES = ("076", "077", "078")
+
 AVAILABLE_PROVIDERS = {"Dr. Amina Nanyonga (Lead Pharmacist)", "Pharm. Sarah Namusoke", "Pharm. David Mukasa"}
 CONSULTATION_FEES = {
     "Medication Consultation": 15000,
@@ -54,7 +57,12 @@ def validation_errors_for_initialize(payload: object) -> dict[str, str]:
         errors["provider"] = "Choose MTN Mobile Money or Airtel Money."
     phone = normalize_phone(payload.get("phone"))
     if not PHONE_PATTERN.fullmatch(phone):
-        errors["phone"] = "Enter a valid Ugandan phone number such as 0751234567 or +256751234567."
+        errors["phone"] = "Please enter a valid 10-digit Ugandan mobile number."
+    elif provider == "Airtel Money" and not phone.startswith(AIRTEL_PREFIXES):
+        errors["phone"] = "Invalid Airtel number. Please enter a valid Airtel Uganda number beginning with 070, 074 or 075."
+    elif provider in {"MTN MoMo", "MTN Mobile Money"} and not phone.startswith(MTN_PREFIXES):
+        errors["phone"] = "Invalid MTN number. Please enter a valid MTN Uganda number beginning with 076, 077 or 078."
+
     amount = payload.get("amount")
     if amount is not None:
         try:
@@ -65,6 +73,12 @@ def validation_errors_for_initialize(payload: object) -> dict[str, str]:
                 errors["amount"] = "Consultation fee must be 15,000 UGX."
         except (ValueError, TypeError):
             errors["amount"] = "Invalid payment amount."
+
+    if payload.get("type") == "consultation":
+        details = payload.get("details")
+        if details is not None and (not isinstance(details, dict) or (not details.get("consultationId") and not details.get("pharmacist"))):
+            errors["consultation"] = "A valid pending consultation record is required."
+
     return errors
 
 

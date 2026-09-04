@@ -3438,3 +3438,48 @@ dialog::backdrop {
     flex-direction: column;
   }
 }
+
+/* Consultation Phone Input & Real-Time Validation Feedback */
+.consult-phone-input {
+  transition: border-color 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.consult-phone-input.input-invalid {
+  border-color: #ef4444 !important;
+  background-color: #fff5f5 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.consult-phone-input.input-valid {
+  border-color: #10b981 !important;
+  background-color: #f0fdf4 !important;
+  box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15) !important;
+}
+
+.phone-validation-feedback {
+  font-size: 12px;
+  font-weight: 600;
+  margin-top: 6px;
+  line-height: 1.35;
+  min-height: 16px;
+  transition: all 0.2s ease;
+}
+
+.phone-validation-feedback.feedback-error {
+  color: #dc2626;
+}
+
+.phone-validation-feedback.feedback-success {
+  color: #059669;
+}
+
+.btn-pay-action:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: grayscale(40%);
+  pointer-events: none;
+}
+

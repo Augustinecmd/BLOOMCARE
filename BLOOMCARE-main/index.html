@@ -1351,9 +1351,20 @@
 
       <label id="consult-phone-field-label">Airtel Phone Number
         <div class="input-with-prefix">
-          <input type="tel" id="consult-pay-phone-input" placeholder="0751234567" required />
+          <input 
+            type="tel" 
+            id="consult-pay-phone-input" 
+            class="consult-phone-input" 
+            placeholder="e.g. 0751234567" 
+            maxlength="10" 
+            inputmode="numeric" 
+            pattern="[0-9]*" 
+            autocomplete="tel" 
+            required 
+          />
         </div>
-        <small class="phone-validation-hint" id="consult-phone-hint">Enter your 10-digit Ugandan Airtel number</small>
+        <div class="phone-validation-feedback" id="consult-phone-feedback" aria-live="polite"></div>
+        <small class="phone-validation-hint" id="consult-phone-hint">Enter your 10-digit Ugandan Airtel number (e.g. 0751234567, 070...)</small>
       </label>
 
       <!-- Carrier Prompt Message -->
@@ -1366,7 +1377,7 @@
       </div>
 
       <!-- Action Button -->
-      <button class="btn btn-primary btn-block btn-pay-action" type="submit" id="consult-submit-pay-btn">
+      <button class="btn btn-primary btn-block btn-pay-action" type="submit" id="consult-submit-pay-btn" disabled>
         <span>Pay UGX 15,000</span>
       </button>
     </form>

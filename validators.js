@@ -148,3 +148,102 @@ export function validateStockAdjustment(adjustment) {
   if (isNaN(qty) || qty <= 0) return { valid: false, message: "Quantity must be greater than 0." };
   return { valid: true };
 }
+
+// -------------------------------------------------------------
+// CENTRALIZED MOBILE MONEY CARRIER CONFIGURATION & VALIDATION
+// -------------------------------------------------------------
+export const UGANDA_CARRIER_PREFIXES = {
+  Airtel: ["070", "074", "075"],
+  MTN: ["076", "077", "078"]
+};
+
+export function validateProviderPhone(provider, phone) {
+  const isMTN = /mtn/i.test(String(provider || ""));
+  const isAirtel = /airtel/i.test(String(provider || ""));
+  const raw = String(phone || "").trim();
+
+  // Empty check
+  if (!raw) {
+    return {
+      valid: false,
+      empty: true,
+      message: ""
+    };
+  }
+
+  // Non-numeric check
+  if (!/^\d+$/.test(raw)) {
+    return {
+      valid: false,
+      message: "Please enter digits only with no letters or special characters."
+    };
+  }
+
+  // Incomplete / Length check
+  if (raw.length < 10) {
+    return {
+      valid: false,
+      incomplete: true,
+      message: "Please enter a valid 10-digit Ugandan mobile number."
+    };
+  }
+
+  if (raw.length > 10) {
+    return {
+      valid: false,
+      message: "Phone number cannot exceed 10 digits."
+    };
+  }
+
+  // Format check (must start with 07 and be 10 digits)
+  if (!/^07\d{8}$/.test(raw)) {
+    return {
+      valid: false,
+      message: "Please enter a valid 10-digit Ugandan mobile number starting with 07."
+    };
+  }
+
+  const prefix = raw.slice(0, 3);
+
+  if (isMTN) {
+    const valid = UGANDA_CARRIER_PREFIXES.MTN.includes(prefix);
+    if (!valid) {
+      return {
+        valid: false,
+        carrierMismatch: true,
+        message: "Invalid MTN number. Please enter a valid MTN Uganda number beginning with 076, 077 or 078."
+      };
+    }
+    return {
+      valid: true,
+      normalized: raw,
+      provider: "MTN Mobile Money",
+      carrier: "MTN",
+      message: "✓ Valid MTN Uganda number"
+    };
+  }
+
+  if (isAirtel) {
+    const valid = UGANDA_CARRIER_PREFIXES.Airtel.includes(prefix);
+    if (!valid) {
+      return {
+        valid: false,
+        carrierMismatch: true,
+        message: "Invalid Airtel number. Please enter a valid Airtel Uganda number beginning with 070, 074 or 075."
+      };
+    }
+    return {
+      valid: true,
+      normalized: raw,
+      provider: "Airtel Money",
+      carrier: "Airtel",
+      message: "✓ Valid Airtel Uganda number"
+    };
+  }
+
+  return {
+    valid: false,
+    message: "Unsupported mobile money provider selected."
+  };
+}
+

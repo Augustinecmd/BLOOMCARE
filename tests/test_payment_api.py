@@ -80,6 +80,42 @@ class TestPharmacyPaymentAPI(unittest.TestCase):
         })
         self.assertIn("amount", errors_bad_fee)
 
+        # Rejects Airtel Money with MTN number (carrier mismatch)
+        errors_airtel_with_mtn = payment_api.validation_errors_for_initialize({
+            "provider": "Airtel Money",
+            "phone": "0771234567",
+            "amount": 15000,
+            "type": "consultation"
+        })
+        self.assertIn("phone", errors_airtel_with_mtn)
+        self.assertEqual(
+            errors_airtel_with_mtn["phone"],
+            "Invalid Airtel number. Please enter a valid Airtel Uganda number beginning with 070, 074 or 075."
+        )
+
+        # Rejects MTN Mobile Money with Airtel number (carrier mismatch)
+        errors_mtn_with_airtel = payment_api.validation_errors_for_initialize({
+            "provider": "MTN Mobile Money",
+            "phone": "0751234567",
+            "amount": 15000,
+            "type": "consultation"
+        })
+        self.assertIn("phone", errors_mtn_with_airtel)
+        self.assertEqual(
+            errors_mtn_with_airtel["phone"],
+            "Invalid MTN number. Please enter a valid MTN Uganda number beginning with 076, 077 or 078."
+        )
+
+        # Rejects incomplete phone (< 10 digits)
+        errors_incomplete = payment_api.validation_errors_for_initialize({
+            "provider": "Airtel Money",
+            "phone": "075123",
+            "amount": 15000,
+            "type": "consultation"
+        })
+        self.assertIn("phone", errors_incomplete)
+        self.assertEqual(errors_incomplete["phone"], "Please enter a valid 10-digit Ugandan mobile number.")
+
         # 2. Test create consultation payment with Airtel Money
         record = payment_api.create_payment("Airtel Money", "0751234567", consult_details, 15000, payment_type="consultation")
         self.assertTrue(record["reference"].startswith("BC-CNS-"))
