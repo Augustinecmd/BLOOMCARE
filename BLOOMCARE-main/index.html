@@ -875,80 +875,122 @@
       <!-- MODULE 20: ABOUT MODULE (#about) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-about">
-        <div class="page-header-block flex-between">
+        <!-- Page Header -->
+        <div class="page-header-block flex-between about-header-block">
           <div>
             <h1 class="page-title">About BloomCare Pharmacy</h1>
-            <p class="page-desc">Uganda's trusted digital healthcare &amp; licensed dispensary platform.</p>
+            <p class="page-desc">Uganda's premier digital healthcare &amp; licensed pharmaceutical dispensary platform.</p>
           </div>
-          <span class="status-pill status-confirmed">Licensed by NDA #NDA/UG/PHARM/2026/894</span>
+          <div class="about-nda-badge">
+            <span class="about-nda-dot"></span>
+            <span>Licensed by NDA #NDA/UG/PHARM/2026/894</span>
+          </div>
         </div>
 
-        <!-- 1. HERO FACILITY BANNER -->
-        <div class="about-hero-card">
-          <div class="about-hero-img-wrap">
-            <img src="pharmacy-hero.jpg" alt="BloomCare Modern Pharmacy & Dispensary" class="about-hero-img" />
-            <div class="about-hero-badge-overlay">
-              <span class="about-badge-pill">National Drug Authority Certified Dispensary</span>
-            </div>
-          </div>
+        <!-- 1. HERO FACILITY STORY & 4K SHOWCASE -->
+        <div class="about-hero-grid">
           <div class="about-hero-content">
-            <h2 class="about-hero-title">Dedicated to Safe, Genuine &amp; Affordable Medicine for Uganda</h2>
+            <div class="about-section-tag">WHO WE ARE</div>
+            <h2 class="about-hero-title">Dedicated to Safe, Genuine &amp; Accessible Healthcare Across Uganda</h2>
             <p class="about-hero-desc">
-              BloomCare Pharmacy combines clinical expertise with modern digital healthcare delivery. From our central dispensing facility in Kampala to nationwide regional distribution, we ensure every patient receives authentic, quality-assured medicines verified by licensed clinical pharmacists.
+              BloomCare Pharmacy bridges clinical excellence with state-of-the-art digital technology. Operating from our central dispensing facility in Kampala with regional courier fulfillment across Uganda, we ensure every patient receives authentic, quality-assured medicines verified by registered clinical pharmacists.
             </p>
-            <div class="about-stats-row">
-              <div class="about-stat-item">
-                <strong>100%</strong>
-                <span>NDA-Verified Genuine</span>
+            <p class="about-hero-subtext">
+              We eliminate the dangers of counterfeit medicines through a sealed, temperature-monitored supply chain direct from NDA-accredited manufacturers to your doorstep.
+            </p>
+
+            <!-- 4-Stat Metric Row -->
+            <div class="about-stats-grid">
+              <div class="about-stat-card">
+                <strong class="about-stat-number">100%</strong>
+                <span class="about-stat-label">NDA-Verified Genuine</span>
               </div>
-              <div class="about-stat-item">
-                <strong>15+ Mins</strong>
-                <span>Prescription Clinical Review</span>
+              <div class="about-stat-card">
+                <strong class="about-stat-number">&lt; 15m</strong>
+                <span class="about-stat-label">Rx Clinical Check</span>
               </div>
-              <div class="about-stat-item">
-                <strong>Same-Day</strong>
-                <span>Doorstep Delivery in Kampala</span>
+              <div class="about-stat-card">
+                <strong class="about-stat-number">Same-Day</strong>
+                <span class="about-stat-label">Doorstep Delivery</span>
               </div>
-              <div class="about-stat-item">
-                <strong>3+ Hubs</strong>
-                <span>Kampala, Mbarara &amp; Entebbe</span>
+              <div class="about-stat-card">
+                <strong class="about-stat-number">3 Hubs</strong>
+                <span class="about-stat-label">Regional Network</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="about-hero-media">
+            <div class="about-hero-img-wrap">
+              <img src="pharmacy-hero.jpg" alt="BloomCare Modern Flagship Pharmacy & Dispensary" class="about-hero-img" loading="eager" />
+              <div class="about-hero-overlay">
+                <div class="about-hero-pill">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                  <span>National Drug Authority Certified Facility</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 2. MISSION & DISPENSARY SHOWCASE -->
-        <div class="content-dual-grid" style="margin-top: 24px; align-items: stretch;">
-          <div class="content-card" style="display: flex; flex-direction: column; justify-content: center;">
-            <div class="about-section-tag">OUR MISSION &amp; STANDARDS</div>
-            <h3 style="font-size: 20px; margin-top: 6px;">Authentic Medications Backed by Clinical Supervision</h3>
-            <p style="margin-top: 10px; line-height: 1.6; color: var(--text-dark);">
-              Counterfeit and substandard drugs pose severe risks to patient health. At BloomCare, our supply chain is strictly sealed from certified pharmaceutical manufacturers and authorized Ugandan distributors directly to our climate-controlled dispensary.
+        <!-- 2. CLINICAL STANDARDS & DISPENSARY INFRASTRUCTURE -->
+        <div class="about-standards-grid">
+          <div class="about-standards-card">
+            <div class="about-section-tag">QUALITY ASSURANCE</div>
+            <h3 class="about-card-heading">Rigorous Pharmaceutical Standards &amp; Cold-Chain Integrity</h3>
+            <p class="about-standards-desc">
+              Patient safety is paramount. Every medication dispensed at BloomCare adheres strictly to Good Pharmacy Practice (GPP) and Good Distribution Practice (GDP) protocols.
             </p>
-            <ul class="about-bullets" style="margin-left: 20px; margin-top: 12px; line-height: 1.7;">
-              <li><strong>Cold-Chain Storage:</strong> Dedicated refrigerators for insulin, vaccines, and biologics maintained strictly between 2°C – 8°C.</li>
-              <li><strong>Prescription-Only Safety Gate:</strong> POM medications cannot be dispatched without a valid doctor's prescription verified by our pharmacists.</li>
-              <li><strong>Direct Patient Counseling:</strong> Free dosage guidance, contraindication checks, and medication therapy reviews.</li>
-              <li><strong>Scheduled Chronic Refills:</strong> Seamless scheduled deliveries for hypertension, diabetes, and asthma maintenance therapies.</li>
-            </ul>
-          </div>
-          <div class="content-card" style="padding: 12px; display: flex; flex-direction: column;">
-            <div class="about-dispensary-img-wrap">
-              <img src="pharmacy-medicines.jpg" alt="BloomCare Central Dispensary Inventory" class="about-dispensary-img" />
+            <div class="about-feature-list">
+              <div class="about-feature-row">
+                <span class="about-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <div>
+                  <strong>Cold-Chain Climate Storage (2°C – 8°C)</strong>
+                  <p>Dedicated commercial medical refrigerators with 24/7 digital temperature telemetry for insulin, vaccines, and biologics.</p>
+                </div>
+              </div>
+              <div class="about-feature-row">
+                <span class="about-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <div>
+                  <strong>Prescription Clinical Gate</strong>
+                  <p>Prescription-Only Medicines (POM) are dispensed only after thorough pharmacist review for contraindications, dosage accuracy, and drug interactions.</p>
+                </div>
+              </div>
+              <div class="about-feature-row">
+                <span class="about-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <div>
+                  <strong>One-on-One Patient Counseling</strong>
+                  <p>Direct consultation sessions with licensed pharmacists for therapy counseling, adverse effect monitoring, and chronic disease guidance.</p>
+                </div>
+              </div>
+              <div class="about-feature-row">
+                <span class="about-check-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg></span>
+                <div>
+                  <strong>Chronic Medication Refills</strong>
+                  <p>Automated, scheduled maintenance deliveries for hypertension, diabetes, and asthma therapy management.</p>
+                </div>
+              </div>
             </div>
-            <div style="padding: 12px 6px 4px;">
-              <strong style="font-size: 14px; color: var(--text-dark); display: block;">BloomCare Central Dispensary &amp; Storage Facility</strong>
-              <p class="muted" style="font-size: 12px; margin: 4px 0 0;">Plot 14, Kampala Road • Temperature-controlled, barcode-verified medicine stock.</p>
+          </div>
+
+          <div class="about-dispensary-card">
+            <div class="about-dispensary-img-wrap">
+              <img src="pharmacy-medicines.jpg" alt="BloomCare Central Dispensary Medicine Stock" class="about-dispensary-img" loading="lazy" />
+            </div>
+            <div class="about-dispensary-info">
+              <strong class="about-dispensary-title">BloomCare Central Dispensary &amp; Automated Packing Hub</strong>
+              <p class="about-dispensary-sub">Plot 14, Kampala Road • Climate-controlled, barcode-verified medicine stock with tamper-evident packaging.</p>
             </div>
           </div>
         </div>
 
         <!-- 3. CLINICAL PHARMACISTS TEAM -->
-        <div class="section-block" style="margin-top: 28px;">
-          <div class="section-header-row">
+        <div class="about-team-section">
+          <div class="about-team-header">
             <div>
-              <h3 class="section-title">Meet Our Licensed Clinical Pharmacists</h3>
-              <p class="section-subtitle">Our registered clinical team inspects your prescriptions, counsels on drug therapy, and ensures optimal health outcomes.</p>
+              <div class="about-section-tag">OUR CLINICAL TEAM</div>
+              <h3 class="about-section-title">Meet Our Licensed Clinical Pharmacists</h3>
+              <p class="about-section-subtitle">Registered with the Pharmaceutical Society of Uganda (PSU), our clinical specialists verify prescriptions and safeguard your health.</p>
             </div>
           </div>
 
@@ -956,17 +998,19 @@
             <!-- Pharmacist 1: Dr. Amina Nanyonga -->
             <div class="about-team-card">
               <div class="about-team-img-wrap">
-                <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga" class="about-team-img" />
+                <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga - Lead Clinical Pharmacist" class="about-team-img" loading="lazy" />
                 <span class="about-team-badge">Lead Pharmacist</span>
               </div>
               <div class="about-team-body">
                 <h4 class="about-team-name">Dr. Amina Nanyonga</h4>
-                <div class="about-team-title">B.Pharm (Makerere University), MPSU</div>
-                <p class="about-team-spec"><strong>Specialty:</strong> Pediatric Therapy, General Medicine &amp; Antibiotic Stewardship</p>
-                <p class="about-team-bio">With over 8 years of clinical experience, Dr. Amina heads the prescription review board and coordinates chronic illness therapy programs.</p>
+                <div class="about-team-creds">B.Pharm (Makerere University), MPSU</div>
+                <div class="about-team-spec">
+                  <span class="about-spec-label">Specialty:</span> Pediatric Therapy &amp; Antibiotic Stewardship
+                </div>
+                <p class="about-team-bio">With over 8 years of hospital and clinical experience, Dr. Amina heads the prescription review board and coordinates personalized patient treatment plans.</p>
                 <div class="about-team-footer">
-                  <span class="about-pill">NDA Licensed</span>
-                  <button class="btn btn-outline btn-sm" type="button" data-route="consultations">Book Session</button>
+                  <span class="about-license-pill">NDA Licensed</span>
+                  <button class="btn btn-primary btn-sm" type="button" data-route="consultations">Book Session</button>
                 </div>
               </div>
             </div>
@@ -974,17 +1018,19 @@
             <!-- Pharmacist 2: Pharm. David Mukasa -->
             <div class="about-team-card">
               <div class="about-team-img-wrap">
-                <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa" class="about-team-img" />
+                <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa - Senior Clinical Specialist" class="about-team-img" loading="lazy" />
                 <span class="about-team-badge">Senior Pharmacist</span>
               </div>
               <div class="about-team-body">
                 <h4 class="about-team-name">Pharm. David Mukasa</h4>
-                <div class="about-team-title">B.Pharm, Senior Clinical Specialist</div>
-                <p class="about-team-spec"><strong>Specialty:</strong> Cardiovascular Health, Hypertension &amp; Geriatric Care</p>
-                <p class="about-team-bio">Pharm. David brings over 10 years of hospital and community dispensing expertise, specializing in complex multi-drug regimens and blood pressure control.</p>
+                <div class="about-team-creds">B.Pharm, Senior Clinical Specialist, MPSU</div>
+                <div class="about-team-spec">
+                  <span class="about-spec-label">Specialty:</span> Cardiovascular Health &amp; Geriatric Care
+                </div>
+                <p class="about-team-bio">Pharm. David brings a decade of clinical dispensing expertise, specializing in complex multi-drug regimens, blood pressure monitoring, and cardiovascular therapy.</p>
                 <div class="about-team-footer">
-                  <span class="about-pill">NDA Licensed</span>
-                  <button class="btn btn-outline btn-sm" type="button" data-route="consultations">Book Session</button>
+                  <span class="about-license-pill">NDA Licensed</span>
+                  <button class="btn btn-primary btn-sm" type="button" data-route="consultations">Book Session</button>
                 </div>
               </div>
             </div>
@@ -992,46 +1038,105 @@
             <!-- Pharmacist 3: Pharm. Sarah Namusoke -->
             <div class="about-team-card">
               <div class="about-team-img-wrap">
-                <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke" class="about-team-img" />
-                <span class="about-team-badge">Counseling Specialist</span>
+                <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke - Patient Wellness Lead" class="about-team-img" loading="lazy" />
+                <span class="about-team-badge">Wellness Lead</span>
               </div>
               <div class="about-team-body">
                 <h4 class="about-team-name">Pharm. Sarah Namusoke</h4>
-                <div class="about-team-title">B.Pharm, Patient Wellness Lead</div>
-                <p class="about-team-spec"><strong>Specialty:</strong> Diabetes Management, Maternal Health &amp; Nutrition</p>
-                <p class="about-team-bio">Dedicated to preventative healthcare and patient education, Pharm. Sarah leads personalized counseling for metabolic disorders and nutritional supplements.</p>
+                <div class="about-team-creds">B.Pharm, Patient Wellness Lead, MPSU</div>
+                <div class="about-team-spec">
+                  <span class="about-spec-label">Specialty:</span> Diabetes Management &amp; Maternal Care
+                </div>
+                <p class="about-team-bio">Dedicated to preventive healthcare and patient counseling, Pharm. Sarah leads diabetic blood glucose monitoring, prenatal wellness, and nutritional care.</p>
                 <div class="about-team-footer">
-                  <span class="about-pill">NDA Licensed</span>
-                  <button class="btn btn-outline btn-sm" type="button" data-route="consultations">Book Session</button>
+                  <span class="about-license-pill">NDA Licensed</span>
+                  <button class="btn btn-primary btn-sm" type="button" data-route="consultations">Book Session</button>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- 4. PHYSICAL LOCATIONS & NDA CREDENTIALS -->
-        <div class="content-card" style="margin-top: 24px;">
-          <h3 style="font-size: 18px;">Physical Locations &amp; Regional Distribution Hubs</h3>
-          <div class="kpi-grid-3" style="margin-top: 14px;">
-            <div class="about-loc-box">
-              <div class="about-loc-icon">🏥</div>
-              <div>
-                <strong>Central Dispensary &amp; Walk-in</strong>
-                <p class="muted" style="margin: 3px 0 0; font-size: 13px;">Plot 14, Kampala Road, Central Kampala, Uganda<br>Open: Mon – Sat (8:00 AM – 9:00 PM)</p>
+        <!-- 4. PHYSICAL LOCATIONS & DISTRIBUTION HUBS -->
+        <div class="about-hubs-section">
+          <div class="about-section-tag">PHYSICAL HUBS</div>
+          <h3 class="about-section-title">Physical Dispensaries &amp; Regional Distribution Network</h3>
+          <p class="about-section-subtitle">Walk in for instant dispensary care or order online for guaranteed temperature-controlled delivery.</p>
+
+          <div class="about-hubs-grid">
+            <div class="about-hub-card">
+              <div class="about-hub-top">
+                <span class="about-hub-icon-box">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16M9 9h6M9 13h6M9 17h6"/></svg>
+                </span>
+                <span class="about-hub-tag">Walk-in &amp; Central Hub</span>
+              </div>
+              <strong class="about-hub-title">Kampala Central Dispensary</strong>
+              <p class="about-hub-meta">Plot 14, Kampala Road, Central Kampala, Uganda<br><strong>Hours:</strong> Mon – Sat: 8:00 AM – 9:00 PM<br>Sun: 10:00 AM – 6:00 PM</p>
+              <div class="about-hub-action">
+                <a href="tel:+256700000000" class="btn btn-outline btn-sm">Call Walk-in Desk</a>
               </div>
             </div>
-            <div class="about-loc-box">
-              <div class="about-loc-icon">📦</div>
-              <div>
-                <strong>Western Uganda Distribution Hub</strong>
-                <p class="muted" style="margin: 3px 0 0; font-size: 13px;">High Street Plaza, Mbarara City, Uganda<br>Fulfillment &amp; Express Doorstep Runs</p>
+
+            <div class="about-hub-card">
+              <div class="about-hub-top">
+                <span class="about-hub-icon-box">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="2"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                </span>
+                <span class="about-hub-tag">Regional Distribution</span>
+              </div>
+              <strong class="about-hub-title">Western Uganda Regional Hub</strong>
+              <p class="about-hub-meta">High Street Plaza, Mbarara City, Uganda<br><strong>Operations:</strong> Regional pharmacy courier dispatch, clinic restocking &amp; express doorstep delivery.</p>
+              <div class="about-hub-action">
+                <button class="btn btn-outline btn-sm" type="button" data-route="medicines">Order from Western Hub</button>
               </div>
             </div>
-            <div class="about-loc-box">
-              <div class="about-loc-icon">📞</div>
+
+            <div class="about-hub-card">
+              <div class="about-hub-top">
+                <span class="about-hub-icon-box">
+                  <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                </span>
+                <span class="about-hub-tag tag-emergency">24/7 Available</span>
+              </div>
+              <strong class="about-hub-title">Direct Pharmacy Care Desk</strong>
+              <p class="about-hub-meta">Telephone: +256 700 000 000<br>Emergency Rx Hotline: 24 Hours / 7 Days<br>WhatsApp Clinical Care Support Desk</p>
+              <div class="about-hub-action">
+                <a href="tel:+256700000000" class="btn btn-primary btn-sm">Direct Phone Call</a>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. REGULATORY ACCREDITATIONS STRIP -->
+        <div class="about-accred-strip">
+          <div class="about-accred-inner">
+            <div class="about-accred-item">
+              <svg class="about-accred-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
               <div>
-                <strong>Direct Pharmacy Desk</strong>
-                <p class="muted" style="margin: 3px 0 0; font-size: 13px;">Tel: +256 700 000 002 / WhatsApp Support<br>Emergency Rx Hotline: 24/7 Available</p>
+                <strong>National Drug Authority</strong>
+                <small>Licensed Facility (#NDA/UG/PHARM/2026/894)</small>
+              </div>
+            </div>
+            <div class="about-accred-item">
+              <svg class="about-accred-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+              <div>
+                <strong>Pharmaceutical Society of Uganda</strong>
+                <small>Certified Clinical Pharmacists (MPSU)</small>
+              </div>
+            </div>
+            <div class="about-accred-item">
+              <svg class="about-accred-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              <div>
+                <strong>Good Pharmacy Practice (GPP)</strong>
+                <small>Sealed Manufacturer Supply Chain</small>
+              </div>
+            </div>
+            <div class="about-accred-item">
+              <svg class="about-accred-icon" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+              <div>
+                <strong>GDP Cold-Chain Protocol</strong>
+                <small>Insulin &amp; Biologics at 2°C – 8°C</small>
               </div>
             </div>
           </div>
