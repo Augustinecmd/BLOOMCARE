@@ -1646,6 +1646,10 @@ function updateUserPill() {
   const sidebarRoleTag = $("#sidebar-role-tag");
   const sidebarAuthBtnText = $("#sidebar-auth-btn-text");
 
+  const dropdownUserName = $("#dropdown-user-name");
+  const dropdownUserRole = $("#dropdown-user-role");
+  const topUserCaret = $("#top-user-caret");
+
   const profileBtn = $("#sidebar-profile-btn");
   const settingsBtn = $("#sidebar-settings-btn");
   const cartBtn = $("#open-cart-btn");
@@ -1653,14 +1657,22 @@ function updateUserPill() {
   if (STATE.currentUser) {
     const effectiveRole = getEffectiveRole();
     const isDevPreview = STATE.currentUser.role === "developer" && Boolean(STATE.developerPreviewRole);
-    const displayRole = isDevPreview 
+    const friendlyRole = isDevPreview 
+      ? `Preview (${formatRoleName(effectiveRole)})` 
+      : formatRoleName(STATE.currentUser.role);
+    const displayRoleTag = isDevPreview 
       ? `DEV (PREVIEW: ${formatRoleName(effectiveRole).toUpperCase()})` 
       : formatRoleName(STATE.currentUser.role).toUpperCase();
 
-    if (topUserName) topUserName.textContent = STATE.currentUser.displayName || "User";
-    if (topUserRole) topUserRole.textContent = displayRole;
+    const userName = STATE.currentUser.displayName || "User";
+    if (topUserName) topUserName.textContent = userName;
+    if (topUserRole) topUserRole.textContent = friendlyRole;
+    if (dropdownUserName) dropdownUserName.textContent = userName;
+    if (dropdownUserRole) dropdownUserRole.textContent = friendlyRole;
+    if (topUserCaret) topUserCaret.style.display = "inline-flex";
+
     if (topRoleBadge) {
-      topRoleBadge.textContent = displayRole;
+      topRoleBadge.textContent = displayRoleTag;
       topRoleBadge.className = `role-badge role-badge-${effectiveRole}`;
       if (isDevPreview) {
         topRoleBadge.style.borderColor = "#f59e0b";
@@ -1670,7 +1682,7 @@ function updateUserPill() {
         topRoleBadge.style.color = "";
       }
     }
-    if (sidebarRoleTag) sidebarRoleTag.textContent = displayRole;
+    if (sidebarRoleTag) sidebarRoleTag.textContent = displayRoleTag;
     if (sidebarAuthBtnText) sidebarAuthBtnText.textContent = "Sign Out";
     roleBox?.classList.remove("hidden");
 
@@ -1686,7 +1698,12 @@ function updateUserPill() {
     }
   } else {
     if (topUserName) topUserName.textContent = "Guest Visitor";
-    if (topUserRole) topUserRole.textContent = "Log In";
+    if (topUserRole) topUserRole.textContent = "Sign In";
+    if (dropdownUserName) dropdownUserName.textContent = "Guest Visitor";
+    if (dropdownUserRole) dropdownUserRole.textContent = "Visitor";
+    if (topUserCaret) topUserCaret.style.display = "none";
+    $("#user-profile-dropdown")?.classList.add("hidden");
+
     if (topRoleBadge) {
       topRoleBadge.textContent = "VISITOR";
       topRoleBadge.className = "role-badge role-badge-visitor";
@@ -1812,6 +1829,33 @@ function updateNotifBadge() {
     badge.textContent = String(unread);
     badge.classList.toggle("hidden", unread === 0);
   }
+  if (!$("#top-notif-dropdown")?.classList.contains("hidden")) {
+    renderNotificationsDropdown();
+  }
+}
+
+export function renderNotificationsDropdown() {
+  const container = $("#notif-dropdown-list");
+  if (!container) return;
+
+  const effective = getEffectiveRole();
+  const list = STATE.notifications.filter(n => !n.role || n.role === effective || effective === "admin" || effective === "developer");
+
+  if (!list || list.length === 0) {
+    container.innerHTML = `<div class="notif-empty-state">No notifications right now</div>`;
+    return;
+  }
+
+  container.innerHTML = list.slice(0, 5).map(n => `
+    <div class="notif-dropdown-row ${n.read ? "" : "notif-row-unread"}" data-id="${escapeHtml(n.id)}">
+      <div class="notif-row-indicator"></div>
+      <div class="notif-row-body">
+        <strong class="notif-row-title">${escapeHtml(n.title)}</strong>
+        <p class="notif-row-msg">${escapeHtml(n.message)}</p>
+        <span class="notif-row-time">${n.createdAt ? new Date(n.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "Recently"}</span>
+      </div>
+    </div>
+  `).join("");
 }
 
 // -------------------------------------------------------------
@@ -1900,18 +1944,13 @@ export const ROLE_SIDEBAR_CONFIGS = {
   ],
   admin: [
     { route: "admin/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
-    { route: "admin/users", icon: ICONS.users, label: "Users" },
-    { route: "admin/pharmacists", icon: ICONS.users, label: "Pharmacists" },
-    { route: "admin/customers", icon: ICONS.customers, label: "Customers" },
-    { route: "admin/consultations", icon: ICONS.consultations, label: "Consultations" },
-    { route: "admin/appointments", icon: ICONS.consultations, label: "Appointments" },
     { route: "admin/medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "admin/orders", icon: ICONS.orders, label: "Orders" },
-    { route: "admin/inventory", icon: ICONS.inventory, label: "Inventory" },
+    { route: "admin/consultations", icon: ICONS.consultations, label: "Consultations" },
+    { route: "admin/appointments", icon: ICONS.consultations, label: "Appointments" },
+    { route: "admin/users", icon: ICONS.users, label: "Users" },
     { route: "admin/reports", icon: ICONS.reports, label: "Reports" },
-    { route: "admin/audit-logs", icon: ICONS.reports, label: "Audit Logs" },
-    { route: "admin/settings", icon: ICONS.settings, label: "Settings" },
-    { route: "admin/profile", icon: ICONS.profile, label: "Profile" }
+    { route: "admin/settings", icon: ICONS.settings, label: "Settings" }
   ]
 };
 
@@ -2547,164 +2586,237 @@ function renderRoleDashboard() {
     });
 
   } else if (role === "admin") {
-    // 1. ADMINISTRATOR DASHBOARD
+    // 1. REDESIGNED MODERN ADMINISTRATOR DASHBOARD
     const totalUsersCount = STATE.users.length;
-    const activeUsersCount = STATE.users.filter(u => (u.status || "active") === "active").length;
-    const suspendedUsersCount = STATE.users.filter(u => u.status === "suspended").length;
     const customerCount = STATE.users.filter(u => u.role === "customer").length;
-    const pharmacistCount = STATE.users.filter(u => u.role === "pharmacist").length;
-    const staffCount = STATE.users.filter(u => ["admin", "assistant_pharmacist", "delivery_person"].includes(u.role)).length;
+    const staffCount = STATE.users.filter(u => u.role !== "customer").length;
+
+    const totalProductsCount = STATE.products.length;
+    const activeProductsCount = STATE.products.filter(p => p.stockQuantity > 0).length;
+    const lowStockCount = STATE.products.filter(p => p.stockQuantity <= (p.reorderLevel || 10)).length;
+
+    const totalOrdersCount = STATE.orders.length;
+    const completedOrdersCount = STATE.orders.filter(o => ["Completed", "Delivered"].includes(o.orderStatus)).length;
+    const pendingOrdersCount = STATE.orders.filter(o => !["Completed", "Delivered", "Cancelled"].includes(o.orderStatus)).length;
+
+    const totalConsultationsCount = STATE.consultations.length;
+    const pendingConsultationsCount = STATE.consultations.filter(c => ["Pending", "Scheduled"].includes(c.status || "Pending")).length;
+
+    // Time-aware greeting
+    const currentHour = new Date().getHours();
+    let greetingPrefix = "Good morning";
+    if (currentHour >= 12 && currentHour < 17) {
+      greetingPrefix = "Good afternoon";
+    } else if (currentHour >= 17 || currentHour < 5) {
+      greetingPrefix = "Good evening";
+    }
+    const adminDisplayName = STATE.currentUser?.displayName || "Dr. Admin Mugisha";
+
+    const todayDateFormatted = new Date().toLocaleDateString("en-UG", {
+      weekday: "long",
+      day: "numeric",
+      month: "short",
+      year: "numeric"
+    });
+
+    // Compile Recent Operational Activity (chronological 4-5 items from real state)
+    const activityList = [];
+
+    (STATE.orders || []).forEach(o => {
+      activityList.push({
+        title: `Order #${o.orderNumber || o.id} placed by ${o.customerName || "Customer"}`,
+        meta: `${formatUGX(o.total)} • Doorstep Delivery`,
+        timestamp: o.createdAt ? new Date(o.createdAt).getTime() : Date.now(),
+        dateLabel: o.createdAt ? new Date(o.createdAt).toLocaleDateString() : "Today",
+        status: o.orderStatus || "Pending",
+        statusClass: `status-${(o.orderStatus || "pending").toLowerCase().replace(/\s+/g, "_")}`,
+        icon: ICONS.orders,
+        iconBoxClass: "icon-type-order",
+        route: "admin/orders"
+      });
+    });
+
+    (STATE.consultations || []).forEach(c => {
+      activityList.push({
+        title: `Consultation: ${c.patientPhone || c.userName || "Patient"} with Dr. ${c.pharmacistName || "Sarah Nakato"}`,
+        meta: `Fee: UGX 15,000 • ${c.timeSlot || "Scheduled Session"}`,
+        timestamp: c.createdAt ? new Date(c.createdAt).getTime() : (Date.now() - 3600000),
+        dateLabel: c.date || (c.createdAt ? new Date(c.createdAt).toLocaleDateString() : "Today"),
+        status: c.status || "Pending",
+        statusClass: `status-${(c.status || "pending").toLowerCase().replace(/\s+/g, "_")}`,
+        icon: ICONS.consultations,
+        iconBoxClass: "icon-type-consultation",
+        route: "admin/consultations"
+      });
+    });
+
+    (STATE.users || []).slice(-8).forEach(u => {
+      activityList.push({
+        title: `New user: ${u.name || u.displayName || "Client Account"}`,
+        meta: `${u.email} • Role: ${formatRoleName(u.role)}`,
+        timestamp: u.createdAt ? new Date(u.createdAt).getTime() : (Date.now() - 7200000),
+        dateLabel: u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "Recent",
+        status: u.status || "active",
+        statusClass: `status-${(u.status || "active").toLowerCase()}`,
+        icon: ICONS.users,
+        iconBoxClass: "icon-type-user",
+        route: "admin/users"
+      });
+    });
+
+    (STATE.products || []).filter(p => p.stockQuantity <= (p.reorderLevel || 10)).slice(0, 3).forEach(p => {
+      activityList.push({
+        title: `Low stock alert: ${p.name}`,
+        meta: `Only ${p.stockQuantity} units left in dispensary (reorder: ${p.reorderLevel || 10})`,
+        timestamp: Date.now() - 1800000,
+        dateLabel: "Needs Action",
+        status: "Low Stock",
+        statusClass: "status-warning",
+        icon: ICONS.inventory,
+        iconBoxClass: "icon-type-stock",
+        route: "admin/medicines"
+      });
+    });
+
+    // Sort chronologically and display top 4-5
+    activityList.sort((a, b) => b.timestamp - a.timestamp);
+    const topActivities = activityList.slice(0, 5);
 
     container.innerHTML = `
-      <div class="page-header-block flex-between">
+      <!-- Time-Aware Dashboard Header -->
+      <div class="admin-dash-welcome flex-between">
         <div>
-          <h1 class="page-title">Executive Admin Dashboard</h1>
-          <p class="page-desc">Complete administrative oversight: financial analytics, user accounts, clinical queues, and immutable audit trails.</p>
+          <h1 class="admin-dash-greeting">${greetingPrefix}, ${escapeHtml(adminDisplayName)}</h1>
+          <p class="admin-dash-sub">Here's what's happening at BloomCare today.</p>
         </div>
-        <div style="display:flex; gap:8px;">
-          <button class="btn btn-primary btn-sm" data-route="admin/users">+ Manage Users</button>
-          <button class="btn btn-outline btn-sm" data-route="admin/audit-logs">Audit Trail</button>
-        </div>
-      </div>
-
-      <!-- Core Operational KPIs -->
-      <div class="kpi-grid-6">
-        <div class="kpi-card" data-route="medicines"><div class="kpi-icon-wrap">${ICONS.medicines}</div><div><strong class="kpi-value">${STATE.products.length}</strong><span class="kpi-label">Medicines</span></div></div>
-        <div class="kpi-card" data-route="orders"><div class="kpi-icon-wrap">${ICONS.orders}</div><div><strong class="kpi-value">${STATE.orders.length}</strong><span class="kpi-label">Orders</span></div></div>
-        <div class="kpi-card" data-route="admin/users"><div class="kpi-icon-wrap">${ICONS.users}</div><div><strong class="kpi-value">${totalUsersCount}</strong><span class="kpi-label">Total Users</span></div></div>
-        <div class="kpi-card" data-route="prescriptions"><div class="kpi-icon-wrap">${ICONS.prescriptions}</div><div><strong class="kpi-value">${pendingRxCount}</strong><span class="kpi-label">Pending Rx</span></div></div>
-        <div class="kpi-card" data-route="inventory"><div class="kpi-icon-wrap">${ICONS.inventory}</div><div><strong class="kpi-value" style="color:var(--warning);">${lowStockCount}</strong><span class="kpi-label">Low Stock</span></div></div>
-        <div class="kpi-card" data-route="reports"><div class="kpi-icon-wrap">${ICONS.payments}</div><div><strong class="kpi-value">${formatUGX(todaySales > 0 ? todaySales : totalRev)}</strong><span class="kpi-label">${todaySales > 0 ? "Today's Sales" : "Total Revenue"}</span></div></div>
-      </div>
-
-      <!-- User Management Quick Stats Bar -->
-      <div class="users-kpi-summary-grid" style="margin-top:14px; margin-bottom:14px;">
-        <div class="user-stat-card" data-route="admin/users" style="cursor:pointer;">
-          <span class="user-stat-label">Active Users</span>
-          <strong class="user-stat-val text-success">${activeUsersCount}</strong>
-          <small class="user-stat-sub">Verified accounts</small>
-        </div>
-        <div class="user-stat-card" data-route="admin/users" style="cursor:pointer;">
-          <span class="user-stat-label">Suspended</span>
-          <strong class="user-stat-val text-warning">${suspendedUsersCount}</strong>
-          <small class="user-stat-sub">Access blocked</small>
-        </div>
-        <div class="user-stat-card" data-route="admin/pharmacists" style="cursor:pointer;">
-          <span class="user-stat-label">Pharmacists</span>
-          <strong class="user-stat-val text-info">${pharmacistCount}</strong>
-          <small class="user-stat-sub">Clinical verified</small>
-        </div>
-        <div class="user-stat-card" data-route="admin/customers" style="cursor:pointer;">
-          <span class="user-stat-label">Customers</span>
-          <strong class="user-stat-val text-primary">${customerCount}</strong>
-          <small class="user-stat-sub">Retail clients</small>
-        </div>
-        <div class="user-stat-card" data-route="admin/users" style="cursor:pointer;">
-          <span class="user-stat-label">Staff Fleet</span>
-          <strong class="user-stat-val text-purple">${staffCount}</strong>
-          <small class="user-stat-sub">Dispensary &amp; logistics</small>
+        <div class="admin-dash-date-badge">
+          <svg class="admin-cal-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          <span>${todayDateFormatted}</span>
         </div>
       </div>
 
-      <div class="quick-actions-bar">
-        <button class="btn btn-primary btn-sm" id="dash-btn-add-prod" type="button">+ Add Product</button>
-        <button class="btn btn-secondary btn-sm" data-route="admin/users">Manage Users</button>
-        <button class="btn btn-secondary btn-sm" data-route="admin/audit-logs">Audit Logs</button>
-        <button class="btn btn-secondary btn-sm" data-route="orders">View Orders</button>
-        <button class="btn btn-secondary btn-sm" data-route="prescriptions">Review Prescriptions</button>
-        <button class="btn btn-secondary btn-sm" data-route="inventory">View Inventory</button>
-      </div>
-
-      <div class="content-dual-grid">
-        <div class="content-card">
-          <div class="flex-between"><h3>Recent Orders</h3><button class="text-link" data-route="orders">View All &rarr;</button></div>
-          <div class="table-responsive">
-            <table class="standard-table">
-              <thead><tr><th>Order ID</th><th>Customer</th><th>Total</th><th>Status</th><th>Date</th><th>Action</th></tr></thead>
-              <tbody>
-                ${STATE.orders.slice(0, 4).map(o => `
-                  <tr>
-                    <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
-                    <td>${escapeHtml(o.customerName)}</td>
-                    <td><strong>${formatUGX(o.total)}</strong></td>
-                    <td><span class="status-pill status-${o.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus)}</span></td>
-                    <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-                    <td><button class="btn btn-secondary btn-sm manage-order-btn" data-id="${o.id}">Manage</button></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
+      <!-- Core Operational KPI Summary Cards (Exactly 4 Cards) -->
+      <div class="admin-summary-grid">
+        <div class="admin-summary-card" data-route="admin/users" role="button" tabindex="0">
+          <div class="admin-summary-card-top">
+            <span class="admin-card-icon-wrap icon-wrap-users">${ICONS.users}</span>
+            <span class="admin-card-trend-badge">${customerCount} Customers</span>
+          </div>
+          <div class="admin-summary-body">
+            <strong class="admin-summary-number">${totalUsersCount}</strong>
+            <span class="admin-summary-title">Total Users</span>
+            <span class="admin-summary-secondary">${customerCount} customers &bull; ${staffCount} staff</span>
           </div>
         </div>
 
-        <div class="content-card">
-          <div class="flex-between"><h3>Low Stock Items</h3><button class="text-link" data-route="inventory">Stock Control &rarr;</button></div>
-          <div class="table-responsive">
-            <table class="standard-table">
-              <thead><tr><th>Product</th><th>Stock</th><th>Minimum</th><th>Status</th><th>Action</th></tr></thead>
-              <tbody>
-                ${STATE.products.filter(p => p.stockQuantity <= p.reorderLevel).slice(0, 4).map(p => `
-                  <tr>
-                    <td><strong>${escapeHtml(p.name)}</strong></td>
-                    <td><span class="stock-pill low-stock">${p.stockQuantity}</span></td>
-                    <td>${p.reorderLevel}</td>
-                    <td><span class="status-pill status-warning">Low Stock</span></td>
-                    <td><button class="btn btn-primary btn-sm quick-restock-btn" data-id="${p.id}">Restock</button></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
+        <div class="admin-summary-card" data-route="admin/medicines" role="button" tabindex="0">
+          <div class="admin-summary-card-top">
+            <span class="admin-card-icon-wrap icon-wrap-medicines">${ICONS.medicines}</span>
+            <span class="admin-card-trend-badge">${activeProductsCount} Active</span>
+          </div>
+          <div class="admin-summary-body">
+            <strong class="admin-summary-number">${totalProductsCount}</strong>
+            <span class="admin-summary-title">Medicines</span>
+            <span class="admin-summary-secondary">${activeProductsCount} in stock &bull; ${lowStockCount} low stock</span>
+          </div>
+        </div>
+
+        <div class="admin-summary-card" data-route="admin/orders" role="button" tabindex="0">
+          <div class="admin-summary-card-top">
+            <span class="admin-card-icon-wrap icon-wrap-orders">${ICONS.orders}</span>
+            <span class="admin-card-trend-badge">${completedOrdersCount} Fulfilled</span>
+          </div>
+          <div class="admin-summary-body">
+            <strong class="admin-summary-number">${totalOrdersCount}</strong>
+            <span class="admin-summary-title">Orders</span>
+            <span class="admin-summary-secondary">${completedOrdersCount} completed &bull; ${pendingOrdersCount} pending</span>
+          </div>
+        </div>
+
+        <div class="admin-summary-card" data-route="admin/appointments" role="button" tabindex="0">
+          <div class="admin-summary-card-top">
+            <span class="admin-card-icon-wrap icon-wrap-consultations">${ICONS.consultations}</span>
+            <span class="admin-card-trend-badge">${pendingConsultationsCount} Pending</span>
+          </div>
+          <div class="admin-summary-body">
+            <strong class="admin-summary-number">${totalConsultationsCount}</strong>
+            <span class="admin-summary-title">Appointments</span>
+            <span class="admin-summary-secondary">${pendingConsultationsCount} pending pharmacist review</span>
           </div>
         </div>
       </div>
 
-      <!-- Recent User Registrations & Audit Activity Summary -->
-      <div class="content-dual-grid" style="margin-top:20px;">
-        <div class="content-card">
-          <div class="flex-between">
-            <h3>Recent User Accounts</h3>
-            <button class="text-link" data-route="admin/users">View All Users &rarr;</button>
-          </div>
-          <div class="table-responsive">
-            <table class="standard-table">
-              <thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th></tr></thead>
-              <tbody>
-                ${STATE.users.slice(0, 4).map(u => `
-                  <tr>
-                    <td><strong>${escapeHtml(u.name || u.displayName)}</strong><br><small class="muted">${escapeHtml(u.email)}</small></td>
-                    <td><span class="role-badge role-badge-${u.role}">${escapeHtml(formatRoleName(u.role).toUpperCase())}</span></td>
-                    <td><span class="status-pill status-${u.status || "active"}">${escapeHtml(u.status || "active")}</span></td>
-                    <td>${escapeHtml(u.createdAt || "—")}</td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
-          </div>
+      <!-- Quick Actions Section (Max 4 Actions) -->
+      <div class="admin-section-block">
+        <div class="admin-section-head">
+          <h2 class="admin-section-title">Quick Actions</h2>
         </div>
+        <div class="admin-actions-grid">
+          <button class="admin-action-btn primary-action" id="dash-btn-add-prod" type="button">
+            <span class="admin-action-icon">${ICONS.medicines}</span>
+            <div class="admin-action-text">
+              <strong>+ Add Medicine</strong>
+              <small>Add new item to dispensary</small>
+            </div>
+          </button>
+          <button class="admin-action-btn" type="button" data-route="admin/orders">
+            <span class="admin-action-icon">${ICONS.orders}</span>
+            <div class="admin-action-text">
+              <strong>Manage Orders</strong>
+              <small>Process deliveries &amp; status</small>
+            </div>
+          </button>
+          <button class="admin-action-btn" type="button" data-route="admin/users">
+            <span class="admin-action-icon">${ICONS.users}</span>
+            <div class="admin-action-text">
+              <strong>Manage Users</strong>
+              <small>Accounts, roles &amp; privileges</small>
+            </div>
+          </button>
+          <button class="admin-action-btn" type="button" data-route="admin/reports">
+            <span class="admin-action-icon">${ICONS.reports}</span>
+            <div class="admin-action-text">
+              <strong>View Reports</strong>
+              <small>Sales, audits &amp; analytics</small>
+            </div>
+          </button>
+        </div>
+      </div>
 
-        <div class="content-card">
-          <div class="flex-between">
-            <h3>Recent Administrative Audit Trail</h3>
-            <button class="text-link" data-route="admin/audit-logs">Full Audit Logs &rarr;</button>
+      <!-- Recent Operational Activity Section -->
+      <div class="admin-section-block">
+        <div class="admin-activity-card">
+          <div class="admin-activity-card-header flex-between">
+            <div>
+              <h2 class="admin-section-title" style="margin-bottom:2px;">Recent Activity</h2>
+              <p class="admin-section-caption">Latest customer orders, clinical bookings, and system updates</p>
+            </div>
+            <button class="btn btn-outline btn-sm" type="button" data-route="admin/reports">View All &rarr;</button>
           </div>
-          <div class="table-responsive">
-            <table class="standard-table">
-              <thead><tr><th>Action</th><th>Actor</th><th>Target User</th><th>Details</th></tr></thead>
-              <tbody>
-                ${STATE.auditLogs.slice(0, 4).map(l => `
-                  <tr>
-                    <td><span class="audit-badge audit-${l.action}">${escapeHtml(l.action)}</span></td>
-                    <td><strong>${escapeHtml(l.actorName || "Admin")}</strong></td>
-                    <td>${escapeHtml(l.targetName || l.targetUserId || "—")}</td>
-                    <td><small>${escapeHtml(l.details || "—")}</small></td>
-                  </tr>
-                `).join("")}
-              </tbody>
-            </table>
+
+          <div class="admin-activity-list">
+            ${topActivities.length === 0 ? `<div class="admin-activity-empty">No recent activity found.</div>` : topActivities.map(act => `
+              <div class="admin-activity-row" data-route="${act.route}" role="button" tabindex="0">
+                <div class="admin-activity-main">
+                  <div class="admin-act-icon-wrap ${act.iconBoxClass}">
+                    ${act.icon}
+                  </div>
+                  <div class="admin-act-info">
+                    <strong class="admin-act-title">${escapeHtml(act.title)}</strong>
+                    <span class="admin-act-meta">${escapeHtml(act.meta)}</span>
+                  </div>
+                </div>
+                <div class="admin-activity-status-col">
+                  <span class="status-pill ${act.statusClass}">${escapeHtml(act.status)}</span>
+                  <small class="admin-act-date">${escapeHtml(act.dateLabel)}</small>
+                </div>
+              </div>
+            `).join("")}
           </div>
         </div>
       </div>
     `;
+
     $("#dash-btn-add-prod")?.addEventListener("click", () => openProductFormModal());
 
   } else if (role === "pharmacist") {
@@ -6340,9 +6452,88 @@ function bindEventListeners() {
     switchActiveRole(e.target.value);
   });
 
-  // Top User Profile Pill
-  $("#user-profile-pill")?.addEventListener("click", () => {
-    navigateTo(STATE.currentUser ? "profile" : "auth");
+  // Top User Profile Pill & Dropdown
+  $("#user-profile-pill")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    if (!STATE.currentUser) {
+      navigateTo("auth");
+      return;
+    }
+    const dropdown = $("#user-profile-dropdown");
+    const isOpening = dropdown?.classList.contains("hidden");
+    
+    // Close notifications dropdown first
+    $("#top-notif-dropdown")?.classList.add("hidden");
+    $("#open-notif-btn")?.setAttribute("aria-expanded", "false");
+
+    dropdown?.classList.toggle("hidden", !isOpening);
+    $("#user-profile-pill")?.setAttribute("aria-expanded", String(Boolean(isOpening)));
+  });
+
+  // Profile Dropdown Actions
+  $("#dropdown-item-profile")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    $("#user-profile-dropdown")?.classList.add("hidden");
+    $("#user-profile-pill")?.setAttribute("aria-expanded", "false");
+    const eff = getEffectiveRole();
+    navigateTo(eff === "admin" ? "admin/dashboard" : "profile");
+  });
+
+  $("#dropdown-item-settings")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    $("#user-profile-dropdown")?.classList.add("hidden");
+    $("#user-profile-pill")?.setAttribute("aria-expanded", "false");
+    const eff = getEffectiveRole();
+    navigateTo(eff === "admin" ? "admin/settings" : "settings");
+  });
+
+  $("#dropdown-item-logout")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    $("#user-profile-dropdown")?.classList.add("hidden");
+    $("#user-profile-pill")?.setAttribute("aria-expanded", "false");
+    $("#logout-confirm-dialog")?.showModal();
+  });
+
+  // Top Notifications Bell & Dropdown
+  $("#open-notif-btn")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const notifDropdown = $("#top-notif-dropdown");
+    const isOpening = notifDropdown?.classList.contains("hidden");
+
+    // Close user profile dropdown first
+    $("#user-profile-dropdown")?.classList.add("hidden");
+    $("#user-profile-pill")?.setAttribute("aria-expanded", "false");
+
+    notifDropdown?.classList.toggle("hidden", !isOpening);
+    $("#open-notif-btn")?.setAttribute("aria-expanded", String(Boolean(isOpening)));
+    if (isOpening) {
+      renderNotificationsDropdown();
+    }
+  });
+
+  $("#notif-mark-all-read")?.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const eff = getEffectiveRole();
+    STATE.notifications.forEach(n => {
+      if (!n.role || n.role === eff || eff === "admin" || eff === "developer") {
+        n.read = true;
+      }
+    });
+    updateNotifBadge();
+    renderNotificationsDropdown();
+    renderNotificationsView();
+  });
+
+  // Global Outside Click to Dismiss Dropdowns
+  document.addEventListener("click", (e) => {
+    if (!e.target.closest("#top-user-area")) {
+      $("#user-profile-dropdown")?.classList.add("hidden");
+      $("#user-profile-pill")?.setAttribute("aria-expanded", "false");
+    }
+    if (!e.target.closest("#top-notif-wrap")) {
+      $("#top-notif-dropdown")?.classList.add("hidden");
+      $("#open-notif-btn")?.setAttribute("aria-expanded", "false");
+    }
   });
 
   // Developer Preview Mode Banner Controls

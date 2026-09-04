@@ -333,22 +333,18 @@ test('BULK SELECTION: Admin can select multiple users and clear selection', () =
 // -------------------------------------------------------------
 // 8. ADMIN SIDEBAR NAVIGATION STRUCTURE
 // -------------------------------------------------------------
-test('SIDEBAR: Admin sidebar configuration includes all 13 core administrative sections', () => {
+test('SIDEBAR: Admin sidebar configuration is streamlined to the 8 core administrative sections', () => {
   const adminNav = ROLE_SIDEBAR_CONFIGS.admin;
   assert.ok(adminNav, 'Admin navigation must be defined');
+  assert.equal(adminNav.length, 8, 'Admin navigation must contain exactly 8 streamlined items');
 
   const routes = adminNav.map(item => item.route);
   assert.ok(routes.includes('admin/dashboard'), 'Must include Dashboard');
-  assert.ok(routes.includes('admin/users'), 'Must include Users management');
-  assert.ok(routes.includes('admin/pharmacists'), 'Must include Pharmacists view');
-  assert.ok(routes.includes('admin/customers'), 'Must include Customers directory');
-  assert.ok(routes.includes('admin/consultations'), 'Must include Consultations');
-  assert.ok(routes.includes('admin/appointments'), 'Must include Appointments');
   assert.ok(routes.includes('admin/medicines'), 'Must include Medicines');
   assert.ok(routes.includes('admin/orders'), 'Must include Orders');
-  assert.ok(routes.includes('admin/inventory'), 'Must include Inventory');
+  assert.ok(routes.includes('admin/consultations'), 'Must include Consultations');
+  assert.ok(routes.includes('admin/appointments'), 'Must include Appointments');
+  assert.ok(routes.includes('admin/users'), 'Must include Users management');
   assert.ok(routes.includes('admin/reports'), 'Must include Reports');
-  assert.ok(routes.includes('admin/audit-logs'), 'Must include Audit Logs');
   assert.ok(routes.includes('admin/settings'), 'Must include Settings');
-  assert.ok(routes.includes('admin/profile'), 'Must include Profile');
 });

@@ -163,23 +163,37 @@
       </div>
 
       <div class="top-header-right">
-        <!-- Authenticated Role Indicator -->
-        <div class="active-role-indicator" id="active-role-indicator" title="Current Authenticated Role">
+        <!-- Authenticated Role Indicator (Preserved in DOM but hidden in favor of clean profile role) -->
+        <div class="active-role-indicator hidden" id="active-role-indicator" title="Current Authenticated Role" style="display: none !important;">
           <span class="switcher-badge-label">Portal Role:</span>
           <span class="role-badge" id="top-role-badge">VISITOR</span>
         </div>
 
-        <!-- Global Medicine Search Bar -->
+        <!-- Global Search Bar -->
         <div class="top-search-box">
-          <input type="search" id="top-search-input" placeholder="Search medicines by name or generic..." autocomplete="off" />
+          <input type="search" id="top-search-input" placeholder="Search medicines, orders, users..." autocomplete="off" />
           <span class="search-ico" id="top-search-icon"></span>
         </div>
 
-        <!-- Notifications Bell -->
-        <button class="icon-round-btn" id="open-notif-btn" type="button" title="Notifications" data-route="notifications">
-          <span id="top-bell-icon"></span>
-          <span class="notif-badge hidden" id="top-notif-badge">0</span>
-        </button>
+        <!-- Notifications Bell with Dropdown Panel -->
+        <div class="top-notif-wrap" id="top-notif-wrap">
+          <button class="icon-round-btn" id="open-notif-btn" type="button" title="Notifications" aria-haspopup="true" aria-expanded="false">
+            <span id="top-bell-icon"></span>
+            <span class="notif-badge hidden" id="top-notif-badge">0</span>
+          </button>
+          <div class="notif-dropdown-panel hidden" id="top-notif-dropdown" role="region" aria-label="Notifications Dropdown">
+            <div class="notif-dropdown-header">
+              <span class="notif-dropdown-title">Notifications</span>
+              <button class="notif-mark-read-btn" id="notif-mark-all-read" type="button">Mark all as read</button>
+            </div>
+            <div class="notif-dropdown-list" id="notif-dropdown-list">
+              <div class="notif-empty-state">No new notifications</div>
+            </div>
+            <div class="notif-dropdown-footer">
+              <a href="#notifications" data-route="notifications" class="notif-view-all-link" id="notif-view-all-link">See all notifications &rarr;</a>
+            </div>
+          </div>
+        </div>
 
         <!-- Shopping Cart Trigger Button -->
         <button class="cart-btn" id="open-cart-btn" type="button" aria-label="Open Shopping Cart">
@@ -188,14 +202,38 @@
           <span class="cart-badge" id="nav-cart-count">0</span>
         </button>
 
-        <!-- User Profile Pill / Auth Buttons -->
-        <div id="top-user-area">
-          <div class="user-profile-pill" id="user-profile-pill" data-route="profile">
+        <!-- User Profile Pill & Dropdown Menu -->
+        <div id="top-user-area" class="top-user-dropdown-container">
+          <button class="user-profile-pill" id="user-profile-pill" type="button" aria-haspopup="true" aria-expanded="false" aria-label="User profile menu">
             <span class="user-avatar-circle" id="top-avatar-icon"></span>
             <div class="user-pill-info">
               <strong id="top-user-name">Guest Visitor</strong>
               <small id="top-user-role">Sign In</small>
             </div>
+            <span class="user-pill-caret" id="top-user-caret" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="currentColor" width="14" height="14"><path fill-rule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clip-rule="evenodd"/></svg>
+            </span>
+          </button>
+
+          <div class="user-profile-dropdown hidden" id="user-profile-dropdown" role="menu">
+            <div class="profile-dropdown-header">
+              <strong class="dropdown-user-name" id="dropdown-user-name">Dr. Admin Mugisha</strong>
+              <small class="dropdown-user-role" id="dropdown-user-role">Administrator</small>
+            </div>
+            <div class="profile-dropdown-divider"></div>
+            <button class="profile-dropdown-item" id="dropdown-item-profile" type="button" data-route="profile" role="menuitem">
+              <span class="dropdown-item-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+              <span>Profile</span>
+            </button>
+            <button class="profile-dropdown-item" id="dropdown-item-settings" type="button" data-route="settings" role="menuitem">
+              <span class="dropdown-item-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg></span>
+              <span>Account Settings</span>
+            </button>
+            <div class="profile-dropdown-divider"></div>
+            <button class="profile-dropdown-item dropdown-logout-btn" id="dropdown-item-logout" type="button" role="menuitem">
+              <span class="dropdown-item-icon"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg></span>
+              <span>Sign Out</span>
+            </button>
           </div>
         </div>
       </div>
