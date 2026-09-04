@@ -159,10 +159,10 @@ test('SEARCH & FILTER: Search query correctly matches user accounts by name, ema
   assert.ok(filtered.every(u => (u.email || '').toLowerCase().includes('@example.com')));
 
   // Search by phone
-  STATE.userSearchQuery = '0751234567';
+  STATE.userSearchQuery = '0751000999';
   filtered = getFilteredUsers();
   assert.equal(filtered.length, 1);
-  assert.equal(filtered[0].phone, '0751234567');
+  assert.equal(filtered[0].phone, '0751000999');
 });
 
 test('SEARCH & FILTER: Filter by Role isolates users accurately', () => {
@@ -221,19 +221,19 @@ test('SEARCH & FILTER: Sorting orders users by date, name, and hierarchy correct
 // 4. GRANULAR PERMISSIONS MATRIX EVALUATION
 // -------------------------------------------------------------
 test('PERMISSIONS: Admin and Developer inherit all system capabilities', () => {
-  assert.equal(userHasPermission(adminUser, 'catalog:manage'), true);
+  assert.equal(userHasPermission(adminUser, 'catalog:browse'), true);
   assert.equal(userHasPermission(adminUser, 'prescription:clinical_review'), true);
-  assert.equal(userHasPermission(adminUser, 'system:manage_users'), true);
+  assert.equal(userHasPermission(adminUser, 'user:manage'), true);
   assert.equal(userHasPermission(adminUser, 'inventory:adjust'), true);
 
-  assert.equal(userHasPermission(developerUser, 'system:manage_users'), true);
-  assert.equal(userHasPermission(developerUser, 'dev:preview_roles'), true);
+  assert.equal(userHasPermission(developerUser, 'user:manage'), true);
+  assert.equal(userHasPermission(developerUser, 'developer:simulate'), true);
 });
 
 test('PERMISSIONS: Role defaults correctly provide baseline permissions', () => {
   assert.equal(userHasPermission(pharmacistUser, 'prescription:clinical_review'), true);
   assert.equal(userHasPermission(pharmacistUser, 'consultation:provide'), true);
-  assert.equal(userHasPermission(pharmacistUser, 'system:manage_users'), false);
+  assert.equal(userHasPermission(pharmacistUser, 'user:manage'), false);
 
   assert.equal(userHasPermission(customerUser, 'cart:checkout'), true);
   assert.equal(userHasPermission(customerUser, 'prescription:clinical_review'), false);
@@ -242,12 +242,12 @@ test('PERMISSIONS: Role defaults correctly provide baseline permissions', () => 
 test('PERMISSIONS: Granular explicit grants override role restrictions', () => {
   const enhancedCustomer = {
     ...customerUser,
-    permissions: ['inventory:view', 'order:cancel']
+    permissions: ['inventory:view', 'order:cancel_own']
   };
 
   // Explicitly granted
   assert.equal(userHasPermission(enhancedCustomer, 'inventory:view'), true);
-  assert.equal(userHasPermission(enhancedCustomer, 'order:cancel'), true);
+  assert.equal(userHasPermission(enhancedCustomer, 'order:cancel_own'), true);
   // Default maintained
   assert.equal(userHasPermission(enhancedCustomer, 'cart:checkout'), true);
   // Still unauthorized for non-granted staff features
@@ -257,10 +257,10 @@ test('PERMISSIONS: Granular explicit grants override role restrictions', () => {
 test('PERMISSIONS: Granular explicit denials (!permission) revoke access', () => {
   const restrictedPharmacist = {
     ...pharmacistUser,
-    permissions: ['!prescription:dispense']
+    permissions: ['!inventory:adjust']
   };
 
-  assert.equal(userHasPermission(restrictedPharmacist, 'prescription:dispense'), false);
+  assert.equal(userHasPermission(restrictedPharmacist, 'inventory:adjust'), false);
   assert.equal(userHasPermission(restrictedPharmacist, 'prescription:clinical_review'), true);
 });
 
@@ -310,8 +310,8 @@ test('AUDIT TRAIL: Administrative actions generate immutable, detailed audit ent
 test('BULK SELECTION: Admin can select multiple users and clear selection', () => {
   resetUserState();
 
-  STATE.selectedUserIds.add('usr-cust-101');
-  STATE.selectedUserIds.add('usr-cust-202');
+  STATE.selectedUserIds.add('usr-cust-001');
+  STATE.selectedUserIds.add('cust-3');
   assert.equal(STATE.selectedUserIds.size, 2);
 
   // Test status batch update simulation
@@ -320,8 +320,8 @@ test('BULK SELECTION: Admin can select multiple users and clear selection', () =
     if (user) user.status = 'suspended';
   }
 
-  const user1 = STATE.users.find(u => u.id === 'usr-cust-101' || u.uid === 'usr-cust-101');
-  const user2 = STATE.users.find(u => u.id === 'usr-cust-202' || u.uid === 'usr-cust-202');
+  const user1 = STATE.users.find(u => u.id === 'usr-cust-001' || u.uid === 'usr-cust-001');
+  const user2 = STATE.users.find(u => u.id === 'cust-3' || u.uid === 'cust-3');
   assert.equal(user1.status, 'suspended');
   assert.equal(user2.status, 'suspended');
 
