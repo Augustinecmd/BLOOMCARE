@@ -6252,4 +6252,347 @@ dialog::backdrop {
   }
 }
 
+/* ==============================================================
+   SECTION: ADMIN DASHBOARD - SALES OVERVIEW & LINE CHART
+   ============================================================== */
+#admin-sales-overview-section {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.04);
+}
+
+.admin-sales-overview-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.admin-sales-overview-header .admin-section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 2px 0;
+}
+
+.admin-sales-overview-header .admin-section-caption {
+  font-size: 13px;
+  color: #64748b;
+  margin: 0;
+}
+
+.sales-period-select {
+  height: 38px;
+  padding: 6px 36px 6px 14px;
+  font-size: 13.5px;
+  font-weight: 600;
+  color: #1e293b;
+  background-color: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%23475569' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+}
+
+.sales-period-select:focus {
+  outline: none;
+  border-color: #00875A;
+  box-shadow: 0 0 0 3px rgba(0, 135, 90, 0.15);
+  background-color: #ffffff;
+}
+
+/* 3 Summary Value KPI Cards */
+.sales-summary-kpi-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+.sales-kpi-card {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.sales-kpi-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+.sales-kpi-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.sales-kpi-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.sales-kpi-icon-pill {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: #e2e8f0;
+  color: #475569;
+}
+
+.sales-kpi-val {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  margin-bottom: 4px;
+}
+
+.sales-kpi-sub {
+  font-size: 12px;
+  color: #94a3b8;
+  margin: 0;
+}
+
+.sales-kpi-comp-wrap {
+  margin-top: 4px;
+  min-height: 22px;
+}
+
+.sales-kpi-comp {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 6px;
+}
+
+.sales-kpi-comp.trend-up {
+  color: #059669;
+  background: #ecfdf5;
+  border: 1px solid #a7f3d0;
+}
+
+.sales-kpi-comp.trend-down {
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+}
+
+/* Chart Canvas / Wrapper */
+.sales-chart-wrapper {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 20px 14px 14px;
+  margin-bottom: 16px;
+  min-height: 320px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.sales-chart-interactive-box {
+  position: relative;
+  width: 100%;
+  min-width: 580px;
+}
+
+.sales-line-chart-svg {
+  width: 100%;
+  height: auto;
+  max-height: 330px;
+  display: block;
+}
+
+.sales-grid-line {
+  stroke: #f1f5f9;
+  stroke-width: 1;
+  stroke-dasharray: 4, 4;
+}
+
+.sales-axis-line {
+  stroke: #cbd5e1;
+  stroke-width: 1.5;
+}
+
+.sales-axis-text {
+  fill: #64748b;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: inherit;
+  user-select: none;
+}
+
+.sales-chart-stroke {
+  stroke: #00875A;
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  filter: drop-shadow(0 2px 4px rgba(0, 135, 90, 0.2));
+}
+
+.sales-chart-area {
+  pointer-events: none;
+}
+
+.sales-chart-point {
+  fill: #00875A;
+  stroke: #ffffff;
+  stroke-width: 2.5;
+  cursor: pointer;
+  transition: r 0.12s ease, fill 0.12s ease, stroke-width 0.12s ease;
+}
+
+.sales-chart-point:hover,
+.sales-chart-point:focus {
+  r: 7 !important;
+  fill: #ffffff !important;
+  stroke: #00875A !important;
+  stroke-width: 3 !important;
+  outline: none;
+}
+
+/* Floating Tooltip */
+.sales-chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: #0f172a;
+  color: #ffffff;
+  padding: 8px 12px;
+  border-radius: 8px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  font-size: 12px;
+  line-height: 1.4;
+  z-index: 20;
+  white-space: nowrap;
+  transition: opacity 0.1s ease;
+}
+
+.sales-chart-tooltip .tooltip-time {
+  font-weight: 700;
+  color: #94a3b8;
+  font-size: 11px;
+  margin-bottom: 2px;
+}
+
+.sales-chart-tooltip .tooltip-sales {
+  color: #ffffff;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.sales-chart-tooltip .tooltip-sales strong {
+  color: #34d399;
+  font-weight: 800;
+}
+
+.sales-chart-tooltip .tooltip-orders {
+  color: #cbd5e1;
+  font-size: 11.5px;
+  margin-top: 1px;
+}
+
+/* Empty State */
+.sales-chart-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 24px;
+  width: 100%;
+}
+
+.sales-chart-empty-state .empty-state-icon {
+  color: #94a3b8;
+  background: #f1f5f9;
+  border-radius: 50%;
+  width: 64px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+
+.sales-chart-empty-state .empty-state-title {
+  font-size: 15px;
+  font-weight: 700;
+  color: #334155;
+  margin: 0 0 6px 0;
+}
+
+.sales-chart-empty-state .empty-state-desc {
+  font-size: 13px;
+  color: #94a3b8;
+  max-width: 440px;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* Footer Section */
+.sales-overview-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f1f5f9;
+}
+
+.sales-data-note {
+  font-size: 12px;
+  color: #94a3b8;
+}
+
+@media (max-width: 768px) {
+  #admin-sales-overview-section {
+    padding: 16px;
+  }
+  .admin-sales-overview-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .sales-period-control-wrap,
+  .sales-period-select {
+    width: 100%;
+  }
+  .sales-summary-kpi-grid {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .sales-chart-wrapper {
+    padding: 14px 6px 10px;
+  }
+  .sales-overview-footer {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+}
+
+
 
