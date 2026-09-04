@@ -79,6 +79,7 @@ function resetUserState() {
   STATE.selectedUserIds = new Set();
   STATE.currentUser = adminUser;
   STATE.currentRole = 'admin';
+  STATE.activeRole = 'admin';
 }
 
 // -------------------------------------------------------------
