@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f8fafc"/>
+      <stop offset="100%" stop-color="#f1f5f9"/>
+    </linearGradient>
+    <linearGradient id="badgeGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e6f7ef"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+  </defs>
+  <!-- Background Container -->
+  <rect width="400" height="400" fill="url(#bgGrad)"/>
+  <rect x="16" y="16" width="368" height="368" rx="16" fill="#ffffff" stroke="#e2e8f0" stroke-width="2"/>
+  
+  <!-- Subtle Grid Pattern / Capsule Silhouette -->
+  <g opacity="0.12" transform="translate(140, 70)">
+    <rect x="0" y="0" width="120" height="120" rx="60" fill="none" stroke="#087d44" stroke-width="8"/>
+    <line x1="10" y1="60" x2="110" y2="60" stroke="#087d44" stroke-width="8"/>
+  </g>
+
+  <!-- Central Medical Pill / Cross Icon -->
+  <g transform="translate(160, 100)">
+    <circle cx="40" cy="40" r="44" fill="url(#badgeGrad)" stroke="#10b981" stroke-width="2"/>
+    <!-- Medical Cross -->
+    <path d="M40 22v36M22 40h36" stroke="#087d44" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+
+  <!-- Text Hierarchy -->
+  <text x="200" y="225" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="17" font-weight="700" fill="#1e293b" text-anchor="middle">
+    Medicine Image Unavailable
+  </text>
+  <text x="200" y="250" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" font-weight="500" fill="#64748b" text-anchor="middle">
+    Verified packaging photo pending dispensary upload
+  </text>
+
+  <!-- Accreditation Pill -->
+  <g transform="translate(75, 280)">
+    <rect width="250" height="30" rx="15" fill="#e6f7ef" stroke="#a3d8c2" stroke-width="1.2"/>
+    <circle cx="20" cy="15" r="4" fill="#087d44"/>
+    <text x="32" y="19" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="10.5" font-weight="600" fill="#065f46">
+      Licensed by NDA #NDA/UG/PHARM/2026/894
+    </text>
+  </g>
+
+  <!-- Footer Brand -->
+  <text x="200" y="345" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" font-weight="600" fill="#94a3b8" text-anchor="middle">
+    BloomCare Pharmacy Clinical Dispensary
+  </text>
+</svg>

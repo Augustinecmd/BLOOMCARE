@@ -1259,6 +1259,33 @@
   </div>
   <form id="product-manage-form" class="standard-form">
     <input type="hidden" id="prod-id" />
+    
+    <!-- Medicine Product Image Upload & Preview -->
+    <div class="admin-img-upload-section">
+      <label class="form-section-subtitle"><strong>Medicine Product Image</strong></label>
+      <div class="admin-img-preview-container">
+        <div class="admin-img-preview-box">
+          <img id="prod-img-preview" src="products/placeholder-medicine.svg" alt="Product Image Preview" class="admin-prod-preview-img" />
+        </div>
+        <div class="admin-img-controls">
+          <input type="file" id="prod-image-file" accept="image/jpeg,image/png,image/webp" style="display:none;" />
+          <input type="hidden" id="prod-image-url" />
+          <div class="admin-img-btn-row">
+            <button type="button" class="btn btn-secondary btn-sm" id="btn-upload-prod-img">
+              <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              <span>Upload / Replace Image</span>
+            </button>
+            <button type="button" class="btn btn-outline btn-sm" id="btn-remove-prod-img">
+              <span>Remove Image</span>
+            </button>
+          </div>
+          <small class="muted" style="display:block; margin-top:6px; font-size:11.5px;">
+            Supports JPG, PNG, WEBP (Max 5MB). Automatically optimized for crisp web display.
+          </small>
+        </div>
+      </div>
+    </div>
+
     <div class="form-row-2">
       <label>Product Name<input type="text" id="prod-name" placeholder="e.g. Paracetamol 500mg Tablets" required /></label>
       <label>Generic Name<input type="text" id="prod-generic" placeholder="e.g. Paracetamol (Acetaminophen)" required /></label>
@@ -1484,7 +1511,14 @@
       <small>Price in UGX</small>
       <strong id="modal-product-price">UGX 0</strong>
     </div>
-    <button class="btn btn-primary" id="modal-add-cart-btn" type="button">Add to Cart</button>
+    <div class="modal-details-action-group">
+      <div class="modal-qty-stepper">
+        <button type="button" class="btn-qty-step" id="modal-qty-minus" aria-label="Decrease quantity">&minus;</button>
+        <input type="number" id="modal-product-qty" value="1" min="1" max="100" />
+        <button type="button" class="btn-qty-step" id="modal-qty-plus" aria-label="Increase quantity">&plus;</button>
+      </div>
+      <button class="btn btn-primary" id="modal-add-cart-btn" type="button">Add to Cart</button>
+    </div>
   </div>
 </dialog>
 
