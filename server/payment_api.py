@@ -50,16 +50,19 @@ def validation_errors_for_initialize(payload: object) -> dict[str, str]:
         return {"body": "Request body must be a JSON object."}
     errors: dict[str, str] = {}
     provider = payload.get("provider")
-    if provider not in {"MTN MoMo", "Airtel Money"}:
-        errors["provider"] = "Choose MTN MoMo or Airtel Money."
+    if provider not in {"MTN MoMo", "MTN Mobile Money", "Airtel Money"}:
+        errors["provider"] = "Choose MTN Mobile Money or Airtel Money."
     phone = normalize_phone(payload.get("phone"))
     if not PHONE_PATTERN.fullmatch(phone):
         errors["phone"] = "Enter a valid Ugandan phone number such as 0751234567 or +256751234567."
     amount = payload.get("amount")
     if amount is not None:
         try:
-            if float(amount) <= 0:
+            val = float(amount)
+            if val <= 0:
                 errors["amount"] = "Amount must be greater than 0 UGX."
+            elif payload.get("type") == "consultation" and int(val) != 15000:
+                errors["amount"] = "Consultation fee must be 15,000 UGX."
         except (ValueError, TypeError):
             errors["amount"] = "Invalid payment amount."
     return errors
@@ -89,10 +92,15 @@ def write_payments(data: dict) -> None:
         raise PaymentStoreError(f"Failed to write payments store: {exc}") from exc
 
 
-def create_payment(provider: str, phone: str, details: dict, amount: int) -> dict:
+def create_payment(provider: str, phone: str, details: dict, amount: int, payment_type: str = "order", custom_ref: str | None = None) -> dict:
     today_str = datetime.now(timezone.utc).strftime("%Y%m%d")
     unique_suffix = secrets.token_hex(4).upper()
-    reference = f"BC-{today_str}-{unique_suffix}"
+    if custom_ref:
+        reference = custom_ref
+    elif payment_type == "consultation":
+        reference = f"BC-CNS-{today_str}-{unique_suffix}"
+    else:
+        reference = f"BC-{today_str}-{unique_suffix}"
     receipt_number = f"RCP-{today_str}-{secrets.token_hex(3).upper()}"
     now_iso = datetime.now(timezone.utc).isoformat()
 
@@ -100,12 +108,14 @@ def create_payment(provider: str, phone: str, details: dict, amount: int) -> dic
         "reference": reference,
         "receiptNumber": receipt_number,
         "provider": provider,
+        "paymentType": payment_type,
         "phone": normalize_phone(phone),
         "amount": amount,
         "currency": CURRENCY,
         "status": "PENDING",
         "createdAt": now_iso,
         "verifiedAt": None,
+        "transactionId": None,
         "details": details,
         "dispensedBy": "BloomCare Pharmacy Kampala",
     }
@@ -186,10 +196,20 @@ class PaymentHandler(BaseHTTPRequestHandler):
 
             provider = payload["provider"]
             phone = payload["phone"]
-            amount = int(payload.get("amount", 20000))
+            payment_type = payload.get("type", "order")
+            default_amount = 15000 if payment_type == "consultation" else 20000
+            amount = int(payload.get("amount", default_amount))
             details = payload.get("details", payload.get("order", payload.get("appointment", {})))
+            custom_ref = payload.get("reference")
 
-            payment_record = create_payment(provider, phone, details, amount)
+            payment_record = create_payment(
+                provider=provider,
+                phone=phone,
+                details=details,
+                amount=amount,
+                payment_type=payment_type,
+                custom_ref=custom_ref
+            )
             self.send_json(201, {
                 "success": True,
                 "message": f"Payment initialized via {provider}. Approval prompt sent to {phone}.",
@@ -197,6 +217,8 @@ class PaymentHandler(BaseHTTPRequestHandler):
                 "receiptNumber": payment_record["receiptNumber"],
                 "amount": payment_record["amount"],
                 "currency": CURRENCY,
+                "provider": provider,
+                "status": payment_record["status"],
             })
             return
 
@@ -210,6 +232,45 @@ class PaymentHandler(BaseHTTPRequestHandler):
                 self.send_json(404, {"success": False, "message": "Payment reference not found"})
                 return
             self.send_json(200, {"success": True, "payment": record})
+            return
+
+        if parsed.path == "/api/payments/cancel":
+            ref = str(payload.get("reference", "")).strip()
+            if not ref:
+                self.send_json(422, {"success": False, "message": "Reference required"})
+                return
+            with LOCK:
+                payments = read_payments()
+                record = payments.get(ref)
+                if not record:
+                    self.send_json(404, {"success": False, "message": "Payment reference not found"})
+                    return
+                if record["status"] == "PENDING":
+                    record["status"] = "CANCELLED"
+                    write_payments(payments)
+                self.send_json(200, {"success": True, "payment": record})
+            return
+
+        if parsed.path == "/api/payments/webhook":
+            event = payload.get("event")
+            ref = payload.get("reference")
+            if not ref:
+                self.send_json(400, {"success": False, "message": "Reference missing"})
+                return
+            with LOCK:
+                payments = read_payments()
+                record = payments.get(ref)
+                if record:
+                    if event == "payment.success":
+                        record["status"] = "SUCCESSFUL"
+                        record["verifiedAt"] = datetime.now(timezone.utc).isoformat()
+                        record["transactionId"] = payload.get("transactionId", f"MM-UGX-{secrets.token_hex(6).upper()}")
+                    elif event == "payment.failed":
+                        record["status"] = "FAILED"
+                    write_payments(payments)
+                    self.send_json(200, {"success": True, "payment": record})
+                    return
+            self.send_json(404, {"success": False, "message": "Payment reference not found"})
             return
 
         self.send_json(404, {"success": False, "message": "Endpoint not found"})

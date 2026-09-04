@@ -635,6 +635,242 @@ export const ROLES = {
 
 export const VALID_ROLES = Object.values(ROLES);
 
+// 1. Role Security Hierarchy (Clearance Levels: 100 root down to 0 visitor)
+export const ROLE_HIERARCHY = {
+  developer: 100,
+  admin: 80,
+  pharmacist: 60,
+  assistant_pharmacist: 40,
+  delivery_person: 20,
+  customer: 10,
+  visitor: 0
+};
+
+// 2. Granular Permissions Capabilities
+export const PERMISSIONS = {
+  // Storefront & Purchasing
+  CATALOG_BROWSE: "catalog:browse",
+  CART_CHECKOUT: "cart:checkout",
+  ORDER_VIEW_OWN: "order:view_own",
+  ORDER_CANCEL_OWN: "order:cancel_own",
+  
+  // Clinical Prescriptions & Consultations
+  PRESCRIPTION_UPLOAD: "prescription:upload",
+  PRESCRIPTION_VIEW_OWN: "prescription:view_own",
+  PRESCRIPTION_VIEW_ALL: "prescription:view_all",
+  PRESCRIPTION_CLINICAL_REVIEW: "prescription:clinical_review", // Pharmacist / Admin clinical safety gate
+  CONSULTATION_BOOK: "consultation:book",
+  CONSULTATION_PROVIDE: "consultation:provide",
+  
+  // Inventory, Dispensing & Packing
+  INVENTORY_VIEW: "inventory:view",
+  INVENTORY_ADJUST: "inventory:adjust",
+  MEDICINE_MANAGE: "medicine:manage",
+  ORDER_PACK: "order:pack",
+  
+  // Doorstep Delivery & Logistics
+  ORDER_DISPATCH: "order:dispatch",
+  ORDER_DELIVER: "order:deliver",
+  
+  // Administration & Governance
+  USER_VIEW: "user:view",
+  USER_MANAGE: "user:manage",
+  REPORTS_VIEW: "reports:view",
+  SYSTEM_SETTINGS: "system:settings",
+  DEVELOPER_SIMULATE: "developer:simulate"
+};
+
+// 3. Complete Role Permission Mapping
+export const ROLE_PERMISSIONS = {
+  developer: Object.values(PERMISSIONS), // Root: full access to all features
+  admin: [
+    PERMISSIONS.CATALOG_BROWSE,
+    PERMISSIONS.CART_CHECKOUT,
+    PERMISSIONS.ORDER_VIEW_OWN,
+    PERMISSIONS.PRESCRIPTION_VIEW_ALL,
+    PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW,
+    PERMISSIONS.INVENTORY_VIEW,
+    PERMISSIONS.INVENTORY_ADJUST,
+    PERMISSIONS.MEDICINE_MANAGE,
+    PERMISSIONS.ORDER_PACK,
+    PERMISSIONS.ORDER_DISPATCH,
+    PERMISSIONS.ORDER_DELIVER,
+    PERMISSIONS.USER_VIEW,
+    PERMISSIONS.USER_MANAGE,
+    PERMISSIONS.REPORTS_VIEW,
+    PERMISSIONS.SYSTEM_SETTINGS
+  ],
+  pharmacist: [
+    PERMISSIONS.CATALOG_BROWSE,
+    PERMISSIONS.PRESCRIPTION_VIEW_ALL,
+    PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW,
+    PERMISSIONS.CONSULTATION_PROVIDE,
+    PERMISSIONS.INVENTORY_VIEW,
+    PERMISSIONS.INVENTORY_ADJUST,
+    PERMISSIONS.MEDICINE_MANAGE,
+    PERMISSIONS.ORDER_PACK
+  ],
+  assistant_pharmacist: [
+    PERMISSIONS.CATALOG_BROWSE,
+    PERMISSIONS.INVENTORY_VIEW,
+    PERMISSIONS.INVENTORY_ADJUST,
+    PERMISSIONS.ORDER_PACK
+  ],
+  delivery_person: [
+    PERMISSIONS.CATALOG_BROWSE,
+    PERMISSIONS.ORDER_DISPATCH,
+    PERMISSIONS.ORDER_DELIVER
+  ],
+  customer: [
+    PERMISSIONS.CATALOG_BROWSE,
+    PERMISSIONS.CART_CHECKOUT,
+    PERMISSIONS.ORDER_VIEW_OWN,
+    PERMISSIONS.ORDER_CANCEL_OWN,
+    PERMISSIONS.PRESCRIPTION_UPLOAD,
+    PERMISSIONS.PRESCRIPTION_VIEW_OWN,
+    PERMISSIONS.CONSULTATION_BOOK
+  ],
+  visitor: [
+    PERMISSIONS.CATALOG_BROWSE
+  ]
+};
+
+// 4. Role Hierarchy Helpers
+export function isAtLeastRole(requiredRole, currentRole = getEffectiveRole()) {
+  const currentLevel = ROLE_HIERARCHY[normalizeRole(currentRole)] ?? 0;
+  const requiredLevel = ROLE_HIERARCHY[normalizeRole(requiredRole)] ?? 0;
+  return currentLevel >= requiredLevel;
+}
+
+export function canManageRole(actorRole, targetRole) {
+  const actorLevel = ROLE_HIERARCHY[normalizeRole(actorRole)] ?? 0;
+  const targetLevel = ROLE_HIERARCHY[normalizeRole(targetRole)] ?? 0;
+  // A role can only edit/assign roles strictly lower than its own clearance
+  return actorLevel > targetLevel;
+}
+
+export function hasPermission(permission, role = getEffectiveRole()) {
+  const norm = normalizeRole(role) || "visitor";
+  const perms = ROLE_PERMISSIONS[norm] || [];
+  return perms.includes(permission);
+}
+
+// 5. Pharmacy Workflow State Transition Logic (State Machine)
+export const ALLOWED_ORDER_TRANSITIONS = {
+  "Pending": {
+    allowedNext: ["Awaiting Prescription Review", "Processing", "Cancelled"],
+    allowedRoles: {
+      "Awaiting Prescription Review": ["developer", "admin", "pharmacist", "customer"],
+      "Processing": ["developer", "admin", "pharmacist", "assistant_pharmacist"],
+      "Cancelled": ["developer", "admin", "pharmacist", "customer"]
+    }
+  },
+  "Awaiting Prescription Review": {
+    allowedNext: ["Confirmed", "Cancelled"],
+    allowedRoles: {
+      "Confirmed": ["developer", "admin", "pharmacist"], // Clinical safety gate!
+      "Cancelled": ["developer", "admin", "pharmacist"]
+    }
+  },
+  "Confirmed": {
+    allowedNext: ["Processing", "Cancelled"],
+    allowedRoles: {
+      "Processing": ["developer", "admin", "pharmacist", "assistant_pharmacist"],
+      "Cancelled": ["developer", "admin", "pharmacist"]
+    }
+  },
+  "Processing": {
+    allowedNext: ["Ready for Pickup", "Out for Delivery", "Cancelled"],
+    allowedRoles: {
+      "Ready for Pickup": ["developer", "admin", "pharmacist", "assistant_pharmacist"],
+      "Out for Delivery": ["developer", "admin", "pharmacist", "delivery_person"],
+      "Cancelled": ["developer", "admin"]
+    }
+  },
+  "Ready for Pickup": {
+    allowedNext: ["Delivered", "Cancelled"],
+    allowedRoles: {
+      "Delivered": ["developer", "admin", "pharmacist", "assistant_pharmacist"],
+      "Cancelled": ["developer", "admin"]
+    }
+  },
+  "Out for Delivery": {
+    allowedNext: ["Delivered", "Cancelled"],
+    allowedRoles: {
+      "Delivered": ["developer", "admin", "delivery_person"], // Doorstep fulfillment gate!
+      "Cancelled": ["developer", "admin"]
+    }
+  },
+  "Delivered": {
+    allowedNext: [],
+    allowedRoles: {}
+  },
+  "Cancelled": {
+    allowedNext: [],
+    allowedRoles: {}
+  }
+};
+
+export function canTransitionOrderStatus(currentStatus, targetStatus, role = getEffectiveRole()) {
+  const normRole = normalizeRole(role);
+  const transition = ALLOWED_ORDER_TRANSITIONS[currentStatus];
+  if (!transition) return { allowed: false, reason: `Unknown order status: ${currentStatus}` };
+
+  if (!transition.allowedNext.includes(targetStatus)) {
+    return {
+      allowed: false,
+      reason: `Cannot transition order directly from "${currentStatus}" to "${targetStatus}".`
+    };
+  }
+
+  const allowedRoles = transition.allowedRoles[targetStatus] || [];
+  if (!allowedRoles.includes(normRole)) {
+    return {
+      allowed: false,
+      reason: `Action Denied: Only ${allowedRoles.map(formatRoleName).join(" or ")} can change order status to "${targetStatus}".`
+    };
+  }
+
+  return { allowed: true };
+}
+
+// 6. Contextual Resource Authorization (Data Isolation Logic)
+export function canAccessResource(user, resourceType, resource, action = "read") {
+  if (!user) return action === "read" && resourceType === "product";
+  const role = normalizeRole(user.role);
+
+  // Developers & Admins have full oversight
+  if (role === "developer" || role === "admin") return true;
+
+  if (resourceType === "order") {
+    if (role === "customer") {
+      return resource.customerId === user.uid || (user.email && resource.customerEmail === user.email);
+    }
+    if (role === "delivery_person") {
+      return resource.deliveryStaffId === user.uid || resource.assignedStaff === user.displayName || resource.assignedStaff === user.name || resource.orderStatus === "Out for Delivery" || resource.orderStatus === "Ready for Pickup";
+    }
+    if (role === "pharmacist" || role === "assistant_pharmacist") return true;
+  }
+
+  if (resourceType === "prescription") {
+    if (role === "customer") {
+      return resource.customerId === user.uid || (user.email && resource.customerEmail === user.email);
+    }
+    if (role === "pharmacist") return true;
+    if (role === "assistant_pharmacist") {
+      // Assistants only view packed items, not confidential clinical reviews
+      return action === "read";
+    }
+    return false;
+  }
+
+  if (resourceType === "user") {
+    return canManageRole(role, resource.role);
+  }
+
+  return false;
+}
+
 const INITIAL_USERS = [
   { id: "usr-dev-001", name: "Lead Systems Developer", email: "dev@bloomcare.com", phone: "0751000999", role: "developer", status: "active", createdAt: "2026-01-01" },
   { id: "usr-1", name: "Dr. Admin Mugisha", email: "admin@bloomcare.com", phone: "0700000001", role: "admin", status: "active", createdAt: "2026-01-01" },
@@ -1346,6 +1582,10 @@ function updateUserPill() {
   const sidebarRoleTag = $("#sidebar-role-tag");
   const sidebarAuthBtnText = $("#sidebar-auth-btn-text");
 
+  const profileBtn = $("#sidebar-profile-btn");
+  const settingsBtn = $("#sidebar-settings-btn");
+  const cartBtn = $("#open-cart-btn");
+
   if (STATE.currentUser) {
     const effectiveRole = getEffectiveRole();
     const isDevPreview = STATE.currentUser.role === "developer" && Boolean(STATE.developerPreviewRole);
@@ -1369,6 +1609,17 @@ function updateUserPill() {
     if (sidebarRoleTag) sidebarRoleTag.textContent = displayRole;
     if (sidebarAuthBtnText) sidebarAuthBtnText.textContent = "Sign Out";
     roleBox?.classList.remove("hidden");
+
+    // Role-specific bottom panel controls
+    if (profileBtn) profileBtn.style.display = "flex";
+    if (settingsBtn) {
+      // Settings: Admin & Developer (system params) or Customer (notification preferences)
+      settingsBtn.style.display = (effectiveRole === "admin" || effectiveRole === "developer" || effectiveRole === "customer") ? "flex" : "none";
+    }
+    // Shopping cart: Only relevant for Customer purchasing medicines (hide for clinical / driver / admin staff)
+    if (cartBtn) {
+      cartBtn.style.display = (effectiveRole === "customer") ? "inline-flex" : "none";
+    }
   } else {
     if (topUserName) topUserName.textContent = "Guest Visitor";
     if (topUserRole) topUserRole.textContent = "Log In";
@@ -1381,6 +1632,11 @@ function updateUserPill() {
     if (sidebarRoleTag) sidebarRoleTag.textContent = "VISITOR";
     if (sidebarAuthBtnText) sidebarAuthBtnText.textContent = "Log In";
     roleBox?.classList.add("hidden");
+
+    // Visitor: HIDE Profile and Settings; Cart is accessible for shopping
+    if (profileBtn) profileBtn.style.display = "none";
+    if (settingsBtn) settingsBtn.style.display = "none";
+    if (cartBtn) cartBtn.style.display = "inline-flex";
   }
 }
 
@@ -1511,11 +1767,11 @@ export const ROLE_HOME_ROUTES = {
 
 export const ROLE_SIDEBAR_CONFIGS = {
   visitor: [
-    { route: "auth", icon: ICONS.profile, label: "Create Account / Login" },
     { route: "medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "categories", icon: ICONS.categories, label: "Categories" },
     { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "contact", icon: ICONS.contact, label: "Contact Us" },
+    { route: "auth", icon: ICONS.profile, label: "Create Account / Login" }
   ],
   developer: [
     { route: "developer/dashboard", icon: ICONS.dashboard, label: "Developer Console" },
@@ -1545,7 +1801,8 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "pharmacist/orders", icon: ICONS.orders, label: "Orders" },
     { route: "pharmacist/medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "pharmacist/inventory", icon: ICONS.inventory, label: "Inventory" },
-    { route: "pharmacist/customers", icon: ICONS.customers, label: "Customers" }
+    { route: "about", icon: ICONS.about, label: "About Us" },
+    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
   ],
   assistant_pharmacist: [
     { route: "assistant_pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -1553,7 +1810,8 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "categories", icon: ICONS.categories, label: "Categories" },
     { route: "inventory", icon: ICONS.inventory, label: "Stock Inventory" },
-    { route: "customers", icon: ICONS.customers, label: "Customers" }
+    { route: "about", icon: ICONS.about, label: "About Us" },
+    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
   ],
   pharmacyAssistant: [
     { route: "assistant_pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -1561,7 +1819,8 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "categories", icon: ICONS.categories, label: "Categories" },
     { route: "inventory", icon: ICONS.inventory, label: "Stock Inventory" },
-    { route: "customers", icon: ICONS.customers, label: "Customers" }
+    { route: "about", icon: ICONS.about, label: "About Us" },
+    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
   ],
   delivery_person: [
     { route: "delivery_person/dashboard", icon: ICONS.dashboard, label: "Delivery Dashboard" },
@@ -1700,11 +1959,11 @@ export function checkRouteAccess(route, user, role = null) {
         reason: "Access Denied: Developer console is restricted."
       };
     }
-    if (clean.startsWith("admin/") || clean === "admin" || ["users", "reports", "payments"].includes(clean)) {
+    if (clean.startsWith("admin/") || clean === "admin" || ["users", "reports", "payments", "deliveries", "settings"].includes(clean)) {
       return {
         allowed: false,
         redirectRoute: "pharmacist/dashboard",
-        reason: "Access Denied: Pharmacists cannot access administrative management pages."
+        reason: "Access Denied: Pharmacists cannot access administrative or delivery dispatch management pages."
       };
     }
     if (clean === "customer/dashboard" || (clean.startsWith("customer/") && clean.endsWith("/dashboard"))) {
@@ -1729,12 +1988,8 @@ export function checkRouteAccess(route, user, role = null) {
       "pharmacist/medicines",
       "inventory",
       "pharmacist/inventory",
-      "customers",
-      "pharmacist/customers",
       "profile",
       "pharmacist/profile",
-      "settings",
-      "pharmacist/settings",
       "about",
       "contact"
     ];
@@ -1757,11 +2012,11 @@ export function checkRouteAccess(route, user, role = null) {
         reason: "Access Denied: Developer console is restricted."
       };
     }
-    if (clean.startsWith("admin/") || clean === "admin" || ["users", "reports", "payments", "settings"].includes(clean)) {
+    if (clean.startsWith("admin/") || clean === "admin" || ["users", "reports", "payments", "settings", "deliveries", "prescriptions", "consultations"].includes(clean)) {
       return {
         allowed: false,
         redirectRoute: "assistant_pharmacist/dashboard",
-        reason: "Access Denied: Assistant Pharmacists cannot access administrative pages."
+        reason: "Access Denied: Assistant Pharmacists cannot access clinical review, delivery fleet, or administrative pages."
       };
     }
     if (clean === "customer/dashboard" || clean.startsWith("customer/")) {
@@ -1778,7 +2033,6 @@ export function checkRouteAccess(route, user, role = null) {
       "medicines",
       "categories",
       "inventory",
-      "customers",
       "profile",
       "about",
       "contact"
@@ -1795,14 +2049,14 @@ export function checkRouteAccess(route, user, role = null) {
 
   // 5. DELIVERY PERSON ACCESS RULES
   if (effectiveRole === "delivery_person" || effectiveRole === "deliveryStaff") {
-    if (clean.startsWith("developer/") || clean === "developer" || clean.startsWith("admin/") || clean.startsWith("pharmacist/")) {
+    if (clean.startsWith("developer/") || clean === "developer" || clean.startsWith("admin/") || clean.startsWith("pharmacist/") || ["medicines", "inventory", "prescriptions", "consultations", "refills", "users", "reports", "payments", "settings"].includes(clean)) {
       return {
         allowed: false,
         redirectRoute: "delivery_person/dashboard",
-        reason: "Access Denied: Restricted to delivery runs."
+        reason: "Access Denied: Delivery personnel are restricted to assigned delivery runs."
       };
     }
-    if (["dashboard", "delivery_person/dashboard", "deliveries", "profile", "settings", "about", "contact"].includes(clean)) {
+    if (["dashboard", "delivery_person/dashboard", "deliveries", "profile", "about", "contact"].includes(clean)) {
       return { allowed: true };
     }
     return {
@@ -1881,12 +2135,13 @@ export function handleRoute() {
   }
 
   // Level 2 Security Check: Verify Role-Based Route Access
-  const access = checkRouteAccess(route, STATE.currentUser, STATE.activeRole);
+  const effRole = getEffectiveRole();
+  const access = checkRouteAccess(route, STATE.currentUser, effRole);
   if (!access.allowed) {
     if (access.reason) {
       openNotice("Access Denied", access.reason);
     }
-    const redirectTarget = access.redirectRoute || ROLE_HOME_ROUTES[STATE.activeRole] || "auth";
+    const redirectTarget = access.redirectRoute || ROLE_HOME_ROUTES[effRole] || "auth";
     if (window.location.hash !== `#${redirectTarget}`) {
       window.location.hash = redirectTarget;
     }
@@ -1911,13 +2166,13 @@ export function handleRoute() {
 
   // Set Browser Title
   const pageTitles = {
-    dashboard: STATE.activeRole === "pharmacist" ? "Pharmacist Dashboard" : STATE.activeRole === "admin" ? "Admin Dashboard" : "Customer Dashboard",
+    dashboard: effRole === "pharmacist" ? "Pharmacist Dashboard" : effRole === "admin" ? "Admin Dashboard" : effRole === "assistant_pharmacist" ? "Assistant Dashboard" : effRole === "delivery_person" ? "Delivery Dashboard" : effRole === "developer" ? "Developer Console" : "Customer Dashboard",
     medicines: "Medicines",
     categories: "Categories",
     prescriptions: "Prescriptions",
     consultations: "Consultations",
     refills: "Refills",
-    orders: STATE.activeRole === "customer" ? "My Orders" : "Orders",
+    orders: effRole === "customer" ? "My Orders" : "Orders",
     inventory: "Inventory",
     customers: "Customers",
     users: "Users & Roles",
@@ -2109,6 +2364,78 @@ function renderRoleDashboard() {
               `).join("") || `<tr><td colspan="5" class="text-center muted">No audit logs recorded yet in this session.</td></tr>`}
             </tbody>
           </table>
+      <!-- ROLE PERMISSIONS & WORKFLOW LOGIC MATRIX -->
+      <div class="content-card" style="margin-top:20px;">
+        <div class="flex-between">
+          <div>
+            <h3>Role Authorization Hierarchy &amp; Permission Matrix</h3>
+            <p class="muted" style="font-size:12.5px;">Comprehensive capability mapping and security clearance levels across all 6 roles.</p>
+          </div>
+          <span class="status-pill status-confirmed">RBAC Engine Active</span>
+        </div>
+        <div class="table-responsive" style="margin-top:10px;">
+          <table class="standard-table">
+            <thead>
+              <tr>
+                <th>Role</th>
+                <th>Clearance Level</th>
+                <th>Clinical Verification</th>
+                <th>Fulfillment &amp; Packing</th>
+                <th>Doorstep Dispatch</th>
+                <th>User Management</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Developer</strong></td>
+                <td><span class="status-pill status-confirmed">Level 100 (Root)</span></td>
+                <td><span class="status-pill status-completed">Full Access</span></td>
+                <td><span class="status-pill status-completed">Full Access</span></td>
+                <td><span class="status-pill status-completed">Full Access</span></td>
+                <td><span class="status-pill status-completed">All Roles + Dev</span></td>
+              </tr>
+              <tr>
+                <td><strong>Administrator</strong></td>
+                <td><span class="status-pill status-confirmed">Level 80 (Executive)</span></td>
+                <td><span class="status-pill status-completed">Approved</span></td>
+                <td><span class="status-pill status-completed">Approved</span></td>
+                <td><span class="status-pill status-completed">Approved</span></td>
+                <td><span class="status-pill status-confirmed">Staff Roles &lt; 80</span></td>
+              </tr>
+              <tr>
+                <td><strong>Pharmacist</strong></td>
+                <td><span class="status-pill status-confirmed">Level 60 (Clinical)</span></td>
+                <td><span class="status-pill status-completed">Clinical Lead</span></td>
+                <td><span class="status-pill status-completed">Supervised</span></td>
+                <td><span class="status-pill status-cancelled">Blocked</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+              </tr>
+              <tr>
+                <td><strong>Assistant Pharmacist</strong></td>
+                <td><span class="status-pill status-pending">Level 40 (Operational)</span></td>
+                <td><span class="status-pill status-cancelled">Blocked (Clinical Gate)</span></td>
+                <td><span class="status-pill status-completed">Order Packing &amp; Stock</span></td>
+                <td><span class="status-pill status-cancelled">Blocked</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+              </tr>
+              <tr>
+                <td><strong>Delivery Person</strong></td>
+                <td><span class="status-pill status-pending">Level 20 (Logistics)</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+                <td><span class="status-pill status-completed">Dispatch &amp; Doorstep</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+              </tr>
+              <tr>
+                <td><strong>Customer</strong></td>
+                <td><span class="status-pill status-pending">Level 10 (Client)</span></td>
+                <td><span class="status-pill status-confirmed">Upload Rx Scan Only</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+                <td><span class="status-pill status-cancelled">No Access</span></td>
+                <td><span class="status-pill status-cancelled">Self Profile Only</span></td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     `;
@@ -2258,7 +2585,7 @@ function renderRoleDashboard() {
         <div class="kpi-card" data-route="orders"><div class="kpi-icon-wrap">${ICONS.orders}</div><div><strong class="kpi-value">${STATE.orders.filter(o => o.orderStatus === "Processing" || o.orderStatus === "Confirmed").length}</strong><span class="kpi-label">Orders to Prepare</span></div></div>
         <div class="kpi-card" data-route="inventory"><div class="kpi-icon-wrap">${ICONS.inventory}</div><div><strong class="kpi-value" style="color:var(--warning);">${lowStockCount}</strong><span class="kpi-label">Low Stock</span></div></div>
         <div class="kpi-card" data-route="medicines"><div class="kpi-icon-wrap">${ICONS.medicines}</div><div><strong class="kpi-value">${STATE.products.length}</strong><span class="kpi-label">Products</span></div></div>
-        <div class="kpi-card" data-route="customers"><div class="kpi-icon-wrap">${ICONS.customers}</div><div><strong class="kpi-value">${STATE.customers.length}</strong><span class="kpi-label">Customers</span></div></div>
+        <div class="kpi-card" data-route="orders"><div class="kpi-icon-wrap">${ICONS.check}</div><div><strong class="kpi-value">${STATE.orders.filter(o => o.orderStatus === "Ready for Pickup" || o.orderStatus === "Out for Delivery" || o.orderStatus === "Delivered").length}</strong><span class="kpi-label">Packed &amp; Dispatched</span></div></div>
       </div>
 
       <div class="content-card">
@@ -2534,7 +2861,8 @@ function renderRoleDashboard() {
 // MODULE 2: MEDICINE MARKETPLACE & AVAILABILITY
 // -------------------------------------------------------------
 function renderMedicinesView() {
-  const isStaff = STATE.activeRole === "admin" || STATE.activeRole === "pharmacist" || STATE.activeRole === "pharmacyAssistant";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
   $("#medicines-staff-actions")?.classList.toggle("hidden", !isStaff);
   $("#staff-medicines-table-card")?.classList.toggle("hidden", !isStaff);
   $("#customer-medicines-controls")?.classList.toggle("hidden", isStaff);
@@ -2761,7 +3089,8 @@ function openProductDetailsModal(productId) {
 // MODULE 3: CATEGORIES MODULE
 // -------------------------------------------------------------
 function renderCategoriesView() {
-  const isStaff = STATE.activeRole === "admin";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "admin" || effRole === "developer";
   $("#categories-staff-actions")?.classList.toggle("hidden", !isStaff);
   $("#admin-categories-table-card")?.classList.toggle("hidden", !isStaff);
 
@@ -2811,7 +3140,8 @@ function renderOrdersView() {
   const box = $("#orders-table-box");
   if (!box) return;
 
-  const isStaff = STATE.activeRole !== "customer" && STATE.activeRole !== "visitor";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole !== "customer" && effRole !== "visitor";
   const titleEl = $("#orders-page-title");
   const descEl = $("#orders-page-desc");
   if (titleEl) titleEl.textContent = isStaff ? "Orders" : "My Orders";
@@ -2918,7 +3248,7 @@ function openOrderTrackingModal(orderId) {
   if (!order) return;
 
   // Level 2 Security: Verify customer ownership
-  if (STATE.activeRole === "customer" && STATE.currentUser) {
+  if (getEffectiveRole() === "customer" && STATE.currentUser) {
     const isOwner = order.customerId === STATE.currentUser.uid || (STATE.currentUser.email && order.customerEmail === STATE.currentUser.email);
     if (!isOwner) {
       openNotice("Access Denied", "You do not have permission to track an order belonging to another customer.");
@@ -3003,11 +3333,20 @@ function renderPrescriptionsView() {
   const box = $("#rx-queue-table-box");
   if (!box) return;
 
-  const isStaff = STATE.activeRole === "pharmacist" || STATE.activeRole === "admin";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "pharmacist" || effRole === "admin" || effRole === "developer";
   const titleEl = $("#prescriptions-page-title");
   const descEl = $("#prescriptions-page-desc");
-  if (titleEl) titleEl.textContent = isStaff ? "Prescription Review" : "My Prescriptions";
+  if (titleEl) titleEl.textContent = isStaff ? "Prescription Review Queue" : "My Prescriptions";
   if (descEl) descEl.textContent = isStaff ? "Verify and approve customer prescriptions before medication dispensing." : "Upload and manage prescriptions for pharmacist review.";
+
+  // Hide customer upload card for staff/pharmacists and expand queue table
+  const uploadCard = $("#rx-upload-card");
+  const rxGrid = $("#prescriptions-grid");
+  const queueCard = $("#rx-queue-card");
+  if (uploadCard) uploadCard.style.display = isStaff ? "none" : "block";
+  if (rxGrid) rxGrid.style.gridTemplateColumns = isStaff ? "1fr" : "";
+  if (queueCard) queueCard.style.gridColumn = isStaff ? "1 / -1" : "";
 
   const nameInp = $("#rx-patient-name");
   const phoneInp = $("#rx-patient-phone");
@@ -3024,7 +3363,12 @@ function renderPrescriptionsView() {
   }
 
   if (list.length === 0) {
-    box.innerHTML = `
+    box.innerHTML = isStaff ? `
+      <div class="empty-state-box">
+        <p class="empty-title">No prescriptions awaiting review.</p>
+        <p class="empty-desc">All customer prescription submissions have been clinically verified or no submissions exist in the queue.</p>
+      </div>
+    ` : `
       <div class="empty-state-box">
         <p class="empty-title">No prescriptions uploaded yet.</p>
         <p class="empty-desc">Submit a doctor's prescription for clinical verification and dispensing by our licensed pharmacists.</p>
@@ -3297,7 +3641,25 @@ function renderConsultationsView() {
   const box = $("#consultations-table-box");
   if (!box) return;
 
-  const isStaff = STATE.activeRole === "pharmacist" || STATE.activeRole === "admin";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "pharmacist" || effRole === "admin" || effRole === "developer";
+
+  const titleEl = $("#view-consultations .page-title");
+  const descEl = $("#view-consultations .page-desc");
+  if (titleEl) titleEl.textContent = isStaff ? "Clinical Consultation Schedule" : "Pharmacist Consultations";
+  if (descEl) descEl.textContent = isStaff ? "Review patient consultation appointments and manage clinical counseling sessions." : "Book and manage 1-on-1 pharmacist consultations.";
+
+  // Hide customer booking card and doctor cards for staff
+  const pharmGrid = $("#available-pharmacists-grid");
+  const bookingCard = $("#consult-booking-card");
+  const consultGrid = $("#consultations-grid");
+  const tableCard = $("#consult-table-card");
+
+  if (pharmGrid) pharmGrid.style.display = isStaff ? "none" : "grid";
+  if (bookingCard) bookingCard.style.display = isStaff ? "none" : "block";
+  if (consultGrid) consultGrid.style.gridTemplateColumns = isStaff ? "1fr" : "";
+  if (tableCard) tableCard.style.gridColumn = isStaff ? "1 / -1" : "";
+
   let list = STATE.consultations;
   if (!isStaff) {
     if (!STATE.currentUser) {
@@ -3316,7 +3678,12 @@ function renderConsultationsView() {
   }
 
   if (list.length === 0) {
-    box.innerHTML = `
+    box.innerHTML = isStaff ? `
+      <div class="empty-state-box">
+        <p class="empty-title">No scheduled patient consultations.</p>
+        <p class="empty-desc">There are currently no active patient consultation appointments assigned to your clinical schedule.</p>
+      </div>
+    ` : `
       <div class="empty-state-box">
         <p class="empty-title">No upcoming consultations.</p>
         <p class="empty-desc">Book a 1-on-1 session with our licensed clinical pharmacists for personalized medication guidance.</p>
@@ -3420,11 +3787,21 @@ function renderRefillsView() {
   const box = $("#refills-table-box");
   if (!box) return;
 
-  const isStaff = STATE.activeRole === "pharmacist" || STATE.activeRole === "admin";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "pharmacist" || effRole === "admin" || effRole === "developer";
   const titleEl = $("#refills-page-title");
   const descEl = $("#refills-page-desc");
-  if (titleEl) titleEl.textContent = isStaff ? "Refill Requests" : "My Refills";
-  if (descEl) descEl.textContent = isStaff ? "Review and approve customer refill requests." : "Request refills for previously purchased medicines.";
+  if (titleEl) titleEl.textContent = isStaff ? "Prescription Refill Verification" : "My Refills";
+  if (descEl) descEl.textContent = isStaff ? "Review, verify safety, and approve customer medicine refill requests." : "Request refills for previously purchased medicines.";
+
+  // Hide customer refill request card for staff
+  const refillRequestCard = $("#refill-request-card");
+  const refillsGrid = $("#refills-grid");
+  const refillTableCard = $("#refill-table-card");
+
+  if (refillRequestCard) refillRequestCard.style.display = isStaff ? "none" : "block";
+  if (refillsGrid) refillsGrid.style.gridTemplateColumns = isStaff ? "1fr" : "";
+  if (refillTableCard) refillTableCard.style.gridColumn = isStaff ? "1 / -1" : "";
 
   let list = STATE.refills;
   if (!isStaff) {
@@ -3451,7 +3828,12 @@ function renderRefillsView() {
   }
 
   if (list.length === 0) {
-    box.innerHTML = `
+    box.innerHTML = isStaff ? `
+      <div class="empty-state-box">
+        <p class="empty-title">No pending refill requests.</p>
+        <p class="empty-desc">All customer refill requests have been processed or none have been submitted yet.</p>
+      </div>
+    ` : `
       <div class="empty-state-box">
         <p class="empty-title">No refill requests yet.</p>
         <p class="empty-desc">Request scheduled maintenance refills for previously prescribed medications.</p>
@@ -3670,7 +4052,8 @@ function renderDeliveriesView() {
   const box = $("#deliveries-table-box");
   if (!box) return;
 
-  const isDriver = STATE.activeRole === "deliveryStaff";
+  const effRole = getEffectiveRole();
+  const isDriver = effRole === "delivery_person";
   const titleEl = $("#deliveries-page-title");
   const descEl = $("#deliveries-page-desc");
   if (titleEl) titleEl.textContent = isDriver ? "Assigned Deliveries" : "Deliveries";
@@ -3977,7 +4360,8 @@ function renderNotificationsView() {
 // -------------------------------------------------------------
 function renderProfileView() {
   if (!STATE.currentUser) return;
-  const isStaff = STATE.activeRole !== "customer" && STATE.activeRole !== "visitor";
+  const effRole = getEffectiveRole();
+  const isStaff = effRole !== "customer" && effRole !== "visitor";
   const titleEl = $("#profile-page-title");
   const descEl = $("#profile-page-desc");
   if (titleEl) titleEl.textContent = isStaff ? "Profile & Security" : "My Profile";
@@ -3998,8 +4382,8 @@ function renderSettingsView() {
   const container = $("#settings-content-container");
   if (!container) return;
 
-  const role = STATE.activeRole;
-  if (role === "admin") {
+  const role = getEffectiveRole();
+  if (role === "admin" || role === "developer") {
     container.innerHTML = `
       <form id="admin-system-settings-form" class="standard-form">
         <h3>Pharmacy System Parameters</h3>
@@ -4439,7 +4823,7 @@ export function showReceiptModal(order) {
   if (!order) return;
 
   // Level 2 Security: Verify customer ownership
-  if (STATE.activeRole === "customer" && STATE.currentUser) {
+  if (getEffectiveRole() === "customer" && STATE.currentUser) {
     const isOwner = order.customerId === STATE.currentUser.uid || (STATE.currentUser.email && order.customerEmail === STATE.currentUser.email);
     if (!isOwner) {
       openNotice("Access Denied", "You do not have permission to view receipts belonging to another customer.");
@@ -4909,7 +5293,8 @@ function bindEventListeners() {
         updateCartItemQuantity(id, 1);
         return;
       } else if (action === "picked-up") {
-        if (STATE.activeRole !== "deliveryStaff" && STATE.activeRole !== "admin") {
+        const effRole = getEffectiveRole();
+        if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
           openNotice("Permission Denied", "Only delivery staff or administrators can update delivery status.");
           return;
         }
@@ -4922,7 +5307,8 @@ function bindEventListeners() {
         renderRoleDashboard();
         openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Picked Up.`);
       } else if (action === "mark-out") {
-        if (STATE.activeRole !== "deliveryStaff" && STATE.activeRole !== "admin") {
+        const effRole = getEffectiveRole();
+        if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
           openNotice("Permission Denied", "Only delivery staff or administrators can update delivery status.");
           return;
         }
@@ -4934,7 +5320,8 @@ function bindEventListeners() {
         renderDeliveriesView();
         openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Out for Delivery.`);
       } else if (action === "mark-delivered") {
-        if (STATE.activeRole !== "deliveryStaff" && STATE.activeRole !== "admin") {
+        const effRole = getEffectiveRole();
+        if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
           openNotice("Permission Denied", "Only delivery staff or administrators can update delivery status.");
           return;
         }
@@ -4947,7 +5334,8 @@ function bindEventListeners() {
         renderRoleDashboard();
         openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Delivered.`);
       } else if (action === "mark-failed") {
-        if (STATE.activeRole !== "deliveryStaff" && STATE.activeRole !== "admin") {
+        const effRole = getEffectiveRole();
+        if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
           openNotice("Permission Denied", "Only delivery staff or administrators can update delivery status.");
           return;
         }
@@ -5061,7 +5449,8 @@ function bindEventListeners() {
 
     const markConsultDone = e.target.closest(".mark-consult-done");
     if (markConsultDone) {
-      if (STATE.activeRole !== "pharmacist" && STATE.activeRole !== "admin") {
+      const effRole = getEffectiveRole();
+      if (effRole !== "pharmacist" && effRole !== "admin" && effRole !== "developer") {
         openNotice("Permission Denied", "Only licensed clinical pharmacists can conclude consultations.");
         return;
       }
@@ -5079,7 +5468,8 @@ function bindEventListeners() {
 
     const quickRefillApprove = e.target.closest(".quick-refill-approve");
     if (quickRefillApprove) {
-      if (STATE.activeRole !== "pharmacist" && STATE.activeRole !== "admin") {
+      const effRole = getEffectiveRole();
+      if (effRole !== "pharmacist" && effRole !== "admin" && effRole !== "developer") {
         openNotice("Permission Denied", "Refill review and approval is restricted to licensed clinical pharmacists.");
         return;
       }
@@ -5128,7 +5518,9 @@ function bindEventListeners() {
   $("#cancel-prod-form-btn")?.addEventListener("click", () => $("#product-form-dialog")?.close());
   $("#product-manage-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (STATE.activeRole !== "admin" && STATE.activeRole !== "pharmacist" && STATE.activeRole !== "pharmacyAssistant") {
+    const effRole = getEffectiveRole();
+    const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
+    if (!isStaff) {
       openNotice("Permission Denied", "Only authorized pharmacy staff can manage medicines catalog.");
       return;
     }
@@ -5170,7 +5562,9 @@ function bindEventListeners() {
   $("#cancel-stock-adjust-btn")?.addEventListener("click", () => $("#stock-adjust-dialog")?.close());
   $("#stock-adjust-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (STATE.activeRole !== "admin" && STATE.activeRole !== "pharmacyAssistant" && STATE.activeRole !== "pharmacist") {
+    const effRole = getEffectiveRole();
+    const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
+    if (!isStaff) {
       openNotice("Permission Denied", "Only pharmacy staff can adjust inventory stock.");
       return;
     }
@@ -5255,8 +5649,17 @@ function bindEventListeners() {
     const role = $("#usr-role").value;
     const status = $("#usr-status") ? $("#usr-status").value : "active";
 
-    const userData = { id, name, displayName: name, email, phone, role, status, createdAt: new Date().toISOString().slice(0, 10) };
     const existing = STATE.users.find(u => (u.id === id || u.uid === id));
+    if (existing && !canManageRole(effRole, existing.role)) {
+      openNotice("Clearance Denied", `You do not have clearance to modify an account with equal or higher authority (${formatRoleName(existing.role)}).`);
+      return;
+    }
+    if (!canManageRole(effRole, role)) {
+      openNotice("Clearance Denied", `Your clearance level (${formatRoleName(effRole)}) does not permit assigning the ${formatRoleName(role)} role.`);
+      return;
+    }
+
+    const userData = { id, name, displayName: name, email, phone, role, status, createdAt: new Date().toISOString().slice(0, 10) };
     if (existing) Object.assign(existing, userData);
     else STATE.users.push(userData);
 
@@ -5268,12 +5671,13 @@ function bindEventListeners() {
     openNotice("User Saved", `Staff user <strong>${escapeHtml(name)}</strong> saved as <strong>${formatRoleName(role)}</strong> (${status}).`);
   });
 
-  // Order Status Modal (Staff Only)
+  // Order Status Modal (Staff Only with Lifecycle Workflow Gates)
   $("#close-order-status-modal")?.addEventListener("click", () => $("#order-status-dialog")?.close());
   $("#cancel-order-status-btn")?.addEventListener("click", () => $("#order-status-dialog")?.close());
   $("#order-status-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (STATE.activeRole === "customer" || STATE.activeRole === "visitor") {
+    const effRole = getEffectiveRole();
+    if (effRole === "customer" || effRole === "visitor") {
       openNotice("Permission Denied", "Customers cannot modify order status.");
       return;
     }
@@ -5283,6 +5687,14 @@ function bindEventListeners() {
 
     const order = STATE.orders.find(o => o.id === orderId);
     if (order) {
+      const currentStatus = order.orderStatus || "Pending";
+      if (currentStatus !== status) {
+        const transitionCheck = canTransitionOrderStatus(currentStatus, status, getEffectiveRole());
+        if (!transitionCheck.allowed) {
+          openNotice("Workflow Rule Violation", transitionCheck.reason);
+          return;
+        }
+      }
       order.orderStatus = status;
       order.assignedStaff = driver;
       try { updateOrderStatus(orderId, status, driver); } catch (_) {}
@@ -5299,7 +5711,8 @@ function bindEventListeners() {
   $("#cancel-rx-review-btn")?.addEventListener("click", () => $("#rx-review-dialog")?.close());
   $("#rx-review-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
-    if (STATE.activeRole !== "pharmacist" && STATE.activeRole !== "admin") {
+    const effRole = getEffectiveRole();
+    if (effRole !== "pharmacist" && effRole !== "admin" && effRole !== "developer") {
       openNotice("Permission Denied", "Prescription review and approval is restricted to licensed clinical pharmacists and administrators.");
       return;
     }
@@ -5968,7 +6381,9 @@ function bindEventListeners() {
 }
 
 function openStockAdjustModal(prodId = null) {
-  if (STATE.activeRole !== "admin" && STATE.activeRole !== "pharmacyAssistant" && STATE.activeRole !== "pharmacist") {
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
+  if (!isStaff) {
     openNotice("Permission Denied", "Only pharmacy staff can adjust inventory stock.");
     return;
   }
@@ -5982,7 +6397,8 @@ function openStockAdjustModal(prodId = null) {
 }
 
 function openOrderStatusModal(orderId) {
-  if (STATE.activeRole === "customer" || STATE.activeRole === "visitor") {
+  const effRole = getEffectiveRole();
+  if (effRole === "customer" || effRole === "visitor") {
     openNotice("Permission Denied", "Customers cannot manage order fulfillment statuses.");
     return;
   }
@@ -6001,6 +6417,10 @@ function openUserFormModal(userId = null) {
     return;
   }
   const user = userId ? STATE.users.find(u => (u.id === userId || u.uid === userId)) : null;
+  if (user && !canManageRole(effRole, user.role)) {
+    openNotice("Clearance Denied", `You do not have clearance to edit an account with equal or higher authority (${formatRoleName(user.role)}). Only Developers can edit Developer accounts.`);
+    return;
+  }
   $("#usr-id").value = user ? (user.id || user.uid) : "";
   $("#user-modal-title").textContent = user ? "Edit Staff Account" : "Add Staff Account";
   $("#usr-name").value = user ? (user.name || user.displayName || "") : "";

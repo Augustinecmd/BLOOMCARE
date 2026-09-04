@@ -85,33 +85,13 @@
 
     <!-- Dynamic Role-Based Navigation Menu List (Vertical Column on Left) -->
     <nav class="sidebar-nav-menu" id="sidebar-nav-menu">
-      <button class="nav-item active-nav" type="button" data-route="dashboard">
-        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1"/><rect x="14" y="3" width="7" height="5" rx="1"/><rect x="14" y="12" width="7" height="9" rx="1"/><rect x="3" y="16" width="7" height="5" rx="1"/></svg></span>
-        <span class="nav-text">Dashboard</span>
-      </button>
-      <button class="nav-item" type="button" data-route="medicines">
+      <button class="nav-item active-nav" type="button" data-route="medicines">
         <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg></span>
         <span class="nav-text">Medicines</span>
       </button>
       <button class="nav-item" type="button" data-route="categories">
         <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"/></svg></span>
         <span class="nav-text">Categories</span>
-      </button>
-      <button class="nav-item" type="button" data-route="prescriptions">
-        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M9 12h6"/><path d="M12 9v6"/></svg></span>
-        <span class="nav-text">Prescriptions</span>
-      </button>
-      <button class="nav-item" type="button" data-route="consultations">
-        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg></span>
-        <span class="nav-text">Consultations</span>
-      </button>
-      <button class="nav-item" type="button" data-route="refills">
-        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M8 16H3v5"/></svg></span>
-        <span class="nav-text">Refills</span>
-      </button>
-      <button class="nav-item" type="button" data-route="orders">
-        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg></span>
-        <span class="nav-text">Orders</span>
       </button>
       <button class="nav-item" type="button" data-route="about">
         <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg></span>
@@ -121,15 +101,19 @@
         <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></span>
         <span class="nav-text">Contact Us</span>
       </button>
+      <button class="nav-item" type="button" data-route="auth">
+        <span class="nav-svg-icon"><svg class="svg-icon" viewBox="0 0 24 24"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+        <span class="nav-text">Create Account / Login</span>
+      </button>
     </nav>
 
     <!-- Bottom Actions in Left Sidebar -->
     <div class="sidebar-bottom-panel">
-      <button class="sidebar-bottom-btn" id="sidebar-profile-btn" type="button" data-route="profile">
+      <button class="sidebar-bottom-btn" id="sidebar-profile-btn" type="button" data-route="profile" style="display:none;">
         <span class="nav-svg-icon" id="sidebar-profile-icon"></span>
         <span>My Profile</span>
       </button>
-      <button class="sidebar-bottom-btn" id="sidebar-settings-btn" type="button" data-route="settings">
+      <button class="sidebar-bottom-btn" id="sidebar-settings-btn" type="button" data-route="settings" style="display:none;">
         <span class="nav-svg-icon" id="sidebar-settings-icon"></span>
         <span>Settings</span>
       </button>
@@ -332,9 +316,9 @@
           <p class="page-desc" id="prescriptions-page-desc">Upload and manage prescriptions for pharmacist review.</p>
         </div>
 
-        <div class="content-dual-grid">
+        <div class="content-dual-grid" id="prescriptions-grid">
           <!-- Upload Form (Customer) -->
-          <div class="content-card">
+          <div class="content-card" id="rx-upload-card">
             <h3>Upload Doctor's Prescription</h3>
             <p class="muted">Attach a clear image or PDF scan of your doctor's prescription for pharmacist review.</p>
             <form id="rx-upload-form" class="standard-form">
@@ -371,7 +355,7 @@
           </div>
 
           <!-- Prescriptions Verification Queue -->
-          <div class="content-card">
+          <div class="content-card" id="rx-queue-card">
             <h3>Prescription Verification Queue</h3>
             <div class="table-responsive" id="rx-queue-table-box"></div>
           </div>
@@ -398,7 +382,7 @@
             <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Dr. Amina Nanyonga">Select Pharmacist</button>
           </div>
           <div class="pharmacist-profile-card">
-            <div class="pharm-avatar-badge" id="pharm-badge-2"></div>
+            <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa" class="pharm-photo-avatar" />
             <h4>Pharm. David Mukasa</h4>
             <p class="pharm-role">Senior Dispensing Pharmacist</p>
             <p class="pharm-spec">Specialty: Chronic Illness &amp; Hypertension Care</p>
@@ -406,7 +390,7 @@
             <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Pharm. David Mukasa">Select Pharmacist</button>
           </div>
           <div class="pharmacist-profile-card">
-            <div class="pharm-avatar-badge" id="pharm-badge-3"></div>
+            <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke" class="pharm-photo-avatar" />
             <h4>Pharm. Sarah Namusoke</h4>
             <p class="pharm-role">Clinical Counseling Specialist</p>
             <p class="pharm-spec">Specialty: Diabetes Management &amp; Dietary Supplements</p>
@@ -415,9 +399,9 @@
           </div>
         </div>
 
-        <div class="content-dual-grid" style="margin-top: 20px;">
+        <div class="content-dual-grid" id="consultations-grid" style="margin-top: 20px;">
           <!-- Booking Form -->
-          <div class="content-card">
+          <div class="content-card" id="consult-booking-card">
             <h3>Book Consultation Session</h3>
             <form id="consult-booking-form" class="standard-form">
               <div class="form-row-2">
@@ -447,7 +431,7 @@
           </div>
 
           <!-- Appointments List -->
-          <div class="content-card">
+          <div class="content-card" id="consult-table-card">
             <h3>Consultation Appointments &amp; Notes</h3>
             <div class="table-responsive" id="consultations-table-box"></div>
           </div>
@@ -463,9 +447,9 @@
           <p class="page-desc" id="refills-page-desc">Request refills for previously purchased medicines.</p>
         </div>
 
-        <div class="content-dual-grid">
+        <div class="content-dual-grid" id="refills-grid">
           <!-- Refill Form -->
-          <div class="content-card">
+          <div class="content-card" id="refill-request-card">
             <h3>Request Medicine Refill</h3>
             <form id="refill-request-form" class="standard-form">
               <div class="form-row-2">
@@ -487,7 +471,7 @@
           </div>
 
           <!-- Refill History -->
-          <div class="content-card">
+          <div class="content-card" id="refill-table-card">
             <h3>Refill Tracking &amp; Pharmacist Review</h3>
             <div class="table-responsive" id="refills-table-box"></div>
           </div>
@@ -711,31 +695,166 @@
       <!-- MODULE 20: ABOUT MODULE (#about) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-about">
-        <div class="page-header-block">
-          <h1 class="page-title">About BloomCare Pharmacy</h1>
-          <p class="page-desc">Digital pharmacy platform connecting customers with licensed pharmacy services.</p>
+        <div class="page-header-block flex-between">
+          <div>
+            <h1 class="page-title">About BloomCare Pharmacy</h1>
+            <p class="page-desc">Uganda's trusted digital healthcare &amp; licensed dispensary platform.</p>
+          </div>
+          <span class="status-pill status-confirmed">Licensed by NDA #NDA/UG/PHARM/2026/894</span>
         </div>
 
-        <div class="content-card">
-          <h3>About BloomCare Pharmacy</h3>
-          <p>BloomCare Pharmacy is a digital pharmacy platform in Uganda connecting customers with authentic medications, licensed pharmacist consultations, prescription verification, and scheduled refills.</p>
+        <!-- 1. HERO FACILITY BANNER -->
+        <div class="about-hero-card">
+          <div class="about-hero-img-wrap">
+            <img src="pharmacy-hero.jpg" alt="BloomCare Modern Pharmacy & Dispensary" class="about-hero-img" />
+            <div class="about-hero-badge-overlay">
+              <span class="about-badge-pill">National Drug Authority Certified Dispensary</span>
+            </div>
+          </div>
+          <div class="about-hero-content">
+            <h2 class="about-hero-title">Dedicated to Safe, Genuine &amp; Affordable Medicine for Uganda</h2>
+            <p class="about-hero-desc">
+              BloomCare Pharmacy combines clinical expertise with modern digital healthcare delivery. From our central dispensing facility in Kampala to nationwide regional distribution, we ensure every patient receives authentic, quality-assured medicines verified by licensed clinical pharmacists.
+            </p>
+            <div class="about-stats-row">
+              <div class="about-stat-item">
+                <strong>100%</strong>
+                <span>NDA-Verified Genuine</span>
+              </div>
+              <div class="about-stat-item">
+                <strong>15+ Mins</strong>
+                <span>Prescription Clinical Review</span>
+              </div>
+              <div class="about-stat-item">
+                <strong>Same-Day</strong>
+                <span>Doorstep Delivery in Kampala</span>
+              </div>
+              <div class="about-stat-item">
+                <strong>3+ Hubs</strong>
+                <span>Kampala, Mbarara &amp; Entebbe</span>
+              </div>
+            </div>
+          </div>
+        </div>
 
-          <h3 style="margin-top: 18px;">Mission</h3>
-          <p>Provide accessible, convenient, and affordable pharmacy services to patients across Uganda.</p>
+        <!-- 2. MISSION & DISPENSARY SHOWCASE -->
+        <div class="content-dual-grid" style="margin-top: 24px; align-items: stretch;">
+          <div class="content-card" style="display: flex; flex-direction: column; justify-content: center;">
+            <div class="about-section-tag">OUR MISSION &amp; STANDARDS</div>
+            <h3 style="font-size: 20px; margin-top: 6px;">Authentic Medications Backed by Clinical Supervision</h3>
+            <p style="margin-top: 10px; line-height: 1.6; color: var(--text-dark);">
+              Counterfeit and substandard drugs pose severe risks to patient health. At BloomCare, our supply chain is strictly sealed from certified pharmaceutical manufacturers and authorized Ugandan distributors directly to our climate-controlled dispensary.
+            </p>
+            <ul class="about-bullets" style="margin-left: 20px; margin-top: 12px; line-height: 1.7;">
+              <li><strong>Cold-Chain Storage:</strong> Dedicated refrigerators for insulin, vaccines, and biologics maintained strictly between 2°C – 8°C.</li>
+              <li><strong>Prescription-Only Safety Gate:</strong> POM medications cannot be dispatched without a valid doctor's prescription verified by our pharmacists.</li>
+              <li><strong>Direct Patient Counseling:</strong> Free dosage guidance, contraindication checks, and medication therapy reviews.</li>
+              <li><strong>Scheduled Chronic Refills:</strong> Seamless scheduled deliveries for hypertension, diabetes, and asthma maintenance therapies.</li>
+            </ul>
+          </div>
+          <div class="content-card" style="padding: 12px; display: flex; flex-direction: column;">
+            <div class="about-dispensary-img-wrap">
+              <img src="pharmacy-medicines.jpg" alt="BloomCare Central Dispensary Inventory" class="about-dispensary-img" />
+            </div>
+            <div style="padding: 12px 6px 4px;">
+              <strong style="font-size: 14px; color: var(--text-dark); display: block;">BloomCare Central Dispensary &amp; Storage Facility</strong>
+              <p class="muted" style="font-size: 12px; margin: 4px 0 0;">Plot 14, Kampala Road • Temperature-controlled, barcode-verified medicine stock.</p>
+            </div>
+          </div>
+        </div>
 
-          <h3 style="margin-top: 18px;">Services</h3>
-          <ul class="about-bullets" style="margin-left: 20px; margin-top: 6px;">
-            <li><strong>Medicine Ordering:</strong> Genuine NDA-verified over-the-counter and prescription medications.</li>
-            <li><strong>Prescription Support:</strong> Safety review and clinical verification by licensed pharmacists.</li>
-            <li><strong>Pharmacist Consultation:</strong> 1-on-1 personalized medication therapy guidance.</li>
-            <li><strong>Medicine Refills:</strong> Scheduled repeat deliveries for chronic and maintenance therapies.</li>
-            <li><strong>Delivery / Pickup:</strong> Fast doorstep dispatch in Kampala and regional pickup points in Mbarara &amp; Uganda.</li>
-          </ul>
+        <!-- 3. CLINICAL PHARMACISTS TEAM -->
+        <div class="section-block" style="margin-top: 28px;">
+          <div class="section-header-row">
+            <div>
+              <h3 class="section-title">Meet Our Licensed Clinical Pharmacists</h3>
+              <p class="section-subtitle">Our registered clinical team inspects your prescriptions, counsels on drug therapy, and ensures optimal health outcomes.</p>
+            </div>
+          </div>
 
-          <h3 style="margin-top: 18px;">Location</h3>
-          <p><strong>Dispensary:</strong> Plot 14, Kampala Road, Central Kampala, Uganda<br>
-          <strong>Regional Distribution:</strong> Mbarara / Uganda<br>
-          <strong>NDA License:</strong> #NDA/UG/PHARM/2026/894</p>
+          <div class="about-team-grid">
+            <!-- Pharmacist 1: Dr. Amina Nanyonga -->
+            <div class="about-team-card">
+              <div class="about-team-img-wrap">
+                <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga" class="about-team-img" />
+                <span class="about-team-badge">Lead Pharmacist</span>
+              </div>
+              <div class="about-team-body">
+                <h4 class="about-team-name">Dr. Amina Nanyonga</h4>
+                <div class="about-team-title">B.Pharm (Makerere University), MPSU</div>
+                <p class="about-team-spec"><strong>Specialty:</strong> Pediatric Therapy, General Medicine &amp; Antibiotic Stewardship</p>
+                <p class="about-team-bio">With over 8 years of clinical experience, Dr. Amina heads the prescription review board and coordinates chronic illness therapy programs.</p>
+                <div class="about-team-footer">
+                  <span class="about-pill">NDA Licensed</span>
+                  <button class="btn btn-outline btn-sm" type="button" data-route="consultations">Book Session</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pharmacist 2: Pharm. David Mukasa -->
+            <div class="about-team-card">
+              <div class="about-team-img-wrap">
+                <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa" class="about-team-img" />
+                <span class="about-team-badge">Senior Pharmacist</span>
+              </div>
+              <div class="about-team-body">
+                <h4 class="about-team-name">Pharm. David Mukasa</h4>
+                <div class="about-team-title">B.Pharm, Senior Clinical Specialist</div>
+                <p class="about-team-spec"><strong>Specialty:</strong> Cardiovascular Health, Hypertension &amp; Geriatric Care</p>
+                <p class="about-team-bio">Pharm. David brings over 10 years of hospital and community dispensing expertise, specializing in complex multi-drug regimens and blood pressure control.</p>
+                <div class="about-team-footer">
+                  <span class="about-pill">NDA Licensed</span>
+                  <button class="btn btn-outline btn-sm" type="button" data-route="consultations">Book Session</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Pharmacist 3: Pharm. Sarah Namusoke -->
+            <div class="about-team-card">
+              <div class="about-team-img-wrap">
+                <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke" class="about-team-img" />
+                <span class="about-team-badge">Counseling Specialist</span>
+              </div>
+              <div class="about-team-body">
+                <h4 class="about-team-name">Pharm. Sarah Namusoke</h4>
+                <div class="about-team-title">B.Pharm, Patient Wellness Lead</div>
+                <p class="about-team-spec"><strong>Specialty:</strong> Diabetes Management, Maternal Health &amp; Nutrition</p>
+                <p class="about-team-bio">Dedicated to preventative healthcare and patient education, Pharm. Sarah leads personalized counseling for metabolic disorders and nutritional supplements.</p>
+                <div class="about-team-footer">
+                  <span class="about-pill">NDA Licensed</span>
+                  <button class="btn btn-outline btn-sm" type="button" data-route="consultations">Book Session</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. PHYSICAL LOCATIONS & NDA CREDENTIALS -->
+        <div class="content-card" style="margin-top: 24px;">
+          <h3 style="font-size: 18px;">Physical Locations &amp; Regional Distribution Hubs</h3>
+          <div class="kpi-grid-3" style="margin-top: 14px;">
+            <div class="about-loc-box">
+              <div class="about-loc-icon">🏥</div>
+              <div>
+                <strong>Central Dispensary &amp; Walk-in</strong>
+                <p class="muted" style="margin: 3px 0 0; font-size: 13px;">Plot 14, Kampala Road, Central Kampala, Uganda<br>Open: Mon – Sat (8:00 AM – 9:00 PM)</p>
+              </div>
+            </div>
+            <div class="about-loc-box">
+              <div class="about-loc-icon">📦</div>
+              <div>
+                <strong>Western Uganda Distribution Hub</strong>
+                <p class="muted" style="margin: 3px 0 0; font-size: 13px;">High Street Plaza, Mbarara City, Uganda<br>Fulfillment &amp; Express Doorstep Runs</p>
+              </div>
+            </div>
+            <div class="about-loc-box">
+              <div class="about-loc-icon">📞</div>
+              <div>
+                <strong>Direct Pharmacy Desk</strong>
+                <p class="muted" style="margin: 3px 0 0; font-size: 13px;">Tel: +256 700 000 002 / WhatsApp Support<br>Emergency Rx Hotline: 24/7 Available</p>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
 

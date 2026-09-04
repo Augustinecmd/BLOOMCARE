@@ -8,6 +8,14 @@ import {
   normalizeRole,
   formatRoleName,
   getEffectiveRole,
+  ROLE_HIERARCHY,
+  PERMISSIONS,
+  ROLE_PERMISSIONS,
+  isAtLeastRole,
+  canManageRole,
+  hasPermission,
+  canTransitionOrderStatus,
+  canAccessResource,
   STATE
 } from '../BLOOMCARE-main/app.js';
 
@@ -359,4 +367,123 @@ test('DATA ISOLATION: Customer A cannot view Customer B\'s order or receipt', ()
   assert.equal(canCustomerAccessOrder(orderA, customerUser, 'customer'), true);
   assert.equal(canCustomerAccessOrder(orderB, customerUser, 'customer'), false);
 });
+
+// -------------------------------------------------------------
+// 7. ROLE HIERARCHY & CLEARANCE ESCALATION TESTS
+// -------------------------------------------------------------
+test('ROLE HIERARCHY: Security clearance hierarchy enforces correct authority order', () => {
+  assert.equal(ROLE_HIERARCHY.developer, 100);
+  assert.equal(ROLE_HIERARCHY.admin, 80);
+  assert.equal(ROLE_HIERARCHY.pharmacist, 60);
+  assert.equal(ROLE_HIERARCHY.assistant_pharmacist, 40);
+  assert.equal(ROLE_HIERARCHY.delivery_person, 20);
+  assert.equal(ROLE_HIERARCHY.customer, 10);
+  assert.equal(ROLE_HIERARCHY.visitor, 0);
+
+  // Clearance checks
+  assert.equal(isAtLeastRole('admin', 'developer'), true); // Developer >= Admin
+  assert.equal(isAtLeastRole('pharmacist', 'admin'), true); // Admin >= Pharmacist
+  assert.equal(isAtLeastRole('admin', 'pharmacist'), false); // Pharmacist is NOT >= Admin
+  assert.equal(isAtLeastRole('pharmacist', 'customer'), false); // Customer is NOT >= Pharmacist
+});
+
+test('ROLE MANAGEMENT CLEARANCE: Admins cannot edit/assign Developer accounts', () => {
+  // Developer can manage all roles
+  assert.equal(canManageRole('developer', 'admin'), true);
+  assert.equal(canManageRole('developer', 'pharmacist'), true);
+
+  // Admin can manage staff below level 80, but NOT developer (100) or other Admins (80)
+  assert.equal(canManageRole('admin', 'developer'), false);
+  assert.equal(canManageRole('admin', 'admin'), false);
+  assert.equal(canManageRole('admin', 'pharmacist'), true);
+  assert.equal(canManageRole('admin', 'delivery_person'), true);
+
+  // Pharmacist cannot manage staff
+  assert.equal(canManageRole('pharmacist', 'assistant_pharmacist'), true); // Hierarchy check
+  assert.equal(canManageRole('pharmacist', 'admin'), false);
+});
+
+// -------------------------------------------------------------
+// 8. GRANULAR PERMISSION CAPABILITIES TESTS
+// -------------------------------------------------------------
+test('GRANULAR PERMISSIONS: Clinical approval is strictly restricted to Pharmacist and Admin/Dev', () => {
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'pharmacist'), true);
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'admin'), true);
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'developer'), true);
+
+  // Assistant Pharmacist, Delivery, Customer and Visitor MUST NOT have clinical review permission
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'assistant_pharmacist'), false);
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'delivery_person'), false);
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'customer'), false);
+  assert.equal(hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW, 'visitor'), false);
+});
+
+test('GRANULAR PERMISSIONS: Doorstep dispatch is restricted to Delivery Person and Admin/Dev', () => {
+  assert.equal(hasPermission(PERMISSIONS.ORDER_DISPATCH, 'delivery_person'), true);
+  assert.equal(hasPermission(PERMISSIONS.ORDER_DELIVER, 'delivery_person'), true);
+  assert.equal(hasPermission(PERMISSIONS.ORDER_DISPATCH, 'admin'), true);
+
+  // Customer & Pharmacist cannot perform delivery driver dispatches
+  assert.equal(hasPermission(PERMISSIONS.ORDER_DISPATCH, 'customer'), false);
+  assert.equal(hasPermission(PERMISSIONS.ORDER_DISPATCH, 'pharmacist'), false);
+});
+
+// -------------------------------------------------------------
+// 9. PHARMACY WORKFLOW STATE MACHINE TESTS
+// -------------------------------------------------------------
+test('ORDER WORKFLOW: Clinical safety gate restricts moving Rx orders to Confirmed', () => {
+  // Moving from Awaiting Prescription Review -> Confirmed requires Pharmacist or Admin
+  const pharmTransition = canTransitionOrderStatus('Awaiting Prescription Review', 'Confirmed', 'pharmacist');
+  assert.equal(pharmTransition.allowed, true);
+
+  const adminTransition = canTransitionOrderStatus('Awaiting Prescription Review', 'Confirmed', 'admin');
+  assert.equal(adminTransition.allowed, true);
+
+  // Assistant Pharmacist CANNOT approve a prescription order
+  const asstTransition = canTransitionOrderStatus('Awaiting Prescription Review', 'Confirmed', 'assistant_pharmacist');
+  assert.equal(asstTransition.allowed, false);
+  assert.match(asstTransition.reason, /Action Denied/i);
+
+  // Delivery Person CANNOT approve a prescription order
+  const deliveryTransition = canTransitionOrderStatus('Awaiting Prescription Review', 'Confirmed', 'delivery_person');
+  assert.equal(deliveryTransition.allowed, false);
+
+  // Customer CANNOT approve their own prescription order
+  const custTransition = canTransitionOrderStatus('Awaiting Prescription Review', 'Confirmed', 'customer');
+  assert.equal(custTransition.allowed, false);
+});
+
+test('ORDER WORKFLOW: Doorstep delivery completion is gated to Delivery Staff and Admin', () => {
+  // Delivery Person can mark Out for Delivery -> Delivered
+  const deliveryFulfill = canTransitionOrderStatus('Out for Delivery', 'Delivered', 'delivery_person');
+  assert.equal(deliveryFulfill.allowed, true);
+
+  // Pharmacist or Customer cannot mark Out for Delivery -> Delivered
+  const pharmFulfill = canTransitionOrderStatus('Out for Delivery', 'Delivered', 'pharmacist');
+  assert.equal(pharmFulfill.allowed, false);
+});
+
+// -------------------------------------------------------------
+// 10. CONTEXTUAL RESOURCE AUTHORIZATION TESTS
+// -------------------------------------------------------------
+test('CONTEXTUAL ACCESS: Data isolation allows delivery driver to view assigned runs only', () => {
+  const assignedOrder = {
+    id: 'BC-ORD-901',
+    deliveryStaffId: deliveryPersonUser.uid,
+    assignedStaff: deliveryPersonUser.displayName,
+    orderStatus: 'Out for Delivery'
+  };
+
+  const unassignedOrder = {
+    id: 'BC-ORD-902',
+    deliveryStaffId: 'usr-staff-99',
+    assignedStaff: 'Other Driver',
+    orderStatus: 'Processing'
+  };
+
+  assert.equal(canAccessResource(deliveryPersonUser, 'order', assignedOrder, 'view'), true);
+  assert.equal(canAccessResource(deliveryPersonUser, 'order', unassignedOrder, 'view'), false);
+  assert.equal(canAccessResource(adminUser, 'order', unassignedOrder, 'view'), true); // Admin has oversight
+});
+
 
