@@ -56,6 +56,8 @@ import {
   validateName
 } from "../validators.js";
 
+export { isPaidOrder, getPaidOrdersForPeriod };
+
 // DOM Utility
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => Array.from(document.querySelectorAll(selector));
@@ -3098,6 +3100,9 @@ function renderRoleDashboard() {
         </div>
       </div>
 
+      <!-- Sales Overview Analytics Section (Admin Exclusive) -->
+      <div class="admin-section-block" id="admin-sales-overview-section"></div>
+
       <!-- Quick Actions Section (Max 4 Actions) -->
       <div class="admin-section-block">
         <div class="admin-section-head">
@@ -3170,6 +3175,7 @@ function renderRoleDashboard() {
     `;
 
     $("#dash-btn-add-prod")?.addEventListener("click", () => openProductFormModal());
+    renderSalesOverviewSection($("#admin-sales-overview-section"), STATE.salesOverviewPeriod || "today");
 
   } else if (role === "pharmacist") {
     // 2. PHARMACIST DASHBOARD
@@ -6261,7 +6267,560 @@ function renderPaymentsView() {
 }
 
 // -------------------------------------------------------------
-// MODULE 15: SALES TRACKING & FINANCIAL AUDIT MODULE (Admin)
+// MODULE 15: SALES OVERVIEW ANALYTICS & INTERACTIVE LINE CHART (Admin Exclusive)
+// -------------------------------------------------------------
+
+export function calculateSalesOverviewData(period = "today", ordersList = STATE.orders, referenceDate = new Date()) {
+  const now = new Date(referenceDate);
+  const paidOrders = (ordersList || []).filter(isPaidOrder);
+
+  period = String(period || "today").toLowerCase();
+  let totalSales = 0;
+  let totalOrders = 0;
+  let prevTotalSales = 0;
+  const breakdown = [];
+
+  if (period === "today") {
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    const startOfPrev = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+    const endOfPrev = startOfToday;
+
+    const hourlyBuckets = Array.from({ length: 24 }, (_, h) => {
+      let label;
+      if (h === 0) label = "12 AM";
+      else if (h < 12) label = `${h} AM`;
+      else if (h === 12) label = "12 PM";
+      else label = `${h - 12} PM`;
+      return { label, hour: h, sales: 0, orders: 0 };
+    });
+
+    paidOrders.forEach(o => {
+      const dt = new Date(o.createdAt || o.updatedAt || Date.now());
+      if (isNaN(dt.getTime())) return;
+      if (dt >= startOfToday && dt < endOfToday) {
+        const h = dt.getHours();
+        const amt = Number(o.total) || 0;
+        hourlyBuckets[h].sales += amt;
+        hourlyBuckets[h].orders += 1;
+        totalSales += amt;
+        totalOrders += 1;
+      } else if (dt >= startOfPrev && dt < endOfPrev) {
+        prevTotalSales += Number(o.total) || 0;
+      }
+    });
+
+    hourlyBuckets.forEach(b => breakdown.push(b));
+
+  } else if (period === "week") {
+    const dayOfWeek = now.getDay();
+    const distToMon = (dayOfWeek + 6) % 7;
+    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distToMon, 0, 0, 0, 0);
+    const endOfWeek = new Date(startOfWeek.getTime() + 7 * 86400000);
+    const startOfPrev = new Date(startOfWeek.getTime() - 7 * 86400000);
+    const endOfPrev = startOfWeek;
+
+    const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const dailyBuckets = dayNames.map((name, idx) => ({
+      label: name,
+      day: idx,
+      sales: 0,
+      orders: 0
+    }));
+
+    paidOrders.forEach(o => {
+      const dt = new Date(o.createdAt || o.updatedAt || Date.now());
+      if (isNaN(dt.getTime())) return;
+      if (dt >= startOfWeek && dt < endOfWeek) {
+        const dIdx = (dt.getDay() + 6) % 7;
+        const amt = Number(o.total) || 0;
+        dailyBuckets[dIdx].sales += amt;
+        dailyBuckets[dIdx].orders += 1;
+        totalSales += amt;
+        totalOrders += 1;
+      } else if (dt >= startOfPrev && dt < endOfPrev) {
+        prevTotalSales += Number(o.total) || 0;
+      }
+    });
+
+    dailyBuckets.forEach(b => breakdown.push(b));
+
+  } else if (period === "month") {
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    const numDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+    const monthShort = now.toLocaleDateString("en-US", { month: "short" });
+
+    const dailyBuckets = Array.from({ length: numDays }, (_, i) => ({
+      label: `${i + 1} ${monthShort}`,
+      day: i + 1,
+      sales: 0,
+      orders: 0
+    }));
+
+    paidOrders.forEach(o => {
+      const dt = new Date(o.createdAt || o.updatedAt || Date.now());
+      if (isNaN(dt.getTime())) return;
+      if (dt >= startOfMonth && dt < nextMonth) {
+        const d = dt.getDate();
+        const amt = Number(o.total) || 0;
+        dailyBuckets[d - 1].sales += amt;
+        dailyBuckets[d - 1].orders += 1;
+        totalSales += amt;
+        totalOrders += 1;
+      } else if (dt >= prevMonth && dt < startOfMonth) {
+        prevTotalSales += Number(o.total) || 0;
+      }
+    });
+
+    dailyBuckets.forEach(b => breakdown.push(b));
+
+  } else { // "year"
+    const startOfYear = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+    const nextYear = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
+    const prevYear = new Date(now.getFullYear() - 1, 0, 1, 0, 0, 0, 0);
+
+    const monthNames = [
+      "January", "February", "March", "April", "May", "June",
+      "July", "August", "September", "October", "November", "December"
+    ];
+    const monthBuckets = monthNames.map((name, idx) => ({
+      label: name,
+      month: idx + 1,
+      sales: 0,
+      orders: 0
+    }));
+
+    paidOrders.forEach(o => {
+      const dt = new Date(o.createdAt || o.updatedAt || Date.now());
+      if (isNaN(dt.getTime())) return;
+      if (dt >= startOfYear && dt < nextYear) {
+        const m = dt.getMonth();
+        const amt = Number(o.total) || 0;
+        monthBuckets[m].sales += amt;
+        monthBuckets[m].orders += 1;
+        totalSales += amt;
+        totalOrders += 1;
+      } else if (dt >= prevYear && dt < startOfYear) {
+        prevTotalSales += Number(o.total) || 0;
+      }
+    });
+
+    monthBuckets.forEach(b => breakdown.push(b));
+  }
+
+  const avgOrderValue = totalOrders > 0 ? Math.round(totalSales / totalOrders) : 0;
+
+  let comparison = null;
+  let comparisonTrend = "neutral";
+  if (prevTotalSales > 0) {
+    const diffPct = Math.round(((totalSales - prevTotalSales) / prevTotalSales) * 100);
+    comparison = `${diffPct >= 0 ? "+" : ""}${diffPct}% compared with previous period`;
+    comparisonTrend = diffPct >= 0 ? "positive" : "negative";
+  }
+
+  return {
+    period,
+    totalSales,
+    totalOrders,
+    avgOrderValue,
+    comparison,
+    comparisonTrend,
+    breakdown
+  };
+}
+
+export function formatUGXShort(amount) {
+  const num = Number(amount || 0);
+  if (num >= 1000000) {
+    const formatted = (num / 1000000).toFixed(num % 1000000 === 0 ? 0 : 1);
+    return `UGX ${formatted}M`;
+  }
+  if (num >= 1000) {
+    return `UGX ${Math.round(num / 1000)}k`;
+  }
+  return `UGX ${num}`;
+}
+
+export function renderSalesLineChartSvg(analyticsData) {
+  if (!analyticsData || (analyticsData.totalSales === 0 && analyticsData.totalOrders === 0)) {
+    return `
+      <div class="sales-chart-empty-state">
+        <div class="empty-state-icon">
+          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8">
+            <line x1="12" y1="20" x2="12" y2="10"/>
+            <line x1="18" y1="20" x2="18" y2="4"/>
+            <line x1="6" y1="20" x2="6" y2="16"/>
+          </svg>
+        </div>
+        <p class="empty-state-title">No sales recorded for this period.</p>
+        <p class="empty-state-desc">Customer purchases with confirmed payment will automatically plot your sales trajectory here.</p>
+      </div>
+    `;
+  }
+
+  const pointsData = analyticsData.breakdown || [];
+  const N = pointsData.length;
+  if (N === 0) {
+    return `
+      <div class="sales-chart-empty-state">
+        <p class="empty-state-title">No sales recorded for this period.</p>
+      </div>
+    `;
+  }
+
+  const W = 900;
+  const H = 320;
+  const padLeft = 90;
+  const padRight = 35;
+  const padTop = 30;
+  const padBottom = 45;
+  const chartW = W - padLeft - padRight;
+  const chartH = H - padTop - padBottom;
+
+  const rawMax = Math.max(...pointsData.map(p => p.sales), 0);
+  const maxVal = Math.max(Math.ceil((rawMax * 1.15) / 10000) * 10000, 10000);
+
+  const coords = pointsData.map((pt, i) => {
+    const x = padLeft + (N > 1 ? (i / (N - 1)) * chartW : chartW / 2);
+    const y = padTop + chartH - (pt.sales / maxVal) * chartH;
+    return { ...pt, x, y };
+  });
+
+  let lineD = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
+  if (N > 1) {
+    for (let i = 0; i < N - 1; i++) {
+      const p0 = coords[i === 0 ? i : i - 1];
+      const p1 = coords[i];
+      const p2 = coords[i + 1];
+      const p3 = coords[i + 2 < N ? i + 2 : i + 1];
+
+      const cp1x = p1.x + (p2.x - p0.x) / 6;
+      const cp1y = p1.y + (p2.y - p0.y) / 6;
+      const cp2x = p2.x - (p3.x - p1.x) / 6;
+      const cp2y = p2.y - (p3.y - p1.y) / 6;
+
+      lineD += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+    }
+  }
+
+  const areaD = `${lineD} L ${coords[N - 1].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} L ${coords[0].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} Z`;
+
+  const yTicks = [
+    { val: 0, y: padTop + chartH },
+    { val: Math.round(maxVal * 0.33), y: padTop + chartH * 0.67 },
+    { val: Math.round(maxVal * 0.67), y: padTop + chartH * 0.33 },
+    { val: maxVal, y: padTop }
+  ];
+
+  const xLabelsHtml = coords.map((pt, i) => {
+    let show = false;
+    if (analyticsData.period === "today") {
+      show = (i % 3 === 0) || i === 23;
+    } else if (analyticsData.period === "week") {
+      show = true;
+    } else if (analyticsData.period === "month") {
+      const day = pt.day || (i + 1);
+      show = (day === 1 || day % 5 === 0 || day === N);
+    } else {
+      show = true;
+    }
+    if (!show) return "";
+    const shortLabel = analyticsData.period === "week" ? pt.label.slice(0, 3) : analyticsData.period === "year" ? pt.label.slice(0, 3) : pt.label;
+    return `<text x="${pt.x.toFixed(1)}" y="${(padTop + chartH + 24).toFixed(1)}" text-anchor="middle" class="sales-axis-text">${escapeHtml(shortLabel)}</text>`;
+  }).join("");
+
+  return `
+    <div class="sales-chart-interactive-box" style="position:relative; width:100%;">
+      <svg class="sales-line-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Sales Trend Line Chart">
+        <defs>
+          <linearGradient id="salesGradientArea" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#00875A" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#00875A" stop-opacity="0.0"/>
+          </linearGradient>
+        </defs>
+
+        <!-- Horizontal Gridlines & Y-Axis Labels -->
+        ${yTicks.map(t => `
+          <g class="chart-gridline-group">
+            <line x1="${padLeft}" y1="${t.y.toFixed(1)}" x2="${(padLeft + chartW).toFixed(1)}" y2="${t.y.toFixed(1)}" class="sales-grid-line" />
+            <text x="${(padLeft - 12).toFixed(1)}" y="${(t.y + 4).toFixed(1)}" text-anchor="end" class="sales-axis-text">${formatUGXShort(t.val)}</text>
+          </g>
+        `).join("")}
+
+        <!-- Baseline Axis Line -->
+        <line x1="${padLeft}" y1="${(padTop + chartH).toFixed(1)}" x2="${(padLeft + chartW).toFixed(1)}" y2="${(padTop + chartH).toFixed(1)}" class="sales-axis-line" />
+
+        <!-- Area Under Curve Fill -->
+        <path d="${areaD}" fill="url(#salesGradientArea)" class="sales-chart-area" />
+
+        <!-- Line Stroke -->
+        <path d="${lineD}" fill="none" class="sales-chart-stroke" />
+
+        <!-- X-Axis Labels -->
+        ${xLabelsHtml}
+
+        <!-- Interactive Data Circles -->
+        ${coords.map(pt => `
+          <circle class="sales-chart-point"
+                  cx="${pt.x.toFixed(1)}"
+                  cy="${pt.y.toFixed(1)}"
+                  r="${pt.sales > 0 ? 5 : 3.5}"
+                  data-label="${escapeHtml(pt.label)}"
+                  data-sales="${pt.sales}"
+                  data-orders="${pt.orders}"
+                  tabindex="0"
+                  aria-label="${escapeHtml(pt.label)}: ${formatUGX(pt.sales)}, ${pt.orders} orders" />
+        `).join("")}
+      </svg>
+
+      <!-- Tooltip Element -->
+      <div class="sales-chart-tooltip hidden" id="sales-chart-tooltip" role="tooltip" aria-hidden="true">
+        <div class="tooltip-time" id="tooltip-time"></div>
+        <div class="tooltip-sales">Sales: <strong id="tooltip-sales"></strong></div>
+        <div class="tooltip-orders">Orders: <strong id="tooltip-orders"></strong></div>
+      </div>
+    </div>
+  `;
+}
+
+export function attachSalesChartInteractions(wrapper) {
+  if (!wrapper) return;
+  const tooltip = wrapper.querySelector("#sales-chart-tooltip");
+  const timeEl = wrapper.querySelector("#tooltip-time");
+  const salesEl = wrapper.querySelector("#tooltip-sales");
+  const ordersEl = wrapper.querySelector("#tooltip-orders");
+  const points = wrapper.querySelectorAll(".sales-chart-point");
+  const svg = wrapper.querySelector(".sales-line-chart-svg");
+
+  if (!tooltip || !timeEl || !salesEl || !ordersEl || !svg) return;
+
+  function showTooltip(label, sales, orders, clientX, clientY) {
+    timeEl.textContent = label;
+    salesEl.textContent = formatUGX(sales);
+    ordersEl.textContent = `${orders} ${Number(orders) === 1 ? "order" : "orders"}`;
+    tooltip.classList.remove("hidden");
+    tooltip.setAttribute("aria-hidden", "false");
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    const tooltipRect = tooltip.getBoundingClientRect();
+
+    let left = clientX - wrapperRect.left - tooltipRect.width / 2;
+    let top = clientY - wrapperRect.top - tooltipRect.height - 12;
+
+    if (left < 10) left = 10;
+    if (left + tooltipRect.width > wrapperRect.width - 10) {
+      left = wrapperRect.width - tooltipRect.width - 10;
+    }
+    if (top < 10) {
+      top = clientY - wrapperRect.top + 16;
+    }
+
+    tooltip.style.left = `${left}px`;
+    tooltip.style.top = `${top}px`;
+  }
+
+  function hideTooltip() {
+    tooltip.classList.add("hidden");
+    tooltip.setAttribute("aria-hidden", "true");
+  }
+
+  points.forEach(pt => {
+    const handleMove = (e) => {
+      const label = pt.dataset.label;
+      const sales = Number(pt.dataset.sales) || 0;
+      const orders = Number(pt.dataset.orders) || 0;
+      showTooltip(label, sales, orders, e.clientX, e.clientY);
+    };
+
+    pt.addEventListener("mouseenter", handleMove);
+    pt.addEventListener("mousemove", handleMove);
+    pt.addEventListener("mouseleave", hideTooltip);
+
+    pt.addEventListener("focus", () => {
+      const rect = pt.getBoundingClientRect();
+      const label = pt.dataset.label;
+      const sales = Number(pt.dataset.sales) || 0;
+      const orders = Number(pt.dataset.orders) || 0;
+      showTooltip(label, sales, orders, rect.left + rect.width / 2, rect.top);
+    });
+    pt.addEventListener("blur", hideTooltip);
+  });
+
+  wrapper.addEventListener("mouseleave", hideTooltip);
+}
+
+export function renderSalesOverviewSectionContent(period = "today") {
+  const container = $("#admin-sales-overview-section");
+  if (!container) return;
+
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    container.innerHTML = "";
+    container.classList.add("hidden");
+    return;
+  }
+  container.classList.remove("hidden");
+
+  STATE.salesOverviewPeriod = period;
+  const analytics = calculateSalesOverviewData(period, STATE.orders);
+
+  const totalEl = $("#sales-kpi-total");
+  const ordersEl = $("#sales-kpi-orders");
+  const avgEl = $("#sales-kpi-avg");
+  const compEl = $("#sales-kpi-comp");
+  const chartWrap = $("#sales-chart-wrapper");
+
+  if (totalEl) totalEl.textContent = formatUGX(analytics.totalSales);
+  if (ordersEl) ordersEl.textContent = `${analytics.totalOrders} ${analytics.totalOrders === 1 ? "Order" : "Orders"}`;
+  if (avgEl) avgEl.textContent = `${formatUGX(analytics.avgOrderValue)} Average Order`;
+
+  if (compEl) {
+    if (analytics.comparison) {
+      compEl.className = `sales-kpi-comp ${analytics.comparisonTrend === "positive" ? "trend-up" : "trend-down"}`;
+      compEl.textContent = analytics.comparison;
+      compEl.style.display = "inline-block";
+    } else {
+      compEl.style.display = "none";
+    }
+  }
+
+  if (chartWrap) {
+    chartWrap.innerHTML = renderSalesLineChartSvg(analytics);
+    attachSalesChartInteractions(chartWrap);
+  }
+}
+
+export function exportSalesReport(period = "today", analyticsData = null) {
+  const data = analyticsData || calculateSalesOverviewData(period, STATE.orders);
+  const periodLabel = {
+    today: "Today (Hourly Breakdown)",
+    week: "This Week (Daily Breakdown)",
+    month: "This Month (Daily Breakdown)",
+    year: "This Year (Monthly Breakdown)"
+  }[period] || String(period).toUpperCase();
+
+  const lines = [
+    ["BloomCare Pharmacy - Sales Performance Report"],
+    ["Selected Period", `"${periodLabel}"`],
+    ["Generated At", `"${new Date().toLocaleString()}"`],
+    ["Currency", "UGX (Ugandan Shillings)"],
+    ["Total Sales", `"${formatUGX(data.totalSales)}"`],
+    ["Number of Orders", `"${data.totalOrders} Orders"`],
+    ["Average Order Value", `"${formatUGX(data.avgOrderValue)}"`],
+    ["Period Comparison", `"${data.comparison || 'Baseline / Insufficient prior period data'}"`],
+    [],
+    ["Time / Date Breakdown", "Confirmed Orders", "Revenue (UGX)"]
+  ];
+
+  (data.breakdown || []).forEach(b => {
+    lines.push([`"${b.label}"`, b.orders, b.sales]);
+  });
+
+  const csvContent = lines.map(r => r.join(",")).join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `BloomCare_Sales_Report_${period}_${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+export function renderSalesOverviewSection(container, period = "today") {
+  if (!container) return;
+
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    container.innerHTML = "";
+    container.classList.add("hidden");
+    return;
+  }
+  container.classList.remove("hidden");
+
+  STATE.salesOverviewPeriod = period;
+
+  container.innerHTML = `
+    <div class="admin-sales-overview-header flex-between">
+      <div>
+        <h2 class="admin-section-title">Sales Overview</h2>
+        <p class="admin-section-caption">Track BloomCare sales performance over time.</p>
+      </div>
+      <div class="sales-period-control-wrap">
+        <label for="sales-period-select" class="sr-only">Sales Period Filter</label>
+        <select id="sales-period-select" class="form-select sales-period-select" aria-label="Select sales period">
+          <option value="today" ${period === "today" ? "selected" : ""}>Today</option>
+          <option value="week" ${period === "week" ? "selected" : ""}>This Week</option>
+          <option value="month" ${period === "month" ? "selected" : ""}>This Month</option>
+          <option value="year" ${period === "year" ? "selected" : ""}>This Year</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 3 Summary Values Above Chart -->
+    <div class="sales-summary-kpi-grid">
+      <div class="sales-kpi-card">
+        <div class="sales-kpi-card-header">
+          <span class="sales-kpi-label">Total Sales</span>
+          <span class="sales-kpi-icon-pill">UGX</span>
+        </div>
+        <strong class="sales-kpi-val" id="sales-kpi-total">UGX 0</strong>
+        <div class="sales-kpi-comp-wrap">
+          <span class="sales-kpi-comp" id="sales-kpi-comp" style="display:none;"></span>
+        </div>
+      </div>
+
+      <div class="sales-kpi-card">
+        <div class="sales-kpi-card-header">
+          <span class="sales-kpi-label">Number of Orders</span>
+          <span class="sales-kpi-icon-pill">#</span>
+        </div>
+        <strong class="sales-kpi-val" id="sales-kpi-orders">0 Orders</strong>
+        <p class="sales-kpi-sub muted">Confirmed paid transactions</p>
+      </div>
+
+      <div class="sales-kpi-card">
+        <div class="sales-kpi-card-header">
+          <span class="sales-kpi-label">Average Order Value</span>
+          <span class="sales-kpi-icon-pill">AOV</span>
+        </div>
+        <strong class="sales-kpi-val" id="sales-kpi-avg">UGX 0</strong>
+        <p class="sales-kpi-sub muted">Average revenue per paid order</p>
+      </div>
+    </div>
+
+    <!-- Chart Container -->
+    <div class="sales-chart-wrapper" id="sales-chart-wrapper"></div>
+
+    <!-- Footer Action: Export Report -->
+    <div class="sales-overview-footer flex-between">
+      <span class="sales-data-note muted">Revenue calculated strictly from confirmed customer payments.</span>
+      <button class="btn btn-outline btn-sm" id="btn-export-sales-report" type="button">
+        <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Report
+      </button>
+    </div>
+  `;
+
+  renderSalesOverviewSectionContent(period);
+
+  $("#sales-period-select")?.addEventListener("change", (e) => {
+    const selected = e.target.value;
+    renderSalesOverviewSectionContent(selected);
+  });
+
+  $("#btn-export-sales-report")?.addEventListener("click", () => {
+    const activePeriod = $("#sales-period-select")?.value || STATE.salesOverviewPeriod || "today";
+    const data = calculateSalesOverviewData(activePeriod, STATE.orders);
+    exportSalesReport(activePeriod, data);
+  });
+}
+
+// -------------------------------------------------------------
+// MODULE 15B: FINANCIAL AUDIT & DETAILED REPORTS (Admin)
 // -------------------------------------------------------------
 function calculateSalesAnalytics(period = "month") {
   const now = new Date();
