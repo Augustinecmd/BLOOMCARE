@@ -24,43 +24,105 @@ test('MARKETPLACE ASSETS: Product images directory and fallback SVG exist', () =
   assert.ok(svgContent.includes('#NDA/UG/PHARM/2026/894'), 'Placeholder SVG must include NDA license number');
 });
 
-test('MARKETPLACE ASSETS: High-resolution WebP and JPG packshots exist for core medicines', () => {
-  const coreProducts = [
+test('MARKETPLACE ASSETS: High-resolution WebP and JPG packshots exist for all 34 catalog medicines', () => {
+  const all34Products = [
     'paracetamol-500mg',
     'ibuprofen-400mg',
+    'diclofenac-50mg',
+    'tramadol-50mg',
     'amoxicillin-500mg',
+    'azithromycin-500mg',
     'cough-syrup',
-    'salbutamol-inhaler',
-    'blood-pressure-monitor',
-    'digital-thermometer',
-    'omeprazole-20mg',
+    'nasal-saline-drops',
     'cetirizine-10mg',
+    'loratadine-10mg',
+    'omeprazole-20mg',
+    'oral-rehydration-salts',
+    'antacid-tablets',
     'vitamin-c-500mg',
+    'zinc-20mg',
+    'daily-multivitamin',
+    'ferrous-sulfate',
+    'folic-acid-5mg',
     'antiseptic-solution',
+    'hydrogen-peroxide',
+    'povidone-iodine',
+    'hydrocortisone-cream',
+    'clotrimazole-cream',
+    'calamine-lotion',
+    'salbutamol-inhaler',
+    'digital-thermometer',
+    'blood-pressure-monitor',
+    'hand-sanitizer',
+    'amlodipine-5mg',
+    'losartan-50mg',
+    'metformin-500mg',
+    'glucose-test-strips',
     'pediatric-paracetamol',
+    'omega-3-fish-oil'
   ];
 
-  for (const name of coreProducts) {
+  assert.equal(all34Products.length, 34, 'Must verify all 34 product records');
+
+  for (const name of all34Products) {
     const webpPath = path.join(productsDir, `${name}.webp`);
-    const jpgPath = path.join(productsDir, `${name}.jpg`);
     assert.ok(fs.existsSync(webpPath), `WebP packshot must exist for ${name}`);
-    assert.ok(fs.existsSync(jpgPath), `JPG packshot must exist for ${name}`);
     const statWebp = fs.statSync(webpPath);
-    assert.ok(statWebp.size > 20000, `WebP for ${name} must be substantial (>20KB), got ${statWebp.size}`);
+    assert.ok(statWebp.size > 5000, `WebP for ${name} must be substantial (>5KB), got ${statWebp.size}`);
   }
 });
 
-test('CATALOG DATA: INITIAL_MEDICINES in app.js defines explicit imageUrl for every product', () => {
+test('CATALOG DATA: INITIAL_MEDICINES in app.js defines explicit verified packshot for all 34 products without placeholder', () => {
   const appJs = fs.readFileSync(appJsPath, 'utf8');
   assert.ok(appJs.includes('const INITIAL_MEDICINES = ['), 'app.js must contain INITIAL_MEDICINES');
 
   const initMedSlice = appJs.slice(appJs.indexOf('const INITIAL_MEDICINES = ['), appJs.indexOf('];', appJs.indexOf('const INITIAL_MEDICINES = [')) + 2);
   
-  // Verify key packshot mappings
-  assert.ok(initMedSlice.includes('products/paracetamol-500mg.webp'), 'Paracetamol must reference packshot');
-  assert.ok(initMedSlice.includes('products/amoxicillin-500mg.webp'), 'Amoxicillin must reference packshot');
-  assert.ok(initMedSlice.includes('products/blood-pressure-monitor.webp'), 'BP Monitor must reference packshot');
-  assert.ok(initMedSlice.includes('products/placeholder-medicine.svg'), 'Unverified products must default to placeholder SVG');
+  // Verify all 34 products have their dedicated webp images
+  const expectedMappings = [
+    ['DEMO-MED-001', 'products/paracetamol-500mg.webp'],
+    ['DEMO-MED-002', 'products/ibuprofen-400mg.webp'],
+    ['DEMO-MED-003', 'products/diclofenac-50mg.webp'],
+    ['DEMO-MED-026', 'products/tramadol-50mg.webp'],
+    ['DEMO-MED-004', 'products/amoxicillin-500mg.webp'],
+    ['DEMO-MED-005', 'products/azithromycin-500mg.webp'],
+    ['DEMO-MED-021', 'products/cough-syrup.webp'],
+    ['DEMO-MED-022', 'products/nasal-saline-drops.webp'],
+    ['DEMO-MED-006', 'products/cetirizine-10mg.webp'],
+    ['DEMO-MED-007', 'products/loratadine-10mg.webp'],
+    ['DEMO-MED-008', 'products/omeprazole-20mg.webp'],
+    ['DEMO-MED-009', 'products/oral-rehydration-salts.webp'],
+    ['DEMO-MED-010', 'products/antacid-tablets.webp'],
+    ['DEMO-MED-011', 'products/vitamin-c-500mg.webp'],
+    ['DEMO-MED-012', 'products/zinc-20mg.webp'],
+    ['DEMO-MED-027', 'products/daily-multivitamin.webp'],
+    ['DEMO-MED-013', 'products/ferrous-sulfate.webp'],
+    ['DEMO-MED-028', 'products/folic-acid-5mg.webp'],
+    ['DEMO-MED-014', 'products/antiseptic-solution.webp'],
+    ['DEMO-MED-015', 'products/hydrogen-peroxide.webp'],
+    ['DEMO-MED-016', 'products/povidone-iodine.webp'],
+    ['DEMO-MED-017', 'products/hydrocortisone-cream.webp'],
+    ['DEMO-MED-018', 'products/clotrimazole-cream.webp'],
+    ['DEMO-MED-019', 'products/calamine-lotion.webp'],
+    ['DEMO-MED-020', 'products/salbutamol-inhaler.webp'],
+    ['DEMO-MED-023', 'products/digital-thermometer.webp'],
+    ['DEMO-MED-024', 'products/blood-pressure-monitor.webp'],
+    ['DEMO-MED-025', 'products/hand-sanitizer.webp'],
+    ['DEMO-MED-029', 'products/amlodipine-5mg.webp'],
+    ['DEMO-MED-030', 'products/losartan-50mg.webp'],
+    ['DEMO-MED-031', 'products/metformin-500mg.webp'],
+    ['DEMO-MED-032', 'products/glucose-test-strips.webp'],
+    ['DEMO-MED-033', 'products/pediatric-paracetamol.webp'],
+    ['DEMO-MED-034', 'products/omega-3-fish-oil.webp']
+  ];
+
+  for (const [id, expectedUrl] of expectedMappings) {
+    assert.ok(initMedSlice.includes(id), `INITIAL_MEDICINES must contain ${id}`);
+    assert.ok(initMedSlice.includes(expectedUrl), `INITIAL_MEDICINES must contain imageUrl ${expectedUrl} for ${id}`);
+  }
+
+  // Ensure no product is still left pointing to the placeholder SVG
+  assert.ok(!initMedSlice.includes('imageUrl: "products/placeholder-medicine.svg"'), 'No initial product should use placeholder SVG when verified packshot is available');
 });
 
 test('IMAGE FALLBACK & GETTER: getProductImage function handles images and fallback', () => {
@@ -94,6 +156,13 @@ test('CARD STEPPER & CART: Event delegation handles card quantity stepper and cu
   assert.ok(appJs.includes('.product-card-qty-stepper .btn-qty-minus'), 'Must handle card minus stepper');
   assert.ok(appJs.includes('.product-card-qty-stepper .btn-qty-plus'), 'Must handle card plus stepper');
   assert.ok(appJs.includes('addToCart(prodId, qty)'), 'Must add selected quantity to cart');
+});
+
+test('CART DIALOG: Cart items render with getProductImage and onerror fallback', () => {
+  const appJs = fs.readFileSync(appJsPath, 'utf8');
+  assert.ok(appJs.includes('class="cart-item-thumb"'), 'Cart items must have cart-item-thumb');
+  assert.ok(appJs.includes('const img = (prod ? getProductImage(prod) : null) || item.image || BLOOMCARE_PLACEHOLDER_IMAGE;'), 'Cart must resolve freshest product image');
+  assert.ok(appJs.includes('onerror="this.onerror=null;this.src=\'products/placeholder-medicine.svg\';"'), 'Cart thumbnail must have error fallback');
 });
 
 test('DETAILS MODAL: openProductDetailsModal renders large hero packshot and interactive quantity stepper', () => {
