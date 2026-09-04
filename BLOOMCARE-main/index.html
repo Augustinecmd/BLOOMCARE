@@ -1270,6 +1270,189 @@
   </form>
 </dialog>
 
+<!-- 9B. Consultation Payment & Booking Modal (Airtel Money & MTN Mobile Money) -->
+<dialog id="consultation-payment-dialog" class="consult-pay-dialog">
+  <div class="dialog-header">
+    <div class="consult-pay-title-group">
+      <h2 id="consult-modal-title" style="margin:0; font-size:17px; color:var(--text-main);">Complete Consultation Payment</h2>
+      <p class="consult-modal-subtitle" style="margin:2px 0 0; font-size:12px; color:var(--muted);">Secure Mobile Money Payment for Clinical Session</p>
+    </div>
+    <button class="dialog-close-btn" id="close-consult-pay-modal" type="button" aria-label="Close modal">&times;</button>
+  </div>
+
+  <!-- State 1: Payment Setup & Form -->
+  <div id="consult-pay-step-form" class="consult-pay-content">
+    <!-- Consultation Summary Card -->
+    <div class="consult-summary-card">
+      <div class="consult-summary-header">
+        <div class="consult-summary-main">
+          <h4 id="consult-pay-summary-pharm" style="margin:0 0 2px; font-size:15px; color:var(--text-main);">Dr. Amina Nanyonga</h4>
+          <span class="consult-summary-role" style="font-size:12px; color:var(--muted);">Clinical Counseling Specialist</span>
+        </div>
+        <div class="consult-fee-badge-box">
+          <span class="consult-fee-label">Consultation Fee</span>
+          <span class="consult-fee-amount" id="consult-pay-fee-val">UGX 15,000</span>
+        </div>
+      </div>
+      <div class="consult-summary-grid">
+        <div class="consult-summary-item">
+          <span class="consult-item-label">Scheduled Date:</span>
+          <strong id="consult-pay-summary-date">2026-09-05</strong>
+        </div>
+        <div class="consult-summary-item">
+          <span class="consult-item-label">Preferred Time:</span>
+          <strong id="consult-pay-summary-time">11:00 AM</strong>
+        </div>
+        <div class="consult-summary-item">
+          <span class="consult-item-label">Patient Name:</span>
+          <strong id="consult-pay-summary-patient">Grace Nakato</strong>
+        </div>
+        <div class="consult-summary-item">
+          <span class="consult-item-label">Patient Phone:</span>
+          <strong id="consult-pay-summary-phone">0751234567</strong>
+        </div>
+      </div>
+    </div>
+
+    <!-- Payment Method Selector (Airtel vs MTN) -->
+    <div class="pay-method-selection-block">
+      <label class="pay-section-label" style="display:block; font-weight:600; font-size:13px; margin-bottom:8px;">Select Payment Method</label>
+      <div class="pay-method-tabs" role="tablist">
+        <!-- Airtel Money Tab -->
+        <button type="button" class="pay-method-card active-method" id="pay-select-airtel" data-provider="Airtel Money">
+          <div class="pay-method-card-header">
+            <span class="pay-brand-pill airtel-pill">Airtel Money</span>
+            <span class="pay-radio-indicator"></span>
+          </div>
+          <div class="pay-method-body">
+            <strong>Airtel Uganda</strong>
+            <small>Direct Push Notification (*185#)</small>
+          </div>
+        </button>
+
+        <!-- MTN Mobile Money Tab -->
+        <button type="button" class="pay-method-card" id="pay-select-mtn" data-provider="MTN Mobile Money">
+          <div class="pay-method-card-header">
+            <span class="pay-brand-pill mtn-pill">MTN MoMo</span>
+            <span class="pay-radio-indicator"></span>
+          </div>
+          <div class="pay-method-body">
+            <strong>MTN Uganda</strong>
+            <small>Direct Push Notification (*165#)</small>
+          </div>
+        </button>
+      </div>
+    </div>
+
+    <!-- Dynamic Payment Inputs Form -->
+    <form id="consult-payment-action-form" class="consult-payment-form">
+      <input type="hidden" id="consult-active-provider" value="Airtel Money" />
+      <input type="hidden" id="consult-active-booking-id" value="" />
+
+      <label id="consult-phone-field-label">Airtel Phone Number
+        <div class="input-with-prefix">
+          <input type="tel" id="consult-pay-phone-input" placeholder="0751234567" required />
+        </div>
+        <small class="phone-validation-hint" id="consult-phone-hint">Enter your 10-digit Ugandan Airtel number</small>
+      </label>
+
+      <!-- Carrier Prompt Message -->
+      <div class="carrier-prompt-notice" id="consult-carrier-notice">
+        <div class="carrier-notice-icon">📱</div>
+        <div class="carrier-notice-text">
+          <strong id="consult-carrier-notice-strong">You will receive a payment prompt on your Airtel phone.</strong>
+          <span class="muted" style="display:block; font-size:12px; margin-top:2px;">Enter your Mobile Money PIN on your phone to authorize the UGX 15,000 consultation fee.</span>
+        </div>
+      </div>
+
+      <!-- Action Button -->
+      <button class="btn btn-primary btn-block btn-pay-action" type="submit" id="consult-submit-pay-btn">
+        <span>Pay UGX 15,000</span>
+      </button>
+    </form>
+  </div>
+
+  <!-- State 2: Payment Processing Screen -->
+  <div id="consult-pay-step-processing" class="consult-pay-content hidden">
+    <div class="pay-processing-box">
+      <div class="pulse-phone-animation">
+        <div class="pulse-ring"></div>
+        <div class="phone-device-icon">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        </div>
+      </div>
+      <h3 class="processing-title">Payment Processing...</h3>
+      <p class="processing-subtitle" id="processing-prompt-msg">Please check your phone and approve the UGX 15,000 payment request.</p>
+      <div class="processing-carrier-badge" id="processing-carrier-tag">Airtel Money &bull; 0751234567</div>
+      <div class="processing-loader-bar"><div class="processing-loader-fill"></div></div>
+      <p class="processing-footnote muted">Waiting for secure confirmation from the payment provider... Please do not close this window.</p>
+    </div>
+  </div>
+
+  <!-- State 3: Payment Confirmed Screen -->
+  <div id="consult-pay-step-confirmed" class="consult-pay-content hidden">
+    <div class="pay-confirmed-box">
+      <div class="success-checkmark-circle">✓</div>
+      <h3 class="success-title">Consultation Booked Successfully</h3>
+      <p class="success-subtitle">Your consultation has been successfully confirmed.</p>
+
+      <div class="confirmed-receipt-card">
+        <div class="confirmed-receipt-row">
+          <span>Consultation Reference:</span>
+          <strong id="conf-ref-val">BC-CNS-20260904-88421</strong>
+        </div>
+        <div class="confirmed-receipt-row">
+          <span>Pharmacist:</span>
+          <strong id="conf-pharm-val">Dr. Amina Nanyonga</strong>
+        </div>
+        <div class="confirmed-receipt-row">
+          <span>Date &amp; Time:</span>
+          <strong id="conf-datetime-val">2026-09-05 at 11:00 AM</strong>
+        </div>
+        <div class="confirmed-receipt-row">
+          <span>Consultation Fee:</span>
+          <strong>UGX 15,000</strong>
+        </div>
+        <div class="confirmed-receipt-row">
+          <span>Payment Method:</span>
+          <strong id="conf-method-val">Airtel Money</strong>
+        </div>
+        <div class="confirmed-receipt-row">
+          <span>Payment Phone:</span>
+          <strong id="conf-phone-val">0751234567</strong>
+        </div>
+        <div class="confirmed-receipt-row">
+          <span>Transaction ID:</span>
+          <strong id="conf-txid-val">MM-UGX-98F120A</strong>
+        </div>
+        <div class="confirmed-receipt-row highlight-paid">
+          <span>Payment Status:</span>
+          <span class="status-pill status-paid" id="conf-status-val">PAID</span>
+        </div>
+      </div>
+
+      <div class="confirmed-actions" style="margin-top:16px;">
+        <button type="button" class="btn btn-primary btn-block" id="btn-view-my-consultations">View My Consultations</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- State 4: Payment Failed Screen -->
+  <div id="consult-pay-step-failed" class="consult-pay-content hidden">
+    <div class="pay-failed-box">
+      <div class="failed-cross-circle">&times;</div>
+      <h3 class="failed-title">Payment was unsuccessful</h3>
+      <p class="failed-subtitle" id="consult-fail-reason">The payment request timed out or was declined on your phone. Your consultation booking is saved as <strong>Pending Payment</strong>.</p>
+
+      <div class="failed-actions-grid">
+        <button type="button" class="btn btn-primary" id="btn-pay-try-again">Try Again</button>
+        <button type="button" class="btn btn-secondary" id="btn-pay-change-method">Change Payment Method</button>
+        <button type="button" class="btn btn-outline" id="btn-pay-cancel-booking">Cancel Booking</button>
+      </div>
+    </div>
+  </div>
+</dialog>
+
 <!-- 10. Official Professional Pharmacy Receipt & Order Confirmation Modal -->
 <dialog id="receipt-dialog" class="receipt-modal-dialog">
   <div class="receipt-dialog-header no-print">

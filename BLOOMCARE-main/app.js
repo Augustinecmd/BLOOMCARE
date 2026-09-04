@@ -261,8 +261,8 @@ const INITIAL_PRESCRIPTIONS = [
 // Clinical Consultations Seed Data
 const INITIAL_CONSULTATIONS = [
   {
-    id: "BC-CON-8819",
-    consultationNumber: "BC-CON-8819",
+    id: "BC-CNS-20260905-88191",
+    consultationNumber: "BC-CNS-20260905-88191",
     customerId: "usr-demo-customer",
     customerName: "Grace Nakato",
     customerPhone: "0751234567",
@@ -270,14 +270,19 @@ const INITIAL_CONSULTATIONS = [
     date: "2026-09-05",
     time: "11:00 AM",
     reason: "Dosage guidance for daily multivitamins with blood pressure medication.",
-    status: "Confirmed",
-    clinicalNotes: "Virtual counseling session scheduled. Review interaction between calcium supplements and Amlodipine.",
     fee: 15000,
+    paymentMethod: "Airtel Money",
+    paymentPhone: "0751234567",
+    paymentStatus: "Paid",
+    bookingStatus: "Confirmed",
+    status: "Confirmed",
+    transactionId: "MM-UGX-8819A1",
+    clinicalNotes: "Virtual counseling session scheduled. Review interaction between calcium supplements and Amlodipine.",
     createdAt: new Date(Date.now() - 86400000).toISOString()
   },
   {
-    id: "BC-CON-8820",
-    consultationNumber: "BC-CON-8820",
+    id: "BC-CNS-20260906-88202",
+    consultationNumber: "BC-CNS-20260906-88202",
     customerId: "cust-2",
     customerName: "David Mukasa",
     customerPhone: "0772334455",
@@ -285,14 +290,19 @@ const INITIAL_CONSULTATIONS = [
     date: "2026-09-06",
     time: "02:00 PM",
     reason: "Managing type 2 diabetes medications and gastrointestinal tolerance of Metformin.",
-    status: "Confirmed",
-    clinicalNotes: "Patient advised to take Metformin with meals. Follow-up consultation scheduled.",
     fee: 15000,
+    paymentMethod: "MTN Mobile Money",
+    paymentPhone: "0772334455",
+    paymentStatus: "Paid",
+    bookingStatus: "Confirmed",
+    status: "Confirmed",
+    transactionId: "MM-UGX-8820B2",
+    clinicalNotes: "Patient advised to take Metformin with meals. Follow-up consultation scheduled.",
     createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
   },
   {
-    id: "BC-CON-8821",
-    consultationNumber: "BC-CON-8821",
+    id: "BC-CNS-20260907-88213",
+    consultationNumber: "BC-CNS-20260907-88213",
     customerId: "cust-3",
     customerName: "Florence Kembabazi",
     customerPhone: "0701889900",
@@ -300,14 +310,19 @@ const INITIAL_CONSULTATIONS = [
     date: "2026-09-07",
     time: "09:30 AM",
     reason: "Inhaler technique demonstration and asthma trigger management during dusty seasons.",
-    status: "Pending",
-    clinicalNotes: "Pending confirmation from duty pharmacist.",
     fee: 15000,
+    paymentMethod: "Airtel Money",
+    paymentPhone: "0701889900",
+    paymentStatus: "Pending",
+    bookingStatus: "Pending Payment",
+    status: "Pending Payment",
+    transactionId: null,
+    clinicalNotes: "Pending payment confirmation from customer before session begins.",
     createdAt: new Date(Date.now() - 3600000 * 8).toISOString()
   },
   {
-    id: "BC-CON-8822",
-    consultationNumber: "BC-CON-8822",
+    id: "BC-CNS-20260830-88224",
+    consultationNumber: "BC-CNS-20260830-88224",
     customerId: "cust-4",
     customerName: "Joseph Okello",
     customerPhone: "0782112233",
@@ -315,14 +330,19 @@ const INITIAL_CONSULTATIONS = [
     date: "2026-08-30",
     time: "04:00 PM",
     reason: "Lipid management therapy review and dietary guidance with Atorvastatin.",
-    status: "Completed",
-    clinicalNotes: "Patient counseled on avoiding grapefruit juice. Liver function test monitoring recommended in 3 months.",
     fee: 15000,
+    paymentMethod: "MTN Mobile Money",
+    paymentPhone: "0782112233",
+    paymentStatus: "Paid",
+    bookingStatus: "Confirmed",
+    status: "Completed",
+    transactionId: "MM-UGX-8822C4",
+    clinicalNotes: "Patient counseled on avoiding grapefruit juice. Liver function test monitoring recommended in 3 months.",
     createdAt: new Date(Date.now() - 86400000 * 4).toISOString()
   },
   {
-    id: "BC-CON-8823",
-    consultationNumber: "BC-CON-8823",
+    id: "BC-CNS-20260908-88235",
+    consultationNumber: "BC-CNS-20260908-88235",
     customerId: "cust-6",
     customerName: "Aisha Nabawanuka",
     customerPhone: "0702667788",
@@ -330,14 +350,19 @@ const INITIAL_CONSULTATIONS = [
     date: "2026-09-08",
     time: "10:00 AM",
     reason: "First trimester prenatal supplement schedule and nausea relief.",
-    status: "Confirmed",
-    clinicalNotes: "Prenatal nutrition counseling planned with Pregnacare regimen.",
     fee: 15000,
+    paymentMethod: "Airtel Money",
+    paymentPhone: "0702667788",
+    paymentStatus: "Paid",
+    bookingStatus: "Confirmed",
+    status: "Confirmed",
+    transactionId: "MM-UGX-8823D5",
+    clinicalNotes: "Prenatal nutrition counseling planned with Pregnacare regimen.",
     createdAt: new Date(Date.now() - 3600000 * 14).toISOString()
   },
   {
-    id: "BC-CON-8824",
-    consultationNumber: "BC-CON-8824",
+    id: "BC-CNS-20260825-88246",
+    consultationNumber: "BC-CNS-20260825-88246",
     customerId: "usr-demo-customer",
     customerName: "Grace Nakato",
     customerPhone: "0751234567",
@@ -345,9 +370,14 @@ const INITIAL_CONSULTATIONS = [
     date: "2026-08-25",
     time: "03:00 PM",
     reason: "Post-dental extraction antibiotic completion counseling.",
-    status: "Completed",
-    clinicalNotes: "Patient successfully completed Amoxicillin 5-day course with zero adverse events.",
     fee: 15000,
+    paymentMethod: "Airtel Money",
+    paymentPhone: "0751234567",
+    paymentStatus: "Paid",
+    bookingStatus: "Confirmed",
+    status: "Completed",
+    transactionId: "MM-UGX-8824E6",
+    clinicalNotes: "Patient successfully completed Amoxicillin 5-day course with zero adverse events.",
     createdAt: new Date(Date.now() - 86400000 * 7).toISOString()
   }
 ];
@@ -3694,13 +3724,13 @@ function renderConsultationsView() {
   }
 
   if (!isStaff) {
-    const upcoming = list.filter(c => c.status === "Pending" || c.status === "Confirmed");
-    const history = list.filter(c => c.status === "Completed" || c.status === "Cancelled");
+    const upcoming = list.filter(c => c.status === "Pending" || c.status === "Confirmed" || c.bookingStatus === "Pending Payment" || c.paymentStatus === "Pending" || c.paymentStatus === "Failed");
+    const history = list.filter(c => c.status === "Completed" || c.status === "Cancelled" || c.bookingStatus === "Cancelled");
 
     box.innerHTML = `
       <div class="table-section-heading">
-        <span>My Upcoming Consultations</span>
-        <span class="badge-tag">${upcoming.length} scheduled</span>
+        <span>My Consultations</span>
+        <span class="badge-tag">${upcoming.length} active</span>
       </div>
       ${upcoming.length > 0 ? `
         <table class="standard-table" style="margin-bottom:18px;">
@@ -3709,20 +3739,35 @@ function renderConsultationsView() {
               <th>Reference</th>
               <th>Pharmacist</th>
               <th>Date &amp; Time</th>
-              <th>Reason</th>
-              <th>Status</th>
+              <th>Fee</th>
+              <th>Payment Method</th>
+              <th>Payment Status</th>
+              <th>Booking Status</th>
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            ${upcoming.map(c => `
+            ${upcoming.map(c => {
+              const isPaid = c.paymentStatus === "Paid";
+              const isPendingPay = !isPaid;
+              return `
               <tr>
                 <td><strong>${escapeHtml(c.consultationNumber || c.id)}</strong></td>
                 <td>${escapeHtml(c.pharmacist)}</td>
                 <td>${c.date} at ${c.time}</td>
-                <td>${escapeHtml(c.reason)}</td>
-                <td><span class="status-pill status-${c.status.toLowerCase()}">${escapeHtml(c.status)}</span></td>
+                <td><strong>${formatUGX(c.fee || 15000)}</strong></td>
+                <td><span class="badge-tag">${escapeHtml(c.paymentMethod || "Pending")}</span></td>
+                <td><span class="status-pill status-${(c.paymentStatus || "Pending").toLowerCase().replace(/ /g, "_")}">${escapeHtml(c.paymentStatus || "Pending")}</span></td>
+                <td><span class="status-pill status-${(c.bookingStatus || c.status || "Pending").toLowerCase().replace(/ /g, "_")}">${escapeHtml(c.bookingStatus || c.status || "Pending")}</span></td>
+                <td>
+                  ${isPendingPay ? `
+                    <button class="btn btn-primary btn-sm resume-consult-pay-btn" data-id="${c.id}">Pay UGX 15,000</button>
+                  ` : `
+                    <span class="status-pill status-approved">Confirmed</span>
+                  `}
+                </td>
               </tr>
-            `).join("")}
+            `}).join("")}
           </tbody>
         </table>
       ` : `<p class="muted" style="padding:10px 0; font-size:13px;">No upcoming consultations.</p>`}
@@ -3738,8 +3783,9 @@ function renderConsultationsView() {
               <th>Reference</th>
               <th>Pharmacist</th>
               <th>Date &amp; Time</th>
-              <th>Reason</th>
-              <th>Status</th>
+              <th>Payment Method</th>
+              <th>Payment Status</th>
+              <th>Booking Status</th>
             </tr>
           </thead>
           <tbody>
@@ -3748,8 +3794,9 @@ function renderConsultationsView() {
                 <td><strong>${escapeHtml(c.consultationNumber || c.id)}</strong></td>
                 <td>${escapeHtml(c.pharmacist)}</td>
                 <td>${c.date} at ${c.time}</td>
-                <td>${escapeHtml(c.reason)}</td>
-                <td><span class="status-pill status-${c.status.toLowerCase()}">${escapeHtml(c.status)}</span></td>
+                <td><span class="badge-tag">${escapeHtml(c.paymentMethod || "N/A")}</span></td>
+                <td><span class="status-pill status-${(c.paymentStatus || "Paid").toLowerCase().replace(/ /g, "_")}">${escapeHtml(c.paymentStatus || "Paid")}</span></td>
+                <td><span class="status-pill status-${(c.status || "Completed").toLowerCase()}">${escapeHtml(c.status)}</span></td>
               </tr>
             `).join("")}
           </tbody>
@@ -3759,21 +3806,47 @@ function renderConsultationsView() {
   } else {
     box.innerHTML = `
       <table class="standard-table">
-        <thead><tr><th>Reference</th><th>Date & Time</th><th>Patient</th><th>Reason</th><th>Status</th><th>Notes</th><th>Action</th></tr></thead>
+        <thead>
+          <tr>
+            <th>Patient</th>
+            <th>Pharmacist</th>
+            <th>Date</th>
+            <th>Time</th>
+            <th>Consultation Reference</th>
+            <th>Payment Method</th>
+            <th>Payment Status</th>
+            <th>Booking Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
         <tbody>
-          ${list.map(c => `
+          ${list.map(c => {
+            const isPaid = c.paymentStatus === "Paid" || c.status === "Confirmed" || c.bookingStatus === "Confirmed";
+            const isDone = c.status === "Completed";
+            return `
             <tr>
-              <td><strong>${escapeHtml(c.consultationNumber || c.id)}</strong></td>
-              <td>${c.date} at ${c.time}</td>
-              <td>${escapeHtml(c.customerName)}</td>
-              <td>${escapeHtml(c.reason)}</td>
-              <td><span class="status-pill status-${c.status.toLowerCase()}">${escapeHtml(c.status)}</span></td>
-              <td><small class="muted">${escapeHtml(c.clinicalNotes || "Pending session")}</small></td>
               <td>
-                ${c.status !== "Completed" ? `<button class="btn btn-primary btn-sm mark-consult-done" data-id="${c.id}">Mark Completed</button>` : `<span class="muted">Completed</span>`}
+                <strong>${escapeHtml(c.customerName || c.patientName || "Patient")}</strong>
+                ${(c.customerPhone || c.patientPhone) ? `<br><small class="muted">${escapeHtml(c.customerPhone || c.patientPhone)}</small>` : ""}
+              </td>
+              <td>${escapeHtml(c.pharmacist)}</td>
+              <td>${c.date}</td>
+              <td>${c.time}</td>
+              <td><strong>${escapeHtml(c.consultationNumber || c.id)}</strong></td>
+              <td><span class="badge-tag">${escapeHtml(c.paymentMethod || "Pending")}</span></td>
+              <td><span class="status-pill status-${(c.paymentStatus || "Pending").toLowerCase().replace(/ /g, "_")}">${escapeHtml(c.paymentStatus || "Pending")}</span></td>
+              <td><span class="status-pill status-${(c.bookingStatus || c.status || "Pending").toLowerCase().replace(/ /g, "_")}">${escapeHtml(c.bookingStatus || c.status || "Pending")}</span></td>
+              <td>
+                ${isDone ? `
+                  <span class="muted">Completed</span>
+                ` : isPaid ? `
+                  <button class="btn btn-primary btn-sm mark-consult-done" data-id="${c.id}">Mark Completed</button>
+                ` : `
+                  <button class="btn btn-secondary btn-sm" disabled title="Consultation can only start after payment is confirmed">Awaiting Payment</button>
+                `}
               </td>
             </tr>
-          `).join("")}
+          `}).join("")}
         </tbody>
       </table>
     `;
@@ -5447,6 +5520,14 @@ function bindEventListeners() {
       $("#consult-booking-form").scrollIntoView({ behavior: "smooth" });
     }
 
+    const resumeConsultPayBtn = e.target.closest(".resume-consult-pay-btn");
+    if (resumeConsultPayBtn) {
+      const c = STATE.consultations.find(item => item.id === resumeConsultPayBtn.dataset.id);
+      if (c) {
+        openConsultationPaymentModal(c);
+      }
+    }
+
     const markConsultDone = e.target.closest(".mark-consult-done");
     if (markConsultDone) {
       const effRole = getEffectiveRole();
@@ -5456,9 +5537,14 @@ function bindEventListeners() {
       }
       const c = STATE.consultations.find(item => item.id === markConsultDone.dataset.id);
       if (c) {
+        if (c.paymentStatus !== "Paid" && c.bookingStatus !== "Confirmed") {
+          openNotice("Clinical Safeguard", "This consultation cannot be started or completed until payment has been verified and confirmed.");
+          return;
+        }
         c.status = "Completed";
+        c.bookingStatus = "Completed";
         c.clinicalNotes = "Consultation session concluded. Patient therapy notes updated.";
-        try { updateConsultationStatus(c.id, "Completed", c.clinicalNotes); } catch (_) {}
+        try { updateConsultationStatus(c.id, { status: "Completed", bookingStatus: "Completed", clinicalNotes: c.clinicalNotes }); } catch (_) {}
         recordStaffAudit("COMPLETE_CONSULTATION", "consultations", c.id, `Consultation completed by ${STATE.currentUser?.displayName || "Pharmacist"}`);
       }
       renderConsultationsView();
@@ -5904,43 +5990,340 @@ function bindEventListeners() {
     );
   });
 
-  // Consultation Booking Form (Protected)
+  // Consultation Booking Form (Protected with Mobile Money Payment Workflow)
   $("#consult-booking-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const authed = requireAuth(null, { type: "navigate", route: "consultations" }, "Please create an account or log in before booking a consultation.");
     if (!authed) return;
 
-    const pharmacist = $("#consult-pharmacist-select").value;
-    const date = $("#consult-date-input").value;
-    const time = $("#consult-time-select").value;
-    const phone = $("#consult-phone-input").value.trim();
-    const notes = $("#consult-notes-input").value.trim();
+    const pharmacist = $("#consult-pharmacist-select")?.value;
+    const date = $("#consult-date-input")?.value;
+    const time = $("#consult-time-select")?.value;
+    const phone = $("#consult-phone-input")?.value.trim();
+    const notes = $("#consult-notes-input")?.value.trim();
+
+    if (!pharmacist) return openNotice("Pharmacist Required", "Please select a licensed clinical pharmacist for your session.");
+    if (!date) return openNotice("Date Required", "Please choose an appointment date.");
+    if (!time) return openNotice("Time Slot Required", "Please select a preferred time slot.");
+
+    const dateObj = new Date(date + "T00:00:00");
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (isNaN(dateObj.getTime()) || dateObj < today) {
+      return openNotice("Invalid Appointment Date", "Please select today or a future date for your consultation.");
+    }
 
     const phoneVal = validateUgandanPhone(phone);
     if (!phoneVal.valid) return openNotice("Invalid Phone Number", phoneVal.message);
+    if (!notes || notes.length < 3) return openNotice("Reason Required", "Please briefly describe your symptoms, questions, or medication concerns.");
 
-    const newConsult = {
-      id: "BC-CON-" + Date.now().toString().slice(-4),
-      consultationNumber: "BC-CON-" + Date.now().toString().slice(-4),
-      customerId: STATE.currentUser.uid,
-      customerName: STATE.currentUser.displayName || "Customer",
-      customerPhone: phoneVal.normalized,
-      pharmacist,
-      date,
-      time,
-      reason: notes,
-      status: "Confirmed",
-      clinicalNotes: "",
-      fee: 15000,
-      createdAt: new Date().toISOString()
-    };
+    // Check if user already has an existing pending booking with same pharmacist/date/time
+    let pendingBooking = STATE.consultations.find(c => 
+      c.customerId === STATE.currentUser.uid &&
+      c.pharmacist === pharmacist &&
+      c.date === date &&
+      c.time === time &&
+      (c.bookingStatus === "Pending Payment" || c.status === "Pending Payment")
+    );
 
-    try { await bookConsultation(newConsult); } catch (_) {}
-    STATE.consultations.unshift(newConsult);
-    $("#consult-booking-form").reset();
+    if (!pendingBooking) {
+      const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+      const rand = Math.floor(10000 + Math.random() * 90000);
+      const consultRef = `BC-CNS-${todayStr}-${rand}`;
+      pendingBooking = {
+        id: consultRef,
+        consultationNumber: consultRef,
+        customerId: STATE.currentUser.uid,
+        customerName: STATE.currentUser.displayName || "Customer",
+        customerPhone: phoneVal.normalized,
+        customerEmail: STATE.currentUser.email || "",
+        pharmacist,
+        date,
+        time,
+        reason: notes,
+        fee: Number(STATE.systemSettings?.consultationFee) || 15000,
+        paymentMethod: "Airtel Money",
+        paymentPhone: phoneVal.normalized,
+        paymentStatus: "Pending",
+        bookingStatus: "Pending Payment",
+        status: "Pending Payment",
+        clinicalNotes: "",
+        createdAt: new Date().toISOString()
+      };
+      STATE.consultations.unshift(pendingBooking);
+      try { await bookConsultation(pendingBooking); } catch (_) {}
+    } else {
+      pendingBooking.reason = notes;
+      pendingBooking.customerPhone = phoneVal.normalized;
+      pendingBooking.paymentPhone = phoneVal.normalized;
+    }
+
     renderConsultationsView();
     renderRoleDashboard();
-    openNotice("Consultation Booked", `Your appointment with <strong>${escapeHtml(pharmacist)}</strong> is booked for ${date} at ${time}.`);
+
+    // Open Payment Modal
+    openConsultationPaymentModal(pendingBooking);
+  });
+
+  // -------------------------------------------------------------
+  // CONSULTATION PAYMENT MODAL CONTROLLER & WORKFLOW
+  // -------------------------------------------------------------
+  function openConsultationPaymentModal(booking) {
+    if (!booking) return;
+
+    $("#consult-pay-summary-pharm").textContent = booking.pharmacist || "Dr. Amina Nanyonga";
+    $("#consult-pay-summary-date").textContent = booking.date || "";
+    $("#consult-pay-summary-time").textContent = booking.time || "";
+    $("#consult-pay-summary-patient").textContent = booking.customerName || booking.patientName || "Customer";
+    $("#consult-pay-summary-phone").textContent = booking.customerPhone || booking.patientPhone || "";
+    $("#consult-pay-fee-val").textContent = formatUGX(booking.fee || 15000);
+    $("#consult-active-booking-id").value = booking.id;
+
+    // Reset views
+    $("#consult-pay-step-form")?.classList.remove("hidden");
+    $("#consult-pay-step-processing")?.classList.add("hidden");
+    $("#consult-pay-step-confirmed")?.classList.add("hidden");
+    $("#consult-pay-step-failed")?.classList.add("hidden");
+
+    // Set phone input
+    const phoneInput = $("#consult-pay-phone-input");
+    if (phoneInput) {
+      phoneInput.value = booking.paymentPhone || booking.customerPhone || (STATE.currentUser ? STATE.currentUser.phone : "") || "";
+    }
+
+    // Set default provider
+    const initialProvider = booking.paymentMethod === "MTN Mobile Money" ? "MTN Mobile Money" : "Airtel Money";
+    setConsultationPaymentProvider(initialProvider);
+
+    const submitBtn = $("#consult-submit-pay-btn");
+    if (submitBtn) submitBtn.disabled = false;
+
+    $("#consultation-payment-dialog")?.showModal();
+  }
+
+  function setConsultationPaymentProvider(provider) {
+    const activeProviderInput = $("#consult-active-provider");
+    if (activeProviderInput) activeProviderInput.value = provider;
+
+    const airtelCard = $("#pay-select-airtel");
+    const mtnCard = $("#pay-select-mtn");
+    const phoneLabel = $("#consult-phone-field-label");
+    const phoneHint = $("#consult-phone-hint");
+    const carrierNotice = $("#consult-carrier-notice-strong");
+
+    if (provider === "MTN Mobile Money") {
+      mtnCard?.classList.add("active-method");
+      airtelCard?.classList.remove("active-method");
+      if (phoneLabel) phoneLabel.firstChild.textContent = "MTN Phone Number ";
+      if (phoneHint) phoneHint.textContent = "Enter your 10-digit Ugandan MTN number (e.g. 0772123456, 078...)";
+      if (carrierNotice) carrierNotice.textContent = "You will receive a payment prompt on your MTN phone.";
+    } else {
+      airtelCard?.classList.add("active-method");
+      mtnCard?.classList.remove("active-method");
+      if (phoneLabel) phoneLabel.firstChild.textContent = "Airtel Phone Number ";
+      if (phoneHint) phoneHint.textContent = "Enter your 10-digit Ugandan Airtel number (e.g. 0751234567, 070...)";
+      if (carrierNotice) carrierNotice.textContent = "You will receive a payment prompt on your Airtel phone.";
+    }
+  }
+
+  async function handleConsultationPaymentSubmit(e) {
+    e.preventDefault();
+    if (STATE._isPaymentInFlight) return;
+
+    const bookingId = $("#consult-active-booking-id")?.value;
+    const booking = STATE.consultations.find(c => c.id === bookingId);
+    if (!booking) {
+      return openNotice("Booking Error", "Consultation appointment not found. Please try booking again.");
+    }
+
+    const provider = $("#consult-active-provider")?.value || "Airtel Money";
+    const phone = $("#consult-pay-phone-input")?.value.trim() || "";
+
+    const phoneVal = validateUgandanPhone(phone);
+    if (!phoneVal.valid) {
+      openNotice("Invalid Phone Number", phoneVal.message || "Please enter a valid Ugandan phone number.");
+      return;
+    }
+
+    // In-flight Lock & Disable Button to Prevent Double-Clicking
+    STATE._isPaymentInFlight = true;
+    const submitBtn = $("#consult-submit-pay-btn");
+    if (submitBtn) submitBtn.disabled = true;
+
+    // Switch to Processing View
+    $("#consult-pay-step-form")?.classList.add("hidden");
+    $("#consult-pay-step-processing")?.classList.remove("hidden");
+    $("#processing-carrier-tag").textContent = `${provider} • ${phoneVal.normalized}`;
+    $("#processing-prompt-msg").textContent = `Please check your phone and approve the UGX 15,000 payment request.`;
+
+    try {
+      const payload = {
+        provider: provider === "MTN Mobile Money" ? "MTN Mobile Money" : "Airtel Money",
+        phone: phoneVal.normalized,
+        amount: 15000,
+        type: "consultation",
+        reference: booking.paymentReference || booking.consultationNumber || null,
+        details: {
+          consultationId: booking.id,
+          pharmacist: booking.pharmacist,
+          date: booking.date,
+          time: booking.time,
+          customerName: booking.customerName,
+          customerPhone: phoneVal.normalized
+        }
+      };
+
+      const res = await fetch("http://127.0.0.1:8787/api/payments/initialize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+
+      const initData = await res.json();
+      if (!res.ok || !initData.success) {
+        throw new Error(initData.message || (initData.errors ? Object.values(initData.errors).join(", ") : "Payment initialization failed."));
+      }
+
+      const paymentRef = initData.reference;
+      booking.paymentReference = paymentRef;
+      booking.paymentMethod = provider;
+      booking.paymentPhone = phoneVal.normalized;
+
+      // Poll verification endpoint
+      let verified = null;
+      for (let i = 0; i < 3; i++) {
+        await new Promise(r => setTimeout(r, 1200));
+        try {
+          const verifyRes = await fetch("http://127.0.0.1:8787/api/payments/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reference: paymentRef })
+          });
+          const verifyData = await verifyRes.json();
+          if (verifyRes.ok && verifyData.success && verifyData.payment?.status === "SUCCESSFUL") {
+            verified = verifyData.payment;
+            break;
+          }
+        } catch (_) {}
+      }
+
+      if (!verified) {
+        throw new Error("Payment authorization timed out or was not confirmed by the provider.");
+      }
+
+      // Successful Payment Confirmation
+      booking.paymentStatus = "Paid";
+      booking.bookingStatus = "Confirmed";
+      booking.status = "Confirmed";
+      booking.transactionId = verified.transactionId || `MM-UGX-${Date.now().toString().slice(-6)}`;
+      booking.verifiedAt = verified.verifiedAt || new Date().toISOString();
+
+      try {
+        await updateConsultationStatus(booking.id, {
+          paymentStatus: "Paid",
+          bookingStatus: "Confirmed",
+          status: "Confirmed",
+          transactionId: booking.transactionId,
+          paymentMethod: provider,
+          paymentPhone: phoneVal.normalized,
+          verifiedAt: booking.verifiedAt
+        });
+      } catch (_) {}
+
+      try {
+        await createPaymentRecord({
+          reference: paymentRef,
+          receiptNumber: verified.receiptNumber || `RCP-${Date.now().toString().slice(-6)}`,
+          transactionId: booking.transactionId,
+          orderId: booking.id,
+          customerId: booking.customerId,
+          customerName: booking.customerName,
+          customerPhone: phoneVal.normalized,
+          amount: 15000,
+          currency: "UGX",
+          paymentMethod: provider,
+          status: "Completed",
+          type: "consultation",
+          createdAt: new Date().toISOString()
+        });
+      } catch (_) {}
+
+      // Update Confirmed Screen
+      $("#conf-ref-val").textContent = booking.consultationNumber || booking.id;
+      $("#conf-pharm-val").textContent = booking.pharmacist;
+      $("#conf-datetime-val").textContent = `${booking.date} at ${booking.time}`;
+      $("#conf-method-val").textContent = provider;
+      $("#conf-phone-val").textContent = phoneVal.normalized;
+      $("#conf-txid-val").textContent = booking.transactionId;
+      $("#conf-status-val").textContent = "PAID";
+
+      $("#consult-pay-step-processing")?.classList.add("hidden");
+      $("#consult-pay-step-confirmed")?.classList.remove("hidden");
+
+      renderConsultationsView();
+      renderRoleDashboard();
+
+    } catch (err) {
+      console.error("Consultation payment error:", err);
+      booking.paymentStatus = "Failed";
+      booking.bookingStatus = "Pending Payment";
+      booking.status = "Pending Payment";
+
+      $("#consult-fail-reason").textContent = err.message || "Payment request was unsuccessful. Please check your phone and try again.";
+      $("#consult-pay-step-processing")?.classList.add("hidden");
+      $("#consult-pay-step-failed")?.classList.remove("hidden");
+
+      renderConsultationsView();
+      renderRoleDashboard();
+    } finally {
+      STATE._isPaymentInFlight = false;
+      if (submitBtn) submitBtn.disabled = false;
+    }
+  }
+
+  // Payment Modal Event Listeners
+  $("#pay-select-airtel")?.addEventListener("click", () => setConsultationPaymentProvider("Airtel Money"));
+  $("#pay-select-mtn")?.addEventListener("click", () => setConsultationPaymentProvider("MTN Mobile Money"));
+  $("#consult-payment-action-form")?.addEventListener("submit", handleConsultationPaymentSubmit);
+  $("#close-consult-pay-modal")?.addEventListener("click", () => $("#consultation-payment-dialog")?.close());
+
+  $("#btn-pay-try-again")?.addEventListener("click", () => {
+    $("#consult-pay-step-failed")?.classList.add("hidden");
+    $("#consult-pay-step-form")?.classList.remove("hidden");
+  });
+
+  $("#btn-pay-change-method")?.addEventListener("click", () => {
+    const current = $("#consult-active-provider")?.value;
+    setConsultationPaymentProvider(current === "Airtel Money" ? "MTN Mobile Money" : "Airtel Money");
+    $("#consult-pay-step-failed")?.classList.add("hidden");
+    $("#consult-pay-step-form")?.classList.remove("hidden");
+  });
+
+  $("#btn-pay-cancel-booking")?.addEventListener("click", async () => {
+    const bookingId = $("#consult-active-booking-id")?.value;
+    const booking = STATE.consultations.find(c => c.id === bookingId);
+    if (booking) {
+      booking.bookingStatus = "Cancelled";
+      booking.status = "Cancelled";
+      booking.paymentStatus = "Cancelled";
+      try {
+        await updateConsultationStatus(booking.id, {
+          status: "Cancelled",
+          bookingStatus: "Cancelled",
+          paymentStatus: "Cancelled"
+        });
+      } catch (_) {}
+    }
+    $("#consultation-payment-dialog")?.close();
+    renderConsultationsView();
+    renderRoleDashboard();
+    openNotice("Booking Cancelled", "The consultation booking request was cancelled.");
+  });
+
+  $("#btn-view-my-consultations")?.addEventListener("click", () => {
+    $("#consultation-payment-dialog")?.close();
+    navigateTo("consultations");
+    renderConsultationsView();
   });
 
   // Refill Form (Protected)

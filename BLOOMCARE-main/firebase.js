@@ -428,21 +428,34 @@ export async function reviewPrescription(presId, { status, reviewNotes, reviewed
 // 6. PHARMACIST CONSULTATIONS
 // -------------------------------------------------------------
 export async function bookConsultation(consultData) {
-    const consultationNumber = "BC-CON-" + Math.floor(100000 + Math.random() * 900000);
+    const consultationNumber = consultData.consultationNumber || ("BC-CNS-" + new Date().toISOString().slice(0, 10).replace(/-/g, "") + "-" + Math.floor(10000 + Math.random() * 90000));
     const data = {
         consultationNumber,
         customerId: consultData.customerId || "cust-guest",
         customerName: consultData.customerName || "Customer",
         customerPhone: consultData.customerPhone || "",
+        customerEmail: consultData.customerEmail || "",
         pharmacist: consultData.pharmacist || "Dr. Amina Nanyonga",
         date: consultData.date || new Date().toISOString().slice(0, 10),
         time: consultData.time || "11:00 AM",
         reason: consultData.reason || "",
-        fee: 15000,
-        status: consultData.status || "Pending", // Pending | Confirmed | Completed | Cancelled
-        clinicalNotes: "",
-        createdAt: new Date().toISOString()
+        fee: Number(consultData.fee) || 15000,
+        paymentMethod: consultData.paymentMethod || "Pending",
+        paymentPhone: consultData.paymentPhone || "",
+        paymentStatus: consultData.paymentStatus || "Pending",
+        bookingStatus: consultData.bookingStatus || consultData.status || "Pending Payment",
+        transactionId: consultData.transactionId || null,
+        paymentReference: consultData.paymentReference || null,
+        status: consultData.status || (consultData.paymentStatus === "Paid" ? "Confirmed" : "Pending Payment"),
+        clinicalNotes: consultData.clinicalNotes || "",
+        createdAt: consultData.createdAt || new Date().toISOString(),
+        verifiedAt: consultData.verifiedAt || null,
+        updatedAt: new Date().toISOString()
     };
+    if (consultData.id) {
+        await setDoc(doc(db, "consultations", consultData.id), data, { merge: true });
+        return { id: consultData.id, ...data };
+    }
     const docRef = await addDoc(collection(db, "consultations"), data);
     return { id: docRef.id, ...data };
 }
@@ -465,9 +478,14 @@ export async function getConsultations(userId = null, role = "customer") {
     }
 }
 
-export async function updateConsultationStatus(consultId, status, clinicalNotes = "") {
-    const updatePayload = { status, updatedAt: new Date().toISOString() };
-    if (clinicalNotes) updatePayload.clinicalNotes = clinicalNotes;
+export async function updateConsultationStatus(consultId, statusOrUpdates, clinicalNotes = "") {
+    let updatePayload = { updatedAt: new Date().toISOString() };
+    if (typeof statusOrUpdates === "object" && statusOrUpdates !== null) {
+        updatePayload = { ...updatePayload, ...statusOrUpdates };
+    } else {
+        updatePayload.status = statusOrUpdates;
+        if (clinicalNotes) updatePayload.clinicalNotes = clinicalNotes;
+    }
     await updateDoc(doc(db, "consultations", consultId), updatePayload);
 }
 
