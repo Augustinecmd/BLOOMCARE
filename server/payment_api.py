@@ -8,12 +8,12 @@ from __future__ import annotations
 import json
 import secrets
 import threading
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timezone, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 import re
 import time
-from urllib.parse import urlparse
+from urllib.parse import urlparse, parse_qs
 
 HOST = "127.0.0.1"
 PORT = 8787
@@ -368,6 +368,185 @@ def is_admin_request(headers) -> tuple[bool, str, dict]:
     return False, role or "anonymous", {}
 
 
+def is_paid_payment(item: dict) -> bool:
+    if not isinstance(item, dict):
+        return False
+    status = str(item.get("status") or "").strip().lower()
+    return status in {"paid", "successful"}
+
+
+def get_sales_analytics(period: str = "today", custom_now: datetime | None = None) -> dict:
+    payments_dict = read_payments()
+    now = custom_now or datetime.now().astimezone()
+
+    paid_entries = []
+    for item in payments_dict.values():
+        if not is_paid_payment(item):
+            continue
+        raw_ts = item.get("createdAt") or item.get("verifiedAt")
+        if not raw_ts:
+            continue
+        try:
+            ts_str = str(raw_ts).strip()
+            if ts_str.endswith("Z"):
+                ts_str = ts_str[:-1] + "+00:00"
+            dt = datetime.fromisoformat(ts_str)
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=now.tzinfo)
+            else:
+                dt = dt.astimezone(now.tzinfo)
+            amount = int(float(item.get("amount") or 0))
+            paid_entries.append({"dt": dt, "amount": amount, "item": item})
+        except Exception:
+            continue
+
+    period = (period or "today").strip().lower()
+    total_sales = 0
+    total_orders = 0
+    breakdown = []
+    prev_total_sales = 0
+
+    if period == "today":
+        start_of_today = now.replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_today = start_of_today + timedelta(days=1)
+        start_of_prev = start_of_today - timedelta(days=1)
+        end_of_prev = start_of_today
+
+        hourly_data = {h: {"sales": 0, "orders": 0} for h in range(24)}
+        for entry in paid_entries:
+            edt = entry["dt"]
+            if start_of_today <= edt < end_of_today:
+                hourly_data[edt.hour]["sales"] += entry["amount"]
+                hourly_data[edt.hour]["orders"] += 1
+                total_sales += entry["amount"]
+                total_orders += 1
+            elif start_of_prev <= edt < end_of_prev:
+                prev_total_sales += entry["amount"]
+
+        for h in range(24):
+            if h == 0:
+                label = "12 AM"
+            elif h < 12:
+                label = f"{h} AM"
+            elif h == 12:
+                label = "12 PM"
+            else:
+                label = f"{h - 12} PM"
+            breakdown.append({
+                "label": label,
+                "hour": h,
+                "sales": hourly_data[h]["sales"],
+                "orders": hourly_data[h]["orders"]
+            })
+
+    elif period == "week":
+        start_of_week = (now - timedelta(days=now.weekday())).replace(hour=0, minute=0, second=0, microsecond=0)
+        end_of_week = start_of_week + timedelta(days=7)
+        start_of_prev = start_of_week - timedelta(days=7)
+        end_of_prev = start_of_week
+
+        day_names = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
+        daily_data = {d: {"sales": 0, "orders": 0} for d in range(7)}
+
+        for entry in paid_entries:
+            edt = entry["dt"]
+            if start_of_week <= edt < end_of_week:
+                w_day = edt.weekday()
+                daily_data[w_day]["sales"] += entry["amount"]
+                daily_data[w_day]["orders"] += 1
+                total_sales += entry["amount"]
+                total_orders += 1
+            elif start_of_prev <= edt < end_of_prev:
+                prev_total_sales += entry["amount"]
+
+        for d in range(7):
+            breakdown.append({
+                "label": day_names[d],
+                "day": d,
+                "sales": daily_data[d]["sales"],
+                "orders": daily_data[d]["orders"]
+            })
+
+    elif period == "month":
+        start_of_month = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+        if now.month == 12:
+            next_month = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            next_month = now.replace(month=now.month + 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        if now.month == 1:
+            prev_month = now.replace(year=now.year - 1, month=12, day=1, hour=0, minute=0, second=0, microsecond=0)
+        else:
+            prev_month = now.replace(month=now.month - 1, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        num_days = (next_month - start_of_month).days
+        month_abbr = now.strftime("%b")
+        daily_data = {d: {"sales": 0, "orders": 0} for d in range(1, num_days + 1)}
+
+        for entry in paid_entries:
+            edt = entry["dt"]
+            if start_of_month <= edt < next_month:
+                daily_data[edt.day]["sales"] += entry["amount"]
+                daily_data[edt.day]["orders"] += 1
+                total_sales += entry["amount"]
+                total_orders += 1
+            elif prev_month <= edt < start_of_month:
+                prev_total_sales += entry["amount"]
+
+        for d in range(1, num_days + 1):
+            breakdown.append({
+                "label": f"{d} {month_abbr}",
+                "day": d,
+                "sales": daily_data[d]["sales"],
+                "orders": daily_data[d]["orders"]
+            })
+
+    else:  # "year"
+        start_of_year = now.replace(month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        next_year = now.replace(year=now.year + 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+        prev_year = now.replace(year=now.year - 1, month=1, day=1, hour=0, minute=0, second=0, microsecond=0)
+
+        month_names = [
+            "January", "February", "March", "April", "May", "June",
+            "July", "August", "September", "October", "November", "December"
+        ]
+        monthly_data = {m: {"sales": 0, "orders": 0} for m in range(1, 13)}
+
+        for entry in paid_entries:
+            edt = entry["dt"]
+            if start_of_year <= edt < next_year:
+                monthly_data[edt.month]["sales"] += entry["amount"]
+                monthly_data[edt.month]["orders"] += 1
+                total_sales += entry["amount"]
+                total_orders += 1
+            elif prev_year <= edt < start_of_year:
+                prev_total_sales += entry["amount"]
+
+        for m in range(1, 13):
+            breakdown.append({
+                "label": month_names[m - 1],
+                "month": m,
+                "sales": monthly_data[m]["sales"],
+                "orders": monthly_data[m]["orders"]
+            })
+
+    avg_order_value = int(round(total_sales / total_orders)) if total_orders > 0 else 0
+
+    comparison = None
+    if prev_total_sales > 0:
+        pct_diff = int(round(((total_sales - prev_total_sales) / prev_total_sales) * 100))
+        comparison = f"{'+' if pct_diff >= 0 else ''}{pct_diff}% compared with previous period"
+
+    return {
+        "period": period,
+        "totalSales": total_sales,
+        "totalOrders": total_orders,
+        "avgOrderValue": avg_order_value,
+        "comparison": comparison,
+        "breakdown": breakdown
+    }
+
+
 class PaymentHandler(BaseHTTPRequestHandler):
     def send_json(self, status: int, payload: dict) -> None:
         raw = json.dumps(payload).encode("utf-8")
@@ -428,6 +607,17 @@ class PaymentHandler(BaseHTTPRequestHandler):
                 "staff": len([u for u in users if u.get("role") in {"assistant_pharmacist", "delivery_person", "pharmacist"}])
             }
             self.send_json(200, {"success": True, "stats": stats})
+            return
+
+        if parsed.path == "/api/admin/sales-analytics":
+            is_admin, role, meta = is_admin_request(self.headers)
+            if not is_admin:
+                self.send_json(403, {"success": False, "message": "Access Denied: Administrative privileges required."})
+                return
+            query_params = parse_qs(parsed.query)
+            period = query_params.get("period", ["today"])[0]
+            data = get_sales_analytics(period)
+            self.send_json(200, {"success": True, **data})
             return
 
         if parsed.path.startswith("/api/payments/status/"):

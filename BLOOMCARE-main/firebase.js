@@ -363,6 +363,52 @@ export async function getOrders(userId = null, role = "customer") {
     }
 }
 
+export function isPaidOrder(order) {
+    if (!order) return false;
+    const oStatus = String(order.orderStatus || "").trim().toLowerCase();
+    const pStatus = String(order.paymentStatus || "").trim().toLowerCase();
+
+    // Strictly exclude cancelled, failed, pending, and unpaid orders
+    if (oStatus === "cancelled" || oStatus === "failed") return false;
+    if (pStatus === "cancelled" || pStatus === "failed" || pStatus === "pending" || pStatus === "unpaid") return false;
+
+    return pStatus === "paid" || pStatus === "successful";
+}
+
+export async function getPaidOrdersForPeriod(period = "today", customDate = new Date()) {
+    try {
+        const now = new Date(customDate);
+        let startDate;
+
+        if (period === "today") {
+            startDate = new Date(now);
+            startDate.setHours(0, 0, 0, 0);
+        } else if (period === "week") {
+            const dayOfWeek = now.getDay();
+            const dist = (dayOfWeek + 6) % 7;
+            startDate = new Date(now);
+            startDate.setDate(now.getDate() - dist);
+            startDate.setHours(0, 0, 0, 0);
+        } else if (period === "month") {
+            startDate = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0);
+        } else if (period === "year") {
+            startDate = new Date(now.getFullYear(), 0, 1, 0, 0, 0);
+        } else {
+            startDate = new Date(now);
+            startDate.setHours(0, 0, 0, 0);
+        }
+
+        const startIso = startDate.toISOString();
+        const ordersCol = collection(db, "orders");
+        const q = query(ordersCol, where("createdAt", ">=", startIso));
+        const snap = await getDocs(q);
+        const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        return docs.filter(isPaidOrder).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+    } catch (e) {
+        return [];
+    }
+}
+
 export async function updateOrderStatus(orderId, status, assignedStaff = null) {
     const updatePayload = {
         orderStatus: status,

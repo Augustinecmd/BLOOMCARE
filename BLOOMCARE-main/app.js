@@ -414,14 +414,14 @@ export function searchMedicinesCatalog(items, query, options = {}) {
     }
 
     // Priority 9: Typo Tolerance / Fuzzy Matching
-    // Only applied if no prefix or substring match was found, and query is at least 4 characters long
-    if (bestScore === Infinity && q.length >= 4) {
+    // Only applied if no prefix or substring match was found, query is at least 4 chars long, and query does not contain numbers (dosages/strengths must be exact)
+    if (bestScore === Infinity && q.length >= 4 && !/\d/.test(q)) {
       const maxDist = q.length <= 6 ? 1 : 2;
       let matchedFuzzy = false;
 
       // Check against words in name
       for (const w of nameWords) {
-        if (Math.abs(w.length - q.length) <= maxDist) {
+        if (!/\d/.test(w) && Math.abs(w.length - q.length) <= maxDist) {
           const dist = levenshteinDistance(q, w);
           if (dist <= maxDist) {
             matchedFuzzy = true;
@@ -434,7 +434,7 @@ export function searchMedicinesCatalog(items, query, options = {}) {
       // Check against words in generic name if still unmatched
       if (!matchedFuzzy) {
         for (const w of genericWords) {
-          if (Math.abs(w.length - q.length) <= maxDist) {
+          if (!/\d/.test(w) && Math.abs(w.length - q.length) <= maxDist) {
             const dist = levenshteinDistance(q, w);
             if (dist <= maxDist) {
               matchedFuzzy = true;
