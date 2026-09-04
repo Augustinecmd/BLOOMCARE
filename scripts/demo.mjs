@@ -55,7 +55,7 @@ console.log(`   - Prescription Validation: ${rxVal.valid ? 'PASSED (Sent to Phar
 
 // 4. WhatsApp Gateway
 console.log('\n4. Testing WhatsApp Customer Support Integration:');
-const waUrl = createWhatsAppUrl('256751234567', 'Hello BloomCare Pharmacy, I would like to make an inquiry.');
+const waUrl = createWhatsAppUrl('256750210886', 'Hello BloomCare Pharmacy, I would like to make an inquiry.');
 console.log(`   - Configured Link: ${waUrl}`);
 
 // 5. Payment API Probe
