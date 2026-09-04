@@ -370,6 +370,18 @@ a {
     font-size: 11px;
     line-height: 1.4;
   }
+  .main-top-announcement {
+    padding: 6px 14px;
+    font-size: 11px;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+  }
+  .announcement-right {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px 14px;
+  }
 }
 
 .main-top-announcement {
@@ -385,14 +397,24 @@ a {
 }
 .announcement-right {
   display: flex;
+  align-items: center;
   gap: 12px;
 }
 .announcement-link {
   color: #a4e5d1;
+  text-decoration: none;
+  transition: color 0.15s ease, opacity 0.15s ease;
+}
+.announcement-link:hover {
+  color: #ffffff;
+  text-decoration: underline;
 }
 .whatsapp-accent {
   color: #7cebc8;
   font-weight: 700;
+}
+.whatsapp-accent:hover {
+  color: #a8f5dc;
 }
 
 .app-top-header {
