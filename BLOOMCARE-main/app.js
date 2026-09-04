@@ -218,7 +218,254 @@ export function isDuplicateProduct(prodData, existingList = [], ignoreId = null)
   });
 }
 
+// -------------------------------------------------------------
+// 2C. SMART MEDICINE SEARCH ENGINE & AUTOCOMPLETE INDEX
+// -------------------------------------------------------------
 
+export function levenshteinDistance(a, b) {
+  if (a === b) return 0;
+  if (!a) return b ? b.length : 0;
+  if (!b) return a ? a.length : 0;
+
+  const lenA = a.length;
+  const lenB = b.length;
+  if (Math.abs(lenA - lenB) > 2) return Math.abs(lenA - lenB);
+
+  const d = [];
+  for (let i = 0; i <= lenA; i++) d[i] = [i];
+  for (let j = 0; j <= lenB; j++) d[0][j] = j;
+
+  for (let i = 1; i <= lenA; i++) {
+    for (let j = 1; j <= lenB; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      d[i][j] = Math.min(
+        d[i - 1][j] + 1,
+        d[i][j - 1] + 1,
+        d[i - 1][j - 1] + cost
+      );
+    }
+  }
+  return d[lenA][lenB];
+}
+
+export const SEARCH_SYNONYMS = {
+  "pcm": ["paracetamol"],
+  "apap": ["paracetamol", "acetaminophen"],
+  "acetaminophen": ["paracetamol"],
+  "ors": ["oral rehydration", "salts"],
+  "amox": ["amoxicillin"],
+  "azith": ["azithromycin"],
+  "cipro": ["ciprofloxacin"],
+  "bp": ["blood pressure", "sphygmomanometer"],
+  "diclo": ["diclofenac"],
+  "dexa": ["dexamethasone"],
+  "hydro": ["hydrocortisone"],
+  "salb": ["salbutamol"],
+  "cet": ["cetirizine"],
+  "para": ["paracetamol"],
+  "ibup": ["ibuprofen"],
+  "met": ["metformin"],
+  "folic": ["folic acid"],
+  "pen": ["benzylpenicillin", "penicillin"],
+  "vit": ["vitamin"],
+  "multi": ["multivitamin"]
+};
+
+export function getSearchStockBadge(product) {
+  const qty = typeof product.stockQuantity === "number" ? product.stockQuantity : 0;
+  const reorder = typeof product.reorderLevel === "number" ? product.reorderLevel : 10;
+  if (qty <= 0) {
+    return { label: "✕ Out of Stock", class: "stock-tag-outofstock", status: "out-of-stock", isAvailable: false };
+  }
+  if (qty <= reorder) {
+    return { label: "⚠ Low Stock", class: "stock-tag-lowstock", status: "low-stock", isAvailable: true };
+  }
+  return { label: "✓ In Stock", class: "stock-tag-instock", status: "in-stock", isAvailable: true };
+}
+
+export function getSearchRxBadge(product) {
+  if (product.requiresPrescription) {
+    return { label: "Rx Required", class: "rx-tag-req", isRx: true };
+  }
+  return { label: "OTC", class: "rx-tag-otc", isRx: false };
+}
+
+export function highlightSearchMatch(text, query) {
+  if (!text) return "";
+  const str = String(text);
+  if (!query || !query.trim()) return escapeHtml(str);
+  const cleanQ = query.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const regex = new RegExp(`(${cleanQ})`, "gi");
+  const parts = str.split(regex);
+  return parts.map(part => {
+    if (part.toLowerCase() === query.trim().toLowerCase()) {
+      return `<mark>${escapeHtml(part)}</mark>`;
+    }
+    return escapeHtml(part);
+  }).join("");
+}
+
+export function sortMedicinesList(items, sortBy = "name-asc") {
+  const arr = [...items];
+  if (sortBy === "name-asc") {
+    arr.sort((a, b) => (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" }));
+  } else if (sortBy === "name-desc") {
+    arr.sort((a, b) => (b.name || "").localeCompare(a.name || "", undefined, { sensitivity: "base" }));
+  } else if (sortBy === "price-asc") {
+    arr.sort((a, b) => (a.price || 0) - (b.price || 0));
+  } else if (sortBy === "price-desc") {
+    arr.sort((a, b) => (b.price || 0) - (a.price || 0));
+  } else if (sortBy === "newest") {
+    arr.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+  } else if (sortBy === "availability") {
+    arr.sort((a, b) => {
+      const availA = getSearchStockBadge(a);
+      const availB = getSearchStockBadge(b);
+      const scoreA = availA.status === "in-stock" ? 3 : availA.status === "low-stock" ? 2 : 1;
+      const scoreB = availB.status === "in-stock" ? 3 : availB.status === "low-stock" ? 2 : 1;
+      if (scoreA !== scoreB) return scoreB - scoreA;
+      return (a.name || "").localeCompare(b.name || "", undefined, { sensitivity: "base" });
+    });
+  }
+  return arr;
+}
+
+export function searchMedicinesCatalog(items, query, options = {}) {
+  if (!Array.isArray(items)) return [];
+  const q = (query || "").trim().toLowerCase();
+  const category = options.category && options.category !== "All" && options.category !== "all" ? options.category : null;
+  const sortBy = options.sortBy || "name-asc";
+  const limit = typeof options.limit === "number" ? options.limit : null;
+
+  // Filter inactive unless specified
+  let pool = items;
+  if (!options.includeInactive) {
+    pool = pool.filter(p => p && p.status !== "inactive");
+  }
+
+  // If no query string, return standard sorted list with category filter if specified
+  if (!q) {
+    if (category) {
+      pool = pool.filter(p => p.category === category);
+    }
+    const sorted = sortMedicinesList(pool, sortBy);
+    return limit ? sorted.slice(0, limit) : sorted;
+  }
+
+  // Generate expansion keywords (synonyms / abbreviations)
+  const synonyms = SEARCH_SYNONYMS[q] || [];
+  const searchTerms = [q, ...synonyms];
+
+  const scored = [];
+
+  for (const p of pool) {
+    if (!p) continue;
+    const name = (p.name || "").toLowerCase();
+    const generic = (p.genericName || "").toLowerCase();
+    const brand = (p.brandName || "").toLowerCase();
+    const active = (p.activeIngredients || "").toLowerCase();
+    const sku = (p.sku || "").toLowerCase();
+    const strength = (p.strength || "").toLowerCase();
+    const form = (p.dosageForm || "").toLowerCase();
+    const desc = (p.description || "").toLowerCase();
+    const mfg = (p.manufacturer || "").toLowerCase();
+    const cat = (p.category || "").toLowerCase();
+    const subcat = (p.subcategory || "").toLowerCase();
+
+    const nameWords = name.split(/[\s,()/-]+/).filter(Boolean);
+    const genericWords = generic.split(/[\s,()/-]+/).filter(Boolean);
+    const brandWords = brand.split(/[\s,()/-]+/).filter(Boolean);
+
+    let bestScore = Infinity;
+
+    for (const term of searchTerms) {
+      // Priority 1: Exact Name Match
+      if (name === term) {
+        bestScore = Math.min(bestScore, 10);
+      }
+      // Priority 2: Medicine Name starts with term (Prefix Search)
+      else if (name.startsWith(term)) {
+        bestScore = Math.min(bestScore, 20);
+      }
+      // Priority 3: Word within medicine name starts with term
+      else if (nameWords.some(w => w.startsWith(term))) {
+        bestScore = Math.min(bestScore, 30);
+      }
+      // Priority 4: Generic Name starts with term or word in generic starts with term
+      else if (generic.startsWith(term) || genericWords.some(w => w.startsWith(term))) {
+        bestScore = Math.min(bestScore, 40);
+      }
+      // Priority 5: Brand Name starts with term or word in brand starts with term
+      else if (brand.startsWith(term) || brandWords.some(w => w.startsWith(term))) {
+        bestScore = Math.min(bestScore, 50);
+      }
+      // Priority 6: Active ingredient starts with or matches term
+      else if (active.startsWith(term) || active.includes(term)) {
+        bestScore = Math.min(bestScore, 60);
+      }
+      // Priority 7: SKU / Product Code / Batch matches term
+      else if (sku.startsWith(term) || sku === term) {
+        bestScore = Math.min(bestScore, 70);
+      }
+      // Priority 8: Partial substring match anywhere
+      else if (name.includes(term) || generic.includes(term) || brand.includes(term) || strength.includes(term) || form.includes(term) || subcat.includes(term) || desc.includes(term) || mfg.includes(term) || cat.includes(term)) {
+        bestScore = Math.min(bestScore, 80);
+      }
+    }
+
+    // Priority 9: Typo Tolerance / Fuzzy Matching
+    // Only applied if no prefix or substring match was found, and query is at least 4 characters long
+    if (bestScore === Infinity && q.length >= 4) {
+      const maxDist = q.length <= 6 ? 1 : 2;
+      let matchedFuzzy = false;
+
+      // Check against words in name
+      for (const w of nameWords) {
+        if (Math.abs(w.length - q.length) <= maxDist) {
+          const dist = levenshteinDistance(q, w);
+          if (dist <= maxDist) {
+            matchedFuzzy = true;
+            bestScore = 90 + dist;
+            break;
+          }
+        }
+      }
+
+      // Check against words in generic name if still unmatched
+      if (!matchedFuzzy) {
+        for (const w of genericWords) {
+          if (Math.abs(w.length - q.length) <= maxDist) {
+            const dist = levenshteinDistance(q, w);
+            if (dist <= maxDist) {
+              matchedFuzzy = true;
+              bestScore = 95 + dist;
+              break;
+            }
+          }
+        }
+      }
+    }
+
+    // If matched at any priority level
+    if (bestScore < Infinity) {
+      // Category-Aware Search: Boost items matching the active category
+      if (category && p.category === category) {
+        bestScore -= 5;
+      }
+
+      scored.push({ product: p, score: bestScore });
+    }
+  }
+
+  // Sort by score ascending, then by sort criteria or A-Z name
+  scored.sort((a, b) => {
+    if (a.score !== b.score) return a.score - b.score;
+    return (a.product.name || "").localeCompare(b.product.name || "", undefined, { sensitivity: "base" });
+  });
+
+  const results = scored.map(s => s.product);
+  return limit ? results.slice(0, limit) : results;
+}
 
 // Prescriptions Desk Seed Data
 const INITIAL_PRESCRIPTIONS = [
@@ -1109,7 +1356,7 @@ export const STATE = {
   currentRoute: "",
   activeReceiptOrder: null,
   pendingRxFile: null,
-  products: deduplicateCatalog([...INITIAL_MEDICINES]),
+  products: sortMedicinesList(deduplicateCatalog([...INITIAL_MEDICINES]), "name-asc"),
   categories: [...ESSENTIAL_CATEGORIES],
   cart: [],
   orders: [...INITIAL_ORDERS],
@@ -3280,16 +3527,13 @@ function renderMedicinesView() {
     let staffList = [...STATE.products];
     const sSearch = (STATE.staffMedicineSearch || "").trim().toLowerCase();
     if (sSearch) {
-      staffList = staffList.filter(p =>
-        (p.name && p.name.toLowerCase().includes(sSearch)) ||
-        (p.genericName && p.genericName.toLowerCase().includes(sSearch)) ||
-        (p.brandName && p.brandName.toLowerCase().includes(sSearch)) ||
-        (p.activeIngredients && p.activeIngredients.toLowerCase().includes(sSearch)) ||
-        (p.sku && p.sku.toLowerCase().includes(sSearch)) ||
-        (p.batchNumber && p.batchNumber.toLowerCase().includes(sSearch)) ||
-        (p.manufacturer && p.manufacturer.toLowerCase().includes(sSearch)) ||
-        (p.category && p.category.toLowerCase().includes(sSearch))
-      );
+      staffList = searchMedicinesCatalog(staffList, sSearch, {
+        category: STATE.staffMedicineCategory,
+        includeInactive: true,
+        sortBy: "name-asc"
+      });
+    } else {
+      staffList = sortMedicinesList(staffList, "name-asc");
     }
     if (STATE.staffMedicineCategory && STATE.staffMedicineCategory !== "all") {
       staffList = staffList.filter(p => p.category === STATE.staffMedicineCategory);
@@ -3328,8 +3572,8 @@ function renderMedicinesView() {
       if (totalStaffItems === 0) {
         box.innerHTML = `
           <div class="empty-state-box" style="padding: 30px; text-align:center;">
-            <p class="empty-title">No matching medicines found in dispensary.</p>
-            <p class="empty-desc">Try clearing your search query or adjusting the category and status filters.</p>
+            <p class="empty-title">No medicine found.</p>
+            <p class="empty-desc">Try searching by medicine name, generic name or active ingredient.</p>
           </div>
         `;
       } else {
@@ -3406,26 +3650,17 @@ function renderMedicinesView() {
     }
     const q = (STATE.searchQuery || "").trim().toLowerCase();
     if (q) {
-      list = list.filter(p => 
-        (p.name && p.name.toLowerCase().includes(q)) || 
-        (p.genericName && p.genericName.toLowerCase().includes(q)) || 
-        (p.brandName && p.brandName.toLowerCase().includes(q)) || 
-        (p.activeIngredients && p.activeIngredients.toLowerCase().includes(q)) ||
-        (p.subcategory && p.subcategory.toLowerCase().includes(q)) ||
-        (p.manufacturer && p.manufacturer.toLowerCase().includes(q)) ||
-        (p.category && p.category.toLowerCase().includes(q)) ||
-        (p.sku && p.sku.toLowerCase().includes(q))
-      );
+      list = searchMedicinesCatalog(list, q, {
+        category: STATE.selectedCategory,
+        sortBy: STATE.sortMedicines
+      });
+    } else {
+      list = sortMedicinesList(list, STATE.sortMedicines);
     }
     if (STATE.filterAvailability === "in-stock") list = list.filter(p => getProductAvailability(p).isAvailable);
     if (STATE.filterAvailability === "out-of-stock") list = list.filter(p => !getProductAvailability(p).isAvailable);
     if (STATE.filterPrescription === "otc") list = list.filter(p => !p.requiresPrescription);
     if (STATE.filterPrescription === "rx") list = list.filter(p => p.requiresPrescription);
-
-    if (STATE.sortMedicines === "name-asc") list.sort((a, b) => (a.name || "").localeCompare(b.name || ""));
-    if (STATE.sortMedicines === "name-desc") list.sort((a, b) => (b.name || "").localeCompare(a.name || ""));
-    if (STATE.sortMedicines === "price-asc") list.sort((a, b) => (a.price || 0) - (b.price || 0));
-    if (STATE.sortMedicines === "price-desc") list.sort((a, b) => (b.price || 0) - (a.price || 0));
 
     const totalItems = list.length;
     const pageSize = STATE.marketplacePageSize || 24;
@@ -3442,8 +3677,8 @@ function renderMedicinesView() {
       if (totalItems === 0) {
         grid.innerHTML = `
           <div class="empty-state-box" style="grid-column: 1 / -1;">
-            <p class="empty-title">No medicines found.</p>
-            <p class="empty-desc">No medications found matching your filter or search query. Try resetting your search or category filters.</p>
+            <p class="empty-title">No medicine found.</p>
+            <p class="empty-desc">Try searching by medicine name, generic name or active ingredient.</p>
             <button class="btn btn-primary btn-sm" id="reset-catalog-filters-btn" type="button">Reset Filters</button>
           </div>
         `;
@@ -3653,6 +3888,311 @@ function openProductDetailsModal(productId) {
   `;
 
   $("#product-details-dialog").showModal();
+}
+
+export function openStaffQuickLookupModal(prod) {
+  if (!prod) return;
+  const dialog = document.getElementById("staff-quick-lookup-dialog");
+  if (!dialog) {
+    openProductDetailsModal(prod.id);
+    return;
+  }
+
+  const stockBadge = getSearchStockBadge(prod);
+  const rxBadge = getSearchRxBadge(prod);
+  const img = getProductImage(prod);
+
+  const titleEl = document.getElementById("staff-quick-lookup-title");
+  if (titleEl) titleEl.textContent = `Dispensary Lookup: ${prod.name}`;
+
+  const priceVal = document.getElementById("staff-quick-price-val");
+  if (priceVal) priceVal.textContent = formatUGX(prod.price);
+
+  const content = document.getElementById("staff-quick-lookup-content");
+  if (content) {
+    content.innerHTML = `
+      <div class="modal-product-hero">
+        <div class="modal-product-img-wrap">
+          <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="modal-product-large-img" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+        </div>
+        <div class="modal-product-hero-meta">
+          <div class="product-badges-row" style="margin-bottom:8px; display:flex; gap:6px; flex-wrap:wrap;">
+            <span class="${stockBadge.class}">${stockBadge.label} (${prod.stockQuantity} units)</span>
+            <span class="${rxBadge.class}">${rxBadge.label}</span>
+            <span class="suggestion-category-tag">${escapeHtml(prod.category)}</span>
+          </div>
+          <h3 class="modal-prod-title" style="margin:0 0 6px 0; font-size:1.1rem;">${escapeHtml(prod.name)}</h3>
+          <p class="modal-prod-generic" style="margin:0 0 4px 0; font-size:12.5px; color:var(--text-muted);">
+            <strong>Generic / Molecule:</strong> ${escapeHtml(prod.genericName || "—")}
+          </p>
+          <div class="modal-prod-pills" style="display:flex; gap:8px; margin:8px 0; flex-wrap:wrap;">
+            <span class="spec-pill"><strong>Strength:</strong> ${escapeHtml(prod.strength || "Standard")}</span>
+            <span class="spec-pill"><strong>Dosage Form:</strong> ${escapeHtml(prod.dosageForm || "Unit")}</span>
+            <span class="spec-pill"><strong>SKU:</strong> <code>${escapeHtml(prod.sku || prod.id)}</code></span>
+          </div>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px; font-size:12px; margin-top:8px; background:#f8fafc; padding:10px; border-radius:6px; border:1px solid #e2e8f0;">
+            <div><strong>Reorder Level:</strong> ${prod.reorderLevel || 10} units</div>
+            <div><strong>Manufacturer:</strong> ${escapeHtml(prod.manufacturer || "NDA Certified")}</div>
+            <div><strong>Batch #:</strong> <code>${escapeHtml(prod.batchNumber || "—")}</code></div>
+            <div><strong>Expiry Date:</strong> ${escapeHtml(prod.expiryDate || "—")}</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  // Action buttons
+  const viewBtn = document.getElementById("staff-quick-view-btn");
+  if (viewBtn) {
+    viewBtn.onclick = () => {
+      dialog.close();
+      openProductDetailsModal(prod.id);
+    };
+  }
+
+  const orderBtn = document.getElementById("staff-quick-order-btn");
+  if (orderBtn) {
+    orderBtn.disabled = !stockBadge.isAvailable;
+    orderBtn.onclick = () => {
+      if (!stockBadge.isAvailable) {
+        openNotice("Item Unavailable", `${prod.name} is currently out of stock.`);
+        return;
+      }
+      addToCart(prod.id, 1);
+      dialog.close();
+      openNotice("Added to Order", `1 unit of ${prod.name} added to cart/order.`);
+    };
+  }
+
+  const dispenseBtn = document.getElementById("staff-quick-dispense-btn");
+  if (dispenseBtn) {
+    const canDispense = hasPermission(PERMISSIONS.ORDER_PACK) || hasPermission(PERMISSIONS.PRESCRIPTION_CLINICAL_REVIEW);
+    dispenseBtn.disabled = !canDispense || !stockBadge.isAvailable;
+    dispenseBtn.textContent = !canDispense ? "Dispense (Pharmacist Only)" : !stockBadge.isAvailable ? "Out of Stock" : "Dispense / Pack";
+    dispenseBtn.onclick = () => {
+      if (!canDispense) {
+        openNotice("Permission Required", "Only registered Pharmacists have clinical dispensing authorization.");
+        return;
+      }
+      if (!stockBadge.isAvailable) {
+        openNotice("Stock Depleted", `${prod.name} is out of stock and cannot be dispensed.`);
+        return;
+      }
+      prod.stockQuantity = Math.max(0, prod.stockQuantity - 1);
+      STATE.inventoryLogs.unshift({
+        id: `LOG-${Date.now()}`,
+        productId: prod.id,
+        productName: prod.name,
+        type: "dispense",
+        quantity: -1,
+        remainingStock: prod.stockQuantity,
+        reason: "Quick dispensary lookup dispensing",
+        performedBy: STATE.currentUser?.name || "Staff Pharmacist",
+        timestamp: new Date().toISOString()
+      });
+      dialog.close();
+      openNotice("Dispensing Recorded", `Successfully dispensed 1 unit of ${prod.name}. Remaining stock: ${prod.stockQuantity}`);
+      renderMedicinesView();
+    };
+  }
+
+  const closeBtn = document.getElementById("close-staff-quick-lookup-btn");
+  if (closeBtn) {
+    closeBtn.onclick = () => dialog.close();
+  }
+
+  dialog.showModal();
+}
+
+export function handleProductSelection(prod) {
+  if (!prod) return;
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "pharmacist" || effRole === "assistant_pharmacist";
+
+  if (isStaff) {
+    openStaffQuickLookupModal(prod);
+  } else {
+    openProductDetailsModal(prod.id);
+  }
+}
+
+export function setupAutocompleteSearch({ inputId, dropdownId, onSelect, getContextCategory }) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(dropdownId);
+  if (!input || !dropdown) return;
+
+  let activeIndex = -1;
+  let currentResults = [];
+
+  function closeDropdown() {
+    dropdown.classList.add("hidden");
+    dropdown.innerHTML = "";
+    activeIndex = -1;
+    currentResults = [];
+  }
+
+  function renderSuggestions(query) {
+    const q = (query || "").trim();
+    if (!q) {
+      closeDropdown();
+      return;
+    }
+
+    const cat = typeof getContextCategory === "function" ? getContextCategory() : STATE.selectedCategory;
+    const allMatches = searchMedicinesCatalog(STATE.products, q, { category: cat });
+    const topMatches = allMatches.slice(0, 10);
+    currentResults = topMatches;
+    activeIndex = -1;
+
+    if (allMatches.length === 0) {
+      dropdown.innerHTML = `
+        <div class="search-empty-state">
+          <div class="search-empty-icon">🔍</div>
+          <p class="search-empty-title">No medicine found.</p>
+          <p class="search-empty-desc">Try searching by medicine name, generic name or active ingredient.</p>
+        </div>
+      `;
+      dropdown.classList.remove("hidden");
+      return;
+    }
+
+    const itemsHtml = topMatches.map((p, idx) => {
+      const stockBadge = getSearchStockBadge(p);
+      const rxBadge = getSearchRxBadge(p);
+      const img = getProductImage(p);
+      const strengthText = p.strength ? p.strength : "";
+      const dosageText = p.dosageForm ? p.dosageForm : "";
+      const metaParts = [p.genericName, strengthText, dosageText].filter(Boolean).join(" • ");
+
+      return `
+        <div class="search-suggestion-item" role="option" data-index="${idx}" data-id="${escapeHtml(p.id)}" aria-selected="false">
+          <div class="suggestion-thumb-wrap">
+            <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" class="suggestion-thumb-img" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+          </div>
+          <div class="suggestion-info">
+            <div class="suggestion-title-row">
+              <span class="suggestion-title">${highlightSearchMatch(p.name, q)}</span>
+              <strong class="suggestion-price">${formatUGX(p.price)}</strong>
+            </div>
+            <div class="suggestion-meta">${escapeHtml(metaParts)}</div>
+            <div class="suggestion-badges-row">
+              <span class="${stockBadge.class}">${stockBadge.label}</span>
+              <span class="${rxBadge.class}">${rxBadge.label}</span>
+              <span class="suggestion-category-tag">${escapeHtml(p.category)}</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    let viewAllHtml = "";
+    if (allMatches.length > 10) {
+      viewAllHtml = `
+        <button type="button" class="suggestions-view-all-btn" id="${dropdownId}-view-all">
+          View all ${allMatches.length} results &rarr;
+        </button>
+      `;
+    }
+
+    dropdown.innerHTML = itemsHtml + viewAllHtml;
+    dropdown.classList.remove("hidden");
+
+    // Wire view all button
+    const viewAllBtn = document.getElementById(`${dropdownId}-view-all`);
+    if (viewAllBtn) {
+      viewAllBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeDropdown();
+        STATE.searchQuery = q;
+        STATE.marketplacePage = 1;
+        if (STATE.currentRoute !== "medicines") navigateTo("medicines");
+        else renderMedicinesView();
+      });
+    }
+  }
+
+  // Input event: Instant search with 0ms delay
+  input.addEventListener("input", (e) => {
+    renderSuggestions(e.target.value);
+  });
+
+  input.addEventListener("focus", () => {
+    if (input.value.trim()) {
+      renderSuggestions(input.value);
+    }
+  });
+
+  // Keyboard navigation
+  input.addEventListener("keydown", (e) => {
+    if (dropdown.classList.contains("hidden") || currentResults.length === 0) {
+      if (e.key === "ArrowDown" && input.value.trim()) {
+        renderSuggestions(input.value);
+        e.preventDefault();
+      }
+      return;
+    }
+
+    const items = dropdown.querySelectorAll(".search-suggestion-item");
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      activeIndex++;
+      if (activeIndex >= items.length) activeIndex = 0;
+      updateActiveItem(items);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      activeIndex--;
+      if (activeIndex < 0) activeIndex = items.length - 1;
+      updateActiveItem(items);
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      if (activeIndex >= 0 && activeIndex < currentResults.length) {
+        selectProduct(currentResults[activeIndex]);
+      } else if (currentResults.length > 0) {
+        selectProduct(currentResults[0]);
+      }
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closeDropdown();
+    }
+  });
+
+  function updateActiveItem(items) {
+    items.forEach((item, idx) => {
+      const isSelected = idx === activeIndex;
+      item.classList.toggle("is-selected", isSelected);
+      item.setAttribute("aria-selected", isSelected ? "true" : "false");
+      if (isSelected) {
+        item.scrollIntoView({ block: "nearest", behavior: "smooth" });
+      }
+    });
+  }
+
+  function selectProduct(prod) {
+    closeDropdown();
+    if (typeof onSelect === "function") {
+      onSelect(prod);
+    } else {
+      handleProductSelection(prod);
+    }
+  }
+
+  // Click delegation inside dropdown
+  dropdown.addEventListener("click", (e) => {
+    const item = e.target.closest(".search-suggestion-item");
+    if (item && item.dataset.id) {
+      const prod = STATE.products.find(p => p.id === item.dataset.id);
+      if (prod) {
+        selectProduct(prod);
+      }
+    }
+  });
+
+  // Close dropdown on outside click
+  document.addEventListener("click", (e) => {
+    if (!input.contains(e.target) && !dropdown.contains(e.target)) {
+      closeDropdown();
+    }
+  });
 }
 
 
@@ -6869,7 +7409,28 @@ function bindEventListeners() {
     navigateTo("auth");
   });
 
-  // Global & Catalog Search Inputs
+  // Global & Catalog Search Inputs with Smart Autocomplete & Prefix Engine
+  setupAutocompleteSearch({
+    inputId: "top-search-input",
+    dropdownId: "top-search-suggestions",
+    getContextCategory: () => "All",
+    onSelect: (prod) => handleProductSelection(prod)
+  });
+
+  setupAutocompleteSearch({
+    inputId: "catalog-search-input",
+    dropdownId: "catalog-search-suggestions",
+    getContextCategory: () => STATE.selectedCategory,
+    onSelect: (prod) => handleProductSelection(prod)
+  });
+
+  setupAutocompleteSearch({
+    inputId: "staff-medicine-search",
+    dropdownId: "staff-search-suggestions",
+    getContextCategory: () => STATE.staffMedicineCategory,
+    onSelect: (prod) => handleProductSelection(prod)
+  });
+
   $("#top-search-input")?.addEventListener("input", (e) => {
     STATE.searchQuery = e.target.value;
     STATE.marketplacePage = 1;
@@ -6880,6 +7441,35 @@ function bindEventListeners() {
     STATE.searchQuery = e.target.value;
     STATE.marketplacePage = 1;
     renderMedicinesView();
+  });
+
+  // Global Ctrl + K / Cmd + K keyboard shortcut to focus search field
+  document.addEventListener("keydown", (e) => {
+    if ((e.ctrlKey || e.metaKey) && (e.key === "k" || e.key === "K")) {
+      e.preventDefault();
+      const catalogInput = document.getElementById("catalog-search-input");
+      const topInput = document.getElementById("top-search-input");
+      const staffInput = document.getElementById("staff-medicine-search");
+      
+      const effRole = getEffectiveRole();
+      const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
+      
+      if (STATE.currentRoute === "medicines") {
+        if (isStaff && staffInput && !document.getElementById("staff-medicines-table-card")?.classList.contains("hidden")) {
+          staffInput.focus();
+          staffInput.select();
+        } else if (catalogInput && !document.getElementById("customer-medicines-controls")?.classList.contains("hidden")) {
+          catalogInput.focus();
+          catalogInput.select();
+        } else if (topInput) {
+          topInput.focus();
+          topInput.select();
+        }
+      } else if (topInput) {
+        topInput.focus();
+        topInput.select();
+      }
+    }
   });
 
   // Medicine Filters
