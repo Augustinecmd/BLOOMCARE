@@ -20,3 +20,4 @@ for drug in drugs:
                             print(drug, ':', m.get('name'), '->', m.get('url'))
     except Exception as e:
         print(drug, 'error:', e)
+

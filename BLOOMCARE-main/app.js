@@ -43,7 +43,7 @@ import {
   getSystemSettings,
   updateSystemSettings
 } from "./firebase.js";
-import { createWhatsAppUrl } from "./whatsapp.js";
+import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
 import {
   validateUgandanPhone,
   validateProviderPhone,
@@ -1092,7 +1092,7 @@ export const STATE = {
     pharmacyName: "BloomCare Pharmacy",
     phone: "+256 700 000 000",
     email: "care@bloomcare.com",
-    whatsapp: "256751234567",
+    whatsapp: "256750210886",
     address: "Plot 14, Kampala Road, Kampala, Uganda",
     openingHours: "Mon - Fri: 8:00 AM - 8:00 PM | Sat: 9:00 AM - 6:00 PM | Sun: 10:00 AM - 4:00 PM",
     deliveryFee: 5000,
@@ -1373,6 +1373,7 @@ async function loadAppData(userId = null) {
 
     if (fetchedSettings) {
       STATE.systemSettings = { ...STATE.systemSettings, ...fetchedSettings };
+      syncWhatsAppLinks();
     }
 
     if (userId) {
@@ -1483,16 +1484,38 @@ export function exitDeveloperPreview() {
   navigateTo(ROLE_HOME_ROUTES.developer);
 }
 
+export function syncWhatsAppLinks() {
+  const rawNumber = STATE.systemSettings?.whatsapp || "256750210886";
+  const normalized = normalizeWhatsAppPhone(rawNumber);
+  const directUrl = `https://wa.me/${normalized}`;
+  const localFormatted = normalized.startsWith("256") ? "0" + normalized.slice(3) : normalized;
+
+  // 1. Top Announcement Bar (WhatsApp Care Desk: 0750210886)
+  const topLink = $("#top-whatsapp-link");
+  if (topLink) {
+    topLink.href = directUrl;
+    topLink.textContent = `WhatsApp Care Desk: ${localFormatted}`;
+  }
+
+  // 2. Contact Page Card & Button
+  const contactLink = $("#contact-whatsapp-btn");
+  if (contactLink) {
+    contactLink.href = directUrl;
+  }
+  const contactCardPhone = $("#contact-card-whatsapp");
+  if (contactCardPhone) {
+    contactCardPhone.textContent = normalized.startsWith("256")
+      ? `+256 ${normalized.slice(3, 6)} ${normalized.slice(6, 9)} ${normalized.slice(9)}`
+      : normalized;
+  }
+}
+
 async function initApp() {
   // Show Loading Screen Immediately
   showAuthLoadingScreen("Loading your BloomCare workspace...", "Verifying your account role and access permissions...");
 
   // Sync WhatsApp Link
-  const whatsappUrl = createWhatsAppUrl(STATE.systemSettings.whatsapp, "Hello BloomCare Pharmacy, I would like to inquire about a medicine.");
-  const topLink = $("#top-whatsapp-link");
-  if (topLink) topLink.href = whatsappUrl;
-  const contactLink = $("#contact-whatsapp-btn");
-  if (contactLink) contactLink.href = whatsappUrl;
+  syncWhatsAppLinks();
 
   // Insert Static Header / Sidebar Icons safely
   if ($("#sidebar-profile-icon")) $("#sidebar-profile-icon").innerHTML = ICONS.profile;
@@ -1511,7 +1534,12 @@ async function initApp() {
   await Promise.all([
     getCategories().then(cats => { if (cats?.length) STATE.categories = cats; }).catch(() => {}),
     getProducts().then(prods => { if (prods?.length) STATE.products = prods; }).catch(() => {}),
-    getSystemSettings().then(st => { if (st) STATE.systemSettings = { ...STATE.systemSettings, ...st }; }).catch(() => {})
+    getSystemSettings().then(st => {
+      if (st) {
+        STATE.systemSettings = { ...STATE.systemSettings, ...st };
+        syncWhatsAppLinks();
+      }
+    }).catch(() => {})
   ]);
 
   // Firebase Auth Listener
@@ -5770,6 +5798,7 @@ function renderSettingsView() {
       STATE.systemSettings.deliveryFee = Number($("#sys-delivery").value) || 5000;
       STATE.systemSettings.lowStockThreshold = Number($("#sys-low-stock").value) || 10;
       STATE.systemSettings.openingHours = $("#sys-hours").value;
+      syncWhatsAppLinks();
       openNotice("Settings Updated", "Pharmacy system parameters saved successfully.");
     });
   } else {
@@ -5827,13 +5856,10 @@ function renderContactView() {
   const phone = $("#contact-card-phone");
   const email = $("#contact-card-email");
   const address = $("#contact-card-address");
-  const whatsappBtn = $("#contact-whatsapp-btn");
   if (phone) phone.textContent = STATE.systemSettings.phone;
   if (email) email.textContent = STATE.systemSettings.email;
   if (address) address.textContent = STATE.systemSettings.address;
-  if (whatsappBtn) {
-    whatsappBtn.href = createWhatsAppUrl(STATE.systemSettings.whatsapp, "Hello BloomCare Pharmacy, I would like to inquire about customer support.");
-  }
+  syncWhatsAppLinks();
 }
 
 

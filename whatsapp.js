@@ -1,4 +1,4 @@
-const DEFAULT_WHATSAPP_NUMBER = "256751234567";
+const DEFAULT_WHATSAPP_NUMBER = "256750210886";
 export const WHATSAPP_MESSAGE = "Hello BloomCare Pharmacy, I would like to make an inquiry.";
 
 export function normalizeWhatsAppPhone(value, countryCode = "256") {
@@ -14,9 +14,11 @@ export function validateWhatsAppPhone(value, countryCode = "256") {
   return { valid: new RegExp(`^${countryCode}7[0-9]{8}$`).test(phone), value: phone, message: "Enter a valid phone number with a country code." };
 }
 
-export function createWhatsAppUrl(phone, message = WHATSAPP_MESSAGE) {
+export function createWhatsAppUrl(phone, message = null) {
   const validation = validateWhatsAppPhone(phone);
-  return validation.valid ? `https://wa.me/${validation.value}?text=${encodeURIComponent(message)}` : "";
+  if (!validation.valid) return "";
+  const msg = message !== null ? message : WHATSAPP_MESSAGE;
+  return msg ? `https://wa.me/${validation.value}?text=${encodeURIComponent(msg)}` : `https://wa.me/${validation.value}`;
 }
 
 export function getConfiguredWhatsAppNumber(settings = {}) {
