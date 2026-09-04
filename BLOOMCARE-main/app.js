@@ -3275,20 +3275,23 @@ function renderProductCardHtml(prod) {
         ${rxBadge}
       </div>
       <div class="product-thumb-container">
-        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" />
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
       </div>
       <div class="product-card-body">
         <h3 class="product-title">${escapeHtml(prod.name)}</h3>
-        <p class="product-generic"><strong>Generic:</strong> ${escapeHtml(prod.genericName)}</p>
-        <div class="product-specs-line">
-          <span class="spec-pill"><strong>Strength:</strong> ${escapeHtml(strength)}</span>
-          <span class="spec-pill"><strong>Form:</strong> ${escapeHtml(form)}</span>
-        </div>
+        <p class="product-generic">${escapeHtml(prod.genericName || strength)} &bull; ${escapeHtml(form)}</p>
         <p class="product-meta-sub"><small class="muted"><strong>Category:</strong> ${escapeHtml(prod.category)}</small></p>
         <p class="product-price">${formatUGX(prod.price)}</p>
+        <div class="product-card-stock-status">
+          <span class="stock-status-label ${avail.badgeClass}">Stock: ${avail.isAvailable ? "Available" : "Unavailable"}</span>
+        </div>
       </div>
       <div class="product-card-foot">
-        <button class="btn btn-outline btn-sm view-prod-modal-btn" type="button" data-product-id="${escapeHtml(prod.id)}">View Details</button>
+        <div class="product-card-qty-stepper">
+          <button type="button" class="btn-qty-step btn-qty-minus" data-id="${escapeHtml(prod.id)}" aria-label="Decrease quantity" ${!avail.isAvailable ? "disabled" : ""}>&minus;</button>
+          <input type="number" class="prod-card-qty-input" data-id="${escapeHtml(prod.id)}" value="1" min="1" max="${Math.max(1, prod.stockQuantity || 1)}" ${!avail.isAvailable ? "disabled" : ""} />
+          <button type="button" class="btn-qty-step btn-qty-plus" data-id="${escapeHtml(prod.id)}" aria-label="Increase quantity" ${!avail.isAvailable || (prod.stockQuantity <= 1) ? "disabled" : ""}>&plus;</button>
+        </div>
         <button class="btn btn-primary btn-sm add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" ${!avail.isAvailable ? "disabled" : ""}>
           ${!avail.isAvailable ? "Unavailable" : "Add to Cart"}
         </button>
@@ -3301,6 +3304,9 @@ function openProductFormModal(prodId = null) {
   const prod = prodId ? STATE.products.find(p => p.id === prodId) : null;
   $("#prod-id").value = prod ? prod.id : "";
   $("#product-modal-title").textContent = prod ? "Edit Pharmacy Product" : "Add New Pharmacy Product";
+  $("#prod-image-url").value = prod ? (prod.imageUrl || prod.image || "") : "";
+  $("#prod-img-preview").src = prod ? getProductImage(prod) : "products/placeholder-medicine.svg";
+  if ($("#prod-image-file")) $("#prod-image-file").value = "";
   $("#prod-name").value = prod ? prod.name : "";
   $("#prod-generic").value = prod ? prod.genericName : "";
   $("#prod-strength").value = prod ? (prod.strength || "") : "";
@@ -3332,6 +3338,13 @@ function openProductDetailsModal(productId) {
   $("#modal-product-name").textContent = prod.name;
   $("#modal-product-price").textContent = formatUGX(prod.price);
   
+  const modalQtyInput = $("#modal-product-qty");
+  if (modalQtyInput) {
+    modalQtyInput.value = "1";
+    modalQtyInput.max = String(Math.max(1, prod.stockQuantity || 1));
+    modalQtyInput.disabled = !avail.isAvailable;
+  }
+
   const addBtn = $("#modal-add-cart-btn");
   if (addBtn) {
     addBtn.dataset.productId = prod.id;
@@ -3343,31 +3356,39 @@ function openProductDetailsModal(productId) {
   const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "Standard Dose");
 
   $("#product-details-content").innerHTML = `
-    <div class="modal-product-header-block" style="display:flex; gap:16px; align-items:center; margin-bottom:14px; background:#f8fafc; padding:12px; border-radius:var(--radius-sm); border:1px solid #e2e8f0;">
-      <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" style="width:64px; height:64px; object-fit:contain; flex-shrink:0;" />
-      <div>
-        <h3 style="margin:0 0 4px; font-size:16px; color:var(--ink);">${escapeHtml(prod.name)}</h3>
-        <p style="margin:0; font-size:13px; color:var(--muted);">${escapeHtml(prod.genericName)}</p>
-        <strong style="color:var(--primary-dark); font-size:16px; display:block; margin-top:4px;">${formatUGX(prod.price)}</strong>
+    <div class="modal-product-hero">
+      <div class="modal-product-img-wrap">
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="modal-product-large-img" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+      </div>
+      <div class="modal-product-hero-meta">
+        <div class="product-badges-row" style="margin-bottom:8px;">
+          <span class="stock-pill ${avail.badgeClass}">Stock: ${avail.label}</span>
+          ${prod.requiresPrescription ? '<span class="rx-pill rx-req">Prescription Required (Rx)</span>' : '<span class="rx-pill otc-ok">Over-The-Counter (OTC)</span>'}
+        </div>
+        <h3 class="modal-prod-title">${escapeHtml(prod.name)}</h3>
+        <p class="modal-prod-generic"><strong>Active Ingredient / Generic:</strong> ${escapeHtml(prod.genericName || "Pharmaceutical Active Substance")}</p>
+        <p class="modal-prod-category"><strong>Department:</strong> ${escapeHtml(prod.category)}</p>
+        <div class="modal-prod-pills">
+          <span class="spec-pill"><strong>Strength:</strong> ${escapeHtml(strength)}</span>
+          <span class="spec-pill"><strong>Dosage Form:</strong> ${escapeHtml(prod.dosageForm || "Unit")}</span>
+        </div>
+        <div class="modal-prod-price-banner">
+          <span class="modal-price-label">Price:</span>
+          <strong class="modal-price-val">${formatUGX(prod.price)}</strong>
+        </div>
       </div>
     </div>
     <div class="monograph-meta">
-      <div style="background:#f0f7ff; border:1px solid #bfdbfe; color:#1e40af; padding:8px 12px; border-radius:var(--radius-sm); font-size:12px; margin-bottom:12px;">
-        <strong>DEMONSTRATION TEST DATA:</strong> This product card contains simulated data for workflow evaluation and system testing.
+      <div class="monograph-details-grid">
+        <div class="monograph-item"><strong>Manufacturer:</strong> <span>${escapeHtml(prod.manufacturer || "BloomCare Pharma")}</span></div>
+        <div class="monograph-item"><strong>Batch / Lot:</strong> <code>${escapeHtml(prod.batchNumber || "DEMO-2026")}</code></div>
+        <div class="monograph-item"><strong>Expiry Date:</strong> <span>${escapeHtml(prod.expiryDate || "2028-12-31")}</span></div>
+        <div class="monograph-item"><strong>In Stock:</strong> <span>${prod.stockQuantity} units available</span></div>
       </div>
-      <p><strong>Medicine Name:</strong> ${escapeHtml(prod.name)}</p>
-      <p><strong>Generic Name:</strong> ${escapeHtml(prod.genericName)}</p>
-      <p><strong>Strength:</strong> ${escapeHtml(strength)}</p>
-      <p><strong>Dosage Form:</strong> ${escapeHtml(prod.dosageForm)}</p>
-      <p><strong>Category:</strong> ${escapeHtml(prod.category)}</p>
-      <p><strong>Price in UGX:</strong> ${formatUGX(prod.price)}</p>
-      <p><strong>Stock Availability:</strong> <span class="stock-pill ${avail.badgeClass}">${avail.label}</span> (${prod.stockQuantity} in demo stock)</p>
-      <p><strong>Minimum Stock Level:</strong> ${prod.reorderLevel ?? 10} units</p>
-      <p><strong>Prescription Requirement:</strong> ${prod.requiresPrescription ? "Prescription Required: Yes (Rx)" : "Prescription: No (Over-The-Counter)"}</p>
-      <p><strong>Manufacturer:</strong> ${escapeHtml(prod.manufacturer || "BloomCare Pharma")}</p>
-      <p><strong>Batch Number:</strong> <code>${escapeHtml(prod.batchNumber || "DEMO-2026")}</code></p>
-      <p><strong>Expiry Date:</strong> ${escapeHtml(prod.expiryDate || "2028-12-31")}</p>
-      <p style="margin-top:10px;"><strong>Description &amp; Indications:</strong> ${escapeHtml(prod.description)}</p>
+      <div class="monograph-desc-box">
+        <strong>Description &amp; Clinical Indications:</strong>
+        <p>${escapeHtml(prod.description)}</p>
+      </div>
     </div>
   `;
 
@@ -6754,7 +6775,40 @@ function bindEventListeners() {
     if (addBtn) {
       e.preventDefault();
       e.stopPropagation();
-      addToCart(addBtn.dataset.productId, 1);
+      const card = addBtn.closest(".product-card");
+      const qtyInput = card?.querySelector(".prod-card-qty-input");
+      const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
+      addToCart(addBtn.dataset.productId, qty);
+      return;
+    }
+
+    const cardMinusBtn = e.target.closest(".product-card-qty-stepper .btn-qty-minus");
+    if (cardMinusBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const input = cardMinusBtn.parentElement?.querySelector(".prod-card-qty-input");
+      if (input) {
+        const val = parseInt(input.value, 10) || 1;
+        if (val > 1) input.value = String(val - 1);
+      }
+      return;
+    }
+
+    const cardPlusBtn = e.target.closest(".product-card-qty-stepper .btn-qty-plus");
+    if (cardPlusBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const input = cardPlusBtn.parentElement?.querySelector(".prod-card-qty-input");
+      if (input) {
+        const max = parseInt(input.getAttribute("max"), 10) || 999;
+        const val = parseInt(input.value, 10) || 1;
+        if (val < max) input.value = String(val + 1);
+      }
+      return;
+    }
+
+    if (e.target.closest(".prod-card-qty-input")) {
+      e.stopPropagation();
       return;
     }
 
@@ -6926,6 +6980,71 @@ function bindEventListeners() {
   $("#btn-open-add-product")?.addEventListener("click", () => openProductFormModal());
   $("#close-product-form-modal")?.addEventListener("click", () => $("#product-form-dialog")?.close());
   $("#cancel-prod-form-btn")?.addEventListener("click", () => $("#product-form-dialog")?.close());
+
+  // Admin Medicine Image Upload & Preview Controls
+  $("#btn-upload-prod-img")?.addEventListener("click", () => {
+    $("#prod-image-file")?.click();
+  });
+
+  $("#btn-remove-prod-img")?.addEventListener("click", () => {
+    const urlInput = $("#prod-image-url");
+    if (urlInput) urlInput.value = "";
+    const fileInput = $("#prod-image-file");
+    if (fileInput) fileInput.value = "";
+    const preview = $("#prod-img-preview");
+    if (preview) preview.src = "products/placeholder-medicine.svg";
+  });
+
+  $("#prod-image-file")?.addEventListener("change", (e) => {
+    const file = e.target.files && e.target.files[0];
+    if (!file) return;
+
+    if (!file.type.match(/^image\/(jpeg|jpg|png|webp)$/i)) {
+      openNotice("Unsupported Format", "Please upload a valid JPEG, PNG, or WEBP image.");
+      e.target.value = "";
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      openNotice("File Too Large", "Medicine image must be less than 5MB.");
+      e.target.value = "";
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = new Image();
+      img.onload = () => {
+        const maxDim = 800;
+        let width = img.width;
+        let height = img.height;
+        if (width > maxDim || height > maxDim) {
+          if (width > height) {
+            height = Math.round((height * maxDim) / width);
+            width = maxDim;
+          } else {
+            width = Math.round((width * maxDim) / height);
+            height = maxDim;
+          }
+        }
+        const canvas = document.createElement("canvas");
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = "#ffffff";
+        ctx.fillRect(0, 0, width, height);
+        ctx.drawImage(img, 0, 0, width, height);
+        const dataUrl = canvas.toDataURL("image/webp", 0.85);
+        const urlInput = $("#prod-image-url");
+        if (urlInput) urlInput.value = dataUrl;
+        const preview = $("#prod-img-preview");
+        if (preview) preview.src = dataUrl;
+      };
+      img.src = event.target.result;
+    };
+    reader.readAsDataURL(file);
+  });
+
   $("#product-manage-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const effRole = getEffectiveRole();
@@ -6950,6 +7069,7 @@ function bindEventListeners() {
       manufacturer: $("#prod-mfg").value.trim(),
       batchNumber: $("#prod-batch").value.trim(),
       expiryDate: $("#prod-expiry").value,
+      imageUrl: $("#prod-image-url")?.value.trim() || "",
       description: $("#prod-desc").value.trim(),
       requiresPrescription: $("#prod-requires-rx").checked,
       status: $("#prod-active-status").checked ? "active" : "inactive"
@@ -7146,10 +7266,30 @@ function bindEventListeners() {
     openNotice("Review Submitted", `Prescription marked <strong>${decision}</strong>.`);
   });
 
-  // Modals close & prints
+  // Product Details Modal Stepper & Add to Cart
   $("#close-product-details-btn")?.addEventListener("click", () => $("#product-details-dialog")?.close());
+  $("#modal-qty-minus")?.addEventListener("click", () => {
+    const input = $("#modal-product-qty");
+    if (!input) return;
+    const current = parseInt(input.value, 10) || 1;
+    if (current > 1) {
+      input.value = String(current - 1);
+    }
+  });
+  $("#modal-qty-plus")?.addEventListener("click", () => {
+    const input = $("#modal-product-qty");
+    if (!input) return;
+    const current = parseInt(input.value, 10) || 1;
+    const max = parseInt(input.max, 10) || 99;
+    if (current < max) {
+      input.value = String(current + 1);
+    }
+  });
   $("#modal-add-cart-btn")?.addEventListener("click", () => {
-    addToCart($("#modal-add-cart-btn").dataset.productId, 1);
+    const prodId = $("#modal-add-cart-btn").dataset.productId;
+    const qtyInput = $("#modal-product-qty");
+    const qty = Math.max(1, parseInt(qtyInput ? qtyInput.value : "1", 10) || 1);
+    addToCart(prodId, qty);
     $("#product-details-dialog")?.close();
   });
   $("#close-receipt-modal")?.addEventListener("click", () => $("#receipt-dialog")?.close());
