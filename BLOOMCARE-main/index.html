@@ -1550,6 +1550,29 @@
   </div>
 </dialog>
 
+<!-- 7B. Staff Quick Medicine Lookup Dialog (Pharmacist & Assistant) -->
+<dialog id="staff-quick-lookup-dialog" class="details-modal-dialog" style="max-width: 620px;">
+  <div class="dialog-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size: 1.25rem;">🩺</span>
+      <h2 id="staff-quick-lookup-title" style="margin:0; font-size:1.15rem;">Fast Medicine Lookup</h2>
+    </div>
+    <button class="dialog-close-btn" id="close-staff-quick-lookup-btn" type="button">&times;</button>
+  </div>
+  <div class="product-details-body" id="staff-quick-lookup-content"></div>
+  <div class="product-details-footer" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+    <div class="modal-price-box">
+      <small>Dispensary Unit Price</small>
+      <strong id="staff-quick-price-val">UGX 0</strong>
+    </div>
+    <div class="modal-details-action-group" id="staff-quick-actions-group" style="display:flex; gap:8px; align-items:center;">
+      <button class="btn btn-secondary btn-sm" id="staff-quick-view-btn" type="button">View Details</button>
+      <button class="btn btn-outline btn-sm" id="staff-quick-order-btn" type="button">Add to Order</button>
+      <button class="btn btn-primary btn-sm" id="staff-quick-dispense-btn" type="button">Dispense / Pack</button>
+    </div>
+  </div>
+</dialog>
+
 <!-- 8. Shopping Cart Dialog -->
 <dialog id="cart-dialog" class="cart-dialog">
   <div class="dialog-header">
