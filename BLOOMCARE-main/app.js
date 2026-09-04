@@ -790,9 +790,11 @@ export function hasPermission(permission, role = getEffectiveRole()) {
 export function userHasPermission(user, permission) {
   if (!user) return false;
   const role = normalizeRole(user.role);
-  if (role === "developer") return true;
+  if (role === "developer" || role === "admin") return true;
   if (user.permissions && Array.isArray(user.permissions)) {
-    return user.permissions.includes(permission);
+    if (user.permissions.includes("all")) return true;
+    if (user.permissions.includes(`!${permission}`)) return false;
+    if (user.permissions.includes(permission)) return true;
   }
   return hasPermission(permission, role);
 }
@@ -1944,16 +1946,22 @@ export function checkRouteAccess(route, user, role = null) {
   // Account Status Gate: Suspended or Deactivated users cannot access protected features
   if (user && (user.status === "suspended" || user.status === "inactive" || user.status === "deactivated")) {
     if (user.status === "suspended") {
+      const msg = `Account Suspended: Your BloomCare account has been suspended${user.suspensionReason ? ` (${user.suspensionReason})` : ""}. Please contact pharmacy support.`;
       return {
         allowed: false,
+        suspended: true,
         redirectRoute: "auth",
-        reason: `Account Suspended: Your BloomCare account has been suspended${user.suspensionReason ? ` (${user.suspensionReason})` : ""}. Please contact pharmacy support.`
+        reason: msg,
+        message: msg
       };
     }
+    const msg = "Account Deactivated: Your account has been deactivated. Please contact system administration.";
     return {
       allowed: false,
+      deactivated: true,
       redirectRoute: "auth",
-      reason: "Account Inactive: Your account has been deactivated. Please contact system administration."
+      reason: msg,
+      message: msg
     };
   }
 
