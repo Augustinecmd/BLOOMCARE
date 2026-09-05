@@ -7952,16 +7952,18 @@ export function getOrCreateOrderDeliveryChat(orderId) {
   saveConversationsToStorage();
 
   try {
-    getOrCreateDeliveryConversation({
-      orderId: resolvedOrderRef,
-      orderRef: resolvedOrderRef,
-      customerId: conv.customerId,
-      customerName: conv.customerName,
-      deliveryManId: conv.deliveryManId,
-      deliveryManName: conv.deliveryManName,
-      deliveryAddress: conv.deliveryAddress,
-      deliveryStatus: conv.deliveryStatus
-    }).catch(() => {});
+    if (typeof window !== "undefined") {
+      getOrCreateDeliveryConversation({
+        orderId: resolvedOrderRef,
+        orderRef: resolvedOrderRef,
+        customerId: conv.customerId,
+        customerName: conv.customerName,
+        deliveryManId: conv.deliveryManId,
+        deliveryManName: conv.deliveryManName,
+        deliveryAddress: conv.deliveryAddress,
+        deliveryStatus: conv.deliveryStatus
+      }).catch(() => {});
+    }
   } catch (_) {}
 
   return conv;
@@ -8096,14 +8098,16 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   saveConversationsToStorage();
 
   try {
-    sendDeliveryChatMessage(conv.id || conv.conversationId, {
-      orderId: conv.orderId,
-      senderId: newMsg.senderId,
-      senderName: newMsg.senderName,
-      senderRole: newMsg.senderRole,
-      recipientRole: newMsg.recipientRole,
-      text: newMsg.text
-    }).catch(() => {});
+    if (typeof window !== "undefined") {
+      sendDeliveryChatMessage(conv.id || conv.conversationId, {
+        orderId: conv.orderId,
+        senderId: newMsg.senderId,
+        senderName: newMsg.senderName,
+        senderRole: newMsg.senderRole,
+        recipientRole: newMsg.recipientRole,
+        text: newMsg.text
+      }).catch(() => {});
+    }
   } catch (_) {}
 
   updateChatUnreadBadges();
