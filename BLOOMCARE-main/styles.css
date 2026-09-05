@@ -8123,159 +8123,359 @@ dialog::backdrop {
    MBARARA CITY DELIVERY AREA SELECTION & LOCATION COMPONENTS
    ============================================================= */
 .customer-delivery-location-section {
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .delivery-location-card {
   background: var(--bg-card);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
-  padding: 18px 20px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  padding: 22px 24px;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05), 0 1px 4px -1px rgba(0, 0, 0, 0.03);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
 }
 
 .delivery-location-card:hover {
-  border-color: rgba(37, 99, 235, 0.3);
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.06);
+  border-color: rgba(15, 118, 110, 0.3);
+  box-shadow: 0 4px 14px -3px rgba(0, 0, 0, 0.07);
 }
 
 .delivery-location-header {
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 16px;
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .delivery-location-title-group {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  align-items: flex-start;
+  gap: 14px;
 }
 
 .delivery-location-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: rgba(37, 99, 235, 0.1);
-  color: var(--primary);
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--primary, #0f766e);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 19px;
-  flex-shrink: 0;
-}
-
-.delivery-location-heading {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-main);
-  margin: 0;
-}
-
-.delivery-location-subheading {
-  font-size: 12.5px;
-  color: var(--muted);
-  margin: 2px 0 0 0;
-}
-
-.delivery-hub-reference-box {
-  background: linear-gradient(135deg, rgba(37, 99, 235, 0.06) 0%, rgba(16, 185, 129, 0.06) 100%);
-  border: 1px solid rgba(37, 99, 235, 0.18);
-  border-radius: var(--radius-sm);
-  padding: 12px 14px;
-  margin-bottom: 16px;
-  display: flex;
-  gap: 12px;
-  align-items: flex-start;
-}
-
-.delivery-hub-ref-icon {
-  font-size: 20px;
-  line-height: 1;
   flex-shrink: 0;
   margin-top: 2px;
 }
 
-.delivery-hub-ref-content {
+.delivery-location-title-text {
   flex: 1;
-  font-size: 12.5px;
-  line-height: 1.45;
-  color: var(--text-main);
 }
 
-.delivery-hub-ref-title {
+.delivery-location-kicker {
+  font-size: 11px;
   font-weight: 700;
-  color: var(--primary-dark, #1e40af);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--primary, #0f766e);
   margin-bottom: 2px;
 }
 
-.delivery-hub-ref-landmarks {
-  color: var(--text-muted, #4b5563);
-  font-size: 12px;
-  margin-top: 2px;
+.delivery-location-heading {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  line-height: 1.35;
 }
 
-.saved-location-display-card {
+.delivery-location-subheading {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 3px 0 0 0;
+}
+
+.delivery-change-loc-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+/* Two-column responsive layout */
+.delivery-location-grid {
+  display: grid;
+  grid-template-columns: 1.15fr 0.85fr;
+  gap: 20px;
+  align-items: start;
+}
+
+.delivery-customer-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.delivery-info-group {
   background: var(--bg-page);
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 14px 16px;
+  border-radius: 10px;
+  padding: 12px 14px;
+}
+
+.delivery-field-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 8px;
+  margin-bottom: 4px;
 }
 
-.saved-location-badges-row {
+.delivery-field-label {
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.delivery-area-row {
   display: flex;
+  align-items: center;
   gap: 8px;
   flex-wrap: wrap;
-  align-items: center;
-  margin-bottom: 4px;
+  margin-top: 4px;
 }
 
 .delivery-division-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: rgba(37, 99, 235, 0.12);
-  color: var(--primary);
-  border: 1px solid rgba(37, 99, 235, 0.25);
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(15, 118, 110, 0.1);
+  color: var(--primary, #0f766e);
+  border: 1px solid rgba(15, 118, 110, 0.25);
+}
+
+.delivery-area-separator {
+  color: var(--border-color);
+  font-weight: 700;
 }
 
 .delivery-area-tag {
   display: inline-flex;
   align-items: center;
   gap: 4px;
-  font-size: 11.5px;
+  font-size: 12px;
   font-weight: 600;
-  padding: 2px 8px;
-  border-radius: 9999px;
-  background: rgba(16, 185, 129, 0.12);
-  color: #065f46;
+  padding: 3px 9px;
+  border-radius: 6px;
+  background: rgba(16, 185, 129, 0.1);
+  color: #047857;
   border: 1px solid rgba(16, 185, 129, 0.25);
 }
 
-.saved-location-full-text {
-  font-size: 13.5px;
+.delivery-default-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+  margin-left: auto;
+}
+
+.delivery-primary-val {
+  font-size: 14.5px;
   font-weight: 600;
   color: var(--text-main);
-  margin-top: 4px;
+  margin-top: 2px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.delivery-secondary-val {
+  font-size: 13.5px;
+  color: var(--text-main);
+  margin-top: 2px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.delivery-instructions-box {
+  font-size: 12.5px;
+  color: var(--muted);
+  margin-top: 2px;
+  line-height: 1.4;
+  font-style: italic;
+}
+
+.delivery-pane-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 2px;
+}
+
+/* Right Pane: BloomCare Central Dispensary Reference Hub */
+.delivery-hub-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.delivery-hub-reference-box {
+  background: var(--bg-surface, #f8fafc);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.delivery-hub-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.delivery-hub-ref-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  background: rgba(15, 118, 110, 0.12);
+  color: var(--primary, #0f766e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.delivery-hub-org {
+  font-size: 10.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--primary, #0f766e);
+}
+
+.delivery-hub-ref-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--text-main);
+}
+
+.delivery-hub-address-lines {
+  border-left: 2.5px solid var(--primary, #0f766e);
+  padding-left: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 12.5px;
+  color: var(--text-main);
+  line-height: 1.45;
+}
+
+.hub-addr-city {
+  font-weight: 700;
+  color: var(--primary, #0f766e);
+  margin-top: 2px;
+}
+
+.delivery-coverage-banner {
+  background: rgba(16, 185, 129, 0.07);
+  border: 1px solid rgba(16, 185, 129, 0.22);
+  border-radius: 8px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.coverage-check-icon {
+  color: #059669;
+  flex-shrink: 0;
+  margin-top: 1px;
+  display: flex;
+  align-items: center;
+}
+
+.coverage-text {
+  font-size: 12px;
+  line-height: 1.45;
+  color: #065f46;
+}
+
+/* Empty State */
+.delivery-empty-state {
+  text-align: center;
+  padding: 28px 16px;
+  background: var(--bg-page);
+  border: 1px dashed var(--border-color);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.delivery-empty-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: rgba(15, 118, 110, 0.08);
+  color: var(--primary, #0f766e);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 4px;
+}
+
+.delivery-empty-text h4 {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 4px 0;
+}
+
+.delivery-empty-text p {
+  font-size: 13px;
+  color: var(--muted);
+  margin: 0;
+  max-width: 400px;
+}
+
+/* Backward compatibility container for tests */
+.saved-location-display-card {
+  display: contents;
+}
+
+.saved-location-full-text {
+  font-size: 14.5px;
+  font-weight: 600;
+  color: var(--text-main);
 }
 
 .saved-location-instructions-text {
-  font-size: 12px;
+  font-size: 12.5px;
   color: var(--muted);
-  margin-top: 2px;
   font-style: italic;
 }
 
@@ -8286,16 +8486,60 @@ dialog::backdrop {
   margin-bottom: 12px;
 }
 
-@media (max-width: 640px) {
-  .delivery-form-grid {
+/* Mobile Responsiveness down to 320px */
+@media (max-width: 768px) {
+  .delivery-location-grid {
     grid-template-columns: 1fr;
-  }
-  .saved-location-display-card {
-    flex-direction: column;
-    align-items: flex-start;
+    gap: 16px;
   }
   .delivery-location-header {
     flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .delivery-change-loc-btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .delivery-pane-actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .delivery-location-card {
+    padding: 16px;
+    border-radius: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .delivery-location-card {
+    padding: 14px 12px;
+  }
+  .delivery-location-heading {
+    font-size: 15px;
+  }
+  .delivery-location-icon-wrap {
+    width: 36px;
+    height: 36px;
+  }
+  .delivery-field-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .delivery-default-badge {
+    margin-left: 0;
+  }
+  .delivery-area-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
+  .delivery-area-separator {
+    display: none;
+  }
+  .delivery-form-grid {
+    grid-template-columns: 1fr;
   }
 }
 

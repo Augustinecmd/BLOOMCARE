@@ -808,7 +808,13 @@ const INITIAL_ORDERS = [
     customerPhone: "0751234567",
     customerEmail: "grace.nakato@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Bukoto, Plot 14, Kampala",
+    deliveryDivision: "Kamukuzi",
+    deliveryArea: "Kiyanja",
+    specificLocation: "Plot 14, Kiyanja Road",
+    landmark: "Near Kiyanja Market",
+    deliveryInstructions: "Blue gate opposite shop",
+    deliveryAddress: "Kiyanja, Kamukuzi, Mbarara City (Plot 14, Kiyanja Road • Near Kiyanja Market)",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-001", name: "Paracetamol 500mg Tablets", quantity: 2, price: 5000 },
       { productId: "BC-PROD-008", name: "Vitamin C 500mg Chewable", quantity: 1, price: 12000 }
@@ -831,7 +837,13 @@ const INITIAL_ORDERS = [
     customerPhone: "0772334455",
     customerEmail: "david.m@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Ntinda, Kimera Road, Kampala",
+    deliveryDivision: "Kakoba",
+    deliveryArea: "Nyamityobora",
+    specificLocation: "Buremba Road",
+    landmark: "Near Nyamityobora Mosque",
+    deliveryInstructions: "Call upon arrival",
+    deliveryAddress: "Nyamityobora, Kakoba, Mbarara City (Buremba Road • Near Nyamityobora Mosque)",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-015", name: "Emergency First Aid Kit (60pcs)", quantity: 1, price: 65000 }
     ],
@@ -853,7 +865,10 @@ const INITIAL_ORDERS = [
     customerPhone: "0751234567",
     customerEmail: "grace.nakato@example.com",
     fulfillmentType: "pickup",
-    deliveryAddress: "Pickup from BloomCare Pharmacy - Plot 14 Kampala Road",
+    deliveryDivision: "Kamukuzi",
+    deliveryArea: "Booma",
+    deliveryAddress: "BloomCare Pharmacy Main Dispensary, Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-005", name: "Amoxicillin Capsules 500mg", quantity: 1, price: 18000 }
     ],
@@ -875,7 +890,13 @@ const INITIAL_ORDERS = [
     customerPhone: "0701889900",
     customerEmail: "florence.k@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Kololo, Upper Kololo Terrace, Kampala",
+    deliveryDivision: "Nyamitanga",
+    deliveryArea: "Rwebikoona",
+    specificLocation: "Plot 8 Rwebikoona Road",
+    landmark: "Rwebikoona Market",
+    deliveryInstructions: "Leave with front desk",
+    deliveryAddress: "Rwebikoona, Nyamitanga, Mbarara City (Plot 8 Rwebikoona Road • Near Rwebikoona Market)",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-031", name: "Salbutamol Inhaler 100mcg", quantity: 2, price: 22000 },
       { productId: "BC-PROD-033", name: "Cetirizine 10mg Tablets", quantity: 1, price: 8500 }
@@ -898,7 +919,13 @@ const INITIAL_ORDERS = [
     customerPhone: "0782112233",
     customerEmail: "joseph.o@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Bugolobi, Luthuli Avenue, Kampala",
+    deliveryDivision: "Kakiika",
+    deliveryArea: "Makenke",
+    specificLocation: "Makenke Trading Centre",
+    landmark: "Opposite Makenke Barracks",
+    deliveryInstructions: "Ring bell at black gate",
+    deliveryAddress: "Makenke, Kakiika, Mbarara City (Makenke Trading Centre • Near Opposite Makenke Barracks)",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-036", name: "Omron M2 Blood Pressure Monitor", quantity: 1, price: 185000 }
     ],
@@ -920,7 +947,13 @@ const INITIAL_ORDERS = [
     customerPhone: "0702667788",
     customerEmail: "aisha.n@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Muyenga, Tank Hill Road, Kampala",
+    deliveryDivision: "Biharwe",
+    deliveryArea: "Biharwe Central",
+    specificLocation: "Near Eclipse Monument",
+    landmark: "1520 AD Eclipse Monument",
+    deliveryInstructions: "Call 0702667788 on approach",
+    deliveryAddress: "Biharwe Central, Biharwe, Mbarara City (Near 1520 AD Eclipse Monument)",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-025", name: "Pregnacare Prenatal Multivitamins", quantity: 1, price: 38000 },
       { productId: "BC-PROD-024", name: "Folic Acid 5mg Tablets", quantity: 1, price: 7000 }
@@ -943,7 +976,13 @@ const INITIAL_ORDERS = [
     customerPhone: "0755443322",
     customerEmail: "brian.t@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Nakasero, Prince Charles Drive, Kampala",
+    deliveryDivision: "Nyakayojo",
+    deliveryArea: "Katojo",
+    specificLocation: "Katojo Trading Centre",
+    landmark: "Katojo Clinic",
+    deliveryInstructions: "Deliver directly to consultation room",
+    deliveryAddress: "Katojo, Nyakayojo, Mbarara City (Katojo Trading Centre)",
+    deliveryCity: "Mbarara City",
     items: [
       { productId: "BC-PROD-038", name: "Pure Marine Collagen Powder 200g", quantity: 1, price: 75000 }
     ],
@@ -951,8 +990,8 @@ const INITIAL_ORDERS = [
     deliveryFee: 5000,
     total: 80000,
     paymentMethod: "Cash on Delivery",
-    paymentStatus: "Successful",
-    paymentReference: "COD-10294",
+    paymentStatus: "Pending",
+    paymentReference: "COD-BC-ORD-0047",
     orderStatus: "Delivered",
     assignedStaff: "Moses Kato",
     createdAt: new Date(Date.now() - 86400000 * 4).toISOString()
@@ -965,9 +1004,16 @@ const INITIAL_ORDERS = [
     customerPhone: "0751234567",
     customerEmail: "grace.nakato@example.com",
     fulfillmentType: "delivery",
-    deliveryAddress: "Bukoto, Plot 14, Kampala",
+    deliveryDivision: "Kamukuzi",
+    deliveryArea: "Kiyanja",
+    specificLocation: "Plot 14, Kiyanja Road",
+    landmark: "Near Kiyanja Market",
+    deliveryInstructions: "Call when at gate",
+    deliveryAddress: "Kiyanja, Kamukuzi, Mbarara City (Plot 14, Kiyanja Road)",
+    deliveryCity: "Mbarara City",
     items: [
-      { productId: "BC-PROD-039", name: "Omega-3 Fish Oil 1000mg Capsules", quantity: 1, price: 32000 }
+      { productId: "BC-PROD-012", name: "Ibuprofen 400mg Tablets", quantity: 2, price: 6000 },
+      { productId: "BC-PROD-019", name: "Oral Rehydration Salts (ORS)", quantity: 5, price: 5000 }
     ],
     subtotal: 32000,
     deliveryFee: 5000,
@@ -975,9 +1021,9 @@ const INITIAL_ORDERS = [
     paymentMethod: "MTN MoMo",
     paymentStatus: "Successful",
     paymentReference: "MM-990145",
-    orderStatus: "Confirmed",
+    orderStatus: "Processing",
     assignedStaff: "Moses Kato",
-    createdAt: new Date(Date.now() - 3600000 * 3).toISOString()
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
   }
 ];
 
@@ -1405,12 +1451,12 @@ const INITIAL_CUSTOMERS = [
 ];
 
 const INITIAL_DELIVERIES = [
-  { id: "DEL-101", orderId: "BC-ORD-0041", orderNumber: "BC-ORD-0041", customerName: "Grace Nakato", phone: "0751234567", address: "Bukoto, Plot 14, Kampala", itemsSummary: "2x Paracetamol, 1x Vitamin C", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-28" },
-  { id: "DEL-102", orderId: "BC-ORD-0042", orderNumber: "BC-ORD-0042", customerName: "David Mukasa", phone: "0772334455", address: "Ntinda, Kimera Road, Kampala", itemsSummary: "1x Emergency First Aid Kit", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Out for Delivery", createdAt: "2026-08-31" },
-  { id: "DEL-103", orderId: "BC-ORD-0044", orderNumber: "BC-ORD-0044", customerName: "Florence Kembabazi", phone: "0701889900", address: "Kololo, Upper Kololo Terrace, Kampala", itemsSummary: "2x Salbutamol Inhaler, 1x Cetirizine", deliveryStaffId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Picked Up", createdAt: "2026-09-01" },
-  { id: "DEL-104", orderId: "BC-ORD-0045", orderNumber: "BC-ORD-0045", customerName: "Joseph Okello", phone: "0782112233", address: "Bugolobi, Luthuli Avenue, Kampala", itemsSummary: "1x Omron M2 Blood Pressure Monitor", deliveryStaffId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Out for Delivery", createdAt: "2026-09-01" },
-  { id: "DEL-105", orderId: "BC-ORD-0047", orderNumber: "BC-ORD-0047", customerName: "Dr. Brian Tumusiime", phone: "0755443322", address: "Nakasero, Prince Charles Drive, Kampala", itemsSummary: "1x Pure Marine Collagen Powder", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-27" },
-  { id: "DEL-106", orderId: "BC-ORD-0046", orderNumber: "BC-ORD-0046", customerName: "Aisha Nabawanuka", phone: "0702667788", address: "Muyenga, Tank Hill Road, Kampala", itemsSummary: "1x Pregnacare, 1x Folic Acid", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Pending Dispatch", createdAt: "2026-09-01" }
+  { id: "DEL-101", orderId: "BC-ORD-0041", orderNumber: "BC-ORD-0041", customerName: "Grace Nakato", phone: "0751234567", address: "Kiyanja, Kamukuzi, Mbarara City (Plot 14, Kiyanja Road)", deliveryDivision: "Kamukuzi", deliveryArea: "Kiyanja", specificLocation: "Plot 14, Kiyanja Road", landmark: "Near Kiyanja Market", deliveryInstructions: "Blue gate opposite shop", itemsSummary: "2x Paracetamol, 1x Vitamin C", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-28" },
+  { id: "DEL-102", orderId: "BC-ORD-0042", orderNumber: "BC-ORD-0042", customerName: "David Mukasa", phone: "0772334455", address: "Nyamityobora, Kakoba, Mbarara City (Buremba Road)", deliveryDivision: "Kakoba", deliveryArea: "Nyamityobora", specificLocation: "Buremba Road", landmark: "Near Nyamityobora Mosque", deliveryInstructions: "Call upon arrival", itemsSummary: "1x Emergency First Aid Kit", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Out for Delivery", createdAt: "2026-08-31" },
+  { id: "DEL-103", orderId: "BC-ORD-0044", orderNumber: "BC-ORD-0044", customerName: "Florence Kembabazi", phone: "0701889900", address: "Rwebikoona, Nyamitanga, Mbarara City (Plot 8 Rwebikoona Road)", deliveryDivision: "Nyamitanga", deliveryArea: "Rwebikoona", specificLocation: "Plot 8 Rwebikoona Road", landmark: "Rwebikoona Market", deliveryInstructions: "Leave with front desk", itemsSummary: "2x Salbutamol Inhaler, 1x Cetirizine", deliveryStaffId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Picked Up", createdAt: "2026-09-01" },
+  { id: "DEL-104", orderId: "BC-ORD-0045", orderNumber: "BC-ORD-0045", customerName: "Joseph Okello", phone: "0782112233", address: "Makenke, Kakiika, Mbarara City (Makenke Trading Centre)", deliveryDivision: "Kakiika", deliveryArea: "Makenke", specificLocation: "Makenke Trading Centre", landmark: "Opposite Makenke Barracks", deliveryInstructions: "Ring bell at black gate", itemsSummary: "1x Omron M2 Blood Pressure Monitor", deliveryStaffId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Out for Delivery", createdAt: "2026-09-01" },
+  { id: "DEL-105", orderId: "BC-ORD-0047", orderNumber: "BC-ORD-0047", customerName: "Dr. Brian Tumusiime", phone: "0755443322", address: "Katojo, Nyakayojo, Mbarara City (Katojo Trading Centre)", deliveryDivision: "Nyakayojo", deliveryArea: "Katojo", specificLocation: "Katojo Trading Centre", landmark: "Katojo Clinic", deliveryInstructions: "Deliver directly to consultation room", itemsSummary: "1x Pure Marine Collagen Powder", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-27" },
+  { id: "DEL-106", orderId: "BC-ORD-0046", orderNumber: "BC-ORD-0046", customerName: "Aisha Nabawanuka", phone: "0702667788", address: "Biharwe Central, Biharwe, Mbarara City (Near 1520 AD Eclipse Monument)", deliveryDivision: "Biharwe", deliveryArea: "Biharwe Central", specificLocation: "Near Eclipse Monument", landmark: "1520 AD Eclipse Monument", deliveryInstructions: "Call 0702667788 on approach", itemsSummary: "1x Pregnacare, 1x Folic Acid", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Pending Dispatch", createdAt: "2026-09-01" }
 ];
 
 const INITIAL_PAYMENTS = [
@@ -2272,9 +2318,20 @@ async function initApp() {
         STATE.activeRole = savedRole;
         await loadAppData(savedSession.uid || "local-user");
       } else {
-        STATE.currentUser = null;
-        STATE.activeRole = "visitor";
-        STATE.developerPreviewRole = null;
+        // Check for URL query param auto-login (e.g. ?login=customer or ?role=admin)
+        let paramRole = null;
+        try {
+          const params = new URLSearchParams(window.location.search);
+          paramRole = params.get("login") || params.get("role");
+        } catch (_) {}
+
+        if (paramRole) {
+          await switchActiveRole(paramRole);
+        } else {
+          STATE.currentUser = null;
+          STATE.activeRole = "visitor";
+          STATE.developerPreviewRole = null;
+        }
       }
     }
 
@@ -2430,7 +2487,15 @@ export async function switchActiveRole(roleName) {
       email: "grace.nakato@example.com",
       displayName: "Grace Nakato",
       phone: "0751234567",
-      role: "customer"
+      role: "customer",
+      deliveryAddress: getCustomerDeliveryAddress({ uid: "usr-demo-customer" }) || {
+        deliveryDivision: "Kamukuzi",
+        deliveryArea: "Ruharo",
+        specificLocation: "Plot 14, Kiyanja Road",
+        landmark: "Mile 3 opposite Ruharo Mosque",
+        deliveryInstructions: "Call upon arrival",
+        city: "Mbarara City"
+      }
     };
     STATE.activeRole = "customer";
     STATE.developerPreviewRole = null;
@@ -2942,22 +3007,44 @@ export function handleRoute() {
 
   if (route === "catalog") route = STATE.activeRole === "customer" ? "customer/medicines" : "medicines";
 
-  // Dedicated Auth Views (#staff-login, #login, #register)
+  // Instant Demo Login Shortcuts (e.g. #login-customer, #demo-customer, #login-admin, etc.)
+  if (route === "login-customer" || route === "demo-customer") {
+    switchActiveRole("customer");
+    return;
+  }
+  if (route === "login-admin" || route === "demo-admin") {
+    switchActiveRole("admin");
+    return;
+  }
+  if (route === "login-pharmacist" || route === "demo-pharmacist") {
+    switchActiveRole("pharmacist");
+    return;
+  }
+  if (route === "login-delivery" || route === "demo-delivery") {
+    switchActiveRole("delivery_person");
+    return;
+  }
+  if (route === "login-dev" || route === "demo-dev") {
+    switchActiveRole("developer");
+    return;
+  }
+
+  // Dedicated Auth Views (#staff-login, #login, #register, #auth)
   if (route === "staff-login" || route === "staff" || route === "staff/login") {
     route = "auth";
     $("#register-card")?.classList.add("hidden");
     $("#login-card")?.classList.add("hidden");
     $("#staff-login-card")?.classList.remove("hidden");
-  } else if (route === "login") {
-    route = "auth";
-    $("#register-card")?.classList.add("hidden");
-    $("#staff-login-card")?.classList.add("hidden");
-    $("#login-card")?.classList.remove("hidden");
-  } else if (route === "register" || route === "auth") {
+  } else if (route === "register") {
     route = "auth";
     $("#login-card")?.classList.add("hidden");
     $("#staff-login-card")?.classList.add("hidden");
     $("#register-card")?.classList.remove("hidden");
+  } else if (route === "login" || route === "auth") {
+    route = "auth";
+    $("#register-card")?.classList.add("hidden");
+    $("#staff-login-card")?.classList.add("hidden");
+    $("#login-card")?.classList.remove("hidden");
   }
 
   // Level 2 Security Check: Verify Role-Based Route Access
@@ -3922,48 +4009,28 @@ function renderRoleDashboard() {
       <!-- 4. Delivery Location Section (Mbarara City Central Delivery System) -->
       <div class="customer-delivery-location-section">
         <div class="delivery-location-card">
+          
+          <!-- Header Row -->
           <div class="delivery-location-header">
             <div class="delivery-location-title-group">
-              <div class="delivery-location-icon-wrap">📍</div>
-              <div>
-                <h3 class="delivery-location-heading">Delivery Location</h3>
-                <p class="delivery-location-subheading">📍 Where should we deliver your order in Mbarara City?</p>
+              <div class="delivery-location-icon-wrap" aria-hidden="true">
+                ${ICONS.location}
+              </div>
+              <div class="delivery-location-title-text">
+                <div class="delivery-location-kicker">Delivery Location</div>
+                <h3 class="delivery-location-heading">Where should we deliver your order in Mbarara City?</h3>
+                <p class="delivery-location-subheading">Your saved delivery address &amp; BloomCare dispatch reference</p>
               </div>
             </div>
             ${savedLoc ? `
-              <button type="button" class="btn btn-outline btn-sm" id="cust-dash-toggle-edit-loc">
-                ${isEditingLoc ? "Cancel Edit" : "Change Location"}
+              <button type="button" class="btn btn-outline btn-sm delivery-change-loc-btn" id="cust-dash-toggle-edit-loc">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                <span>${isEditingLoc ? "Cancel Edit" : "Change Location"}</span>
               </button>
             ` : ""}
           </div>
 
-          <!-- Central Dispensary Reference Hub Callout -->
-          <div class="delivery-hub-reference-box">
-            <div class="delivery-hub-ref-icon">🏥</div>
-            <div class="delivery-hub-ref-content">
-              <div class="delivery-hub-ref-title">BloomCare Pharmacy Central Dispensary</div>
-              <div>Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City.</div>
-              <div class="delivery-hub-ref-landmarks"><strong>Service Policy:</strong> BloomCare delivers within Mbarara City and surrounding service areas.</div>
-            </div>
-          </div>
-
-          ${savedLoc && !isEditingLoc ? `
-            <div class="saved-location-display-card">
-              <div>
-                <div class="saved-location-badges-row">
-                  <span class="delivery-division-tag">🏛 ${escapeHtml(savedLoc.deliveryDivision || savedLoc.division || "Mbarara")}</span>
-                  <span class="delivery-area-tag">📍 ${escapeHtml(savedLoc.deliveryArea === "Other" && savedLoc.customArea ? savedLoc.customArea : (savedLoc.deliveryArea || savedLoc.area || "Central"))}</span>
-                  <span class="status-pill status-delivered">Default Saved Address</span>
-                </div>
-                <div class="saved-location-full-text">${escapeHtml(savedLoc.specificLocation || savedLoc.location || savedLoc.address || "")}</div>
-                ${savedLoc.landmark && savedLoc.landmark !== (savedLoc.specificLocation || savedLoc.location) ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">Landmark: ${escapeHtml(savedLoc.landmark)}</div>` : ""}
-                ${savedLoc.deliveryInstructions ? `<div class="saved-location-instructions-text">Instructions: ${escapeHtml(savedLoc.deliveryInstructions)}</div>` : ""}
-              </div>
-              <div>
-                <button type="button" class="btn btn-secondary btn-sm" id="cust-dash-edit-loc-btn">Update Location</button>
-              </div>
-            </div>
-          ` : `
+          ${isEditingLoc ? `
             <form id="cust-delivery-location-form" class="standard-form">
               <div class="delivery-form-grid">
                 <div>
@@ -3988,8 +4055,13 @@ function renderRoleDashboard() {
               </div>
 
               <div style="margin-bottom:12px;">
-                <label for="cust-loc-specific" style="font-weight:600; font-size:13px;">Specific Location &amp; Landmark</label>
-                <input type="text" id="cust-loc-specific" placeholder="e.g. Near Kiyanja Market, Plot 4, Blue gate, Opposite School" value="${escapeHtml(savedLoc?.specificLocation || savedLoc?.location || savedLoc?.address || "")}" required style="width:100%;" />
+                <label for="cust-loc-specific" style="font-weight:600; font-size:13px;">Exact Location</label>
+                <input type="text" id="cust-loc-specific" placeholder="e.g. Plot 14, Kiyanja Road" value="${escapeHtml(savedLoc?.specificLocation || savedLoc?.location || savedLoc?.address || "")}" required style="width:100%;" />
+              </div>
+
+              <div style="margin-bottom:12px;">
+                <label for="cust-loc-landmark" style="font-weight:600; font-size:13px;">Landmark</label>
+                <input type="text" id="cust-loc-landmark" placeholder="e.g. Mile 3 opposite Ruharo Mosque, Blue gate, near school" value="${escapeHtml(savedLoc?.landmark || "")}" style="width:100%;" />
               </div>
 
               <div style="margin-bottom:14px;">
@@ -3999,10 +4071,123 @@ function renderRoleDashboard() {
 
               <div style="display:flex; gap:10px; align-items:center;">
                 <button type="submit" class="btn btn-primary btn-sm">💾 Save Delivery Location</button>
-                ${savedLoc ? `<button type="button" id="cust-loc-cancel-btn" class="btn btn-outline btn-sm">Cancel</button>` : ""}
+                <button type="button" id="cust-loc-cancel-btn" class="btn btn-outline btn-sm">Cancel</button>
               </div>
             </form>
-          `}
+          ` : (savedLoc ? `
+            <div class="saved-location-display-card">
+              <div class="delivery-location-grid">
+                
+                <!-- Left Pane: Customer Saved Address Details -->
+                <div class="delivery-customer-pane">
+                  
+                  <!-- 1. Delivery Area Block -->
+                  <div class="delivery-info-group">
+                    <div class="delivery-field-header">
+                      <span class="delivery-field-label">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2a8 8 0 0 0-8 8c0 5.25 8 12 8 12s8-6.75 8-12a8 8 0 0 0-8-8z"/><circle cx="12" cy="10" r="3"/></svg>
+                        Delivery Area
+                      </span>
+                      <span class="delivery-default-badge">
+                        <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                        Default Address
+                      </span>
+                    </div>
+                    <div class="delivery-area-row">
+                      <span class="delivery-division-tag">${escapeHtml(savedLoc.deliveryDivision || savedLoc.division || "Kamukuzi")}</span>
+                      <span class="delivery-area-separator">&bull;</span>
+                      <span class="delivery-area-tag">${escapeHtml(savedLoc.deliveryArea === "Other" && savedLoc.customArea ? savedLoc.customArea : (savedLoc.deliveryArea || savedLoc.area || "Ruharo"))}</span>
+                    </div>
+                  </div>
+
+                  <!-- 2. Exact Location Block -->
+                  <div class="delivery-info-group">
+                    <div class="delivery-field-label">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                      Exact Location
+                    </div>
+                    <div class="delivery-primary-val saved-location-full-text">${escapeHtml(savedLoc.specificLocation || savedLoc.location || savedLoc.address || "Plot 14, Kiyanja Road")}</div>
+                  </div>
+
+                  <!-- 3. Landmark Block -->
+                  <div class="delivery-info-group">
+                    <div class="delivery-field-label">
+                      <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+                      Landmark
+                    </div>
+                    <div class="delivery-secondary-val">${escapeHtml(savedLoc.landmark || savedLoc.specificLocation || "Mile 3 opposite Ruharo Mosque")}</div>
+                  </div>
+
+                  <!-- 4. Delivery Instructions (if provided) -->
+                  ${savedLoc.deliveryInstructions ? `
+                    <div class="delivery-info-group">
+                      <div class="delivery-field-label">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                        Delivery Instructions
+                      </div>
+                      <div class="delivery-instructions-box saved-location-instructions-text">${escapeHtml(savedLoc.deliveryInstructions)}</div>
+                    </div>
+                  ` : ""}
+
+                  <div class="delivery-pane-actions">
+                    <button type="button" class="btn btn-secondary btn-sm" id="cust-dash-edit-loc-btn">
+                      <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                      <span>Update Location</span>
+                    </button>
+                  </div>
+
+                </div>
+
+                <!-- Right Pane: BloomCare Physical Hub Reference & Service Policy -->
+                <div class="delivery-hub-pane">
+                  
+                  <div class="delivery-hub-reference-box">
+                    <div class="delivery-hub-head">
+                      <div class="delivery-hub-ref-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18"/><path d="M5 21V7l8-4v18"/><path d="M19 21V11l-6-3"/><path d="M9 9h1"/><path d="M9 13h1"/><path d="M9 17h1"/></svg>
+                      </div>
+                      <div>
+                        <div class="delivery-hub-org">BloomCare Pharmacy</div>
+                        <div class="delivery-hub-ref-title">Central Dispensary</div>
+                      </div>
+                    </div>
+
+                    <div class="delivery-hub-address-lines">
+                      <div class="hub-addr-line">Near Mbarara Regional Referral Hospital</div>
+                      <div class="hub-addr-line">Opposite Rubis Station</div>
+                      <div class="hub-addr-line">Near Mbarara Central Police Station</div>
+                      <div class="hub-addr-city">Mbarara City, Uganda</div>
+                    </div>
+
+                    <div class="delivery-coverage-banner">
+                      <div class="coverage-check-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                      </div>
+                      <div class="coverage-text">
+                        <strong>Delivery available:</strong> BloomCare currently delivers within Mbarara City and configured surrounding service areas.
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+
+              </div>
+            </div>
+          ` : `
+            <div class="delivery-empty-state">
+              <div class="delivery-empty-icon" aria-hidden="true">
+                ${ICONS.location}
+              </div>
+              <div class="delivery-empty-text">
+                <h4>You haven't added a delivery location yet.</h4>
+                <p>Add your location so we can deliver your order around Mbarara City.</p>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm" id="cust-dash-add-loc-btn">
+                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                <span>Add Delivery Location</span>
+              </button>
+            </div>
+          `)}
         </div>
       </div>
 
@@ -4052,6 +4237,7 @@ function renderRoleDashboard() {
     // Attach Customer Dashboard Location Listeners
     const toggleEditBtn = container.querySelector("#cust-dash-toggle-edit-loc");
     const editLocBtn = container.querySelector("#cust-dash-edit-loc-btn");
+    const addLocBtn = container.querySelector("#cust-dash-add-loc-btn");
     const cancelLocBtn = container.querySelector("#cust-loc-cancel-btn");
     const divSelect = container.querySelector("#cust-loc-division");
     const areaSelect = container.querySelector("#cust-loc-area");
@@ -4066,6 +4252,12 @@ function renderRoleDashboard() {
     }
     if (editLocBtn) {
       editLocBtn.addEventListener("click", () => {
+        STATE.isEditingCustLocation = true;
+        renderRoleDashboard();
+      });
+    }
+    if (addLocBtn) {
+      addLocBtn.addEventListener("click", () => {
         STATE.isEditingCustLocation = true;
         renderRoleDashboard();
       });
@@ -4109,6 +4301,7 @@ function renderRoleDashboard() {
         const area = areaSelect?.value || "";
         const customArea = container.querySelector("#cust-loc-custom-area")?.value.trim() || "";
         const specificLocation = container.querySelector("#cust-loc-specific")?.value.trim() || "";
+        const landmark = container.querySelector("#cust-loc-landmark")?.value.trim() || specificLocation;
         const deliveryInstructions = container.querySelector("#cust-loc-instructions")?.value.trim() || "";
 
         const locData = {
@@ -4116,7 +4309,7 @@ function renderRoleDashboard() {
           deliveryArea: area,
           customArea,
           specificLocation,
-          landmark: specificLocation,
+          landmark,
           deliveryInstructions,
           city: "Mbarara City"
         };
@@ -5239,12 +5432,26 @@ function renderOrdersView() {
   if (STATE.orderFilter && STATE.orderFilter !== "all") {
     list = list.filter(o => o.orderStatus === STATE.orderFilter);
   }
+  if (STATE.orderDivisionFilter && STATE.orderDivisionFilter !== "all") {
+    list = list.filter(o => {
+      const div = o.deliveryDivision || o.deliveryAddressDetails?.deliveryDivision || o.deliveryAddressDetails?.division;
+      if (div) return div.toLowerCase() === STATE.orderDivisionFilter.toLowerCase();
+      return (o.deliveryAddress || "").toLowerCase().includes(STATE.orderDivisionFilter.toLowerCase());
+    });
+  }
+  if (STATE.orderAreaFilter && STATE.orderAreaFilter !== "all") {
+    list = list.filter(o => {
+      const area = o.deliveryArea || o.deliveryAddressDetails?.deliveryArea || o.deliveryAddressDetails?.area;
+      if (area) return area.toLowerCase() === STATE.orderAreaFilter.toLowerCase();
+      return (o.deliveryAddress || "").toLowerCase().includes(STATE.orderAreaFilter.toLowerCase());
+    });
+  }
 
   if (list.length === 0) {
     box.innerHTML = `
       <div class="empty-state-box">
-        <p class="empty-title">You have not placed any orders yet.</p>
-        <p class="empty-desc">Explore genuine medications, health devices, and prescription products in our pharmacy catalog.</p>
+        <p class="empty-title">No matching orders found.</p>
+        <p class="empty-desc">There are no orders matching your status and Mbarara City location filters.</p>
         <button class="btn btn-primary btn-sm" type="button" data-route="medicines">Browse Medicines</button>
       </div>
     `;
@@ -5275,7 +5482,9 @@ function renderOrdersView() {
               <td><strong>${formatUGX(o.total)}</strong></td>
               <td><span class="status-pill status-${(o.paymentStatus || "Paid").toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.paymentStatus || "Paid")}</span></td>
               <td><span class="status-pill status-${o.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus)}</span></td>
-              <td><small>${o.fulfillmentType === "pickup" ? "Pharmacy Pickup" : "Doorstep Delivery"}</small></td>
+              <td>
+                <small>${o.fulfillmentType === "pickup" ? "Pharmacy Pickup" : (o.deliveryDivision ? `${escapeHtml(o.deliveryDivision)} • ${escapeHtml(o.deliveryArea || "")}` : "Doorstep Delivery")}</small>
+              </td>
               <td>
                 <button class="btn btn-primary btn-sm track-order-btn" data-id="${o.id}">Track Order</button>
                 <button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">View Order</button>
@@ -5314,7 +5523,10 @@ function renderOrdersView() {
                 <div>${new Date(o.createdAt).toLocaleDateString()}</div>
                 <small class="muted">${new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
               </td>
-              <td>${escapeHtml(o.customerName || (isWalkin ? 'Walk-in Customer' : 'Customer'))}<br><small class="muted">${escapeHtml(o.customerPhone || "")}</small></td>
+              <td>
+                ${escapeHtml(o.customerName || (isWalkin ? 'Walk-in Customer' : 'Customer'))}<br><small class="muted">${escapeHtml(o.customerPhone || "")}</small>
+                ${o.deliveryDivision ? `<div style="margin-top:4px; display:flex; gap:4px; flex-wrap:wrap;"><span class="delivery-division-tag">${escapeHtml(o.deliveryDivision)}</span>${o.deliveryArea ? `<span class="delivery-area-tag">${escapeHtml(o.deliveryArea)}</span>` : ""}</div>` : ""}
+              </td>
               <td>
                 <span class="source-pill ${isWalkin ? 'source-walkin' : 'source-online'}">${isWalkin ? 'WALK-IN' : 'ONLINE'}</span>
                 <div style="font-size:11px; margin-top:2px;" class="muted">${escapeHtml(o.paymentMethod || "Cash")}</div>
@@ -5386,9 +5598,16 @@ function openOrderTrackingModal(orderId) {
           <strong>Order Reference: ${escapeHtml(order.orderNumber || order.id)}</strong>
           <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(order.orderStatus)}</span>
         </div>
-        <p style="font-size:12.5px; margin-top:4px; color:var(--muted);">
-          ${isPickup ? "Fulfillment: Pharmacy Pickup (Plot 14 Kampala Road)" : `Fulfillment: Doorstep Delivery to ${escapeHtml(order.deliveryAddress)}`}
-        </p>
+        <div style="font-size:12.5px; margin-top:4px; color:var(--muted);">
+          ${isPickup ? "Fulfillment: Pharmacy Pickup (Near Mbarara Regional Referral Hospital, Opp. Rubis Station)" : `Fulfillment: Doorstep Delivery to ${escapeHtml(order.deliveryAddress)}`}
+        </div>
+        ${!isPickup && (order.deliveryDivision || order.deliveryArea) ? `
+          <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <span style="font-size:11px; font-weight:700; color:var(--text-main);">Delivery Zone:</span>
+            ${order.deliveryDivision ? `<span class="delivery-division-tag">🏛 ${escapeHtml(order.deliveryDivision)}</span>` : ""}
+            ${order.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(order.deliveryArea)}</span>` : ""}
+          </div>
+        ` : ""}
       </div>
 
       <!-- 6-Stage Timeline -->
@@ -10056,7 +10275,7 @@ export function showReceiptModal(order) {
         </div>
         <div class="receipt-detail-row">
           <span class="detail-label">Location:</span>
-          <span class="detail-val">Plot 14, Kampala Road, Central Kampala</span>
+          <span class="detail-val">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City</span>
         </div>
         <div class="receipt-detail-row">
           <span class="detail-label">Fulfillment:</span>
@@ -10075,7 +10294,7 @@ export function showReceiptModal(order) {
         </div>
         <div class="receipt-detail-row">
           <span class="detail-label">Location:</span>
-          <span class="detail-val">Plot 14, Kampala Road, Central Kampala</span>
+          <span class="detail-val">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City</span>
         </div>
         <div class="receipt-detail-row">
           <span class="detail-label">Dispensary Hours:</span>
@@ -10086,20 +10305,28 @@ export function showReceiptModal(order) {
       deliveryBody.innerHTML = `
         <div class="receipt-detail-row">
           <span class="detail-label">Fulfillment:</span>
-          <strong class="detail-val">Home Delivery</strong>
+          <strong class="detail-val">Doorstep Delivery (Mbarara City)</strong>
         </div>
+        ${order.deliveryDivision ? `
+        <div class="receipt-detail-row">
+          <span class="detail-label">Delivery Zone:</span>
+          <span class="detail-val" style="display:flex; gap:4px; flex-wrap:wrap;">
+            <span class="delivery-division-tag">🏛 ${escapeHtml(order.deliveryDivision)}</span>
+            ${order.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(order.deliveryArea)}</span>` : ""}
+          </span>
+        </div>` : ""}
         <div class="receipt-detail-row">
           <span class="detail-label">Delivery Address:</span>
-          <strong class="detail-val">${escapeHtml(order.deliveryAddress || "Kampala")}</strong>
+          <strong class="detail-val">${escapeHtml(order.deliveryAddress || "Mbarara City")}</strong>
         </div>
         <div class="receipt-detail-row">
           <span class="detail-label">City/Town:</span>
-          <span class="detail-val">${escapeHtml(order.deliveryCity || "Kampala")}</span>
+          <span class="detail-val">${escapeHtml(order.deliveryCity || "Mbarara City")}</span>
         </div>
-        ${order.deliveryNotes ? `
+        ${(order.deliveryNotes || order.deliveryInstructions) ? `
         <div class="receipt-detail-row">
           <span class="detail-label">Instructions:</span>
-          <span class="detail-val">${escapeHtml(order.deliveryNotes)}</span>
+          <span class="detail-val">${escapeHtml(order.deliveryNotes || order.deliveryInstructions)}</span>
         </div>` : ""}
       `;
     }
@@ -10337,7 +10564,7 @@ function bindEventListeners() {
   $("#user-profile-pill")?.addEventListener("click", (e) => {
     e.stopPropagation();
     if (!STATE.currentUser) {
-      navigateTo("auth");
+      navigateTo("login");
       return;
     }
     const dropdown = $("#user-profile-dropdown");
@@ -10442,7 +10669,7 @@ function bindEventListeners() {
     STATE.activeRole = "visitor";
     STATE.developerPreviewRole = null;
     hideAuthLoadingScreen();
-    navigateTo("auth");
+    navigateTo("login");
   });
 
   // Sidebar Auth Action Button (Sign In / Sign Out)
@@ -10450,7 +10677,7 @@ function bindEventListeners() {
     if (STATE.currentUser) {
       $("#logout-confirm-dialog")?.showModal();
     } else {
-      navigateTo("auth");
+      navigateTo("login");
     }
   };
   $("#sidebar-auth-action-btn")?.addEventListener("click", handleAuthTrigger);
@@ -10470,15 +10697,11 @@ function bindEventListeners() {
   $("#close-auth-required-modal")?.addEventListener("click", () => $("#auth-required-dialog")?.close());
   $("#btn-auth-req-login")?.addEventListener("click", () => {
     $("#auth-required-dialog")?.close();
-    $("#register-card")?.classList.add("hidden");
-    $("#login-card")?.classList.remove("hidden");
-    navigateTo("auth");
+    navigateTo("login");
   });
   $("#btn-auth-req-register")?.addEventListener("click", () => {
     $("#auth-required-dialog")?.close();
-    $("#login-card")?.classList.add("hidden");
-    $("#register-card")?.classList.remove("hidden");
-    navigateTo("auth");
+    navigateTo("register");
   });
 
   // Global & Catalog Search Inputs with Smart Autocomplete & Prefix Engine
@@ -10635,6 +10858,40 @@ function bindEventListeners() {
       STATE.orderFilter = orderPill.dataset.orderFilter;
       renderOrdersView();
     }
+  });
+
+  // Mbarara Location Filter in Orders View
+  $("#orders-filter-division")?.addEventListener("change", (e) => {
+    const val = e.target.value;
+    STATE.orderDivisionFilter = val;
+    STATE.orderAreaFilter = "all";
+    const areaSelect = $("#orders-filter-area");
+    if (areaSelect) {
+      if (!val || val === "all") {
+        areaSelect.innerHTML = `<option value="all">All Areas</option>`;
+      } else {
+        const areas = getMbararaAreas(val).filter(a => a !== "Other");
+        areaSelect.innerHTML = `<option value="all">All Areas</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+      }
+      areaSelect.value = "all";
+    }
+    renderOrdersView();
+  });
+
+  $("#orders-filter-area")?.addEventListener("change", (e) => {
+    STATE.orderAreaFilter = e.target.value;
+    renderOrdersView();
+  });
+
+  $("#orders-filter-reset-location")?.addEventListener("click", () => {
+    STATE.orderDivisionFilter = "all";
+    STATE.orderAreaFilter = "all";
+    if ($("#orders-filter-division")) $("#orders-filter-division").value = "all";
+    if ($("#orders-filter-area")) {
+      $("#orders-filter-area").innerHTML = `<option value="all">All Areas</option>`;
+      $("#orders-filter-area").value = "all";
+    }
+    renderOrdersView();
   });
 
   // Fulfillment Option Selector in Checkout (Delivery vs Pickup)
@@ -12327,6 +12584,9 @@ function bindEventListeners() {
     $("#register-card")?.classList.add("hidden");
     $("#staff-login-card")?.classList.add("hidden");
     $("#login-card")?.classList.remove("hidden");
+  });
+  $("#switch-to-staff-login-btn")?.addEventListener("click", () => {
+    navigateTo("staff-login");
   });
 
   // Customer Login Form
