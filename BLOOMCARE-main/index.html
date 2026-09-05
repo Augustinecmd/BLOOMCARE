@@ -2539,6 +2539,10 @@
             <label id="walkin-momo-phone-label">Customer Mobile Money Phone Number:</label>
             <input type="tel" id="walkin-momo-phone" class="pos-input-sm" placeholder="e.g. 0772 123 456" maxlength="10" />
             <small class="muted" id="walkin-momo-hint">Enter the customer's phone number to verify and record transaction.</small>
+            <div id="walkin-momo-status" class="pos-momo-status hidden">
+              <div class="pos-momo-spinner"></div>
+              <span id="walkin-momo-status-text">Awaiting customer PIN approval...</span>
+            </div>
           </div>
 
           <!-- Card / POS Payment Details -->
@@ -2753,6 +2757,21 @@
       </div>
     </div>
 
+    <!-- Clinical Prescription Verification Section (for Rx items) -->
+    <div class="receipt-card-section" id="rec-rx-verified-section" style="margin-top:10px; display:none;">
+      <h4 class="receipt-section-heading">CLINICAL PRESCRIPTION VERIFICATION</h4>
+      <div class="receipt-details-list">
+        <div class="receipt-detail-row">
+          <span class="detail-label">Prescription Verification:</span>
+          <strong class="detail-val" style="color:#0f766e;" id="rec-rx-verified-val">✓ Verified by Pharmacist</strong>
+        </div>
+        <div class="receipt-detail-row" id="rec-rx-note-row" style="display:none;">
+          <span class="detail-label">Prescriber / Clinic Note:</span>
+          <span class="detail-val" id="rec-rx-note-val">--</span>
+        </div>
+      </div>
+    </div>
+
     <!-- 4. Order Items Table -->
     <div class="receipt-items-section">
       <h4 class="receipt-section-heading" style="margin-top:14px;">ORDER ITEMS</h4>
@@ -2810,6 +2829,9 @@
   <div class="receipt-modal-actions no-print">
     <button class="btn btn-primary" id="print-receipt-action" type="button">
       🖨 Print Receipt
+    </button>
+    <button class="btn btn-outline" id="print-thermal-receipt-action" type="button" title="Print 80mm thermal dispensary slip">
+      🧾 Print Thermal (80mm)
     </button>
     <button class="btn btn-secondary" id="download-receipt-action" type="button">
       ⬇ Download Receipt
