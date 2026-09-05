@@ -9888,6 +9888,9 @@ async function handleCheckoutOrder(e) {
 
 export let activeWalkinCart = [];
 export let activeWalkinPaymentMethod = "Cash";
+export let activeWalkinDiscountMode = "ugx"; // "ugx" or "pct"
+export let posCalcExpression = "0";
+export let posCalcPrevious = "";
 
 export function generateWalkinSaleReference() {
   const d = new Date();
@@ -9896,6 +9899,27 @@ export function generateWalkinSaleReference() {
   const dd = String(d.getDate()).padStart(2, "0");
   const rand = Math.floor(1000 + Math.random() * 9000);
   return `BC-SALE-${yyyy}${mm}${dd}-${rand}`;
+}
+
+export function updateWalkinStatsStrip() {
+  const today = new Date().toDateString();
+  const todayOrders = (STATE.orders || []).filter(o => {
+    if (!o.createdAt) return false;
+    return new Date(o.createdAt).toDateString() === today;
+  });
+  const todaySales = todayOrders.reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+  const todayTx = todayOrders.length;
+  const todayWalkin = todayOrders.filter(o => o.saleSource === "WALK_IN" || isWalkinOrder(o)).length;
+
+  if (typeof document === "undefined") return { todaySales, todayTx, todayWalkin };
+
+  const salesEl = $("#pos-stat-today-sales");
+  if (salesEl) salesEl.textContent = formatUGX(todaySales);
+  const txEl = $("#pos-stat-today-tx");
+  if (txEl) txEl.textContent = String(todayTx);
+  const walkinEl = $("#pos-stat-walkin-sales");
+  if (walkinEl) walkinEl.textContent = String(todayWalkin);
+  return { todaySales, todayTx, todayWalkin };
 }
 
 export function openWalkinSaleModal() {
@@ -9917,9 +9941,13 @@ export function openWalkinSaleModal() {
   }[effRole] || "Pharmacy Staff";
   if (staffInfoEl) staffInfoEl.textContent = `Staff: ${staffName} (${roleLabel})`;
 
+  // Update live counter daily stats strip
+  updateWalkinStatsStrip();
+
   // Reset state
   activeWalkinCart = [];
   activeWalkinPaymentMethod = "Cash";
+  activeWalkinDiscountMode = "ugx";
 
   const custNameInput = $("#walkin-cust-name");
   if (custNameInput) custNameInput.value = "Walk-in Customer";
@@ -9929,9 +9957,17 @@ export function openWalkinSaleModal() {
 
   const searchInput = $("#walkin-search-input");
   if (searchInput) searchInput.value = "";
+  $("#walkin-search-clear")?.classList.add("hidden");
 
   const discountInput = $("#walkin-discount-input");
-  if (discountInput) discountInput.value = "0";
+  if (discountInput) {
+    discountInput.value = "0";
+    discountInput.removeAttribute("max");
+    discountInput.placeholder = "0";
+  }
+  $("#pos-discount-mode-ugx")?.classList.add("active");
+  $("#pos-discount-mode-pct")?.classList.remove("active");
+  $("#walkin-discount-error")?.classList.add("hidden");
 
   const cashInput = $("#walkin-cash-received");
   if (cashInput) cashInput.value = "";
@@ -9969,6 +10005,27 @@ export function closeWalkinSaleModal() {
     if (typeof dlg.close === "function") dlg.close();
     else dlg.removeAttribute("open");
   }
+}
+
+export function setWalkinDiscountMode(mode) {
+  activeWalkinDiscountMode = mode === "pct" ? "pct" : "ugx";
+  if (typeof document === "undefined") return activeWalkinDiscountMode;
+  $("#pos-discount-mode-ugx")?.classList.toggle("active", activeWalkinDiscountMode === "ugx");
+  $("#pos-discount-mode-pct")?.classList.toggle("active", activeWalkinDiscountMode === "pct");
+
+  const discountInput = $("#walkin-discount-input");
+  if (discountInput) {
+    if (activeWalkinDiscountMode === "pct") {
+      discountInput.max = "100";
+      discountInput.placeholder = "0%";
+      const val = parseFloat(discountInput.value || 0);
+      if (val > 100) discountInput.value = "100";
+    } else {
+      discountInput.removeAttribute("max");
+      discountInput.placeholder = "0";
+    }
+  }
+  renderWalkinCart();
 }
 
 export function renderWalkinSearchResults(query = "", category = "all") {
@@ -10019,8 +10076,8 @@ export function renderWalkinSearchResults(query = "", category = "all") {
             <div class="pos-med-generic">${escapeHtml(prod.genericName || prod.brandName || prod.category || "")}</div>
             <div class="pos-med-meta-row">
               <span class="pos-stock-pill ${stockBadgeClass}">${stockBadgeLabel}</span>
-              ${prod.requiresPrescription ? '<span class="pos-rx-pill">Rx Required</span>' : ''}
-              <span class="pos-med-strength">${escapeHtml(prod.strength || prod.dosageForm || "")}</span>
+              ${prod.requiresPrescription ? '<span class="pos-rx-pill">Rx Required</span>' : '<span class="pos-otc-pill">OTC</span>'}
+              <span class="pos-med-strength">${escapeHtml(prod.strength || prod.dosageForm || prod.packSize || "")}</span>
             </div>
           </div>
         </div>
@@ -10032,7 +10089,7 @@ export function renderWalkinSearchResults(query = "", category = "all") {
             data-id="${prod.id}" 
             ${(isOut || isMaxInCart) ? "disabled" : ""}
           >
-            ${isOut ? "Out of Stock" : (isMaxInCart ? "In Cart (Max)" : "+ Add to Sale")}
+            ${isOut ? "Out of Stock" : (isMaxInCart ? "In Cart (Max)" : "+ Add")}
           </button>
         </div>
       </div>
@@ -10077,7 +10134,7 @@ export function addWalkinCartItem(productId, qty = 1) {
   if (existing) {
     if (existing.quantity + qty > stock) {
       existing.quantity = stock;
-      showToast(`Maximum available stock (${stock} units) reached for ${prod.name}.`, "warning");
+      showToast(`Only ${stock} units are currently available for ${prod.name}.`, "warning");
     } else {
       existing.quantity += qty;
     }
@@ -10109,7 +10166,7 @@ export function updateWalkinCartItemQty(productId, newQty) {
   } else {
     if (newQty > stock) {
       activeWalkinCart[itemIndex].quantity = stock;
-      showToast(`Cannot exceed available stock of ${stock} units for ${prod.name}.`, "warning");
+      showToast(`Only ${stock} units are currently available for ${prod.name}.`, "warning");
     } else {
       activeWalkinCart[itemIndex].quantity = newQty;
     }
@@ -10135,7 +10192,7 @@ export function renderWalkinCart() {
   if (!listEl) return;
 
   const totalItemCount = activeWalkinCart.reduce((sum, i) => sum + i.quantity, 0);
-  if (countEl) countEl.textContent = `${totalItemCount} ${totalItemCount === 1 ? "unit" : "units"}`;
+  if (countEl) countEl.textContent = `${totalItemCount} ${totalItemCount === 1 ? "item" : "items"}`;
 
   if (activeWalkinCart.length === 0) {
     listEl.innerHTML = `
@@ -10159,7 +10216,7 @@ export function renderWalkinCart() {
               <strong>${escapeHtml(p.name)}</strong>
               ${p.requiresPrescription ? '<span class="pos-rx-tag">Rx</span>' : ''}
             </div>
-            <div class="pos-cart-item-unitprice">${formatUGX(item.unitPrice)} each</div>
+            <div class="pos-cart-item-unitprice">${formatUGX(item.unitPrice)} &times; ${item.quantity} = <strong>${formatUGX(lineTotal)}</strong></div>
           </div>
           <div class="pos-cart-item-qty-stepper">
             <button type="button" class="pos-stepper-btn pos-stepper-minus" data-id="${p.id}" aria-label="Decrease quantity">&minus;</button>
@@ -10213,14 +10270,39 @@ export function renderWalkinCart() {
     rxBanner.classList.toggle("hidden", !hasRx);
   }
 
-  // Billing calculations
+  // Billing calculations with dual discount mode (UGX vs %)
   const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-  const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
-  const discount = Math.min(Math.max(0, discountInput), subtotal);
+  const rawDiscountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+  let discountAmount = 0;
+  let isDiscountExcessive = false;
+
+  if (activeWalkinDiscountMode === "pct") {
+    if (rawDiscountInput > 100 || rawDiscountInput < 0) isDiscountExcessive = true;
+    const clampedPct = Math.min(100, Math.max(0, rawDiscountInput));
+    discountAmount = Math.round(subtotal * (clampedPct / 100));
+  } else {
+    if (rawDiscountInput > subtotal || rawDiscountInput < 0) isDiscountExcessive = true;
+    discountAmount = Math.max(0, rawDiscountInput);
+  }
+
+  if (discountAmount > subtotal) {
+    isDiscountExcessive = true;
+  }
+
+  const errorEl = $("#walkin-discount-error");
+  if (errorEl) errorEl.classList.toggle("hidden", !isDiscountExcessive);
+
+  const discount = Math.min(Math.max(0, discountAmount), subtotal);
   const total = Math.max(0, subtotal - discount);
 
   if ($("#walkin-subtotal-val")) $("#walkin-subtotal-val").textContent = formatUGX(subtotal);
-  if ($("#walkin-discount-val")) $("#walkin-discount-val").textContent = "- " + formatUGX(discount);
+  if ($("#walkin-discount-val")) {
+    if (activeWalkinDiscountMode === "pct" && rawDiscountInput > 0) {
+      $("#walkin-discount-val").textContent = `- ${formatUGX(discount)} (${rawDiscountInput}%)`;
+    } else {
+      $("#walkin-discount-val").textContent = "- " + formatUGX(discount);
+    }
+  }
   if ($("#walkin-total-val")) $("#walkin-total-val").textContent = formatUGX(total);
 
   calculateWalkinCashChange(total);
@@ -10229,8 +10311,11 @@ export function renderWalkinCart() {
 export function calculateWalkinCashChange(total = null) {
   if (total === null) {
     const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-    const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
-    const discount = Math.min(Math.max(0, discountInput), subtotal);
+    const rawDiscountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+    const discountAmount = activeWalkinDiscountMode === "pct"
+      ? Math.round(subtotal * (Math.min(100, Math.max(0, rawDiscountInput)) / 100))
+      : Math.max(0, rawDiscountInput);
+    const discount = Math.min(Math.max(0, discountAmount), subtotal);
     total = Math.max(0, subtotal - discount);
   }
 
@@ -10242,7 +10327,10 @@ export function calculateWalkinCashChange(total = null) {
   if (activeWalkinPaymentMethod === "Cash") {
     const cashInput = $("#walkin-cash-received");
     const receivedVal = parseFloat(cashInput?.value || 0) || 0;
+    const changeDisplay = $("#walkin-change-display");
     const changeValEl = $("#walkin-change-val");
+    const remainingDisplay = $("#walkin-remaining-display");
+    const remainingValEl = $("#walkin-remaining-val");
     const alertEl = $("#walkin-insufficient-cash-alert");
 
     const change = receivedVal - total;
@@ -10253,19 +10341,29 @@ export function calculateWalkinCashChange(total = null) {
           changeValEl.textContent = formatUGX(change);
           changeValEl.style.color = "#16a34a";
         }
+        changeDisplay?.classList.remove("hidden");
+        remainingDisplay?.classList.add("hidden");
         alertEl?.classList.add("hidden");
         if (completeBtn) completeBtn.disabled = !isRxAllowed;
       } else {
+        const remaining = total - receivedVal;
         if (changeValEl) {
           changeValEl.textContent = "UGX 0";
           changeValEl.style.color = "#dc2626";
         }
+        changeDisplay?.classList.add("hidden");
+        if (remainingValEl) {
+          remainingValEl.textContent = formatUGX(remaining);
+        }
+        remainingDisplay?.classList.remove("hidden");
         if (receivedVal > 0) alertEl?.classList.remove("hidden");
         else alertEl?.classList.add("hidden");
         if (completeBtn) completeBtn.disabled = true;
       }
     } else {
       if (changeValEl) changeValEl.textContent = "UGX 0";
+      changeDisplay?.classList.remove("hidden");
+      remainingDisplay?.classList.add("hidden");
       alertEl?.classList.add("hidden");
       if (completeBtn) completeBtn.disabled = true;
     }
@@ -10291,6 +10389,161 @@ export function calculateWalkinCashChange(total = null) {
   }
 }
 
+// Scratchpad Calculator Logic
+export function updatePosCalcDisplay() {
+  if (typeof document === "undefined") return;
+  const screen = $("#pos-calc-screen");
+  const sub = $("#pos-calc-sub");
+  if (screen) screen.textContent = posCalcExpression;
+  if (sub) sub.textContent = posCalcPrevious || "0";
+}
+
+export function openPosCalculator() {
+  posCalcExpression = "0";
+  posCalcPrevious = "";
+  updatePosCalcDisplay();
+  const dlg = $("#pos-calculator-dialog");
+  if (dlg) {
+    if (typeof dlg.showModal === "function") dlg.showModal();
+    else dlg.setAttribute("open", "true");
+  }
+}
+
+export function closePosCalculator() {
+  const dlg = $("#pos-calculator-dialog");
+  if (dlg) {
+    if (typeof dlg.close === "function") dlg.close();
+    else dlg.removeAttribute("open");
+  }
+}
+
+export function handlePosCalcInput(action, val) {
+  if (action === "clear") {
+    posCalcExpression = "0";
+    posCalcPrevious = "";
+  } else if (action === "backspace") {
+    if (posCalcExpression.length > 1) {
+      posCalcExpression = posCalcExpression.slice(0, -1);
+    } else {
+      posCalcExpression = "0";
+    }
+  } else if (action === "num") {
+    if (val === ".") {
+      const parts = posCalcExpression.split(/[+\-*/]/);
+      const currentToken = parts[parts.length - 1];
+      if (!currentToken.includes(".")) {
+        posCalcExpression += ".";
+      }
+    } else {
+      if (posCalcExpression === "0" || posCalcExpression === "Error") {
+        posCalcExpression = String(val);
+      } else {
+        posCalcExpression += String(val);
+      }
+    }
+  } else if (action === "op") {
+    if (posCalcExpression === "Error") posCalcExpression = "0";
+    const lastChar = posCalcExpression.slice(-1);
+    if ("+-*/".includes(lastChar)) {
+      posCalcExpression = posCalcExpression.slice(0, -1) + val;
+    } else {
+      posCalcExpression += val;
+    }
+  } else if (action === "equals") {
+    try {
+      if (!/^[\d+\-*/.\s]+$/.test(posCalcExpression)) {
+        posCalcExpression = "Error";
+      } else {
+        const sanitized = posCalcExpression.replace(/[^0-9+\-*/.]/g, "");
+        const res = new Function(`"use strict"; return (${sanitized});`)();
+        if (typeof res === "number" && !isNaN(res) && isFinite(res)) {
+          posCalcPrevious = posCalcExpression + " =";
+          posCalcExpression = String(Math.round(res * 10000) / 10000);
+        } else {
+          posCalcExpression = "Error";
+        }
+      }
+    } catch (_) {
+      posCalcExpression = "Error";
+    }
+  }
+  updatePosCalcDisplay();
+}
+
+// Recent Sales Viewer Modal
+export function openRecentSalesModal() {
+  const dlg = $("#walkin-recent-sales-dialog");
+  const listEl = $("#walkin-recent-sales-list");
+  if (!dlg || !listEl) return;
+
+  const recentWalkinOrders = (STATE.orders || [])
+    .filter(o => o.saleSource === "WALK_IN" || isWalkinOrder(o))
+    .slice(0, 15);
+
+  if (recentWalkinOrders.length === 0) {
+    listEl.innerHTML = `
+      <div class="pos-empty-recent" style="text-align:center; padding:28px 16px; color:var(--muted);">
+        <span style="font-size:36px; display:block; margin-bottom:8px;">🧾</span>
+        <p style="margin:0; font-weight:700; color:var(--text-main);">No Recent Walk-in Sales</p>
+        <small class="muted">Counter sales completed today will appear here.</small>
+      </div>
+    `;
+  } else {
+    listEl.innerHTML = recentWalkinOrders.map(o => {
+      const timeStr = o.createdAt ? new Date(o.createdAt).toLocaleTimeString("en-UG", { hour: "2-digit", minute: "2-digit" }) : "";
+      const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-UG", { month: "short", day: "numeric" }) : "";
+      const itemsCount = (o.items || []).reduce((sum, i) => sum + (i.quantity || 1), 0);
+      const itemsDesc = (o.items || []).map(i => `${i.quantity}x ${i.name}`).slice(0, 2).join(", ");
+      const moreItems = (o.items || []).length > 2 ? ` +${o.items.length - 2} more` : "";
+
+      return `
+        <div class="pos-recent-sale-row" style="display:flex; justify-content:space-between; align-items:center; padding:12px; border-bottom:1px solid var(--border); gap:12px;">
+          <div style="flex:1; min-width:0;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <strong style="font-size:13px; color:var(--text-main); font-family:monospace;">${escapeHtml(o.orderNumber || o.id)}</strong>
+              <span class="badge badge-sm badge-success" style="font-size:10px; padding:1px 6px; text-transform:uppercase;">${escapeHtml(o.paymentMethod || "Cash")}</span>
+            </div>
+            <div style="font-size:12px; color:var(--text-main); margin-top:3px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+              ${escapeHtml(o.customerName || "Walk-in Customer")} &bull; ${itemsDesc}${moreItems} (${itemsCount} items)
+            </div>
+            <div style="font-size:11px; color:var(--muted); margin-top:2px;">
+              ${dateStr} at ${timeStr} &bull; Staff: ${escapeHtml(o.staffName || "Pharmacy Staff")}
+            </div>
+          </div>
+          <div style="text-align:right; flex-shrink:0;">
+            <div style="font-weight:800; font-size:13.5px; color:#0f766e;">${formatUGX(o.total)}</div>
+            <button type="button" class="btn btn-xs btn-outline pos-recent-rec-btn" data-id="${escapeHtml(o.id)}" style="margin-top:4px; font-size:11px; padding:2px 8px;">
+              View Receipt
+            </button>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    listEl.querySelectorAll(".pos-recent-rec-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const orderId = btn.dataset.id;
+        const found = STATE.orders.find(o => o.id === orderId);
+        if (found) {
+          dlg.close();
+          showReceiptModal(found);
+        }
+      });
+    });
+  }
+
+  if (typeof dlg.showModal === "function") dlg.showModal();
+  else dlg.setAttribute("open", "true");
+}
+
+export function closeRecentSalesModal() {
+  const dlg = $("#walkin-recent-sales-dialog");
+  if (dlg) {
+    if (typeof dlg.close === "function") dlg.close();
+    else dlg.removeAttribute("open");
+  }
+}
+
 export function completeWalkinSale() {
   if (activeWalkinCart.length === 0) {
     showToast("Cannot complete sale with an empty cart. Please add medicines first.", "error");
@@ -10298,8 +10551,11 @@ export function completeWalkinSale() {
   }
 
   const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-  const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
-  const discount = Math.min(Math.max(0, discountInput), subtotal);
+  const rawDiscountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+  const discountAmount = activeWalkinDiscountMode === "pct"
+    ? Math.round(subtotal * (Math.min(100, Math.max(0, rawDiscountInput)) / 100))
+    : Math.max(0, rawDiscountInput);
+  const discount = Math.min(Math.max(0, discountAmount), subtotal);
   const total = Math.max(0, subtotal - discount);
 
   // Prescription clinical review safety gate
@@ -10457,10 +10713,13 @@ export function completeWalkinSale() {
     verifiedAt: now.toISOString()
   });
 
-  // Save order to central STATE.orders
+  // Save order directly to central STATE.orders
   STATE.orders.unshift(newSaleOrder);
   try { saveOrder(newSaleOrder); } catch (_) {}
   try { saveCartToStorage(); } catch (_) {}
+
+  // Update counter stats strip
+  updateWalkinStatsStrip();
 
   // Close POS dialog
   closeWalkinSaleModal();
@@ -12182,6 +12441,91 @@ function bindEventListeners() {
     renderWalkinCart();
   });
 
+  $("#pos-discount-mode-ugx")?.addEventListener("click", () => {
+    setWalkinDiscountMode("ugx");
+  });
+
+  $("#pos-discount-mode-pct")?.addEventListener("click", () => {
+    setWalkinDiscountMode("pct");
+  });
+
+  // Clear Sale confirmation handlers
+  $("#walkin-clear-sale-btn")?.addEventListener("click", () => {
+    if (activeWalkinCart.length === 0) return;
+    const dlg = $("#walkin-clear-confirm-dialog");
+    if (dlg) {
+      if (typeof dlg.showModal === "function") dlg.showModal();
+      else dlg.setAttribute("open", "true");
+    }
+  });
+
+  $("#walkin-cancel-clear-btn")?.addEventListener("click", () => {
+    const dlg = $("#walkin-clear-confirm-dialog");
+    if (dlg) {
+      if (typeof dlg.close === "function") dlg.close();
+      else dlg.removeAttribute("open");
+    }
+  });
+
+  $("#walkin-confirm-clear-btn")?.addEventListener("click", () => {
+    activeWalkinCart = [];
+    const dlg = $("#walkin-clear-confirm-dialog");
+    if (dlg) {
+      if (typeof dlg.close === "function") dlg.close();
+      else dlg.removeAttribute("open");
+    }
+    renderWalkinCart();
+    const q = $("#walkin-search-input")?.value || "";
+    const activeCat = document.querySelector(".pos-cat-pill.active")?.dataset.cat || "all";
+    renderWalkinSearchResults(q, activeCat);
+    showToast("Current sale cleared.", "info");
+  });
+
+  // Scratchpad Calculator Modal & Keypad
+  $("#pos-open-calculator-btn")?.addEventListener("click", openPosCalculator);
+  $("#close-pos-calculator-modal")?.addEventListener("click", closePosCalculator);
+
+  $$(".pos-calc-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const action = btn.dataset.action;
+      const val = btn.dataset.val;
+      handlePosCalcInput(action, val);
+    });
+  });
+
+  // Calculator physical keyboard support
+  document.addEventListener("keydown", (e) => {
+    const calcDlg = $("#pos-calculator-dialog");
+    if (!calcDlg || (!calcDlg.open && !calcDlg.hasAttribute("open"))) return;
+
+    if (e.key >= "0" && e.key <= "9") {
+      e.preventDefault();
+      handlePosCalcInput("num", e.key);
+    } else if (e.key === ".") {
+      e.preventDefault();
+      handlePosCalcInput("num", ".");
+    } else if (["+", "-", "*", "/"].includes(e.key)) {
+      e.preventDefault();
+      handlePosCalcInput("op", e.key);
+    } else if (e.key === "Enter" || e.key === "=") {
+      e.preventDefault();
+      handlePosCalcInput("equals");
+    } else if (e.key === "Backspace") {
+      e.preventDefault();
+      handlePosCalcInput("backspace");
+    } else if (e.key === "Escape") {
+      e.preventDefault();
+      closePosCalculator();
+    } else if (e.key === "c" || e.key === "C") {
+      e.preventDefault();
+      handlePosCalcInput("clear");
+    }
+  });
+
+  // Recent Sales Viewer
+  $("#pos-toggle-recent-sales-btn")?.addEventListener("click", openRecentSalesModal);
+  $("#close-recent-sales-modal")?.addEventListener("click", closeRecentSalesModal);
+
   $$(".pos-chip-btn").forEach(chip => {
     chip.addEventListener("click", () => {
       const amt = chip.dataset.amt;
@@ -12189,8 +12533,11 @@ function bindEventListeners() {
       if (!cashInput) return;
 
       const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
-      const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
-      const discount = Math.min(Math.max(0, discountInput), subtotal);
+      const rawDiscountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+      const discountAmount = activeWalkinDiscountMode === "pct"
+        ? Math.round(subtotal * (Math.min(100, Math.max(0, rawDiscountInput)) / 100))
+        : Math.max(0, rawDiscountInput);
+      const discount = Math.min(Math.max(0, discountAmount), subtotal);
       const total = Math.max(0, subtotal - discount);
 
       if (amt === "exact") {
