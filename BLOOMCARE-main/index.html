@@ -143,7 +143,7 @@
 
     <!-- Top Announcement Bar -->
     <div class="main-top-announcement">
-      <span><strong>BloomCare Pharmacy Uganda</strong> &bull; Doorstep Medicine Delivery &bull; Kampala, Uganda</span>
+      <span><strong>BloomCare Pharmacy Uganda</strong> &bull; Doorstep Medicine Delivery &bull; Mbarara City, Uganda</span>
       <div class="announcement-right">
         <a href="tel:+256700000000" class="announcement-link">Tel: +256 700 000 000</a>
         <a href="https://wa.me/256750210886" id="top-whatsapp-link" class="announcement-link whatsapp-accent" target="_blank" rel="noopener noreferrer">WhatsApp Care Desk: 0750210886</a>
@@ -254,61 +254,183 @@
       <!-- MODULE 2: MEDICINES MODULE (#medicines) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-medicines">
-        <div class="page-header-block flex-between">
+        <!-- Staff Header & Controls (Visible only to Admin/Pharmacist/Assistants) -->
+        <div class="page-header-block flex-between hidden" id="medicines-staff-header">
           <div>
-            <h1 class="page-title">Medicines</h1>
-            <p class="page-desc">Browse and search genuine NDA-verified pharmaceutical products.</p>
+            <h1 class="page-title">Medicines Management</h1>
+            <p class="page-desc">Manage formulary inventory, price controls, and pharmaceutical stocks.</p>
+            <p class="catalog-formulary-notice" style="font-size:12px; color:var(--text-muted); margin-top:4px;">
+              <strong>UGANDAN PHARMACY CATALOG (EMHSLU 2023):</strong> Comprehensive formulary of genuine pharmaceuticals and health supplies across 15 therapeutic categories, aligned with Uganda Ministry of Health guidelines and National Drug Authority (NDA) standards.
+            </p>
           </div>
-          <div id="medicines-staff-actions" class="hidden">
+          <div id="medicines-staff-actions">
             <button class="btn btn-secondary btn-sm" id="btn-open-price-summary" type="button" style="margin-right:8px;">📊 Price Review Summary</button>
             <button class="btn btn-primary btn-sm" id="btn-open-add-product" type="button">Add New Product</button>
           </div>
         </div>
 
-        <div class="demo-catalog-notice" style="background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; padding:10px 16px; border-radius:var(--radius-sm); font-size:12.5px; margin-bottom:16px; display:flex; align-items:center; gap:8px;">
-          <span>🇺🇬</span>
-          <div>
-            <strong>UGANDAN PHARMACY CATALOG (EMHSLU 2023):</strong> Comprehensive formulary of 780 genuine pharmaceuticals and health supplies across 15 therapeutic categories, aligned with Uganda Ministry of Health guidelines and National Drug Authority (NDA) standards.
-          </div>
-        </div>
-
-        <!-- Customer View Toolbar -->
-        <div class="catalog-controls-panel" id="customer-medicines-controls">
-          <div class="search-input-wrap" id="catalog-search-container">
-            <input type="text" id="catalog-search-input" placeholder="Search medicines by name... (Ctrl+K)" autocomplete="off" aria-autocomplete="list" aria-controls="catalog-search-suggestions" />
-            <span class="search-icon-symbol" id="catalog-search-symbol"></span>
-            <div class="search-suggestions-dropdown hidden" id="catalog-search-suggestions" role="listbox"></div>
-          </div>
-          <div class="filter-controls-row">
-            <div class="filter-pills-row" id="catalog-category-pills"></div>
-            <div class="filter-dropdowns-row">
-              <select id="filter-availability" class="form-select-sm">
-                <option value="all">Availability: All</option>
-                <option value="in-stock">In Stock Only</option>
-                <option value="out-of-stock">Out of Stock</option>
-              </select>
-              <select id="filter-prescription" class="form-select-sm">
-                <option value="all">Prescription: All</option>
-                <option value="otc">Over-The-Counter (OTC)</option>
-                <option value="rx">Prescription Required (Rx)</option>
-              </select>
-              <select id="sort-medicines" class="form-select-sm">
-                <option value="name-asc" selected>Sort: Name (A-Z)</option>
-                <option value="name-desc">Sort: Name (Z-A)</option>
-                <option value="price-asc">Sort: Price (Low to High)</option>
-                <option value="price-desc">Sort: Price (High to Low)</option>
-                <option value="newest">Sort: Newest</option>
-                <option value="availability">Sort: Availability (In Stock First)</option>
-              </select>
+        <!-- ========================================================== -->
+        <!-- CUSTOMER PHARMACY STOREFRONT (Mobile Marketplace Hierarchy) -->
+        <!-- ========================================================== -->
+        <div class="customer-storefront-wrapper" id="customer-storefront-wrapper">
+          <!-- 1. Top Pharmacy Hero Section -->
+          <div class="pharmacy-hero-container">
+            <div class="pharmacy-hero-image-wrap">
+              <img src="pharmacy-hero.jpg" alt="BloomCare Pharmacy Dispensary" class="pharmacy-hero-img" />
+              <div class="pharmacy-hero-overlay"></div>
+            </div>
+            <!-- Floating Navigation Controls on Hero -->
+            <div class="pharmacy-hero-nav-bar">
+              <button class="hero-circle-btn hero-back-btn" id="store-back-btn" type="button" aria-label="Go back">&larr;</button>
+              <div class="hero-actions-right">
+                <button class="hero-circle-btn hero-fav-btn pharmacy-fav-btn" id="store-fav-btn" type="button" aria-label="Favorite BloomCare Pharmacy">♡</button>
+                <button class="hero-circle-btn hero-share-btn" id="store-share-btn" type="button" aria-label="Share BloomCare Pharmacy">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                </button>
+              </div>
+            </div>
+            <!-- Overlapping Pharmacy Logo Avatar -->
+            <div class="pharmacy-avatar-badge">
+              <img src="bloomcare-logo.png" alt="BloomCare Pharmacy Logo" class="pharmacy-avatar-img" />
             </div>
           </div>
+
+          <!-- 2. Pharmacy Information & Location Details -->
+          <div class="pharmacy-info-card">
+            <div class="pharmacy-header-row">
+              <div>
+                <h1 class="pharmacy-store-title">BLOOMCARE PHARMACY</h1>
+                <p class="pharmacy-store-tagline">Professional Pharmacy Services</p>
+              </div>
+              <div class="pharmacy-status-wrap">
+                <span class="pharmacy-status-pill open" id="pharmacy-status-pill">🟢 Open Now</span>
+              </div>
+            </div>
+
+            <!-- Pharmacy Location Block (Mbarara City Hub) -->
+            <div class="pharmacy-store-location">
+              <span class="location-pin-icon">📍</span>
+              <div class="location-text-wrap">
+                <span class="location-label-title">Physical Dispensary:</span>
+                <span class="location-full-text">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda</span>
+              </div>
+            </div>
+
+            <!-- Secondary Actions Row -->
+            <div class="pharmacy-quick-actions-row">
+              <button class="store-action-chip pharmacy-fav-btn" id="pharmacy-info-fav-btn" type="button">
+                <span class="chip-heart-icon">♡</span>
+                <span>Favorite Store</span>
+              </button>
+              <button class="store-action-chip" id="pharmacy-info-share-btn" type="button">
+                <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+                <span>Share Store</span>
+              </button>
+              <span class="nda-reg-chip">🛡️ Licensed #NDA/UG/PHARM/2026/894</span>
+            </div>
+          </div>
+
+          <!-- 3. Three-Column Metrics Strip (Rating | Location | Delivery Time) -->
+          <div class="pharmacy-metrics-strip">
+            <div class="metric-col">
+              <span class="metric-icon-star">⭐</span>
+              <strong class="metric-primary-val" id="metric-rating-num">4.8</strong>
+              <span class="metric-secondary-val" id="metric-rating-label">120+ ratings</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric-col">
+              <span class="metric-icon-pin">📍</span>
+              <strong class="metric-primary-val">Location</strong>
+              <span class="metric-secondary-val">Mbarara City</span>
+            </div>
+            <div class="metric-divider"></div>
+            <div class="metric-col">
+              <span class="metric-icon-clock">⏱</span>
+              <strong class="metric-primary-val">10–15 min</strong>
+              <span class="metric-secondary-val">Delivery Time</span>
+            </div>
+          </div>
+
+          <!-- 4. Recommended For You Horizontal Carousel -->
+          <div class="pharmacy-recommended-section" id="pharmacy-recommended-section">
+            <div class="section-heading-row">
+              <h2 class="marketplace-section-title">Recommended For You</h2>
+              <span class="scroll-hint-text muted">Swipe &rarr;</span>
+            </div>
+            <div class="recommended-scroll-track" id="recommended-products-track">
+              <!-- Dynamically populated recommended product cards -->
+            </div>
+          </div>
+
+          <!-- 5. ALL PRODUCTS Section Bar -->
+          <div class="all-products-section" id="all-products-section">
+            <div class="all-products-header-bar">
+              <h2 class="marketplace-section-title">ALL PRODUCTS</h2>
+              <div class="all-products-actions">
+                <button class="store-icon-action-btn" id="store-search-toggle-btn" type="button" aria-label="Search products" title="Search products (Ctrl+K)">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                </button>
+                <button class="store-icon-action-btn" id="store-filter-toggle-btn" type="button" aria-label="Filter products" title="Filter catalog">
+                  <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                  <span class="store-filter-badge hidden" id="store-filter-active-badge">0</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Customer Search Input Wrap (Fast prefix searching) -->
+            <div class="catalog-controls-panel" id="customer-medicines-controls">
+              <div class="search-input-wrap" id="catalog-search-container">
+                <input type="text" id="catalog-search-input" placeholder="Search medicines by name, generic, brand... (Ctrl+K)" autocomplete="off" aria-autocomplete="list" aria-controls="catalog-search-suggestions" />
+                <span class="search-icon-symbol" id="catalog-search-symbol"></span>
+                <div class="search-suggestions-dropdown hidden" id="catalog-search-suggestions" role="listbox"></div>
+              </div>
+
+              <!-- Secondary Filters Hidden by default, accessible via Filter Dialog or Quick Dropdowns -->
+              <div class="filter-dropdowns-row hidden" id="customer-dropdown-filters">
+                <select id="filter-availability" class="form-select-sm">
+                  <option value="all">Availability: All</option>
+                  <option value="in-stock">In Stock Only</option>
+                  <option value="out-of-stock">Out of Stock</option>
+                </select>
+                <select id="filter-prescription" class="form-select-sm">
+                  <option value="all">Prescription: All</option>
+                  <option value="otc">Over-The-Counter (OTC)</option>
+                  <option value="rx">Prescription Required (Rx)</option>
+                </select>
+                <select id="sort-medicines" class="form-select-sm">
+                  <option value="name-asc" selected>Sort: Name (A-Z)</option>
+                  <option value="name-desc">Sort: Name (Z-A)</option>
+                  <option value="price-asc">Sort: Price (Low to High)</option>
+                  <option value="price-desc">Sort: Price (High to Low)</option>
+                  <option value="newest">Sort: Newest</option>
+                  <option value="availability">Sort: Availability (In Stock First)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- 6. Category Tabs (Horizontally Scrollable) -->
+            <div class="catalog-category-tabs-wrap">
+              <div class="filter-pills-row" id="catalog-category-pills">
+                <!-- Dynamically populated category pills with smooth horizontal momentum scroll -->
+              </div>
+            </div>
+
+            <!-- 7. Main Product List (Horizontal Cards Layout) -->
+            <div class="products-grid horizontal-cards-grid" id="catalog-products-grid">
+              <!-- Dynamically populated horizontal product cards -->
+            </div>
+
+            <!-- 8. Marketplace Pagination -->
+            <div class="catalog-pagination-container" id="catalog-pagination"></div>
+          </div>
+
+          <!-- 9. Floating Prescription Order Button -->
+          <button type="button" class="floating-prescription-btn" id="floating-rx-order-btn" data-route="prescriptions">
+            <span class="floating-rx-icon">📄</span>
+            <span class="floating-rx-label">Prescription Order</span>
+            <span class="floating-rx-plus">+</span>
+          </button>
         </div>
-
-        <!-- Customer Product Cards Grid -->
-        <div class="products-grid" id="catalog-products-grid"></div>
-
-        <!-- Customer Marketplace Pagination -->
-        <div class="catalog-pagination-container" id="catalog-pagination"></div>
 
         <!-- Staff/Admin Product Management Table -->
         <div class="content-card hidden" id="staff-medicines-table-card">
@@ -564,7 +686,7 @@
                 </label>
                 <label>Quantity / Packs<input type="number" id="refill-qty-input" min="1" max="20" value="1" required /></label>
               </div>
-              <label>Delivery Address in Kampala<input type="text" id="refill-address-input" placeholder="e.g. Bukoto, Plot 14, Kampala" required /></label>
+              <label>Delivery Address in Mbarara City<input type="text" id="refill-address-input" placeholder="e.g. Plot 14, Kiyanja Road, Kamukuzi, Mbarara City" required /></label>
               <label>Special Instructions / Original Order #<input type="text" id="refill-orig-order" placeholder="e.g. Refill for Order #BC-ORD-0041" /></label>
               <button class="btn btn-primary" type="submit">Submit Refill Request</button>
             </form>
@@ -990,7 +1112,7 @@
           <div class="contact-card"><span class="contact-label-tag">Phone</span><strong id="contact-card-phone">+256 700 000 000</strong><a href="tel:+256700000000" class="btn btn-secondary btn-sm">Call Pharmacy</a></div>
           <div class="contact-card"><span class="contact-label-tag">WhatsApp</span><strong id="contact-card-whatsapp">+256 750 210 886</strong><a href="https://wa.me/256750210886" id="contact-whatsapp-btn" class="btn btn-secondary btn-sm" target="_blank" rel="noopener noreferrer">Contact BloomCare on WhatsApp</a></div>
           <div class="contact-card"><span class="contact-label-tag">Email</span><strong id="contact-card-email">care@bloomcare.com</strong><a href="mailto:care@bloomcare.com" class="btn btn-secondary btn-sm">Send Email</a></div>
-          <div class="contact-card"><span class="contact-label-tag">Location</span><strong id="contact-card-address">Plot 14, Kampala Road</strong><small class="muted">Central Kampala &amp; Mbarara, Uganda</small></div>
+          <div class="contact-card"><span class="contact-label-tag">Location</span><strong id="contact-card-address">Near Mbarara Regional Referral Hospital</strong><small class="muted">Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda</small></div>
         </div>
 
         <div class="content-dual-grid" style="margin-top: 20px;">
@@ -1037,7 +1159,7 @@
             <div class="about-section-tag">WHO WE ARE</div>
             <h2 class="about-hero-title">Dedicated to Safe, Genuine &amp; Accessible Healthcare Across Uganda</h2>
             <p class="about-hero-desc">
-              BloomCare Pharmacy bridges clinical excellence with state-of-the-art digital technology. Operating from our central dispensing facility in Kampala with regional courier fulfillment across Uganda, we ensure every patient receives authentic, quality-assured medicines verified by registered clinical pharmacists.
+              BloomCare Pharmacy bridges clinical excellence with state-of-the-art digital technology. Operating from our central dispensing facility in Mbarara City with regional courier fulfillment across Uganda, we ensure every patient receives authentic, quality-assured medicines verified by registered clinical pharmacists.
             </p>
             <p class="about-hero-subtext">
               We eliminate the dangers of counterfeit medicines through a sealed, temperature-monitored supply chain direct from NDA-accredited manufacturers to your doorstep.
@@ -1127,7 +1249,7 @@
             </div>
             <div class="about-dispensary-info">
               <strong class="about-dispensary-title">BloomCare Cold-Chain &amp; Certified Dispensary Facility</strong>
-              <p class="about-dispensary-sub">Kampala Central Hub • Continuous 24/7 digital temperature monitoring, barcode-verified medicine stock &amp; tamper-evident sealed packaging.</p>
+              <p class="about-dispensary-sub">Mbarara Central Hub • Continuous 24/7 digital temperature monitoring, barcode-verified medicine stock &amp; tamper-evident sealed packaging.</p>
             </div>
           </div>
         </div>
@@ -1219,8 +1341,8 @@
                 </span>
                 <span class="about-hub-tag">Walk-in &amp; Central Hub</span>
               </div>
-              <strong class="about-hub-title">Kampala Central Dispensary</strong>
-              <p class="about-hub-meta">Plot 14, Kampala Road, Central Kampala, Uganda<br><strong>Hours:</strong> Mon – Sat: 8:00 AM – 9:00 PM<br>Sun: 10:00 AM – 6:00 PM</p>
+              <strong class="about-hub-title">Mbarara Central Dispensary</strong>
+              <p class="about-hub-meta">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda<br><strong>Hours:</strong> Mon – Sat: 8:00 AM – 9:00 PM<br>Sun: 10:00 AM – 6:00 PM</p>
               <div class="about-hub-action">
                 <a href="tel:+256700000000" class="btn btn-outline btn-sm">Call Walk-in Desk</a>
               </div>
@@ -1877,7 +1999,7 @@
   <div class="cart-dialog-body" id="cart-items-box"></div>
   <div class="cart-dialog-footer">
     <div class="cart-line-row"><span>Subtotal:</span> <strong id="cart-subtotal-val">UGX 0</strong></div>
-    <div class="cart-line-row"><span>Delivery Fee (Kampala):</span> <strong id="cart-delivery-val">UGX 5,000</strong></div>
+    <div class="cart-line-row"><span>Delivery Fee (Mbarara City):</span> <strong id="cart-delivery-val">UGX 5,000</strong></div>
     <div class="cart-line-row total-highlight"><span>Total Payable:</span> <strong id="cart-total-val">UGX 5,000</strong></div>
     <div class="cart-btn-row">
       <button class="btn btn-secondary" id="cart-continue-btn" type="button">Continue Shopping</button>
@@ -2192,18 +2314,52 @@
   <div class="pos-dialog-header">
     <div class="pos-header-info">
       <div class="pos-header-title-row">
-        <span class="pos-icon-badge">🏥</span>
+        <span class="pos-icon-badge">🏪</span>
         <div>
-          <h2 class="pos-modal-title">Walk-in Pharmacy Counter Sale</h2>
-          <p class="pos-modal-sub">Physical Over-the-Counter Dispensing &amp; Immediate Payment</p>
+          <h2 class="pos-modal-title">Walk-in Pharmacy Sale</h2>
+          <p class="pos-modal-sub">Fast counter sales &amp; dispensing</p>
         </div>
       </div>
     </div>
-    <div class="pos-header-staff-pill" id="walkin-staff-badge">
-      <span class="staff-indicator-dot"></span>
-      <span id="walkin-staff-info">Staff: Staff Member</span>
+
+    <!-- Live Counter Daily Statistics Strip -->
+    <div class="pos-header-stats-strip" id="pos-header-stats-strip">
+      <div class="pos-stat-pill" title="Total sales recorded today across all channels">
+        <span class="pos-stat-icon">📈</span>
+        <span class="pos-stat-label">Today's Sales:</span>
+        <strong id="pos-stat-today-sales">UGX 0</strong>
+      </div>
+      <div class="pos-stat-pill" title="Total completed orders today">
+        <span class="pos-stat-icon">🧾</span>
+        <span class="pos-stat-label">Transactions:</span>
+        <strong id="pos-stat-today-tx">0</strong>
+      </div>
+      <div class="pos-stat-pill" title="Walk-in physical sales completed today">
+        <span class="pos-stat-icon">🚶</span>
+        <span class="pos-stat-label">Walk-in:</span>
+        <strong id="pos-stat-walkin-sales">0</strong>
+      </div>
     </div>
-    <button class="dialog-close-btn" id="close-walkin-sale-modal" type="button" aria-label="Close POS dialog">&times;</button>
+
+    <div class="pos-header-right-actions">
+      <!-- Active Staff Member Badge -->
+      <div class="pos-header-staff-pill" id="walkin-staff-badge">
+        <span class="staff-indicator-dot"></span>
+        <span id="walkin-staff-info">Staff: Dr. Amina Nanyonga (Pharmacist)</span>
+      </div>
+      <!-- Built-in Scratchpad Calculator Button -->
+      <button type="button" class="btn btn-sm btn-outline pos-header-tool-btn" id="pos-open-calculator-btn" title="Open Scratchpad Calculator (Keyboard: Calc)">
+        <span>🧮</span>
+        <span class="pos-btn-text">Calculator</span>
+      </button>
+      <!-- Recent Sales Viewer Button -->
+      <button type="button" class="btn btn-sm btn-outline pos-header-tool-btn" id="pos-toggle-recent-sales-btn" title="View Recent Counter Sales">
+        <span>📋</span>
+        <span class="pos-btn-text">Recent Sales</span>
+      </button>
+      <!-- Close POS Dialog Button -->
+      <button class="dialog-close-btn" id="close-walkin-sale-modal" type="button" aria-label="Close POS dialog">&times;</button>
+    </div>
   </div>
 
   <div class="pos-container-grid">
@@ -2216,8 +2372,9 @@
             type="text" 
             id="walkin-search-input" 
             class="pos-search-input" 
-            placeholder="Search medicine by name, generic, brand, or SKU..." 
+            placeholder="Search by medicine name, generic name, brand or SKU" 
             autocomplete="off" 
+            aria-label="Search medicines"
           />
           <button type="button" id="walkin-search-clear" class="pos-search-clear hidden" aria-label="Clear search">&times;</button>
         </div>
@@ -2225,16 +2382,19 @@
 
       <!-- Quick Category Filter Bar -->
       <div class="pos-category-bar" id="walkin-category-bar">
-        <button type="button" class="pos-cat-pill active" data-cat="all">All Medicines</button>
+        <button type="button" class="pos-cat-pill active" data-cat="all">All</button>
         <button type="button" class="pos-cat-pill" data-cat="Pain Relief">Pain Relief</button>
         <button type="button" class="pos-cat-pill" data-cat="Cold &amp; Flu">Cold &amp; Flu</button>
         <button type="button" class="pos-cat-pill" data-cat="Vitamins &amp; Supplements">Vitamins</button>
         <button type="button" class="pos-cat-pill" data-cat="Digestive Health">Digestive</button>
         <button type="button" class="pos-cat-pill" data-cat="First Aid">First Aid</button>
         <button type="button" class="pos-cat-pill" data-cat="Skin Care">Skin Care</button>
+        <button type="button" class="pos-cat-pill" data-cat="Personal Care">Personal Care</button>
+        <button type="button" class="pos-cat-pill" data-cat="Baby Care">Baby Care</button>
         <button type="button" class="pos-cat-pill" data-cat="Respiratory Care">Respiratory</button>
         <button type="button" class="pos-cat-pill" data-cat="Chronic Care">Chronic Care</button>
         <button type="button" class="pos-cat-pill" data-cat="Diabetes Care">Diabetes</button>
+        <button type="button" class="pos-cat-pill" data-cat="Medical Devices">Medical Devices</button>
       </div>
 
       <!-- Product Results Catalog List -->
@@ -2243,14 +2403,25 @@
       </div>
     </div>
 
-    <!-- RIGHT COLUMN: CURRENT SALE CART & BILLING -->
+    <!-- RIGHT COLUMN: CURRENT SALE CART & AUTOMATIC CALCULATOR -->
     <div class="pos-right-pane">
       <div class="pos-bill-card">
-        <!-- Customer Details -->
+        <!-- Current Sale Header & Clear Sale Action -->
+        <div class="pos-sale-header-bar flex-between">
+          <div class="pos-sale-header-left">
+            <span class="pos-sale-header-title">CURRENT SALE</span>
+            <span class="pos-cart-count" id="walkin-cart-count">0 items</span>
+          </div>
+          <button type="button" class="btn btn-outline btn-xs pos-clear-sale-btn" id="walkin-clear-sale-btn" title="Clear all items from current sale">
+            Clear Sale
+          </button>
+        </div>
+
+        <!-- Customer Details (Compact) -->
         <div class="pos-customer-section">
-          <div class="pos-section-subhead">
-            <span>Customer Details</span>
-            <small class="muted">Optional</small>
+          <div class="pos-section-subhead flex-between">
+            <span class="pos-subhead-title">CUSTOMER</span>
+            <span class="muted" style="font-size:11px;">Optional</span>
           </div>
           <div class="pos-customer-fields">
             <input type="text" id="walkin-cust-name" class="pos-input-sm" placeholder="Customer Name" value="Walk-in Customer" />
@@ -2269,40 +2440,46 @@
           <input type="text" id="walkin-rx-doctor-note" class="pos-input-sm" placeholder="Prescribing Doctor / Clinic Note (Optional)" style="margin-top:6px;" />
         </div>
 
-        <!-- Cart Items List -->
+        <!-- Selected Items List -->
         <div class="pos-cart-section">
-          <div class="pos-cart-header flex-between">
-            <strong class="pos-cart-title">Current Sale Items</strong>
-            <span class="pos-cart-count" id="walkin-cart-count">0 items</span>
-          </div>
           <div class="pos-cart-list" id="walkin-cart-list">
-            <!-- Dynamically populated cart items -->
+            <!-- Dynamically populated cart items with line totals -->
           </div>
         </div>
 
-        <!-- Bill Totals & Discount -->
+        <!-- Automatic Sales Calculation & Large Total Display -->
         <div class="pos-totals-section">
           <div class="pos-total-row">
-            <span>Subtotal:</span>
-            <strong id="walkin-subtotal-val">UGX 0</strong>
+            <span class="pos-label-dim">SUBTOTAL</span>
+            <strong id="walkin-subtotal-val" class="pos-val-dim">UGX 0</strong>
           </div>
-          <div class="pos-total-row">
-            <span style="display:flex; align-items:center; gap:6px;">
-              Discount (UGX):
+          <div class="pos-total-row pos-discount-row">
+            <div class="pos-discount-label-wrap">
+              <span class="pos-label-dim">DISCOUNT</span>
+              <div class="pos-discount-toggle-group">
+                <button type="button" class="pos-discount-type-btn active" id="pos-discount-mode-ugx" data-mode="ugx">UGX</button>
+                <button type="button" class="pos-discount-type-btn" id="pos-discount-mode-pct" data-mode="pct">%</button>
+              </div>
+            </div>
+            <div class="pos-discount-input-wrap">
               <input type="number" id="walkin-discount-input" class="pos-discount-input" min="0" value="0" placeholder="0" />
-            </span>
-            <span id="walkin-discount-val">- UGX 0</span>
+              <span id="walkin-discount-val" class="pos-discount-val-text">- UGX 0</span>
+            </div>
           </div>
-          <div class="pos-divider"></div>
-          <div class="pos-total-row pos-grand-total">
-            <span>TOTAL DUE:</span>
-            <strong id="walkin-total-val">UGX 0</strong>
+          <div class="pos-discount-error-msg hidden" id="walkin-discount-error">
+            Discount cannot exceed the sale subtotal.
+          </div>
+
+          <!-- Strongest Visual Element: Large High-Visibility TOTAL DUE -->
+          <div class="pos-grand-total-card">
+            <span class="pos-grand-total-label">TOTAL DUE</span>
+            <strong class="pos-grand-total-val" id="walkin-total-val">UGX 0</strong>
           </div>
         </div>
 
         <!-- Payment Method Selection -->
         <div class="pos-payment-section">
-          <label class="pos-pay-label">Payment Method</label>
+          <label class="pos-pay-label">PAYMENT METHOD</label>
           <div class="pos-pay-methods-grid">
             <button type="button" class="pos-pay-method-btn active" data-method="Cash" id="pos-btn-method-cash">
               <span class="pos-pay-icon">💵</span>
@@ -2322,23 +2499,35 @@
             </button>
           </div>
 
-          <!-- Cash Payment Details -->
+          <!-- Cash Calculator Section -->
           <div class="pos-pay-content-box" id="walkin-cash-box">
             <div class="pos-cash-input-row">
-              <label for="walkin-cash-received">Cash Received (UGX):</label>
-              <input type="number" id="walkin-cash-received" class="pos-cash-input" min="0" placeholder="0" />
+              <label for="walkin-cash-received" class="pos-received-label">AMOUNT RECEIVED</label>
+              <div class="pos-received-input-wrap">
+                <span class="pos-currency-prefix">UGX</span>
+                <input type="number" id="walkin-cash-received" class="pos-cash-input" min="0" placeholder="0" />
+              </div>
             </div>
+
+            <!-- Quick Cash Denomination Buttons -->
             <div class="pos-quick-cash-chips" id="walkin-quick-cash-chips">
-              <button type="button" class="pos-chip-btn" data-amt="exact">Exact</button>
+              <button type="button" class="pos-chip-btn pos-chip-exact" data-amt="exact">Exact</button>
               <button type="button" class="pos-chip-btn" data-amt="5000">5,000</button>
               <button type="button" class="pos-chip-btn" data-amt="10000">10,000</button>
               <button type="button" class="pos-chip-btn" data-amt="20000">20,000</button>
               <button type="button" class="pos-chip-btn" data-amt="50000">50,000</button>
               <button type="button" class="pos-chip-btn" data-amt="100000">100,000</button>
+              <button type="button" class="pos-chip-btn" data-amt="200000">200,000</button>
             </div>
+
+            <!-- Automatic Change Calculation Displays -->
             <div class="pos-change-display" id="walkin-change-display">
-              <span class="pos-change-label">Change to Return:</span>
+              <span class="pos-change-label">CHANGE TO RETURN</span>
               <strong class="pos-change-val" id="walkin-change-val">UGX 0</strong>
+            </div>
+            <div class="pos-remaining-display hidden" id="walkin-remaining-display">
+              <span class="pos-remaining-label">Amount remaining:</span>
+              <strong class="pos-remaining-val" id="walkin-remaining-val">UGX 0</strong>
             </div>
             <div class="pos-insufficient-cash-alert hidden" id="walkin-insufficient-cash-alert">
               Insufficient cash received. Please enter at least the total amount due.
@@ -2362,11 +2551,87 @@
         <!-- POS Action Buttons -->
         <div class="pos-actions-bar">
           <button type="button" class="btn btn-outline" id="walkin-cancel-btn">Cancel</button>
-          <button type="button" class="btn btn-primary btn-block" id="walkin-complete-btn" disabled>
-            Complete Sale &amp; Dispense
+          <button type="button" class="btn btn-primary btn-block pos-complete-action-btn" id="walkin-complete-btn" disabled>
+            COMPLETE SALE
           </button>
         </div>
       </div>
+    </div>
+  </div>
+</dialog>
+
+<!-- Auxiliary Dialog 1: Clear Sale Confirmation Dialog -->
+<dialog id="walkin-clear-confirm-dialog" class="form-modal-dialog" style="max-width:380px;">
+  <div class="dialog-header">
+    <h3 style="margin:0; font-size:16px;">Clear Current Sale?</h3>
+  </div>
+  <div class="dialog-body" style="padding:16px 0;">
+    <p style="margin:0; color:var(--text-main); font-size:14px; line-height:1.5;">
+      Are you sure you want to clear all items from the current sale? This action cannot be undone.
+    </p>
+  </div>
+  <div class="form-actions-row flex-between">
+    <button class="btn btn-outline btn-sm" id="walkin-cancel-clear-btn" type="button">Cancel</button>
+    <button class="btn btn-danger btn-sm" id="walkin-confirm-clear-btn" type="button">Clear Sale</button>
+  </div>
+</dialog>
+
+<!-- Auxiliary Dialog 2: Built-in Pharmacist Scratchpad Calculator -->
+<dialog id="pos-calculator-dialog" class="form-modal-dialog pos-calc-modal-dialog">
+  <div class="dialog-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:18px;">🧮</span>
+      <h3 style="margin:0; font-size:15px;">Pharmacist Scratchpad Calculator</h3>
+    </div>
+    <button class="dialog-close-btn" id="close-pos-calculator-modal" type="button">&times;</button>
+  </div>
+  <div class="pos-calc-body">
+    <div class="pos-calc-screen-wrap">
+      <div class="pos-calc-sub" id="pos-calc-sub">0</div>
+      <div class="pos-calc-main" id="pos-calc-screen">0</div>
+    </div>
+    <div class="pos-calc-keypad">
+      <button type="button" class="pos-calc-btn pos-calc-action" data-action="clear">C</button>
+      <button type="button" class="pos-calc-btn pos-calc-action" data-action="backspace">⌫</button>
+      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="/">÷</button>
+      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="*">×</button>
+
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="7">7</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="8">8</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="9">9</button>
+      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="-">−</button>
+
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="4">4</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="5">5</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="6">6</button>
+      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="+">+</button>
+
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="1">1</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="2">2</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="3">3</button>
+      <button type="button" class="pos-calc-btn pos-calc-equals" data-action="equals" rowspan="2">=</button>
+
+      <button type="button" class="pos-calc-btn pos-calc-num pos-calc-zero" data-action="num" data-val="0">0</button>
+      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val=".">.</button>
+    </div>
+    <div class="pos-calc-footer-note">
+      <small class="muted">Supports desktop keyboard (0–9, +, -, *, /, Enter, Backspace, Esc)</small>
+    </div>
+  </div>
+</dialog>
+
+<!-- Auxiliary Dialog 3: Recent Counter Sales Modal -->
+<dialog id="walkin-recent-sales-dialog" class="form-modal-dialog" style="max-width:560px;">
+  <div class="dialog-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:18px;">📋</span>
+      <h3 style="margin:0; font-size:15px;">Recent Walk-in Counter Sales</h3>
+    </div>
+    <button class="dialog-close-btn" id="close-recent-sales-modal" type="button">&times;</button>
+  </div>
+  <div class="dialog-body" style="padding:14px 0; max-height:400px; overflow-y:auto;">
+    <div id="walkin-recent-sales-list">
+      <!-- Dynamically populated recent counter sales -->
     </div>
   </div>
 </dialog>
@@ -2391,7 +2656,7 @@
         <div class="receipt-brand-info">
           <h1 class="receipt-brand-name">BLOOMCARE PHARMACY</h1>
           <p class="receipt-brand-tagline">Professional Pharmacy Services</p>
-          <p class="receipt-address-line">Plot 14, Kampala Road, Central Kampala, Uganda &bull; Tel: +256 700 000 000</p>
+          <p class="receipt-address-line">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda &bull; Tel: +256 700 000 000</p>
         </div>
         <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="receipt-logo" />
       </div>
@@ -2746,7 +3011,91 @@
     <button class="btn btn-outline" type="button" id="cancel-user-confirm-btn">Cancel</button>
     <button class="btn btn-primary" type="button" id="proceed-user-confirm-btn">Proceed</button>
   </div>
+<!-- 18. Customer Catalog Filter Dialog / Drawer -->
+<dialog id="catalog-filter-dialog" class="form-modal-dialog catalog-filter-modal">
+  <div class="dialog-header">
+    <h3 style="margin:0;">Filter Products</h3>
+    <button class="dialog-close-btn" id="close-catalog-filter-modal" type="button">&times;</button>
+  </div>
+  <div class="filter-modal-body" style="padding:16px 0;">
+    <div class="form-group" style="margin-bottom:16px;">
+      <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;">Therapeutic Category</label>
+      <select id="modal-filter-category" class="form-select-sm" style="width:100%;">
+        <option value="All">All Categories</option>
+      </select>
+    </div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;">Prescription Classification</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="radio" name="modal-filter-rx" value="all" checked /> All Products
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="radio" name="modal-filter-rx" value="otc" /> Over-The-Counter (OTC Only)
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="radio" name="modal-filter-rx" value="rx" /> Prescription Required (Rx Only)
+        </label>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:16px;">
+      <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;">Stock Availability</label>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="radio" name="modal-filter-avail" value="all" checked /> All Items
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="radio" name="modal-filter-avail" value="in-stock" /> In Stock Only
+        </label>
+        <label style="display:flex; align-items:center; gap:8px; font-size:13.5px; cursor:pointer;">
+          <input type="radio" name="modal-filter-avail" value="out-of-stock" /> Out of Stock
+        </label>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:8px;">
+      <label style="display:block; font-weight:600; font-size:13px; margin-bottom:6px;">Sort By</label>
+      <select id="modal-filter-sort" class="form-select-sm" style="width:100%;">
+        <option value="name-asc" selected>Sort: Name (A-Z)</option>
+        <option value="name-desc">Sort: Name (Z-A)</option>
+        <option value="price-asc">Sort: Price (Low to High)</option>
+        <option value="price-desc">Sort: Price (High to Low)</option>
+        <option value="newest">Sort: Newest First</option>
+        <option value="availability">Sort: Availability (In Stock First)</option>
+      </select>
+    </div>
+  </div>
+  <div class="form-actions-row flex-between">
+    <button class="btn btn-outline btn-sm" id="btn-reset-modal-filters" type="button">Reset Filters</button>
+    <button class="btn btn-primary btn-sm" id="btn-apply-modal-filters" type="button">Apply Filters</button>
+  </div>
 </dialog>
+
+<!-- Mobile Bottom Navigation Bar (Mobile Shopping Experience) -->
+<nav class="mobile-bottom-nav" id="mobile-bottom-nav" aria-label="Mobile Navigation">
+  <button class="mobile-nav-btn active" type="button" data-route="customer/dashboard">
+    <span class="mobile-nav-icon">🏠</span>
+    <span class="mobile-nav-label">Home</span>
+  </button>
+  <button class="mobile-nav-btn" type="button" data-route="medicines">
+    <span class="mobile-nav-icon">💊</span>
+    <span class="mobile-nav-label">Medicines</span>
+  </button>
+  <button class="mobile-nav-btn" type="button" id="mobile-nav-cart-btn">
+    <span class="mobile-nav-icon">
+      🛒
+      <span class="mobile-cart-badge hidden" id="mobile-bottom-cart-badge">0</span>
+    </span>
+    <span class="mobile-nav-label">Cart</span>
+  </button>
+  <button class="mobile-nav-btn" type="button" data-route="customer/orders">
+    <span class="mobile-nav-icon">📦</span>
+    <span class="mobile-nav-label">Orders</span>
+  </button>
+  <button class="mobile-nav-btn" type="button" data-route="profile">
+    <span class="mobile-nav-icon">👤</span>
+    <span class="mobile-nav-label">Profile</span>
+  </button>
+</nav>
 
 <script type="module" src="app.js"></script>
 </body>

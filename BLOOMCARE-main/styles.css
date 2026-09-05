@@ -1967,10 +1967,13 @@ dialog::backdrop {
 }
 
 .receipt-address-line {
-  font-size: 11px;
+  font-size: 11.5px;
   color: #64748b;
-  margin: 0 0 2px 0;
-  line-height: 1.35;
+  margin: 0 0 4px 0;
+  line-height: 1.45;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
 }
 
 .receipt-logo {
@@ -2359,6 +2362,22 @@ dialog::backdrop {
   .no-print,
   .dialog-close-btn {
     display: none !important;
+  }
+}
+
+@media (max-width: 480px) {
+  .receipt-brand-row {
+    flex-direction: column-reverse;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .receipt-logo {
+    width: 44px;
+    height: 44px;
+  }
+  .receipt-address-line {
+    font-size: 11px;
+    line-height: 1.4;
   }
 }
 
@@ -8542,6 +8561,831 @@ dialog::backdrop {
     grid-template-columns: 1fr;
   }
 }
+
+/* ==========================================================================
+   CUSTOMER PHARMACY STOREFRONT & MOBILE MARKETPLACE STYLES
+   ========================================================================== */
+
+.customer-storefront-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding-bottom: 90px;
+  position: relative;
+}
+
+/* 1. Top Pharmacy Hero Section */
+.pharmacy-hero-container {
+  position: relative;
+  border-radius: 18px;
+  overflow: visible;
+  margin-bottom: 24px;
+}
+
+.pharmacy-hero-image-wrap {
+  width: 100%;
+  height: 200px;
+  border-radius: 18px;
+  overflow: hidden;
+  position: relative;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+
+.pharmacy-hero-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+  display: block;
+}
+
+.pharmacy-hero-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.45) 0%, rgba(0, 0, 0, 0.05) 50%, rgba(0, 0, 0, 0.6) 100%);
+  pointer-events: none;
+}
+
+.pharmacy-hero-nav-bar {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  right: 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  z-index: 10;
+}
+
+.hero-circle-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: #1e293b;
+  font-size: 18px;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
+  transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.hero-circle-btn:hover {
+  transform: scale(1.06);
+  background: #ffffff;
+}
+
+.hero-circle-btn:active {
+  transform: scale(0.95);
+}
+
+.hero-actions-right {
+  display: flex;
+  gap: 10px;
+}
+
+.hero-fav-btn.favorited,
+.store-action-chip.favorited {
+  color: #e11d48 !important;
+  background: #fff1f2 !important;
+}
+
+.pharmacy-avatar-badge {
+  position: absolute;
+  bottom: -24px;
+  left: 20px;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #ffffff;
+  padding: 4px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  z-index: 12;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.pharmacy-avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: contain;
+}
+
+/* 2. Pharmacy Information Card */
+.pharmacy-info-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 34px 20px 18px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+}
+
+.pharmacy-header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+.pharmacy-store-title {
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.02em;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.pharmacy-store-tagline {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--brand-primary, #047857);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin: 3px 0 0;
+}
+
+.pharmacy-status-pill {
+  font-size: 12px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.pharmacy-status-pill.open {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.pharmacy-status-pill.closed {
+  background: #fef2f2;
+  color: #991b1b;
+  border: 1px solid #fecaca;
+}
+
+.pharmacy-store-location {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.45;
+  margin: 10px 0 16px;
+  background: #f8fafc;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+}
+
+.location-pin-icon {
+  font-size: 16px;
+  flex-shrink: 0;
+}
+
+.location-label-title {
+  font-weight: 700;
+  color: var(--text-dark);
+  margin-right: 4px;
+}
+
+.pharmacy-quick-actions-row {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.store-action-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 999px;
+  padding: 6px 14px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.store-action-chip:hover {
+  background: #e2e8f0;
+}
+
+.nda-reg-chip {
+  font-size: 12px;
+  color: #047857;
+  font-weight: 700;
+  margin-left: auto;
+}
+
+/* 3. Three-Column Metrics Strip */
+.pharmacy-metrics-strip {
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 12px;
+  margin-bottom: 22px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+}
+
+.metric-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 2px;
+  flex: 1;
+}
+
+.metric-primary-val {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-dark);
+}
+
+.metric-secondary-val {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.metric-divider {
+  width: 1px;
+  height: 28px;
+  background: var(--border-color);
+}
+
+/* 4. Recommended For You Horizontal Carousel */
+.pharmacy-recommended-section {
+  margin-bottom: 26px;
+}
+
+.section-heading-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 12px;
+}
+
+.marketplace-section-title {
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--text-dark);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+.recommended-scroll-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 2px 14px;
+}
+
+.recommended-scroll-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.recommended-scroll-track::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.recommended-card,
+.recommended-prod-card {
+  flex: 0 0 175px;
+  max-width: 175px;
+  scroll-snap-align: start;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.recommended-card:hover,
+.recommended-prod-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.08);
+}
+
+.prod-card-fav-btn {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  color: #64748b;
+  z-index: 5;
+  transition: all 0.15s ease;
+}
+
+.prod-card-fav-btn.favorited,
+.prod-card-fav-btn.active {
+  color: #e11d48 !important;
+  background: #fff1f2 !important;
+  border-color: #fecdd3 !important;
+}
+
+.card-discount-ribbon,
+.discount-ribbon {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  font-size: 9.5px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.35);
+  text-transform: uppercase;
+  z-index: 5;
+  letter-spacing: 0.02em;
+}
+
+.recommended-card .product-thumb-container,
+.recommended-prod-card .product-thumb-container {
+  width: 100%;
+  height: 110px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #f8fafc;
+  border-radius: 12px;
+  margin-bottom: 10px;
+  overflow: hidden;
+}
+
+.recommended-card .product-thumb-img {
+  max-width: 90%;
+  max-height: 90%;
+  object-fit: contain;
+}
+
+.recommended-card-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.recommended-card-info .product-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-dark);
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin: 0;
+}
+
+.product-pack-size {
+  font-size: 11.5px;
+  color: var(--text-muted);
+  font-weight: 500;
+  margin: 2px 0 4px;
+}
+
+.product-price-row {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: auto;
+}
+
+.product-price {
+  font-size: 14.5px;
+  font-weight: 800;
+  color: var(--brand-primary, #047857);
+}
+
+.product-price-strikethrough {
+  font-size: 11.5px;
+  color: #94a3b8;
+  text-decoration: line-through;
+  font-weight: 500;
+}
+
+.circular-plus-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--accent-gold, #f59e0b);
+  color: #ffffff;
+  border: none;
+  font-size: 22px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  box-shadow: 0 3px 10px rgba(245, 158, 11, 0.35);
+  transition: transform 0.15s ease, background 0.15s ease;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.recommended-card .circular-plus-btn {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+}
+
+.circular-plus-btn:hover {
+  transform: scale(1.08);
+  background: #d97706;
+}
+
+.circular-plus-btn:active {
+  transform: scale(0.92);
+}
+
+.circular-plus-btn:disabled {
+  background: #cbd5e1;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+
+/* 5. ALL PRODUCTS Section Bar */
+.all-products-header-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.all-products-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.store-icon-action-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  background: #ffffff;
+  border: 1px solid var(--border-color);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--text-dark);
+  position: relative;
+  transition: all 0.15s ease;
+}
+
+.store-icon-action-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+.store-filter-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--brand-primary, #047857);
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 6. Category Tabs */
+.catalog-category-tabs-wrap {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 18px;
+  padding-bottom: 6px;
+}
+
+.catalog-category-tabs-wrap::-webkit-scrollbar {
+  height: 4px;
+}
+
+.catalog-category-tabs-wrap::-webkit-scrollbar-thumb {
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+#catalog-category-pills {
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+#catalog-category-pills .pill-btn {
+  white-space: nowrap;
+  flex-shrink: 0;
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 600;
+  border-radius: 999px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+#catalog-category-pills .pill-btn:hover {
+  background: #f8fafc;
+  border-color: #cbd5e1;
+}
+
+#catalog-category-pills .pill-btn.active {
+  background: var(--brand-primary, #047857);
+  color: #ffffff;
+  border-color: var(--brand-primary, #047857);
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.25);
+}
+
+/* 7. Main Horizontal Product Cards */
+.horizontal-cards-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.horizontal-product-card {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.horizontal-product-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+}
+
+.horizontal-product-card .product-thumb-container {
+  width: 90px;
+  height: 90px;
+  flex-shrink: 0;
+  background: #f8fafc;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin: 0;
+}
+
+.horizontal-product-card .product-thumb-img {
+  max-width: 85%;
+  max-height: 85%;
+  object-fit: contain;
+}
+
+.horizontal-product-card .product-card-body {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  padding: 0;
+}
+
+.horizontal-product-card .product-title {
+  font-size: 14.5px;
+  font-weight: 700;
+  color: var(--text-dark);
+  margin: 0;
+  line-height: 1.3;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.horizontal-product-card .product-meta-sub {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 2px 0;
+}
+
+.horizontal-product-card .product-card-action {
+  flex-shrink: 0;
+  padding-left: 8px;
+}
+
+/* 8. Floating Prescription Order Button */
+.floating-prescription-btn {
+  position: fixed;
+  bottom: 76px;
+  right: 20px;
+  z-index: 100;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #047857, #065f46);
+  color: #ffffff;
+  padding: 12px 20px;
+  border-radius: 999px;
+  box-shadow: 0 6px 20px rgba(4, 120, 87, 0.35);
+  border: none;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.floating-prescription-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(4, 120, 87, 0.45);
+}
+
+.floating-prescription-btn:active {
+  transform: translateY(0);
+}
+
+.floating-rx-plus {
+  background: rgba(255, 255, 255, 0.25);
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* 9. Mobile Bottom Navigation Bar */
+.mobile-bottom-nav {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .mobile-bottom-nav {
+    display: flex;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 60px;
+    background: #ffffff;
+    border-top: 1px solid var(--border-color);
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+    z-index: 99;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 4px;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  .mobile-nav-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: none;
+    border: none;
+    gap: 2px;
+    padding: 6px 10px;
+    cursor: pointer;
+    color: #64748b;
+    font-size: 11px;
+    font-weight: 600;
+    flex: 1;
+    transition: color 0.15s ease;
+  }
+
+  .mobile-nav-btn.active {
+    color: var(--brand-primary, #047857);
+  }
+
+  .mobile-nav-icon {
+    font-size: 18px;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .mobile-cart-badge {
+    position: absolute;
+    top: -4px;
+    right: -8px;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--accent-gold, #f59e0b);
+    color: #ffffff;
+    font-size: 9.5px;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+/* Desktop & Tablet Responsiveness */
+@media (min-width: 769px) {
+  .floating-prescription-btn {
+    bottom: 24px;
+  }
+}
+
+@media (min-width: 900px) {
+  .pharmacy-hero-image-wrap {
+    height: 240px;
+  }
+  .horizontal-cards-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pharmacy-header-row {
+    flex-direction: column;
+    gap: 6px;
+  }
+  .pharmacy-status-wrap {
+    align-self: flex-start;
+  }
+  .nda-reg-chip {
+    margin-left: 0;
+    width: 100%;
+    margin-top: 4px;
+  }
+  .pharmacy-metrics-strip {
+    padding: 10px 8px;
+  }
+  .metric-primary-val {
+    font-size: 13.5px;
+  }
+  .metric-secondary-val {
+    font-size: 10.5px;
+  }
+  .floating-prescription-btn {
+    bottom: 72px;
+    right: 14px;
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+}
+
 
 
 

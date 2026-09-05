@@ -79,12 +79,12 @@ test('ABOUT US: Section 3 (Clinical Team) displays 3 licensed pharmacists with 4
   );
 });
 
-test('ABOUT US: Section 4 (Physical Hubs) includes Kampala Dispensary, Western Hub, and Care Desk with vector icons', () => {
+test('ABOUT US: Section 4 (Physical Hubs) includes Mbarara Dispensary, Western Hub, and Care Desk with vector icons', () => {
   const html = fs.readFileSync(htmlPath, 'utf8');
   const aboutSection = html.slice(html.indexOf('id="view-about"'), html.indexOf('id="view-auth"'));
 
   assert.ok(aboutSection.includes('about-hubs-grid'), 'Must have .about-hubs-grid');
-  assert.ok(aboutSection.includes('Kampala Central Dispensary'), 'Must include Kampala Central Dispensary');
+  assert.ok(aboutSection.includes('Mbarara Central Dispensary'), 'Must include Mbarara Central Dispensary');
   assert.ok(aboutSection.includes('Western Uganda Regional Hub'), 'Must include Western Uganda Regional Hub');
   assert.ok(aboutSection.includes('Direct Pharmacy Care Desk'), 'Must include Direct Pharmacy Care Desk');
 });

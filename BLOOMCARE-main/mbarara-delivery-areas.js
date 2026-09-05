@@ -1,18 +1,25 @@
 // BloomCare Pharmacy - Mbarara City Centralized Delivery Areas Registry
 // Physical Hub: Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda
 
+export const BLOOMCARE_PHARMACY_NAME = "BloomCare Pharmacy";
+export const BLOOMCARE_PHARMACY_LOCATION = "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda";
+export const BLOOMCARE_PHONE = "+256 700 000 000";
+export const BLOOMCARE_WHATSAPP = "256750210886";
+
 export const BLOOMCARE_CENTRAL_LOCATION = {
-  pharmacyName: "BloomCare Pharmacy Main Dispensary",
+  pharmacyName: BLOOMCARE_PHARMACY_NAME,
   city: "Mbarara City",
   district: "Mbarara",
   country: "Uganda",
-  physicalAddress: "Plot 18, High Street / Hospital Road Junction, Mbarara City",
+  physicalAddress: "Hospital Road Junction, Mbarara City",
   landmarks: {
     hospital: "Near Mbarara Regional Referral Hospital",
     station: "Opposite Rubis Station",
     police: "Near Mbarara Central Police Station"
   },
   referenceDescription: "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City",
+  location: BLOOMCARE_PHARMACY_LOCATION,
+  fullAddress: BLOOMCARE_PHARMACY_LOCATION,
   dispatchPolicyNotice: "BloomCare delivers within Mbarara City and surrounding service areas."
 };
 

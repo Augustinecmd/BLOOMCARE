@@ -62,6 +62,9 @@ import {
   validateName
 } from "../validators.js";
 import {
+  BLOOMCARE_PHARMACY_NAME,
+  BLOOMCARE_PHARMACY_LOCATION,
+  BLOOMCARE_PHONE,
   BLOOMCARE_CENTRAL_LOCATION,
   MBARARA_DIVISIONS,
   MBARARA_DELIVERY_AREAS,
@@ -720,7 +723,7 @@ const INITIAL_REFILLS = [
     customerPhone: "0751234567",
     medicineName: "Amlodipine 5mg Tablets",
     quantity: 2,
-    address: "Bukoto, Plot 14, Kampala",
+    address: "Plot 14, Kiyanja Road, Kamukuzi, Mbarara City",
     status: "Approved",
     reviewNotes: "Maintenance blood pressure prescription verified on file. Authorized for repeat dispensing.",
     reviewedBy: "Dr. Amina Nanyonga",
@@ -734,7 +737,7 @@ const INITIAL_REFILLS = [
     customerPhone: "0751234567",
     medicineName: "Metformin 500mg Tablets",
     quantity: 2,
-    address: "Bukoto, Plot 14, Kampala",
+    address: "Plot 14, Kiyanja Road, Kamukuzi, Mbarara City",
     status: "Approved",
     reviewNotes: "Prescription on file verified. Authorized for doorstep fulfillment.",
     reviewedBy: "Pharm. David Mukasa",
@@ -1471,7 +1474,7 @@ const INITIAL_PAYMENTS = [
 ];
 
 const INITIAL_NOTIFICATIONS = [
-  { id: "notif-1", role: "customer", title: "Order Ready for Pickup", message: "Your order #BC-ORD-0043 is packed and ready for collection at Plot 14 Kampala Road.", type: "success", read: false, createdAt: new Date(Date.now() - 3600000 * 2).toISOString() },
+  { id: "notif-1", role: "customer", title: "Order Ready for Pickup", message: "Your order #BC-ORD-0043 is packed and ready for collection at BloomCare Central Dispensary (Near Mbarara Regional Referral Hospital, Opposite Rubis Station).", type: "success", read: false, createdAt: new Date(Date.now() - 3600000 * 2).toISOString() },
   { id: "notif-2", role: "customer", title: "Prescription Approved", message: "Dr. Amina has clinically approved prescription #BC-RX-0041 for dispensing.", type: "info", read: false, createdAt: new Date(Date.now() - 3600000 * 6).toISOString() },
   { id: "notif-3", role: "pharmacist", title: "New Prescription Upload", message: "Patient Grace Nakato uploaded prescription #BC-RX-0089 for safety review.", type: "info", read: false, createdAt: new Date(Date.now() - 3600000 * 4).toISOString() },
   { id: "notif-4", role: "pharmacist", title: "Clinical Consultation Booked", message: "New 1-on-1 medication therapy consultation scheduled with David Mukasa.", type: "info", read: false, createdAt: new Date(Date.now() - 3600000 * 10).toISOString() },
@@ -1555,7 +1558,7 @@ export const INITIAL_CONVERSATIONS = [
     customerEmail: "grace.nakato@example.com",
     deliveryManId: "usr-5",
     deliveryManName: "Moses Kato",
-    deliveryAddress: "Bukoto, Plot 14, Kampala",
+    deliveryAddress: "Kiyanja, Kamukuzi, Mbarara City (Plot 14, Kiyanja Road)",
     deliveryStatus: "Delivered",
     status: "COMPLETED",
     unreadDelivery: 0,
@@ -2656,27 +2659,21 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "pharmacist/refills", icon: ICONS.refills, label: "Refills" },
     { route: "pharmacist/orders", icon: ICONS.orders, label: "Orders" },
     { route: "pharmacist/medicines", icon: ICONS.medicines, label: "Medicines" },
-    { route: "pharmacist/inventory", icon: ICONS.inventory, label: "Inventory" },
-    { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "pharmacist/inventory", icon: ICONS.inventory, label: "Inventory" }
   ],
   assistant_pharmacist: [
     { route: "assistant_pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
     { route: "orders", icon: ICONS.orders, label: "Orders to Pack" },
     { route: "medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "categories", icon: ICONS.categories, label: "Categories" },
-    { route: "inventory", icon: ICONS.inventory, label: "Stock Inventory" },
-    { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "inventory", icon: ICONS.inventory, label: "Stock Inventory" }
   ],
   pharmacyAssistant: [
     { route: "assistant_pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
     { route: "orders", icon: ICONS.orders, label: "Orders to Pack" },
     { route: "medicines", icon: ICONS.medicines, label: "Medicines" },
     { route: "categories", icon: ICONS.categories, label: "Categories" },
-    { route: "inventory", icon: ICONS.inventory, label: "Stock Inventory" },
-    { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "inventory", icon: ICONS.inventory, label: "Stock Inventory" }
   ],
   delivery_person: [
     { route: "delivery_person/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -3069,6 +3066,14 @@ export function handleRoute() {
     const btnRoute = btn.dataset.route;
     const isActive = btnRoute === route || route.startsWith(btnRoute) || (btnRoute && btnRoute.includes("/") && route.endsWith(btnRoute.split("/")[1]));
     btn.classList.toggle("active-nav", Boolean(isActive));
+  });
+
+  // Highlight Active Mobile Bottom Nav Button
+  $$(".mobile-bottom-nav .mobile-nav-btn").forEach((btn) => {
+    const btnRoute = btn.dataset.route;
+    if (!btnRoute) return;
+    const isActive = btnRoute === route || route.startsWith(btnRoute) || (btnRoute && btnRoute.includes("/") && route.endsWith(btnRoute.split("/")[1]));
+    btn.classList.toggle("active", Boolean(isActive));
   });
 
   // Determine base pane: e.g. "customer/dashboard" -> "dashboard"
@@ -4333,7 +4338,7 @@ function renderRoleDashboard() {
       <div class="home-hero-card">
         <div class="hero-card-left">
           <h1 class="hero-headline">Your Trusted Pharmacy, Anytime</h1>
-          <p class="hero-tagline">Access genuine medications, pharmacist counseling, and reliable prescription delivery in Kampala.</p>
+          <p class="hero-tagline">Access genuine medications, pharmacist counseling, and reliable prescription delivery in Mbarara City.</p>
           <div class="hero-actions-row">
             <button class="btn btn-primary" type="button" data-route="medicines">Browse Medicines</button>
             <button class="btn btn-secondary" type="button" data-route="auth">Create Account</button>
@@ -4369,14 +4374,238 @@ function renderRoleDashboard() {
 // -------------------------------------------------------------
 // MODULE 2: MEDICINE MARKETPLACE & AVAILABILITY
 // -------------------------------------------------------------
-function renderMedicinesView() {
+
+export function getPharmacyOpenStatus(now = new Date(), openingHoursStr = STATE.systemSettings?.openingHours) {
+  const day = now.getDay(); // 0 = Sun, 1 = Mon, ..., 6 = Sat
+  const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+  let openMinutes = 8 * 60; // 8:00 AM
+  let closeMinutes = 20 * 60; // 8:00 PM
+
+  if (day === 0) {
+    // Sunday: 10:00 AM - 4:00 PM (16:00)
+    openMinutes = 10 * 60;
+    closeMinutes = 16 * 60;
+  } else if (day === 6) {
+    // Saturday: 9:00 AM - 6:00 PM (18:00)
+    openMinutes = 9 * 60;
+    closeMinutes = 18 * 60;
+  } else {
+    // Monday - Friday: 8:00 AM - 8:00 PM (20:00)
+    openMinutes = 8 * 60;
+    closeMinutes = 20 * 60;
+  }
+
+  const isOpen = currentMinutes >= openMinutes && currentMinutes < closeMinutes;
+  return {
+    isOpen,
+    badgeText: isOpen ? "🟢 Open Now" : "🔴 Closed",
+    statusClass: isOpen ? "open" : "closed",
+    hoursToday: day === 0 ? "10:00 AM – 4:00 PM" : day === 6 ? "9:00 AM – 6:00 PM" : "8:00 AM – 8:00 PM"
+  };
+}
+
+export function getFavoriteProductIds() {
+  try {
+    const raw = localStorage.getItem("bloomcare_fav_products");
+    return raw ? JSON.parse(raw) : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+export function isProductFavorited(id) {
+  return getFavoriteProductIds().includes(id);
+}
+
+export function toggleProductFavorite(id) {
+  let favs = getFavoriteProductIds();
+  const exists = favs.includes(id);
+  if (exists) {
+    favs = favs.filter(x => x !== id);
+  } else {
+    favs.push(id);
+  }
+  try {
+    localStorage.setItem("bloomcare_fav_products", JSON.stringify(favs));
+  } catch (err) {}
+  return !exists;
+}
+
+export function isPharmacyFavorited() {
+  try {
+    return localStorage.getItem("bloomcare_fav_pharmacy") === "true";
+  } catch (err) {
+    return false;
+  }
+}
+
+export function togglePharmacyFavorite() {
+  const current = isPharmacyFavorited();
+  const next = !current;
+  try {
+    localStorage.setItem("bloomcare_fav_pharmacy", String(next));
+  } catch (err) {}
+  return next;
+}
+
+export async function sharePharmacyPage() {
+  const shareData = {
+    title: "BloomCare Pharmacy — Professional Pharmacy Services",
+    text: "Order genuine medicines and health supplies with fast doorstep delivery in Mbarara City.",
+    url: window.location.href
+  };
+  if (navigator.share) {
+    try {
+      await navigator.share(shareData);
+    } catch (err) {
+      if (err.name !== "AbortError") {
+        copyTextToClipboard(window.location.href, "Pharmacy link copied to clipboard!");
+      }
+    }
+  } else {
+    copyTextToClipboard(window.location.href, "Pharmacy link copied to clipboard!");
+  }
+}
+
+function copyTextToClipboard(text, successMsg = "Copied to clipboard!") {
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => {
+      openNotice("Link Copied", successMsg);
+    }).catch(() => {
+      openNotice("Share BloomCare", text);
+    });
+  } else {
+    openNotice("Share BloomCare", text);
+  }
+}
+
+export function openCatalogFilterDialog() {
+  const dialog = $("#catalog-filter-dialog");
+  if (!dialog) return;
+
+  const catSelect = $("#modal-filter-category");
+  if (catSelect && catSelect.options.length <= 1) {
+    const activeProds = STATE.products.filter(p => p && p.status !== "inactive");
+    catSelect.innerHTML = `<option value="All">All Categories (${activeProds.length})</option>` +
+      STATE.categories.map(c => {
+        const count = activeProds.filter(p => p.category === c.name).length;
+        return `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${count})</option>`;
+      }).join("");
+  }
+  if (catSelect) catSelect.value = STATE.selectedCategory || "All";
+
+  const rxRadio = $(`input[name="modal-filter-rx"][value="${STATE.filterPrescription || "all"}"]`);
+  if (rxRadio) rxRadio.checked = true;
+
+  const availRadio = $(`input[name="modal-filter-avail"][value="${STATE.filterAvailability || "all"}"]`);
+  if (availRadio) availRadio.checked = true;
+
+  const sortSelect = $("#modal-filter-sort");
+  if (sortSelect) sortSelect.value = STATE.sortMedicines || "name-asc";
+
+  dialog.showModal();
+}
+
+export function closeCatalogFilterDialog() {
+  $("#catalog-filter-dialog")?.close();
+}
+
+export function applyCatalogModalFilters() {
+  const catSelect = $("#modal-filter-category");
+  if (catSelect) STATE.selectedCategory = catSelect.value;
+
+  const rxRadio = $(`input[name="modal-filter-rx"]:checked`);
+  if (rxRadio) STATE.filterPrescription = rxRadio.value;
+
+  const availRadio = $(`input[name="modal-filter-avail"]:checked`);
+  if (availRadio) STATE.filterAvailability = availRadio.value;
+
+  const sortSelect = $("#modal-filter-sort");
+  if (sortSelect) {
+    STATE.sortMedicines = sortSelect.value;
+    const pageSort = $("#sort-medicines");
+    if (pageSort) pageSort.value = sortSelect.value;
+  }
+
+  STATE.marketplacePage = 1;
+  closeCatalogFilterDialog();
+  renderMedicinesView();
+}
+
+export function resetCatalogModalFilters() {
+  STATE.selectedCategory = "All";
+  STATE.filterPrescription = "all";
+  STATE.filterAvailability = "all";
+  STATE.sortMedicines = "name-asc";
+  STATE.marketplacePage = 1;
+
+  const catSelect = $("#modal-filter-category");
+  if (catSelect) catSelect.value = "All";
+
+  const rxRadio = $(`input[name="modal-filter-rx"][value="all"]`);
+  if (rxRadio) rxRadio.checked = true;
+
+  const availRadio = $(`input[name="modal-filter-avail"][value="all"]`);
+  if (availRadio) availRadio.checked = true;
+
+  const sortSelect = $("#modal-filter-sort");
+  if (sortSelect) sortSelect.value = "name-asc";
+
+  const pageSort = $("#sort-medicines");
+  if (pageSort) pageSort.value = "name-asc";
+
+  closeCatalogFilterDialog();
+  renderMedicinesView();
+}
+
+export function renderRecommendedProductCardHtml(prod) {
+  const avail = getProductAvailability(prod);
+  const img = getProductImage(prod);
+  const isFav = isProductFavorited(prod.id);
+  const hasDiscount = Boolean(prod.originalPrice && prod.originalPrice > prod.price);
+  const discountPct = hasDiscount ? Math.round((1 - prod.price / prod.originalPrice) * 100) : 0;
+  const strengthMatch = prod.name.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i) || prod.genericName?.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i);
+  const pack = prod.packSize || prod.dosageForm || "Pack";
+  const generic = prod.genericName || (strengthMatch ? strengthMatch[0] : "");
+
+  return `
+    <article class="product-card recommended-prod-card" data-product-id="${escapeHtml(prod.id)}" title="View ${escapeHtml(prod.name)}">
+      ${hasDiscount ? `<span class="discount-ribbon">${discountPct}% OFF</span>` : ""}
+      <button class="prod-card-fav-btn ${isFav ? "active" : ""}" type="button" data-id="${escapeHtml(prod.id)}" aria-label="${isFav ? "Remove from favorites" : "Add to favorites"}">
+        ${isFav ? "♥" : "♡"}
+      </button>
+      <div class="product-thumb-container">
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+      </div>
+      <div class="rec-card-body">
+        <h4 class="rec-product-name">${escapeHtml(prod.name)}</h4>
+        <p class="rec-product-meta">${escapeHtml(pack)}${generic ? ` &bull; ${escapeHtml(generic)}` : ""}</p>
+        <div class="rec-pricing-row">
+          <div class="rec-price-box">
+            <span class="rec-current-price">${formatUGX(prod.price)}</span>
+            ${hasDiscount ? `<span class="rec-original-price" style="text-decoration:line-through; color:var(--text-muted); font-size:11px; margin-left:4px;">${formatUGX(prod.originalPrice)}</span>` : ""}
+          </div>
+          <button class="circular-plus-btn add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" ${!avail.isAvailable ? "disabled" : ""}>
+            &plus;
+          </button>
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+export function renderMedicinesView() {
   const effRole = getEffectiveRole();
   const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
+  $("#medicines-staff-header")?.classList.toggle("hidden", !isStaff);
   $("#medicines-staff-actions")?.classList.toggle("hidden", !isStaff);
   $("#staff-medicines-table-card")?.classList.toggle("hidden", !isStaff);
+  $("#customer-storefront-wrapper")?.classList.toggle("hidden", isStaff);
   $("#customer-medicines-controls")?.classList.toggle("hidden", isStaff);
   $("#catalog-products-grid")?.classList.toggle("hidden", isStaff);
   $("#catalog-pagination")?.classList.toggle("hidden", isStaff);
+  $("#floating-rx-order-btn")?.classList.toggle("hidden", isStaff);
 
   if (isStaff) {
     // Staff filter logic
@@ -4504,6 +4733,32 @@ function renderMedicinesView() {
     }
   } else {
     // Render Customer / Visitor Catalog View
+    // 1. Update Dynamic Pharmacy Open / Closed Status
+    const statusObj = getPharmacyOpenStatus();
+    const openBadge = $("#pharmacy-status-pill") || $("#store-open-badge");
+    if (openBadge) {
+      openBadge.textContent = statusObj.badgeText;
+      openBadge.className = `pharmacy-status-pill ${statusObj.statusClass}`;
+    }
+
+    // 2. Update Pharmacy Favorite Buttons
+    const pharmFav = isPharmacyFavorited();
+    $$(".pharmacy-fav-btn").forEach(btn => {
+      btn.classList.toggle("active", pharmFav);
+      const heartSpan = btn.querySelector(".chip-heart-icon") || btn;
+      heartSpan.textContent = pharmFav ? "♥" : "♡";
+      btn.setAttribute("aria-label", pharmFav ? "Remove BloomCare from favorites" : "Add BloomCare to favorites");
+    });
+
+    // 3. Populate Recommended Products Carousel
+    const recTrack = $("#recommended-products-track");
+    if (recTrack) {
+      const activeAll = STATE.products.filter(p => p && p.status !== "inactive" && getProductAvailability(p).isAvailable);
+      const recommendedList = activeAll.slice(0, 10);
+      recTrack.innerHTML = recommendedList.map(renderRecommendedProductCardHtml).join("");
+    }
+
+    // 4. Populate Category Pills
     const pills = $("#catalog-category-pills");
     if (pills) {
       const activeProds = STATE.products.filter(p => p && p.status !== "inactive");
@@ -4517,6 +4772,22 @@ function renderMedicinesView() {
       `;
     }
 
+    // 5. Active Filters Badge Counter
+    const activeFiltersCount = (STATE.selectedCategory && STATE.selectedCategory !== "All" ? 1 : 0) +
+      (STATE.filterPrescription && STATE.filterPrescription !== "all" ? 1 : 0) +
+      (STATE.filterAvailability && STATE.filterAvailability !== "all" ? 1 : 0) +
+      (STATE.sortMedicines && STATE.sortMedicines !== "name-asc" ? 1 : 0);
+    const filterBadge = $("#store-filter-active-badge");
+    if (filterBadge) {
+      if (activeFiltersCount > 0) {
+        filterBadge.textContent = String(activeFiltersCount);
+        filterBadge.classList.remove("hidden");
+      } else {
+        filterBadge.classList.add("hidden");
+      }
+    }
+
+    // 6. Filter and Sort Catalog List
     let list = [...STATE.products.filter(p => p && p.status !== "inactive")];
     if (STATE.selectedCategory && STATE.selectedCategory !== "All") {
       list = list.filter(p => p.category === STATE.selectedCategory);
@@ -4536,6 +4807,9 @@ function renderMedicinesView() {
     if (STATE.filterPrescription === "rx") list = list.filter(p => p.requiresPrescription);
 
     const totalItems = list.length;
+    const countEl = $("#store-products-count");
+    if (countEl) countEl.textContent = `(${totalItems})`;
+
     const pageSize = STATE.marketplacePageSize || 24;
     const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
     if (STATE.marketplacePage > totalPages) STATE.marketplacePage = totalPages;
@@ -4549,9 +4823,9 @@ function renderMedicinesView() {
     if (grid) {
       if (totalItems === 0) {
         grid.innerHTML = `
-          <div class="empty-state-box" style="grid-column: 1 / -1;">
-            <p class="empty-title">No medicine found.</p>
-            <p class="empty-desc">Try searching by medicine name, generic name or active ingredient.</p>
+          <div class="empty-state-box" style="grid-column: 1 / -1; padding: 40px 20px; text-align:center;">
+            <p class="empty-title" style="font-size:16px; font-weight:700; margin-bottom:6px;">No medicine found.</p>
+            <p class="empty-desc" style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Try searching by medicine name, generic name or active ingredient.</p>
             <button class="btn btn-primary btn-sm" id="reset-catalog-filters-btn" type="button">Reset Filters</button>
           </div>
         `;
@@ -4626,42 +4900,58 @@ function renderMedicinesView() {
   }
 }
 
-function renderProductCardHtml(prod) {
+export function renderProductCardHtml(prod) {
   const avail = getProductAvailability(prod);
   const rxBadge = prod.requiresPrescription ? `<span class="rx-pill rx-req">Rx Required</span>` : `<span class="rx-pill otc-ok">OTC (No Rx)</span>`;
   const stockBadge = `<span class="stock-pill ${avail.badgeClass}">${avail.label}</span>`;
   const img = getProductImage(prod);
+  const isFav = isProductFavorited(prod.id);
+  const hasDiscount = Boolean(prod.originalPrice && prod.originalPrice > prod.price);
+  const discountPct = hasDiscount ? Math.round((1 - prod.price / prod.originalPrice) * 100) : 0;
 
   const strengthMatch = prod.name.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i) || prod.genericName?.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i);
-  const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "Standard Dose");
+  const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "");
   const form = prod.dosageForm || "Unit";
+  const pack = prod.packSize || form;
 
   return `
-    <article class="product-card" data-product-id="${escapeHtml(prod.id)}" title="Click to view details for ${escapeHtml(prod.name)}">
-      <div class="product-badges-row">
-        ${stockBadge}
-        ${rxBadge}
-      </div>
+    <article class="product-card horizontal-card" data-product-id="${escapeHtml(prod.id)}" title="Click to view details for ${escapeHtml(prod.name)}">
+      ${hasDiscount ? `<span class="discount-ribbon">${discountPct}% OFF</span>` : ""}
+      
       <div class="product-thumb-container">
         <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
       </div>
+
       <div class="product-card-body">
-        <h3 class="product-title">${escapeHtml(prod.name)}</h3>
-        <p class="product-generic">${escapeHtml(prod.genericName || strength)} &bull; ${escapeHtml(form)}</p>
+        <div class="product-title-row">
+          <h3 class="product-title">${escapeHtml(prod.name)}</h3>
+        </div>
+        <p class="product-generic">${escapeHtml(pack)}${strength ? ` &bull; ${escapeHtml(strength)}` : ""}${prod.genericName ? ` &bull; ${escapeHtml(prod.genericName)}` : ""}</p>
+        <div class="product-badges-row">
+          ${stockBadge}
+          ${rxBadge}
+        </div>
         <p class="product-meta-sub"><small class="muted"><strong>Category:</strong> ${escapeHtml(prod.category)}</small></p>
-        <p class="product-price">${formatUGX(prod.price)}</p>
         <div class="product-card-stock-status">
           <span class="stock-status-label ${avail.badgeClass}">Stock: ${avail.isAvailable ? "Available" : "Unavailable"}</span>
         </div>
+        <div class="product-price-row">
+          <p class="product-price">${formatUGX(prod.price)}</p>
+          ${hasDiscount ? `<span class="product-original-price" style="text-decoration:line-through; color:var(--text-muted); font-size:13px; margin-left:8px;">${formatUGX(prod.originalPrice)}</span>` : ""}
+        </div>
       </div>
+
       <div class="product-card-foot">
-        <div class="product-card-qty-stepper">
+        <button class="prod-card-fav-btn ${isFav ? "active" : ""}" type="button" data-id="${escapeHtml(prod.id)}" aria-label="${isFav ? "Remove from favorites" : "Add to favorites"}">
+          ${isFav ? "♥" : "♡"}
+        </button>
+        <div class="product-card-qty-stepper hidden" style="display:none;">
           <button type="button" class="btn-qty-step btn-qty-minus" data-id="${escapeHtml(prod.id)}" aria-label="Decrease quantity" ${!avail.isAvailable ? "disabled" : ""}>&minus;</button>
           <input type="number" class="prod-card-qty-input" data-id="${escapeHtml(prod.id)}" value="1" min="1" max="${Math.max(1, prod.stockQuantity || 1)}" ${!avail.isAvailable ? "disabled" : ""} />
           <button type="button" class="btn-qty-step btn-qty-plus" data-id="${escapeHtml(prod.id)}" aria-label="Increase quantity" ${!avail.isAvailable || (prod.stockQuantity <= 1) ? "disabled" : ""}>&plus;</button>
         </div>
-        <button class="btn btn-primary btn-sm add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" ${!avail.isAvailable ? "disabled" : ""}>
-          ${!avail.isAvailable ? "Unavailable" : "Add to Cart"}
+        <button class="circular-plus-btn add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" ${!avail.isAvailable ? "disabled" : ""}>
+          &plus;
         </button>
       </div>
     </article>
@@ -6205,7 +6495,7 @@ function renderRefillsView() {
 
   const addrInp = $("#refill-address-input");
   const origInp = $("#refill-orig-order");
-  if (addrInp && !addrInp.value) addrInp.value = "Bukoto, Plot 14, Kampala";
+  if (addrInp && !addrInp.value) addrInp.value = "Plot 14, Kiyanja Road, Kamukuzi, Mbarara City";
   if (origInp && !origInp.value) origInp.value = "Refill for Order #BC-ORD-0048";
 
   // Populate Previous Medicines Select if Customer has past orders
@@ -7577,7 +7867,7 @@ export function getOrCreateOrderDeliveryChat(orderId) {
     customerName: customerName,
     customerPhone: customerPhone,
     customerEmail: order ? order.customerEmail : "",
-    deliveryAddress: typeof deliveryAddress === "string" ? deliveryAddress : (deliveryAddress.address || "Kampala"),
+    deliveryAddress: typeof deliveryAddress === "string" ? deliveryAddress : (deliveryAddress.address || "Mbarara City"),
     deliveryManId: deliveryStaffId,
     deliveryManName: deliveryStaffName,
     deliveryStatus: isDelivered ? "DELIVERED" : (isOut ? "OUT_FOR_DELIVERY" : "ASSIGNED"),
@@ -9006,7 +9296,7 @@ function renderSettingsView() {
         </div>
         <label>Physical Address<input type="text" id="sys-address" value="${escapeHtml(STATE.systemSettings.address)}" required /></label>
         <div class="form-row-2">
-          <label>Delivery Fee in Kampala (UGX)<input type="number" id="sys-delivery" value="${STATE.systemSettings.deliveryFee}" required /></label>
+          <label>Delivery Fee in Mbarara City (UGX)<input type="number" id="sys-delivery" value="${STATE.systemSettings.deliveryFee}" required /></label>
           <label>Low Stock Alert Threshold<input type="number" id="sys-low-stock" value="${STATE.systemSettings.lowStockThreshold}" required /></label>
         </div>
         <label>Operating Hours<input type="text" id="sys-hours" value="${escapeHtml(STATE.systemSettings.openingHours)}" required /></label>
@@ -9170,10 +9460,15 @@ export function removeCartItem(productId) {
   openNotice("Item Removed", `<strong>${escapeHtml(itemName)}</strong> was removed from your cart.`);
 }
 
-function updateCartBadge() {
+export function updateCartBadge() {
   const total = STATE.cart.reduce((sum, i) => sum + (i.quantity || 0), 0);
   const badge = $("#nav-cart-count");
   if (badge) badge.textContent = String(total);
+  const mobileBadge = $("#mobile-bottom-cart-badge");
+  if (mobileBadge) {
+    mobileBadge.textContent = String(total);
+    mobileBadge.classList.toggle("hidden", total === 0);
+  }
 }
 
 function renderCartDialogContents() {
@@ -10122,7 +10417,7 @@ export function completeWalkinSale() {
     customerEmail: "walkin@bloomcare.local",
     customerId: "walkin-" + Date.now(),
     deliveryAddress: "BloomCare Pharmacy Counter (Dispensary)",
-    deliveryCity: "Kampala",
+    deliveryCity: "Mbarara City",
     deliveryFee: 0,
     subtotal: subtotal,
     discount: discount,
@@ -10195,7 +10490,14 @@ export function showReceiptModal(order) {
 
   STATE.activeReceiptOrder = order;
 
-  // 1. Reference, Date, Time, Status
+  // 1. Reference, Date, Time, Status, Brand Header
+  const recAddrEl = $("#printable-receipt .receipt-address-line");
+  if (recAddrEl) {
+    const loc = STATE.systemSettings?.address || BLOOMCARE_PHARMACY_LOCATION;
+    const phone = STATE.systemSettings?.phone || BLOOMCARE_PHONE;
+    recAddrEl.innerHTML = `${escapeHtml(loc)} &bull; Tel: ${escapeHtml(phone)}`;
+  }
+
   const orderDate = new Date(order.createdAt || Date.now());
   const formattedDate = orderDate.toLocaleDateString("en-UG", {
     year: "numeric",
@@ -10784,6 +11086,29 @@ function bindEventListeners() {
     renderMedicinesView();
   });
 
+  // Customer Storefront Controls & Modal Filters
+  $("#store-search-toggle-btn")?.addEventListener("click", () => {
+    const inp = $("#catalog-search-input") || $("#top-search-input");
+    if (inp) {
+      inp.scrollIntoView({ behavior: "smooth", block: "center" });
+      inp.focus();
+    }
+  });
+  $("#store-filter-toggle-btn")?.addEventListener("click", () => openCatalogFilterDialog());
+  $("#close-catalog-filter-modal")?.addEventListener("click", () => closeCatalogFilterDialog());
+  $("#btn-reset-modal-filters")?.addEventListener("click", () => resetCatalogModalFilters());
+  $("#btn-apply-modal-filters")?.addEventListener("click", () => applyCatalogModalFilters());
+  $("#store-back-btn")?.addEventListener("click", () => {
+    if (window.history.length > 1) {
+      window.history.back();
+    } else {
+      navigateTo("customer/dashboard");
+    }
+  });
+  $("#store-share-btn")?.addEventListener("click", () => sharePharmacyPage());
+  $("#pharmacy-info-share-btn")?.addEventListener("click", () => sharePharmacyPage());
+  $("#mobile-nav-cart-btn")?.addEventListener("click", () => openCartDialog());
+
   // Staff Dispensary Filter Controls
   $("#staff-medicine-search")?.addEventListener("input", (e) => {
     STATE.staffMedicineSearch = e.target.value;
@@ -11109,6 +11434,34 @@ function bindEventListeners() {
 
     if (e.target.closest(".prod-card-qty-input")) {
       e.stopPropagation();
+      return;
+    }
+
+    const favProdBtn = e.target.closest(".prod-card-fav-btn");
+    if (favProdBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prodId = favProdBtn.dataset.id;
+      if (prodId) {
+        const isFav = toggleProductFavorite(prodId);
+        favProdBtn.classList.toggle("active", isFav);
+        favProdBtn.textContent = isFav ? "♥" : "♡";
+        favProdBtn.setAttribute("aria-label", isFav ? "Remove from favorites" : "Add to favorites");
+      }
+      return;
+    }
+
+    const favPharmBtn = e.target.closest(".pharmacy-fav-btn");
+    if (favPharmBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const isFav = togglePharmacyFavorite();
+      $$(".pharmacy-fav-btn").forEach(btn => {
+        btn.classList.toggle("active", isFav);
+        const heart = btn.querySelector(".chip-heart-icon") || btn;
+        heart.textContent = isFav ? "♥" : "♡";
+        btn.setAttribute("aria-label", isFav ? "Remove BloomCare from favorites" : "Add BloomCare to favorites");
+      });
       return;
     }
 
