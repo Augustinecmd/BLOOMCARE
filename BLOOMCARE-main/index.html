@@ -760,6 +760,99 @@
       </section>
 
       <!-- ========================================================== -->
+      <!-- MODULE 13B: CUSTOMER CHAT MODULE (#customer-chat) (Delivery Staff/Admin) -->
+      <!-- ========================================================== -->
+      <section class="page-pane hidden" id="view-customer-chat">
+        <div class="page-header-block">
+          <h1 class="page-title" id="customer-chat-page-title">Customer Chat</h1>
+          <p class="page-desc" id="customer-chat-page-desc">Real-time in-system messaging with customers for assigned order deliveries.</p>
+        </div>
+
+        <div class="chat-module-container content-card">
+          <div class="chat-layout-grid" id="chat-layout-grid">
+            <!-- Left Panel: Conversations List -->
+            <aside class="chat-sidebar-pane" id="chat-sidebar-pane">
+              <div class="chat-sidebar-header">
+                <div class="chat-search-wrap">
+                  <span class="chat-search-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                  </span>
+                  <input type="search" id="chat-search-input" class="form-control" placeholder="Search customer, order #..." autocomplete="off">
+                </div>
+                <div class="chat-filter-tabs" role="tablist">
+                  <button type="button" class="chat-filter-tab active" data-filter="all">All</button>
+                  <button type="button" class="chat-filter-tab" data-filter="active">Active</button>
+                  <button type="button" class="chat-filter-tab" data-filter="completed">Completed</button>
+                  <button type="button" class="chat-filter-tab" data-filter="unread">Unread</button>
+                </div>
+              </div>
+              <div class="chat-conversations-list" id="chat-conversations-list" role="list">
+                <!-- Injected via renderDeliveryChatView -->
+              </div>
+            </aside>
+
+            <!-- Right Panel: Conversation Detail -->
+            <main class="chat-main-pane" id="chat-main-pane">
+              <div class="chat-empty-selection" id="chat-empty-selection">
+                <div class="chat-empty-illustration">
+                  <svg viewBox="0 0 24 24" width="48" height="48" fill="none" stroke="var(--primary)" stroke-width="1.75">
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                </div>
+                <h3>Customer Delivery Messaging</h3>
+                <p>Select an active delivery run from the left panel to message the customer directly inside BloomCare.</p>
+              </div>
+
+              <div class="chat-active-box hidden" id="chat-active-box">
+                <!-- Header -->
+                <header class="chat-header-bar" id="chat-header-bar">
+                  <!-- Header injected via renderDeliveryChatView -->
+                </header>
+
+                <!-- Completed Banner (shown if order is delivered/completed) -->
+                <div class="chat-completed-notice hidden" id="chat-completed-notice">
+                  <span class="notice-icon" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+                  </span>
+                  <div>
+                    <strong>Delivery Completed</strong>
+                    <p>This order has been delivered. Chat history is preserved for reference, but messaging is now closed.</p>
+                  </div>
+                </div>
+
+                <!-- Messages Stream -->
+                <div class="chat-messages-stream" id="chat-messages-stream" role="log" aria-live="polite">
+                  <!-- Messages injected via renderDeliveryChatView -->
+                </div>
+
+                <!-- Input Footer -->
+                <footer class="chat-input-footer" id="chat-input-footer">
+                  <div class="chat-quick-replies" id="chat-quick-replies">
+                    <button type="button" class="chat-quick-btn" data-text="I'm on my way with your order.">🚗 On my way</button>
+                    <button type="button" class="chat-quick-btn" data-text="I have arrived at your delivery address.">📍 Arrived outside</button>
+                    <button type="button" class="chat-quick-btn" data-text="Please confirm your house or gate number.">🏠 Confirm house #</button>
+                  </div>
+                  <form id="delivery-chat-form" class="chat-form">
+                    <div class="chat-input-row">
+                      <input type="text" id="delivery-chat-input" class="chat-text-input" placeholder="Type a message to the customer..." maxlength="500" autocomplete="off" required>
+                      <button type="submit" class="btn btn-primary chat-send-btn" id="delivery-chat-send-btn" title="Send message">
+                        <span class="btn-text">Send</span>
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                      </button>
+                    </div>
+                    <div class="chat-input-meta">
+                      <small class="text-muted"><span id="chat-char-counter">0</span> / 500 characters</small>
+                      <small class="text-muted secure-tag">🔒 In-system direct chat</small>
+                    </div>
+                  </form>
+                </footer>
+              </div>
+            </main>
+          </div>
+        </div>
+      </section>
+
+      <!-- ========================================================== -->
       <!-- MODULE 14: PAYMENTS MODULE (#payments) (Staff/Admin) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-payments">
@@ -2395,6 +2488,52 @@
     <button class="dialog-close-btn" id="close-tracking-modal">&times;</button>
   </div>
   <div class="tracking-modal-body" id="tracking-modal-content"></div>
+</dialog>
+
+<!-- 10C. Customer Order Chat Dialog -->
+<dialog id="customer-order-chat-dialog" class="chat-modal-dialog">
+  <div class="dialog-header">
+    <div class="chat-modal-header-info">
+      <h2 id="customer-chat-modal-title">Chat with Delivery Driver</h2>
+      <p class="dialog-subtitle" id="customer-chat-modal-sub">Direct delivery assistance for your order</p>
+    </div>
+    <button class="dialog-close-btn" id="close-customer-chat-modal">&times;</button>
+  </div>
+  <div class="customer-chat-modal-body">
+    <!-- Completed Notice Banner -->
+    <div class="chat-completed-notice hidden" id="customer-chat-completed-notice">
+      <span class="notice-icon" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path><path d="m9 12 2 2 4-4"></path></svg>
+      </span>
+      <div>
+        <strong>Order Delivered</strong>
+        <p>This order delivery has been completed. Chat history is preserved for your records, but new messages cannot be sent.</p>
+      </div>
+    </div>
+
+    <!-- Messages Container -->
+    <div class="chat-messages-stream customer-stream" id="customer-chat-stream" role="log" aria-live="polite"></div>
+
+    <!-- Chat Form -->
+    <form id="customer-chat-form" class="chat-form">
+      <div class="chat-quick-replies" id="customer-quick-replies">
+        <button type="button" class="chat-quick-btn" data-text="I am waiting at the gate.">📍 Waiting at the gate</button>
+        <button type="button" class="chat-quick-btn" data-text="The building is the blue one next to the main road.">🏠 Blue building</button>
+        <button type="button" class="chat-quick-btn" data-text="Please call me when you reach.">📞 Please call on arrival</button>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="customer-chat-input" class="chat-text-input" placeholder="Type a message to your driver..." maxlength="500" autocomplete="off" required>
+        <button type="submit" class="btn btn-primary chat-send-btn" id="customer-chat-send-btn" title="Send message">
+          <span class="btn-text">Send</span>
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+        </button>
+      </div>
+      <div class="chat-input-meta">
+        <small class="text-muted"><span id="customer-chat-char-counter">0</span> / 500 characters</small>
+        <small class="text-muted secure-tag">🔒 In-system direct messaging</small>
+      </div>
+    </form>
+  </div>
 </dialog>
 
 <!-- 11. Logout Confirmation Modal -->

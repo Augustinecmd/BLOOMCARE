@@ -2527,16 +2527,16 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "contact", icon: ICONS.contact, label: "Contact Us" }
   ],
   delivery_person: [
-    { route: "delivery_person/dashboard", icon: ICONS.dashboard, label: "Delivery Dashboard" },
+    { route: "delivery_person/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
     { route: "deliveries", icon: ICONS.deliveries, label: "Deliveries" },
-    { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "deliveries", icon: ICONS.orders, label: "Assigned Orders" },
+    { route: "delivery_person/chat", icon: ICONS.chat, label: "Customer Chat", badgeId: "delivery-chat-unread-badge" }
   ],
   deliveryStaff: [
-    { route: "delivery_person/dashboard", icon: ICONS.dashboard, label: "Delivery Dashboard" },
+    { route: "delivery_person/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
     { route: "deliveries", icon: ICONS.deliveries, label: "Deliveries" },
-    { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "deliveries", icon: ICONS.orders, label: "Assigned Orders" },
+    { route: "delivery_person/chat", icon: ICONS.chat, label: "Customer Chat", badgeId: "delivery-chat-unread-badge" }
   ],
   admin: [
     { route: "admin/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -2561,8 +2561,11 @@ export function renderSidebarNavigation() {
     <button class="nav-item ${STATE.currentRoute === item.route ? "active-nav" : ""}" type="button" data-route="${item.route}">
       <span class="nav-svg-icon">${item.icon}</span>
       <span class="nav-text">${item.label}</span>
+      ${item.badgeId ? `<span class="nav-badge hidden" id="${item.badgeId}">0</span>` : ""}
     </button>
   `).join("");
+
+  updateChatUnreadBadges();
 }
 
 // -------------------------------------------------------------
@@ -2571,6 +2574,15 @@ export function renderSidebarNavigation() {
 export function checkRouteAccess(route, user, role = null) {
   const clean = String(route || "").replace(/^#\/?/, "").replace(/^\/+|\/+$/g, "").trim();
   const effectiveRole = normalizeRole(role || (user ? user.role : "visitor") || "visitor");
+
+  // Delivery Person restriction: Strictly remove About Us and Contact Us from Delivery Man interface
+  if ((effectiveRole === "delivery_person" || effectiveRole === "deliveryStaff") && (clean === "about" || clean === "contact")) {
+    return {
+      allowed: false,
+      redirectRoute: "delivery_person/dashboard",
+      reason: "Access Denied: About Us and Contact Us are not available for Delivery Staff."
+    };
+  }
 
   // Public routes (accessible to everyone, including visitors)
   const publicRoutes = ["auth", "login", "register", "staff-login", "medicines", "categories", "about", "contact"];
@@ -2768,14 +2780,21 @@ export function checkRouteAccess(route, user, role = null) {
 
   // 5. DELIVERY PERSON ACCESS RULES
   if (effectiveRole === "delivery_person" || effectiveRole === "deliveryStaff") {
-    if (clean.startsWith("developer/") || clean === "developer" || clean.startsWith("admin/") || clean.startsWith("pharmacist/") || ["medicines", "inventory", "prescriptions", "consultations", "refills", "users", "reports", "payments", "settings"].includes(clean)) {
+    if (clean === "about" || clean === "contact") {
+      return {
+        allowed: false,
+        redirectRoute: "delivery_person/dashboard",
+        reason: "Access Denied: About Us and Contact Us are not available for Delivery Staff."
+      };
+    }
+    if (clean.startsWith("developer/") || clean === "developer" || clean.startsWith("admin/") || clean.startsWith("pharmacist/") || ["medicines", "inventory", "prescriptions", "consultations", "refills", "users", "reports", "payments"].includes(clean)) {
       return {
         allowed: false,
         redirectRoute: "delivery_person/dashboard",
         reason: "Access Denied: Delivery personnel are restricted to assigned delivery runs."
       };
     }
-    if (["dashboard", "delivery_person/dashboard", "deliveries", "profile", "about", "contact"].includes(clean)) {
+    if (["dashboard", "delivery_person/dashboard", "deliveries", "profile", "settings", "chat", "customer-chat", "delivery_person/chat", "delivery-chat"].includes(clean)) {
       return { allowed: true };
     }
     return {
@@ -2891,6 +2910,8 @@ export function handleRoute() {
     basePane = "consultations";
   } else if (basePane === "audit-logs" || basePane === "audit") {
     basePane = "admin-audit";
+  } else if (basePane === "chat" || basePane === "delivery-chat" || basePane === "customer-chat") {
+    basePane = "customer-chat";
   }
 
   // Set Browser Title
@@ -2911,6 +2932,8 @@ export function handleRoute() {
     "audit-logs": "Admin Audit Logs",
     audit: "Admin Audit Logs",
     deliveries: "Deliveries",
+    "customer-chat": "Customer Chat",
+    chat: "Customer Chat",
     payments: "Payments",
     reports: "Reports",
     notifications: "Notifications",
@@ -2940,6 +2963,7 @@ export function handleRoute() {
   else if (basePane === "users") renderUsersView();
   else if (basePane === "admin-audit" || basePane === "audit-logs") renderAdminAuditLogsView();
   else if (basePane === "deliveries") renderDeliveriesView();
+  else if (basePane === "customer-chat" || basePane === "chat") renderDeliveryChatView();
   else if (basePane === "payments") renderPaymentsView();
   else if (basePane === "reports") renderReportsView();
   else if (basePane === "notifications") renderNotificationsView();
@@ -3544,40 +3568,116 @@ function renderRoleDashboard() {
 
   } else if (role === "delivery_person" || role === "deliveryStaff") {
     // 4. DELIVERY STAFF DASHBOARD
-    const assigned = STATE.deliveries.filter(d => d.status !== "Delivered");
-    const completed = STATE.deliveries.filter(d => d.status === "Delivered");
+    const myDeliveries = STATE.deliveries.filter(d => 
+      !STATE.currentUser || 
+      d.deliveryStaffId === STATE.currentUser.uid || 
+      d.deliveryStaffId === STATE.currentUser.id || 
+      d.deliveryStaffName === STATE.currentUser.displayName ||
+      d.deliveryStaffName === STATE.currentUser.name
+    );
+    const assigned = myDeliveries.filter(d => d.status !== "Delivered");
+    const outForDelivery = myDeliveries.filter(d => d.status === "Out for Delivery");
+    const completed = myDeliveries.filter(d => d.status === "Delivered");
+
+    const myConversations = STATE.conversations.filter(c => canUserAccessConversation(STATE.currentUser, c));
+    const activeConvs = myConversations.filter(c => c.status === "ACTIVE" && c.deliveryStatus !== "Delivered");
+    const unreadMessagesCount = myConversations.reduce((sum, c) => sum + (c.unreadDelivery || 0), 0);
+
     container.innerHTML = `
-      <div class="page-header-block">
-        <h1 class="page-title">Delivery Dashboard</h1>
-        <p class="page-desc">Track assigned deliveries, manage dispatch status, and delivery history.</p>
+      <div class="page-header-block flex-between">
+        <div>
+          <h1 class="page-title">Delivery Dashboard</h1>
+          <p class="page-desc">Track assigned dispatches, live customer communications, and delivery completions.</p>
+        </div>
+        <button class="btn btn-primary btn-sm" id="btn-delivery-dash-chat" type="button" data-route="delivery_person/chat" style="display:inline-flex; align-items:center; gap:6px;">
+          ${ICONS.chat}
+          <span>Customer Chat ${unreadMessagesCount > 0 ? `(${unreadMessagesCount})` : ''}</span>
+        </button>
       </div>
 
-      <div class="kpi-grid-3">
+      <div class="kpi-grid-4">
         <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.deliveries}</div><div><strong class="kpi-value">${assigned.length}</strong><span class="kpi-label">Assigned Deliveries</span></div></div>
-        <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.deliveries}</div><div><strong class="kpi-value">${STATE.deliveries.filter(d => d.status === "Out for Delivery").length}</strong><span class="kpi-label">Out for Delivery</span></div></div>
+        <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.deliveries}</div><div><strong class="kpi-value">${outForDelivery.length}</strong><span class="kpi-label">Out for Delivery</span></div></div>
         <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.check}</div><div><strong class="kpi-value">${completed.length}</strong><span class="kpi-label">Completed Deliveries</span></div></div>
+        <div class="kpi-card" data-route="delivery_person/chat"><div class="kpi-icon-wrap">${ICONS.chat}</div><div><strong class="kpi-value">${activeConvs.length}</strong><span class="kpi-label">Active Chats (${unreadMessagesCount} unread)</span></div></div>
       </div>
 
-      <div class="content-card">
+      <!-- CUSTOMER CHAT DASHBOARD SECTION -->
+      <div class="content-card" style="margin-top:20px;">
+        <div class="flex-between" style="flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+          <div>
+            <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
+              <span>💬</span>
+              <span>CUSTOMER CHAT</span>
+            </h3>
+            <span class="muted" style="font-size:12.5px;">Active Conversations: <strong>${activeConvs.length}</strong> &bull; Unread Messages: <strong style="color:${unreadMessagesCount > 0 ? '#dc2626' : 'inherit'};">${unreadMessagesCount}</strong></span>
+          </div>
+          <div style="display:flex; gap:8px;">
+            <button class="btn btn-primary btn-sm" data-route="delivery_person/chat" type="button">Open Full Chat Workspace &rarr;</button>
+          </div>
+        </div>
+
+        <div class="delivery-dash-chat-list" id="delivery-dash-chat-preview-list">
+          ${myConversations.length === 0 ? `
+            <p class="muted" style="font-size:13px; margin:16px 0;">No customer conversations associated with your delivery runs.</p>
+          ` : myConversations.slice(0, 5).map(c => `
+            <div class="delivery-dash-conv-row flex-between" style="padding:12px 14px; border:1px solid var(--line); border-radius:8px; margin-bottom:8px; background:#ffffff; flex-wrap:wrap; gap:8px;">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <div class="chat-avatar-circle" style="width:36px; height:36px; border-radius:50%; background:#e0f2fe; color:#0369a1; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px;">
+                  ${escapeHtml(c.customerName?.charAt(0) || 'C')}
+                </div>
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                    <strong>${escapeHtml(c.customerName || 'Customer')}</strong>
+                    <span style="font-size:11.5px;" class="muted">Order #${escapeHtml(c.orderNumber)}</span>
+                    <span class="status-pill status-${(c.deliveryStatus || 'Assigned').toLowerCase().replace(/ /g, '_')}" style="font-size:10.5px; padding:2px 6px;">
+                      ${escapeHtml(c.deliveryStatus || 'Assigned')}
+                    </span>
+                    ${(c.unreadDelivery || 0) > 0 ? `<span class="conv-unread-pill">${c.unreadDelivery} unread</span>` : ''}
+                  </div>
+                  <div class="muted" style="font-size:12.5px; margin-top:3px;">
+                    Last message: "${escapeHtml(c.lastMessage?.message || 'Conversation ready')}"
+                    &bull; <small>${c.lastMessage?.createdAt ? formatTimeAgo(c.lastMessage.createdAt) : 'Recently'}</small>
+                  </div>
+                </div>
+              </div>
+              <div>
+                <button class="btn btn-outline btn-sm open-dash-chat-trigger" data-conv-id="${c.conversationId}" type="button">
+                  Open Chat
+                </button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
+      <div class="content-card" style="margin-top:20px;">
         <h3>My Assigned Delivery Runs</h3>
         <div class="table-responsive">
           <table class="standard-table">
-            <thead><tr><th>Delivery #</th><th>Customer</th><th>Phone</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
+            <thead><tr><th>Delivery #</th><th>Order #</th><th>Customer</th><th>Phone</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead>
             <tbody>
-              ${STATE.deliveries.map(d => `
+              ${myDeliveries.map(d => `
                 <tr>
                   <td><strong>${escapeHtml(d.id)}</strong></td>
+                  <td>${escapeHtml(d.orderNumber)}</td>
                   <td>${escapeHtml(d.customerName)}</td>
                   <td>${escapeHtml(d.phone)}</td>
                   <td>${escapeHtml(d.address)}</td>
                   <td><span class="status-pill status-${d.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(d.status)}</span></td>
                   <td>
-                    ${d.status !== "Delivered" ? `
-                      <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="picked-up">Picked Up</button>
-                      <button class="btn btn-outline btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-out">Out for Delivery</button>
-                      <button class="btn btn-primary btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-delivered">Delivered</button>
-                      <button class="btn btn-outline btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-failed">Failed Delivery</button>
-                    ` : `<span class="muted">Delivered</span>`}
+                    <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                      <button class="btn btn-outline btn-sm quick-driver-chat-btn" data-order-id="${d.orderNumber || d.orderId}" title="Chat with Customer" type="button" style="display:inline-flex; align-items:center; gap:4px;">
+                        ${ICONS.chat}
+                        <span>Chat</span>
+                      </button>
+                      ${d.status !== "Delivered" ? `
+                        <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="picked-up" type="button">Picked Up</button>
+                        <button class="btn btn-outline btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-out" type="button">Out for Delivery</button>
+                        <button class="btn btn-primary btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-delivered" type="button">Delivered</button>
+                        <button class="btn btn-outline btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-failed" type="button">Failed</button>
+                      ` : `<span class="muted" style="font-size:12px; align-self:center;">Delivered</span>`}
+                    </div>
                   </td>
                 </tr>
               `).join("")}
@@ -3586,6 +3686,24 @@ function renderRoleDashboard() {
         </div>
       </div>
     `;
+
+    container.querySelectorAll(".open-dash-chat-trigger").forEach(btn => {
+      btn.addEventListener("click", () => {
+        STATE.activeChatConversationId = btn.dataset.convId;
+        navigateTo("delivery_person/chat");
+      });
+    });
+
+    container.querySelectorAll(".quick-driver-chat-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const conv = getOrCreateOrderDeliveryChat(btn.dataset.orderId);
+        if (conv) {
+          STATE.activeChatConversationId = conv.conversationId;
+          navigateTo("delivery_person/chat");
+        }
+      });
+    });
+
 
   } else if (role === "customer") {
     // 5. CUSTOMER DASHBOARD (Functional Customer Portal)
@@ -4896,6 +5014,9 @@ function renderOrdersView() {
               <td>
                 <button class="btn btn-primary btn-sm track-order-btn" data-id="${o.id}">Track Order</button>
                 <button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">View Order</button>
+                ${(o.fulfillmentType !== "pickup" && (o.assignedStaff || o.deliveryAssignedTo || STATE.deliveries.some(d => d.orderNumber === (o.orderNumber || o.id)))) ? `
+                  <button class="btn btn-outline btn-sm open-order-chat-btn" data-order-id="${o.id}" title="Chat with Delivery Driver">💬 Chat</button>
+                ` : ''}
               </td>
             </tr>
           `).join("")}
@@ -4976,65 +5097,98 @@ function openOrderTrackingModal(orderId) {
     { key: "Delivered", label: isPickup ? "Collected" : "Completed" }
   ];
 
-  // Map order status to stage index
-  const statusRank = {
-    "Pending": 0,
-    "Awaiting Prescription Review": 0,
-    "Confirmed": 1,
-    "Processing": 2,
-    "Ready": 3,
-    "Ready for Pickup": 4,
-    "Out for Delivery": 4,
-    "Delivered": 5,
-    "Completed": 5
-  };
-  const currentRank = statusRank[order.orderStatus] ?? 0;
+    // Map order status to stage index
+    const statusRank = {
+      "Pending": 0,
+      "Awaiting Prescription Review": 0,
+      "Confirmed": 1,
+      "Processing": 2,
+      "Ready": 3,
+      "Ready for Pickup": 4,
+      "Out for Delivery": 4,
+      "Delivered": 5,
+      "Completed": 5
+    };
+    const currentRank = statusRank[order.orderStatus] ?? 0;
 
-  $("#tracking-modal-content").innerHTML = `
-    <div style="background:var(--bg-page); padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
-      <div class="flex-between">
-        <strong>Order Reference: ${escapeHtml(order.orderNumber || order.id)}</strong>
-        <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(order.orderStatus)}</span>
+    const driverName = order.assignedStaff || "Unassigned";
+    const hasAssignedDriver = !isPickup && driverName && driverName !== "Unassigned" && driverName !== "Pending Assignment";
+    const canChat = hasAssignedDriver && order.orderStatus !== "Cancelled";
+
+    $("#tracking-modal-content").innerHTML = `
+      <div style="background:var(--bg-page); padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
+        <div class="flex-between">
+          <strong>Order Reference: ${escapeHtml(order.orderNumber || order.id)}</strong>
+          <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(order.orderStatus)}</span>
+        </div>
+        <p style="font-size:12.5px; margin-top:4px; color:var(--muted);">
+          ${isPickup ? "Fulfillment: Pharmacy Pickup (Plot 14 Kampala Road)" : `Fulfillment: Doorstep Delivery to ${escapeHtml(order.deliveryAddress)}`}
+        </p>
       </div>
-      <p style="font-size:12.5px; margin-top:4px; color:var(--muted);">
-        ${isPickup ? "Fulfillment: Pharmacy Pickup (Plot 14 Kampala Road)" : `Fulfillment: Doorstep Delivery to ${escapeHtml(order.deliveryAddress)}`}
-      </p>
-    </div>
 
-    <!-- 6-Stage Timeline -->
-    <div class="tracking-timeline">
-      ${stages.map((st, idx) => {
-        let stepClass = "";
-        let stepContent = idx + 1;
-        if (idx < currentRank) {
-          stepClass = "step-completed";
-          stepContent = "&#10003;";
-        } else if (idx === currentRank) {
-          stepClass = "step-active";
-        }
-        return `
-          <div class="timeline-step ${stepClass}">
-            <div class="step-circle">${stepContent}</div>
-            <span class="step-label">${st.label}</span>
+      <!-- 6-Stage Timeline -->
+      <div class="tracking-timeline">
+        ${stages.map((st, idx) => {
+          let stepClass = "";
+          let stepContent = idx + 1;
+          if (idx < currentRank) {
+            stepClass = "step-completed";
+            stepContent = "&#10003;";
+          } else if (idx === currentRank) {
+            stepClass = "step-active";
+          }
+          return `
+            <div class="timeline-step ${stepClass}">
+              <div class="step-circle">${stepContent}</div>
+              <span class="step-label">${st.label}</span>
+            </div>
+          `;
+        }).join("")}
+      </div>
+
+      ${!isPickup && hasAssignedDriver ? `
+        <div class="content-card" style="margin-top:14px; padding:14px; border-left:4px solid var(--primary, #00796b);">
+          <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
+            <div>
+              <span class="muted" style="font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">Delivery Information</span>
+              <div style="font-size:14px; font-weight:600; margin-top:3px;">
+                Delivery Man: <strong>${escapeHtml(driverName)}</strong>
+              </div>
+              <div style="font-size:12.5px; margin-top:2px;">
+                Status: <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, '_')}">${escapeHtml(order.orderStatus)}</span>
+              </div>
+            </div>
+            ${canChat ? `
+              <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.id}" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+                ${ICONS.chat}
+                <span>Chat with Delivery Man</span>
+              </button>
+            ` : ''}
           </div>
-        `;
-      }).join("")}
-    </div>
+        </div>
+      ` : ''}
 
-    <div class="content-card" style="margin-top:14px; padding:12px;">
-      <h4>Order Items</h4>
-      <ul style="list-style:none; padding-left:0; font-size:13px; margin-top:6px;">
-        ${order.items.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${i.quantity}x ${escapeHtml(i.name)}</span><strong>${formatUGX(i.price * i.quantity)}</strong></li>`).join("")}
-      </ul>
-      <div class="flex-between" style="border-top:1px solid var(--line); padding-top:8px; margin-top:8px;">
-        <strong>Total Payable:</strong>
-        <strong style="color:var(--primary-dark);">${formatUGX(order.total)}</strong>
+      <div class="content-card" style="margin-top:14px; padding:12px;">
+        <h4>Order Items</h4>
+        <ul style="list-style:none; padding-left:0; font-size:13px; margin-top:6px;">
+          ${order.items.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${i.quantity}x ${escapeHtml(i.name)}</span><strong>${formatUGX(i.price * i.quantity)}</strong></li>`).join("")}
+        </ul>
+        <div class="flex-between" style="border-top:1px solid var(--line); padding-top:8px; margin-top:8px;">
+          <strong>Total Payable:</strong>
+          <strong style="color:var(--primary-dark);">${formatUGX(order.total)}</strong>
+        </div>
       </div>
-    </div>
-  `;
+    `;
 
-  $("#order-tracking-dialog").showModal();
-}
+    $("#order-tracking-dialog").showModal();
+
+    $("#tracking-modal-content")?.querySelectorAll(".open-order-chat-btn").forEach(btn => {
+      btn.addEventListener("click", () => {
+        $("#order-tracking-dialog")?.close();
+        openCustomerChatModal(btn.dataset.orderId);
+      });
+    });
+  }
 
 // -------------------------------------------------------------
 // MODULE 7: PRESCRIPTION VERIFICATION
@@ -6815,6 +6969,7 @@ function renderDeliveriesView() {
             <td><strong>${escapeHtml(d.deliveryStaffName || "Unassigned")}</strong></td>
             <td><span class="status-pill status-${d.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(d.status)}</span></td>
             <td>
+              <button class="btn btn-outline btn-sm quick-driver-chat-btn" data-order-id="${d.orderNumber || d.orderId || d.id}" title="Chat with Customer">💬 Chat</button>
               ${d.status !== "Delivered" ? `
                 <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="picked-up">Picked Up</button>
                 <button class="btn btn-outline btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-out">Out for Delivery</button>
@@ -6827,6 +6982,524 @@ function renderDeliveriesView() {
       </tbody>
     </table>
   `;
+}
+
+// -------------------------------------------------------------
+// MODULE 13B: REAL-TIME CUSTOMER DELIVERY CHAT SYSTEM
+// -------------------------------------------------------------
+
+export function formatChatTime(isoString) {
+  if (!isoString) return "";
+  const d = new Date(isoString);
+  if (isNaN(d.getTime())) return "";
+  const now = new Date();
+  const diffMs = now.getTime() - d.getTime();
+  const diffMin = Math.floor(diffMs / 60000);
+  if (diffMin < 1) return "Just now";
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHrs = Math.floor(diffMin / 60);
+  if (diffHrs < 24) return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return d.toLocaleDateString([], { month: "short", day: "numeric" });
+}
+
+export function canUserAccessConversation(conversation, user = STATE.currentUser, role = getEffectiveRole()) {
+  if (!conversation) return false;
+  if (!user && role !== "admin" && role !== "developer") return false;
+  const userUid = user ? user.uid : null;
+  const userEmail = user ? (user.email || "").toLowerCase() : "";
+  const userDisplayName = user ? (user.displayName || user.name || "").toLowerCase() : "";
+
+  // Admin & Developer have oversight access for compliance & auditing
+  if (role === "admin" || role === "developer") return true;
+
+  // Delivery Man access
+  if (role === "delivery_person" || role === "deliveryStaff") {
+    if (userUid && conversation.deliveryManId === userUid) return true;
+    if (userEmail && (userEmail === "delivery@bloomcare.com" || userEmail === "moses.k@bloomcare.com")) return true;
+    if (userDisplayName && (conversation.deliveryManName || "").toLowerCase().includes(userDisplayName)) return true;
+    return false;
+  }
+
+  // Customer access
+  if (role === "customer") {
+    if (userUid && conversation.customerId === userUid) return true;
+    if (userEmail && (conversation.customerEmail || "").toLowerCase() === userEmail) return true;
+    if (userDisplayName && (conversation.customerName || "").toLowerCase().includes(userDisplayName)) return true;
+    return false;
+  }
+
+  return false;
+}
+
+export function getOrCreateOrderDeliveryChat(orderId) {
+  if (!orderId) return null;
+  const cleanId = String(orderId).trim();
+
+  // Find order
+  let order = STATE.orders.find(o => o.id === cleanId || o.orderNumber === cleanId);
+  // Find delivery run
+  let delivery = STATE.deliveries.find(d => d.id === cleanId || d.orderNumber === cleanId || d.orderId === cleanId);
+
+  if (!order && delivery) {
+    order = STATE.orders.find(o => o.id === delivery.orderNumber || o.orderNumber === delivery.orderNumber);
+  }
+
+  const resolvedOrderRef = order ? (order.orderNumber || order.id) : (delivery ? (delivery.orderNumber || delivery.id) : cleanId);
+
+  // Check if conversation already exists in STATE.conversations
+  let conv = STATE.conversations.find(c => c.orderId === resolvedOrderRef || c.id === `CHAT-${resolvedOrderRef}` || (order && (c.orderId === order.id || c.orderId === order.orderNumber)));
+  if (conv) return conv;
+
+  // Resolve Customer & Driver info
+  const customerId = order ? (order.customerId || "usr-1") : "usr-1";
+  const customerName = order ? (order.customerName || "Customer") : (delivery ? delivery.customerName : "Customer");
+  const customerPhone = order ? (order.customerPhone || (order.deliveryAddress && order.deliveryAddress.phone) || "") : (delivery ? delivery.phone : "");
+  const deliveryAddress = (order && order.deliveryAddress && (order.deliveryAddress.address || order.deliveryAddress)) || (delivery && delivery.address) || "Kampala Delivery";
+
+  let deliveryStaffName = (delivery && delivery.deliveryStaffName) || (order && (order.assignedStaff || order.deliveryAssignedTo)) || "Moses Kato";
+  let deliveryStaffId = "usr-5";
+  const driverUser = STATE.users.find(u => u.displayName === deliveryStaffName || u.name === deliveryStaffName);
+  if (driverUser) deliveryStaffId = driverUser.uid;
+
+  const isDelivered = (order && (order.orderStatus === "Delivered" || order.orderStatus === "Completed")) || (delivery && delivery.status === "Delivered");
+  const isOut = (order && order.orderStatus === "Out for Delivery") || (delivery && delivery.status === "Out for Delivery");
+
+  conv = {
+    id: `CHAT-${resolvedOrderRef}`,
+    orderId: resolvedOrderRef,
+    orderRef: resolvedOrderRef,
+    customerId: customerId,
+    customerName: customerName,
+    customerPhone: customerPhone,
+    customerEmail: order ? order.customerEmail : "",
+    deliveryAddress: typeof deliveryAddress === "string" ? deliveryAddress : (deliveryAddress.address || "Kampala"),
+    deliveryManId: deliveryStaffId,
+    deliveryManName: deliveryStaffName,
+    deliveryStatus: isDelivered ? "DELIVERED" : (isOut ? "OUT_FOR_DELIVERY" : "ASSIGNED"),
+    status: isDelivered ? "COMPLETED" : "ACTIVE",
+    unreadCountForDelivery: 0,
+    unreadCountForCustomer: 0,
+    lastMessageText: "Delivery dispatch created.",
+    lastMessageTimestamp: new Date().toISOString(),
+    createdAt: new Date().toISOString(),
+    updatedAt: new Date().toISOString()
+  };
+
+  STATE.conversations.unshift(conv);
+  saveConversationsToStorage();
+
+  try {
+    getOrCreateDeliveryConversation({
+      orderId: resolvedOrderRef,
+      orderRef: resolvedOrderRef,
+      customerId: conv.customerId,
+      customerName: conv.customerName,
+      deliveryManId: conv.deliveryManId,
+      deliveryManName: conv.deliveryManName,
+      deliveryAddress: conv.deliveryAddress,
+      deliveryStatus: conv.deliveryStatus
+    }).catch(() => {});
+  } catch (_) {}
+
+  return conv;
+}
+
+export function updateChatUnreadBadges() {
+  const effRole = getEffectiveRole();
+  const user = STATE.currentUser;
+  let unreadCount = 0;
+
+  if (user) {
+    if (effRole === "delivery_person" || effRole === "deliveryStaff") {
+      unreadCount = STATE.conversations
+        .filter(c => canUserAccessConversation(c, user, effRole))
+        .reduce((sum, c) => sum + (c.unreadCountForDelivery || 0), 0);
+    } else if (effRole === "customer") {
+      unreadCount = STATE.conversations
+        .filter(c => canUserAccessConversation(c, user, effRole))
+        .reduce((sum, c) => sum + (c.unreadCountForCustomer || 0), 0);
+    }
+  }
+
+  // Sidebar badge
+  const sidebarBadge = $("#delivery-chat-unread-badge");
+  if (sidebarBadge) {
+    if (unreadCount > 0) {
+      sidebarBadge.textContent = unreadCount > 99 ? "99+" : unreadCount;
+      sidebarBadge.classList.remove("hidden");
+      sidebarBadge.style.display = "inline-block";
+    } else {
+      sidebarBadge.textContent = "";
+      sidebarBadge.classList.add("hidden");
+      sidebarBadge.style.display = "none";
+    }
+  }
+
+  // Dashboard badge
+  const dashBadge = $("#dash-unread-chats-count");
+  if (dashBadge) {
+    dashBadge.textContent = `${unreadCount} unread`;
+  }
+}
+
+export function markConversationMessagesAsRead(conversationId, readerRole) {
+  const conv = STATE.conversations.find(c => c.id === conversationId);
+  if (!conv) return;
+
+  const isDelivery = readerRole === "delivery" || readerRole === "delivery_person" || readerRole === "deliveryStaff";
+  if (isDelivery) {
+    conv.unreadCountForDelivery = 0;
+  } else {
+    conv.unreadCountForCustomer = 0;
+  }
+
+  STATE.messages.forEach(m => {
+    if (m.conversationId === conversationId) {
+      if (isDelivery && m.senderRole !== "delivery") {
+        m.read = true;
+      } else if (!isDelivery && m.senderRole !== "customer") {
+        m.read = true;
+      }
+    }
+  });
+
+  saveConversationsToStorage();
+  saveMessagesToStorage();
+
+  try {
+    if (STATE.currentUser) {
+      markDeliveryMessagesRead(conversationId, STATE.currentUser.uid).catch(() => {});
+    }
+  } catch (_) {}
+
+  updateChatUnreadBadges();
+}
+
+export function sendChatMessage(conversationId, text, senderOverride = null) {
+  const cleanText = String(text || "").trim();
+  if (!cleanText || cleanText.length === 0) {
+    return { success: false, error: "Message cannot be empty." };
+  }
+  if (cleanText.length > 500) {
+    return { success: false, error: "Message exceeds maximum limit of 500 characters." };
+  }
+
+  const conv = STATE.conversations.find(c => c.id === conversationId);
+  if (!conv) {
+    return { success: false, error: "Delivery conversation not found." };
+  }
+
+  if (conv.status === "COMPLETED" || conv.deliveryStatus === "DELIVERED") {
+    return { success: false, error: "This order delivery is completed. Messaging is closed." };
+  }
+
+  const effRole = getEffectiveRole();
+  const user = senderOverride || STATE.currentUser;
+  const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff";
+
+  const senderId = user ? user.uid : (isDelivery ? conv.deliveryManId : conv.customerId);
+  const senderName = user ? (user.displayName || user.name) : (isDelivery ? conv.deliveryManName : conv.customerName);
+  const senderRole = isDelivery ? "delivery" : "customer";
+  const recipientRole = isDelivery ? "customer" : "delivery";
+
+  const now = new Date().toISOString();
+  const newMsg = {
+    id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+    conversationId: conv.id,
+    orderId: conv.orderId,
+    senderId: senderId,
+    senderName: senderName,
+    senderRole: senderRole,
+    recipientRole: recipientRole,
+    text: cleanText,
+    timestamp: now,
+    read: false
+  };
+
+  STATE.messages.push(newMsg);
+  saveMessagesToStorage();
+
+  conv.lastMessageText = cleanText;
+  conv.lastMessageTimestamp = now;
+  conv.updatedAt = now;
+  if (isDelivery) {
+    conv.unreadCountForCustomer = (conv.unreadCountForCustomer || 0) + 1;
+  } else {
+    conv.unreadCountForDelivery = (conv.unreadCountForDelivery || 0) + 1;
+  }
+  saveConversationsToStorage();
+
+  try {
+    sendDeliveryChatMessage(conv.id, {
+      orderId: conv.orderId,
+      senderId: newMsg.senderId,
+      senderName: newMsg.senderName,
+      senderRole: newMsg.senderRole,
+      recipientRole: newMsg.recipientRole,
+      text: newMsg.text
+    }).catch(() => {});
+  } catch (_) {}
+
+  updateChatUnreadBadges();
+  return { success: true, message: newMsg };
+}
+
+export function renderDeliveryChatView() {
+  const container = $("#view-customer-chat");
+  if (!container) return;
+
+  const effRole = getEffectiveRole();
+  const user = STATE.currentUser;
+
+  // Filter conversations accessible by this user
+  let convs = STATE.conversations.filter(c => canUserAccessConversation(c, user, effRole));
+
+  // Chat filter tab
+  const filter = STATE.chatFilter || "all";
+  if (filter === "active") {
+    convs = convs.filter(c => c.status !== "COMPLETED" && c.deliveryStatus !== "DELIVERED");
+  } else if (filter === "completed") {
+    convs = convs.filter(c => c.status === "COMPLETED" || c.deliveryStatus === "DELIVERED");
+  } else if (filter === "unread") {
+    convs = convs.filter(c => (c.unreadCountForDelivery || 0) > 0);
+  }
+
+  // Search query
+  const query = (STATE.chatSearchQuery || "").trim().toLowerCase();
+  if (query) {
+    convs = convs.filter(c => 
+      (c.customerName || "").toLowerCase().includes(query) ||
+      (c.orderRef || "").toLowerCase().includes(query) ||
+      (c.customerPhone || "").toLowerCase().includes(query) ||
+      (c.deliveryAddress || "").toLowerCase().includes(query) ||
+      (c.lastMessageText || "").toLowerCase().includes(query)
+    );
+  }
+
+  // Ensure active conversation is valid
+  if (STATE.activeChatConversationId && !convs.some(c => c.id === STATE.activeChatConversationId)) {
+    if (convs.length > 0) {
+      STATE.activeChatConversationId = convs[0].id;
+    } else {
+      STATE.activeChatConversationId = null;
+    }
+  } else if (!STATE.activeChatConversationId && convs.length > 0) {
+    STATE.activeChatConversationId = convs[0].id;
+  }
+
+  // Render Conversations list (Left Pane)
+  const listEl = $("#chat-conversations-list");
+  if (listEl) {
+    if (convs.length === 0) {
+      listEl.innerHTML = `
+        <div style="padding: 32px 16px; text-align: center; color: #94a3b8; font-size: 13px;">
+          <p style="margin: 0 0 6px 0;">No delivery conversations found.</p>
+          <small class="muted">Assigned deliveries will appear here automatically.</small>
+        </div>
+      `;
+    } else {
+      listEl.innerHTML = convs.map(c => {
+        const isSelected = c.id === STATE.activeChatConversationId;
+        const unread = c.unreadCountForDelivery || 0;
+        const isCompleted = c.status === "COMPLETED" || c.deliveryStatus === "DELIVERED";
+        return `
+          <div class="chat-conv-item ${isSelected ? 'active' : ''}" data-id="${c.id}" role="listitem" tabindex="0">
+            <div class="chat-conv-head">
+              <span class="chat-conv-name">${escapeHtml(c.customerName)}</span>
+              <span class="chat-conv-time">${formatChatTime(c.lastMessageTimestamp || c.updatedAt)}</span>
+            </div>
+            <div class="chat-conv-sub">
+              <span class="chat-conv-preview">${escapeHtml(c.lastMessageText || "New delivery run")}</span>
+              ${unread > 0 ? `<span class="chat-unread-badge">${unread}</span>` : ''}
+            </div>
+            <div class="chat-conv-meta-row">
+              <span class="chat-conv-ref">${escapeHtml(c.orderRef)}</span>
+              <span class="status-pill status-${(c.deliveryStatus || 'ASSIGNED').toLowerCase()}">${isCompleted ? 'Completed' : escapeHtml((c.deliveryStatus || 'ASSIGNED').replace(/_/g, ' '))}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+  }
+
+  // Render Active Conversation (Right Pane)
+  const emptyEl = $("#chat-empty-selection");
+  const activeBox = $("#chat-active-box");
+  const activeConv = STATE.conversations.find(c => c.id === STATE.activeChatConversationId);
+
+  if (!activeConv) {
+    if (emptyEl) emptyEl.classList.remove("hidden");
+    if (activeBox) activeBox.classList.add("hidden");
+    return;
+  }
+
+  if (emptyEl) emptyEl.classList.add("hidden");
+  if (activeBox) activeBox.classList.remove("hidden");
+
+  // Mark messages as read by delivery staff
+  markConversationMessagesAsRead(activeConv.id, "delivery");
+
+  // Render Header
+  const headerBar = $("#chat-header-bar");
+  if (headerBar) {
+    const isCompleted = activeConv.status === "COMPLETED" || activeConv.deliveryStatus === "DELIVERED";
+    const initial = (activeConv.customerName || "C").charAt(0).toUpperCase();
+    headerBar.innerHTML = `
+      <div class="chat-header-left">
+        <div class="chat-header-avatar">${initial}</div>
+        <div class="chat-header-info">
+          <h3>
+            ${escapeHtml(activeConv.customerName)}
+            <span class="status-pill status-${(activeConv.deliveryStatus || 'ASSIGNED').toLowerCase()}">${isCompleted ? 'Completed' : escapeHtml((activeConv.deliveryStatus || 'ASSIGNED').replace(/_/g, ' '))}</span>
+          </h3>
+          <p>Order: <strong>${escapeHtml(activeConv.orderRef)}</strong> &bull; 📞 ${escapeHtml(activeConv.customerPhone || 'N/A')} &bull; 📍 ${escapeHtml(activeConv.deliveryAddress)}</p>
+        </div>
+      </div>
+      <div class="chat-header-right">
+        <button class="btn btn-outline btn-sm quick-call-btn" type="button" data-phone="${escapeHtml(activeConv.customerPhone || '')}">
+          📞 Call Customer
+        </button>
+      </div>
+    `;
+  }
+
+  // Completed Banner
+  const completedNotice = $("#chat-completed-notice");
+  const chatFooter = $("#chat-input-footer");
+  const isCompleted = activeConv.status === "COMPLETED" || activeConv.deliveryStatus === "DELIVERED";
+
+  if (isCompleted) {
+    if (completedNotice) completedNotice.classList.remove("hidden");
+    if (chatFooter) {
+      chatFooter.style.opacity = "0.6";
+      chatFooter.style.pointerEvents = "none";
+    }
+  } else {
+    if (completedNotice) completedNotice.classList.add("hidden");
+    if (chatFooter) {
+      chatFooter.style.opacity = "1";
+      chatFooter.style.pointerEvents = "auto";
+    }
+  }
+
+  // Render Messages Stream
+  const stream = $("#chat-messages-stream");
+  if (stream) {
+    const convMsgs = STATE.messages.filter(m => m.conversationId === activeConv.id);
+    if (convMsgs.length === 0) {
+      stream.innerHTML = `
+        <div style="text-align: center; color: #94a3b8; font-size: 13px; margin: auto;">
+          <p>No messages yet.</p>
+          <small>Use the input box below or quick action buttons to message the customer.</small>
+        </div>
+      `;
+    } else {
+      stream.innerHTML = convMsgs.map(m => {
+        const isDelivery = m.senderRole === "delivery";
+        const timeStr = formatChatTime(m.timestamp);
+        return `
+          <div class="chat-message-row ${isDelivery ? 'outgoing' : 'incoming'}">
+            <span class="chat-bubble-sender">${isDelivery ? 'You (Delivery)' : escapeHtml(m.senderName || 'Customer')}</span>
+            <div class="chat-bubble">
+              ${escapeHtml(m.text)}
+            </div>
+            <div class="chat-bubble-meta">
+              <span>${timeStr}</span>
+              ${isDelivery ? `<span class="chat-tick-receipt" title="${m.read ? 'Read by customer' : 'Sent'}">${m.read ? '✓✓' : '✓'}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+    setTimeout(() => { stream.scrollTop = stream.scrollHeight; }, 10);
+  }
+}
+
+export function openCustomerChatModal(orderId) {
+  const dialog = $("#customer-order-chat-dialog");
+  if (!dialog) return;
+
+  const conv = getOrCreateOrderDeliveryChat(orderId);
+  if (!conv) {
+    openNotice("Chat Unavailable", "Unable to establish a delivery chat for this order.");
+    return;
+  }
+
+  const effRole = getEffectiveRole();
+  if (!canUserAccessConversation(conv, STATE.currentUser, effRole)) {
+    openNotice("Access Denied", "You do not have permission to view delivery communications for this order.");
+    return;
+  }
+
+  dialog.dataset.conversationId = conv.id;
+  dialog.dataset.orderId = conv.orderId;
+
+  const titleEl = $("#customer-chat-modal-title");
+  const subEl = $("#customer-chat-modal-sub");
+  if (titleEl) titleEl.textContent = `Delivery Chat — ${conv.deliveryManName}`;
+  if (subEl) subEl.textContent = `Order: ${conv.orderRef} • Status: ${(conv.deliveryStatus || 'ASSIGNED').replace(/_/g, ' ')}`;
+
+  markConversationMessagesAsRead(conv.id, "customer");
+
+  const isCompleted = conv.status === "COMPLETED" || conv.deliveryStatus === "DELIVERED";
+  const noticeEl = $("#customer-chat-completed-notice");
+  const formEl = $("#customer-chat-form");
+
+  if (isCompleted) {
+    if (noticeEl) noticeEl.classList.remove("hidden");
+    if (formEl) {
+      formEl.style.opacity = "0.5";
+      formEl.style.pointerEvents = "none";
+    }
+  } else {
+    if (noticeEl) noticeEl.classList.add("hidden");
+    if (formEl) {
+      formEl.style.opacity = "1";
+      formEl.style.pointerEvents = "auto";
+    }
+  }
+
+  renderCustomerChatStream(conv.id);
+
+  if (typeof dialog.showModal === "function") {
+    dialog.showModal();
+  }
+}
+
+export function renderCustomerChatStream(conversationId) {
+  const stream = $("#customer-chat-stream");
+  if (!stream) return;
+
+  const conv = STATE.conversations.find(c => c.id === conversationId);
+  if (!conv) return;
+
+  const msgs = STATE.messages.filter(m => m.conversationId === conversationId);
+  if (msgs.length === 0) {
+    stream.innerHTML = `
+      <div style="text-align: center; color: #94a3b8; font-size: 13px; margin: auto;">
+        <p>No messages yet.</p>
+        <small>Send a direct message to your assigned driver (${escapeHtml(conv.deliveryManName)}).</small>
+      </div>
+    `;
+  } else {
+    stream.innerHTML = msgs.map(m => {
+      const isCustomer = m.senderRole === "customer";
+      const timeStr = formatChatTime(m.timestamp);
+      return `
+        <div class="chat-message-row ${isCustomer ? 'outgoing' : 'incoming'}">
+          <span class="chat-bubble-sender">${isCustomer ? 'You (Customer)' : escapeHtml(m.senderName || conv.deliveryManName)}</span>
+          <div class="chat-bubble">
+            ${escapeHtml(m.text)}
+          </div>
+          <div class="chat-bubble-meta">
+            <span>${timeStr}</span>
+            ${isCustomer ? `<span class="chat-tick-receipt" title="${m.read ? 'Read by driver' : 'Sent'}">${m.read ? '✓✓' : '✓'}</span>` : ''}
+          </div>
+        </div>
+      `;
+    }).join("");
+  }
+  setTimeout(() => { stream.scrollTop = stream.scrollHeight; }, 10);
 }
 
 // -------------------------------------------------------------
@@ -9574,6 +10247,12 @@ function bindEventListeners() {
         if (d) {
           d.status = "Picked Up";
           recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Picked Up");
+          const conv = STATE.conversations.find(c => c.orderId === (d.orderNumber || d.orderId) || c.orderId === d.id);
+          if (conv) {
+            conv.deliveryStatus = "PICKED_UP";
+            conv.updatedAt = new Date().toISOString();
+            saveConversationsToStorage();
+          }
         }
         renderDeliveriesView();
         renderRoleDashboard();
@@ -9588,6 +10267,12 @@ function bindEventListeners() {
         if (d) {
           d.status = "Out for Delivery";
           recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Out for Delivery");
+          const conv = STATE.conversations.find(c => c.orderId === (d.orderNumber || d.orderId) || c.orderId === d.id);
+          if (conv) {
+            conv.deliveryStatus = "OUT_FOR_DELIVERY";
+            conv.updatedAt = new Date().toISOString();
+            saveConversationsToStorage();
+          }
         }
         renderDeliveriesView();
         openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Out for Delivery.`);
@@ -9601,6 +10286,13 @@ function bindEventListeners() {
         if (d) {
           d.status = "Delivered";
           recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Delivered");
+          const conv = STATE.conversations.find(c => c.orderId === (d.orderNumber || d.orderId) || c.orderId === d.id);
+          if (conv) {
+            conv.deliveryStatus = "DELIVERED";
+            conv.status = "COMPLETED";
+            conv.updatedAt = new Date().toISOString();
+            saveConversationsToStorage();
+          }
         }
         renderDeliveriesView();
         renderRoleDashboard();
@@ -9623,6 +10315,45 @@ function bindEventListeners() {
 
     const trackBtn = e.target.closest(".track-order-btn");
     if (trackBtn) openOrderTrackingModal(trackBtn.dataset.id);
+
+    // Customer & Driver Delivery Chat Click Handlers
+    const custChatBtn = e.target.closest(".open-order-chat-btn, .chat-order-btn, .order-chat-action-btn");
+    if (custChatBtn && custChatBtn.dataset.orderId) {
+      openCustomerChatModal(custChatBtn.dataset.orderId);
+      return;
+    }
+
+    const driverChatBtn = e.target.closest(".quick-driver-chat-btn");
+    if (driverChatBtn && driverChatBtn.dataset.orderId) {
+      const conv = getOrCreateOrderDeliveryChat(driverChatBtn.dataset.orderId);
+      if (conv) {
+        STATE.activeChatConversationId = conv.id;
+        handleRoute("delivery_person/chat");
+      }
+      return;
+    }
+
+    const callCustBtn = e.target.closest(".quick-call-btn");
+    if (callCustBtn && callCustBtn.dataset.phone) {
+      openNotice("Customer Contact", `Customer phone: <strong>${escapeHtml(callCustBtn.dataset.phone)}</strong>`);
+      return;
+    }
+
+    const filterTab = e.target.closest(".chat-filter-tab");
+    if (filterTab) {
+      document.querySelectorAll(".chat-filter-tab.active").forEach(t => t.classList.remove("active"));
+      filterTab.classList.add("active");
+      STATE.chatFilter = filterTab.dataset.filter || "all";
+      renderDeliveryChatView();
+      return;
+    }
+
+    const convItem = e.target.closest(".chat-conv-item");
+    if (convItem && convItem.dataset.id) {
+      STATE.activeChatConversationId = convItem.dataset.id;
+      renderDeliveryChatView();
+      return;
+    }
 
     // Product Selection & Add to Cart
     const addBtn = e.target.closest(".add-cart-btn");
@@ -10230,6 +10961,18 @@ function bindEventListeners() {
       order.assignedStaff = driver;
       try { updateOrderStatus(orderId, status, driver); } catch (_) {}
       recordStaffAudit("UPDATE_ORDER_STATUS", "orders", orderId, `Status updated to ${status}, Driver: ${driver}`);
+      const conv = STATE.conversations.find(c => c.orderId === (order.orderNumber || order.id) || c.orderId === order.id);
+      if (conv) {
+        if (driver) conv.deliveryManName = driver;
+        if (status === "Delivered" || status === "Completed") {
+          conv.deliveryStatus = "DELIVERED";
+          conv.status = "COMPLETED";
+        } else if (status === "Out for Delivery") {
+          conv.deliveryStatus = "OUT_FOR_DELIVERY";
+        }
+        conv.updatedAt = new Date().toISOString();
+        saveConversationsToStorage();
+      }
     }
     $("#order-status-dialog").close();
     renderOrdersView();
@@ -10403,6 +11146,87 @@ function bindEventListeners() {
 
   $("#walkin-complete-btn")?.addEventListener("click", () => {
     completeWalkinSale();
+  });
+
+  // Delivery Man Chat Form & Search Bindings
+  $("#chat-search-input")?.addEventListener("input", (e) => {
+    STATE.chatSearchQuery = e.target.value;
+    renderDeliveryChatView();
+  });
+
+  $("#delivery-chat-input")?.addEventListener("input", (e) => {
+    const counter = $("#chat-char-counter");
+    if (counter) counter.textContent = e.target.value.length;
+  });
+
+  $("#delivery-chat-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const input = $("#delivery-chat-input");
+    if (!input || !STATE.activeChatConversationId) return;
+    const text = input.value;
+    const result = sendChatMessage(STATE.activeChatConversationId, text);
+    if (result.success) {
+      input.value = "";
+      const counter = $("#chat-char-counter");
+      if (counter) counter.textContent = "0";
+      renderDeliveryChatView();
+    } else {
+      openNotice("Cannot Send Message", result.error);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    const quickBtn = e.target.closest("#chat-quick-replies .chat-quick-btn");
+    if (quickBtn && quickBtn.dataset.text) {
+      const input = $("#delivery-chat-input");
+      if (input) {
+        input.value = quickBtn.dataset.text;
+        const counter = $("#chat-char-counter");
+        if (counter) counter.textContent = input.value.length;
+        input.focus();
+      }
+    }
+  });
+
+  // Customer Chat Modal Form & Actions
+  $("#customer-chat-input")?.addEventListener("input", (e) => {
+    const counter = $("#customer-chat-char-counter");
+    if (counter) counter.textContent = e.target.value.length;
+  });
+
+  $("#customer-chat-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const dialog = $("#customer-order-chat-dialog");
+    const convId = dialog?.dataset?.conversationId;
+    const input = $("#customer-chat-input");
+    if (!input || !convId) return;
+    const text = input.value;
+    const result = sendChatMessage(convId, text);
+    if (result.success) {
+      input.value = "";
+      const counter = $("#customer-chat-char-counter");
+      if (counter) counter.textContent = "0";
+      renderCustomerChatStream(convId);
+    } else {
+      openNotice("Cannot Send Message", result.error);
+    }
+  });
+
+  document.addEventListener("click", (e) => {
+    const quickBtn = e.target.closest("#customer-quick-replies .chat-quick-btn");
+    if (quickBtn && quickBtn.dataset.text) {
+      const input = $("#customer-chat-input");
+      if (input) {
+        input.value = quickBtn.dataset.text;
+        const counter = $("#customer-chat-char-counter");
+        if (counter) counter.textContent = input.value.length;
+        input.focus();
+      }
+    }
+  });
+
+  $("#close-customer-chat-modal")?.addEventListener("click", () => {
+    $("#customer-order-chat-dialog")?.close();
   });
 
   // Logout Flow
