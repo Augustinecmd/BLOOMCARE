@@ -3759,9 +3759,9 @@ function renderRoleDashboard() {
     const outForDelivery = myDeliveries.filter(d => d.status === "Out for Delivery");
     const completed = myDeliveries.filter(d => d.status === "Delivered");
 
-    const myConversations = STATE.conversations.filter(c => canUserAccessConversation(STATE.currentUser, c));
+    const myConversations = STATE.conversations.filter(c => canUserAccessConversation(c, STATE.currentUser, "delivery_person"));
     const activeConvs = myConversations.filter(c => c.status === "ACTIVE" && c.deliveryStatus !== "Delivered");
-    const unreadMessagesCount = myConversations.reduce((sum, c) => sum + (c.unreadDelivery || 0), 0);
+    const unreadMessagesCount = myConversations.reduce((sum, c) => sum + (c.unreadCountForDelivery || c.unreadDelivery || 0), 0);
 
     container.innerHTML = `
       <div class="page-header-block flex-between">
@@ -3809,15 +3809,16 @@ function renderRoleDashboard() {
                 <div>
                   <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                     <strong>${escapeHtml(c.customerName || 'Customer')}</strong>
-                    <span style="font-size:11.5px;" class="muted">Order #${escapeHtml(c.orderNumber)}</span>
+                    <span style="font-size:11.5px;" class="muted">Order #${escapeHtml(c.orderNumber || c.orderId)}</span>
                     <span class="status-pill status-${(c.deliveryStatus || 'Assigned').toLowerCase().replace(/ /g, '_')}" style="font-size:10.5px; padding:2px 6px;">
                       ${escapeHtml(c.deliveryStatus || 'Assigned')}
                     </span>
-                    ${(c.unreadDelivery || 0) > 0 ? `<span class="conv-unread-pill">${c.unreadDelivery} unread</span>` : ''}
+                    ${(c.unreadCountForDelivery || c.unreadDelivery || 0) > 0 ? `<span class="conv-unread-pill" style="background:#dc2626; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:700;">${c.unreadCountForDelivery || c.unreadDelivery} unread</span>` : ''}
                   </div>
                   <div class="muted" style="font-size:12.5px; margin-top:3px;">
-                    Last message: "${escapeHtml(c.lastMessage?.message || 'Conversation ready')}"
-                    &bull; <small>${c.lastMessage?.createdAt ? formatTimeAgo(c.lastMessage.createdAt) : 'Recently'}</small>
+                    Last message: "${escapeHtml(c.lastMessageText || c.lastMessage?.message || 'Conversation ready')}"
+                    &bull; <small>${c.lastMessageTimestamp ? formatChatTime(c.lastMessageTimestamp) : (c.lastMessage?.createdAt ? formatTimeAgo(c.lastMessage.createdAt) : 'Recently')}</small>
+                    ${c.deliveryAddress ? `&bull; 📍 <small>${escapeHtml(c.deliveryAddress)}</small>` : ''}
                   </div>
                 </div>
               </div>
@@ -4010,6 +4011,61 @@ function renderRoleDashboard() {
           </div>
         </div>
       ` : ""}
+
+      <!-- 3B. Customer Messages (Order Delivery Conversations) -->
+      <div class="content-card customer-messages-card" id="customer-messages-card" style="margin-top:20px;">
+        <div class="flex-between" style="margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
+              <span>💬</span>
+              <span>Messages &amp; Delivery Chat</span>
+            </h3>
+            <span class="muted" style="font-size:12.5px;">Direct communication with your order delivery driver</span>
+          </div>
+        </div>
+        <div class="customer-messages-list" id="customer-messages-list">
+          ${myOrders.length === 0 ? `
+            <p class="muted" style="font-size:13px; margin:10px 0;">No active delivery conversations yet.</p>
+          ` : myOrders.slice(0, 4).map(o => {
+            const conv = STATE.conversations.find(c => c.orderId === (o.orderNumber || o.id) || c.orderId === o.id || c.id === `CHAT-${o.orderNumber || o.id}`);
+            const driverName = (conv && conv.deliveryManName && conv.deliveryManName !== "Unassigned" && conv.deliveryManName !== "Pending Assignment") ? conv.deliveryManName : (o.assignedStaff && o.assignedStaff !== "Unassigned" && o.assignedStaff !== "Pending Assignment" ? o.assignedStaff : "Not yet assigned");
+            const isAssigned = driverName !== "Not yet assigned";
+            const unreadCount = conv ? (conv.unreadCountForCustomer || conv.unreadCustomer || 0) : 0;
+            const lastText = conv?.lastMessageText || "Your delivery chat is ready. You can send a message now.";
+            const lastTime = conv?.lastMessageTimestamp ? formatChatTime(conv.lastMessageTimestamp) : "Recently";
+            return `
+              <div class="customer-msg-row flex-between" style="padding:12px 14px; border:1px solid var(--line); border-radius:8px; margin-bottom:10px; background:#ffffff; flex-wrap:wrap; gap:10px;">
+                <div style="display:flex; align-items:center; gap:12px; min-width:240px; flex:1;">
+                  <div class="chat-avatar-circle" style="width:38px; height:38px; border-radius:50%; background:#e0f2fe; color:#0369a1; display:flex; align-items:center; justify-content:center; font-size:16px;">
+                    💬
+                  </div>
+                  <div>
+                    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                      <strong>Order #${escapeHtml(o.orderNumber || o.id)}</strong>
+                      <span class="status-pill status-${(o.orderStatus || 'Confirmed').toLowerCase().replace(/ /g, '_')}" style="font-size:11px; padding:2px 7px;">
+                        ${escapeHtml(o.orderStatus || 'Confirmed')}
+                      </span>
+                      <span style="font-size:12px; color:${isAssigned ? '#0d9488' : '#b45309'}; font-weight:600;">
+                        ${isAssigned ? `🚗 ${escapeHtml(driverName)}` : `⏳ Driver: Not yet assigned`}
+                      </span>
+                      ${unreadCount > 0 ? `<span class="conv-unread-pill" style="background:#dc2626; color:#fff; font-size:10px; padding:2px 6px; border-radius:10px; font-weight:700;">${unreadCount} new</span>` : ''}
+                    </div>
+                    <div class="muted" style="font-size:12.5px; margin-top:3px;">
+                      <span>"${escapeHtml(lastText)}"</span> &bull; <small>${lastTime}</small>
+                    </div>
+                  </div>
+                </div>
+                <div>
+                  <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${escapeHtml(o.orderNumber || o.id)}" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+                    <span>💬</span>
+                    <span>Chat with Delivery Man</span>
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
 
       <!-- 4. Delivery Location Section (Mbarara City Central Delivery System) -->
       <div class="customer-delivery-location-section">
@@ -5778,8 +5834,8 @@ function renderOrdersView() {
               <td>
                 <button class="btn btn-primary btn-sm track-order-btn" data-id="${o.id}">Track Order</button>
                 <button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">View Order</button>
-                ${(o.fulfillmentType !== "pickup" && (o.assignedStaff || o.deliveryAssignedTo || STATE.deliveries.some(d => d.orderNumber === (o.orderNumber || o.id)))) ? `
-                  <button class="btn btn-outline btn-sm open-order-chat-btn" data-order-id="${o.id}" title="Chat with Delivery Driver">💬 Chat</button>
+                ${(o.fulfillmentType !== "pickup") ? `
+                  <button class="btn btn-outline btn-sm open-order-chat-btn" data-order-id="${o.orderNumber || o.id}" title="Chat with Delivery Driver">💬 Chat</button>
                 ` : ''}
               </td>
             </tr>
@@ -5920,24 +5976,22 @@ function openOrderTrackingModal(orderId) {
         }).join("")}
       </div>
 
-      ${!isPickup && hasAssignedDriver ? `
+      ${!isPickup ? `
         <div class="content-card" style="margin-top:14px; padding:14px; border-left:4px solid var(--primary, #00796b);">
           <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
             <div>
               <span class="muted" style="font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">Delivery Information</span>
               <div style="font-size:14px; font-weight:600; margin-top:3px;">
-                Delivery Man: <strong>${escapeHtml(driverName)}</strong>
+                Delivery Man: <strong>${escapeHtml(hasAssignedDriver ? driverName : "Not yet assigned")}</strong>
               </div>
               <div style="font-size:12.5px; margin-top:2px;">
                 Status: <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, '_')}">${escapeHtml(order.orderStatus)}</span>
               </div>
             </div>
-            ${canChat ? `
-              <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.id}" type="button" style="display:inline-flex; align-items:center; gap:6px;">
-                ${ICONS.chat}
-                <span>Chat with Delivery Man</span>
-              </button>
-            ` : ''}
+            <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.orderNumber || order.id}" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+              ${ICONS.chat}
+              <span>Chat with Delivery Man</span>
+            </button>
           </div>
         </div>
       ` : ''}
@@ -7800,15 +7854,18 @@ export function canUserAccessConversation(conversation, user = STATE.currentUser
 
   // Delivery Man access
   if (role === "delivery_person" || role === "deliveryStaff") {
+    // Unassigned delivery chats cannot be accessed by delivery drivers until assigned
+    if (!conversation.deliveryManId && !conversation.deliveryManName) return false;
+    if (conversation.deliveryManName === "Unassigned" || conversation.deliveryManName === "Pending Assignment") return false;
     if (userUid && conversation.deliveryManId === userUid) return true;
-    if (userEmail && (userEmail === "delivery@bloomcare.com" || userEmail === "moses.k@bloomcare.com")) return true;
     if (userDisplayName && (conversation.deliveryManName || "").toLowerCase().includes(userDisplayName)) return true;
+    if (userEmail && (userEmail === "delivery@bloomcare.com" || userEmail === "moses.k@bloomcare.com") && (conversation.deliveryManName === "Moses Kato" || conversation.deliveryManId === "usr-5")) return true;
     return false;
   }
 
   // Customer access
   if (role === "customer") {
-    if (userUid && conversation.customerId === userUid) return true;
+    if (userUid && (conversation.customerId === userUid || (userUid === "usr-1" && conversation.customerId === "usr-demo-customer") || (userUid === "usr-demo-customer" && conversation.customerId === "usr-1"))) return true;
     if (userEmail && (conversation.customerEmail || "").toLowerCase() === userEmail) return true;
     if (userDisplayName && (conversation.customerName || "").toLowerCase().includes(userDisplayName)) return true;
     return false;
@@ -7844,15 +7901,24 @@ export function getOrCreateOrderDeliveryChat(orderId) {
   }
 
   // Resolve Customer & Driver info
-  const customerId = order ? (order.customerId || "usr-1") : "usr-1";
-  const customerName = order ? (order.customerName || "Customer") : (delivery ? delivery.customerName : "Customer");
+  const customerId = order ? (order.customerId || (STATE.currentUser?.role === "customer" ? STATE.currentUser.uid : "usr-1")) : (STATE.currentUser?.role === "customer" ? STATE.currentUser.uid : "usr-1");
+  const customerName = order ? (order.customerName || (STATE.currentUser?.role === "customer" ? (STATE.currentUser.displayName || STATE.currentUser.name) : "Customer")) : (delivery ? delivery.customerName : "Customer");
   const customerPhone = order ? (order.customerPhone || (order.deliveryAddress && order.deliveryAddress.phone) || "") : (delivery ? delivery.phone : "");
-  const deliveryAddress = (order && order.deliveryAddress && (order.deliveryAddress.address || order.deliveryAddress)) || (delivery && delivery.address) || "Kampala Delivery";
+  const deliveryAddress = (order && order.deliveryAddress && (order.deliveryAddress.address || order.deliveryAddress)) || (delivery && delivery.address) || "Mbarara City";
 
-  let deliveryStaffName = (delivery && delivery.deliveryStaffName) || (order && (order.assignedStaff || order.deliveryAssignedTo)) || "Moses Kato";
-  let deliveryStaffId = "usr-5";
-  const driverUser = STATE.users.find(u => u.displayName === deliveryStaffName || u.name === deliveryStaffName);
-  if (driverUser) deliveryStaffId = driverUser.uid;
+  // Check if driver is assigned
+  let rawDriverName = (delivery && delivery.deliveryStaffName) || (order && (order.assignedStaff || order.deliveryAssignedTo));
+  let deliveryStaffName = null;
+  let deliveryStaffId = null;
+
+  if (rawDriverName && rawDriverName !== "Unassigned" && rawDriverName !== "Pending Assignment") {
+    deliveryStaffName = rawDriverName;
+    const driverUser = STATE.users.find(u => u.displayName === deliveryStaffName || u.name === deliveryStaffName);
+    deliveryStaffId = driverUser ? driverUser.uid : (delivery ? delivery.deliveryStaffId : "usr-5");
+  } else if (delivery && delivery.deliveryStaffId) {
+    deliveryStaffId = delivery.deliveryStaffId;
+    deliveryStaffName = delivery.deliveryStaffName || null;
+  }
 
   const isDelivered = (order && (order.orderStatus === "Delivered" || order.orderStatus === "Completed")) || (delivery && delivery.status === "Delivered");
   const isOut = (order && order.orderStatus === "Out for Delivery") || (delivery && delivery.status === "Out for Delivery");
@@ -7866,17 +7932,17 @@ export function getOrCreateOrderDeliveryChat(orderId) {
     customerId: customerId,
     customerName: customerName,
     customerPhone: customerPhone,
-    customerEmail: order ? order.customerEmail : "",
+    customerEmail: order ? order.customerEmail : (STATE.currentUser?.email || ""),
     deliveryAddress: typeof deliveryAddress === "string" ? deliveryAddress : (deliveryAddress.address || "Mbarara City"),
     deliveryManId: deliveryStaffId,
     deliveryManName: deliveryStaffName,
-    deliveryStatus: isDelivered ? "DELIVERED" : (isOut ? "OUT_FOR_DELIVERY" : "ASSIGNED"),
-    status: isDelivered ? "COMPLETED" : "ACTIVE",
+    deliveryStatus: isDelivered ? "DELIVERED" : (isOut ? "OUT_FOR_DELIVERY" : (deliveryStaffId ? "ASSIGNED" : "PENDING")),
+    status: "ACTIVE",
     unreadCountForDelivery: 0,
     unreadCountForCustomer: 0,
     unreadDelivery: 0,
     unreadCustomer: 0,
-    lastMessageText: "Delivery dispatch created.",
+    lastMessageText: "Delivery chat created.",
     lastMessageTimestamp: new Date().toISOString(),
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString()
@@ -7989,16 +8055,14 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
     return { success: false, error: "Delivery conversation not found." };
   }
 
-  if (conv.status === "COMPLETED" || conv.deliveryStatus === "DELIVERED" || String(conv.deliveryStatus).toUpperCase() === "DELIVERED") {
-    return { success: false, error: "This order delivery is completed. Messaging is closed." };
-  }
+  // NOTE: Chat remains accessible and messages can be sent regardless of order status per BloomCare non-closing rule.
 
   const effRole = getEffectiveRole();
   const user = senderOverride || STATE.currentUser;
-  const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff";
+  const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff" || (user && (user.role === "delivery_person" || user.role === "deliveryStaff"));
 
-  const senderId = user ? user.uid : (isDelivery ? conv.deliveryManId : conv.customerId);
-  const senderName = user ? (user.displayName || user.name) : (isDelivery ? conv.deliveryManName : conv.customerName);
+  const senderId = user ? user.uid : (isDelivery ? (conv.deliveryManId || "usr-5") : (conv.customerId || "usr-1"));
+  const senderName = user ? (user.displayName || user.name) : (isDelivery ? (conv.deliveryManName || "Delivery Driver") : (conv.customerName || "Customer"));
   const senderRole = isDelivery ? "delivery" : "customer";
   const recipientRole = isDelivery ? "customer" : "delivery";
 
@@ -8172,16 +8236,13 @@ export function renderDeliveryChatView() {
 
   if (isCompleted) {
     if (completedNotice) completedNotice.classList.remove("hidden");
-    if (chatFooter) {
-      chatFooter.style.opacity = "0.6";
-      chatFooter.style.pointerEvents = "none";
-    }
   } else {
     if (completedNotice) completedNotice.classList.add("hidden");
-    if (chatFooter) {
-      chatFooter.style.opacity = "1";
-      chatFooter.style.pointerEvents = "auto";
-    }
+  }
+  // Ensure delivery chat input footer is always active
+  if (chatFooter) {
+    chatFooter.style.opacity = "1";
+    chatFooter.style.pointerEvents = "auto";
   }
 
   // Render Messages Stream
@@ -8238,28 +8299,39 @@ export function openCustomerChatModal(orderId) {
 
   const titleEl = $("#customer-chat-modal-title");
   const subEl = $("#customer-chat-modal-sub");
-  if (titleEl) titleEl.textContent = `Delivery Chat — ${conv.deliveryManName}`;
-  if (subEl) subEl.textContent = `Order: ${conv.orderRef} • Status: ${(conv.deliveryStatus || 'ASSIGNED').replace(/_/g, ' ')}`;
+  const driverNameDisplay = (conv.deliveryManName && conv.deliveryManName !== "Unassigned" && conv.deliveryManName !== "Pending Assignment") ? conv.deliveryManName : "Delivery Partner (Not yet assigned)";
+  if (titleEl) titleEl.textContent = `Delivery Chat — ${driverNameDisplay}`;
+  if (subEl) subEl.textContent = `Order: ${conv.orderRef} • Status: ${(conv.deliveryStatus || 'PENDING').replace(/_/g, ' ')}`;
 
   markConversationMessagesAsRead(conv.id, "customer");
 
-  const isCompleted = conv.status === "COMPLETED" || conv.deliveryStatus === "DELIVERED";
-  const noticeEl = $("#customer-chat-completed-notice");
+  const isAssigned = Boolean(conv.deliveryManId && conv.deliveryManName && conv.deliveryManName !== "Unassigned" && conv.deliveryManName !== "Pending Assignment");
+  const preassignNoticeEl = $("#customer-chat-preassign-notice");
+  const completedNoticeEl = $("#customer-chat-completed-notice");
   const formEl = $("#customer-chat-form");
 
-  if (isCompleted) {
-    if (noticeEl) noticeEl.classList.remove("hidden");
-    if (formEl) {
-      formEl.style.opacity = "0.5";
-      formEl.style.pointerEvents = "none";
-    }
+  if (!isAssigned) {
+    if (preassignNoticeEl) preassignNoticeEl.classList.remove("hidden");
+    if (completedNoticeEl) completedNoticeEl.classList.add("hidden");
   } else {
-    if (noticeEl) noticeEl.classList.add("hidden");
-    if (formEl) {
-      formEl.style.opacity = "1";
-      formEl.style.pointerEvents = "auto";
+    if (preassignNoticeEl) preassignNoticeEl.classList.add("hidden");
+    const isCompleted = conv.deliveryStatus === "DELIVERED" || String(conv.deliveryStatus).toUpperCase() === "DELIVERED";
+    if (isCompleted && completedNoticeEl) {
+      completedNoticeEl.classList.remove("hidden");
+    } else if (completedNoticeEl) {
+      completedNoticeEl.classList.add("hidden");
     }
   }
+
+  // Always keep customer chat form and inputs active
+  if (formEl) {
+    formEl.style.opacity = "1";
+    formEl.style.pointerEvents = "auto";
+  }
+  const custInput = $("#customer-chat-input");
+  if (custInput) custInput.disabled = false;
+  const custSendBtn = $("#customer-chat-send-btn");
+  if (custSendBtn) custSendBtn.disabled = false;
 
   renderCustomerChatStream(conv.id);
 
@@ -8277,10 +8349,12 @@ export function renderCustomerChatStream(conversationId) {
 
   const msgs = STATE.messages.filter(m => m.conversationId === conversationId);
   if (msgs.length === 0) {
+    const isAssigned = Boolean(conv.deliveryManName && conv.deliveryManName !== "Unassigned" && conv.deliveryManName !== "Pending Assignment");
     stream.innerHTML = `
-      <div style="text-align: center; color: #94a3b8; font-size: 13px; margin: auto;">
-        <p>No messages yet.</p>
-        <small>Send a direct message to your assigned driver (${escapeHtml(conv.deliveryManName)}).</small>
+      <div style="text-align: center; color: #94a3b8; font-size: 13px; margin: auto; padding: 20px 10px;">
+        <div style="font-size: 28px; margin-bottom: 6px;">💬</div>
+        <p style="font-weight: 600; color: #475569; margin: 0 0 4px 0;">No messages yet.</p>
+        <small>${isAssigned ? `Send a direct message to your assigned driver (${escapeHtml(conv.deliveryManName)}).` : 'Your delivery chat is ready. You can send a message now. A delivery man will join once assigned.'}</small>
       </div>
     `;
   } else {
@@ -9872,6 +9946,13 @@ async function handleCheckoutOrder(e) {
   updateCartBadge();
   $("#checkout-dialog")?.close();
 
+  // Initialize delivery chat conversation immediately upon order placement!
+  try {
+    getOrCreateOrderDeliveryChat(orderRef);
+  } catch (err) {
+    console.error("Failed to initialize delivery chat:", err);
+  }
+
   // Always show the professional receipt for the order!
   showReceiptModal(newOrder);
   renderOrdersView();
@@ -10889,6 +10970,18 @@ export function showReceiptModal(order) {
           <span class="detail-label">Instructions:</span>
           <span class="detail-val">${escapeHtml(order.deliveryNotes || order.deliveryInstructions)}</span>
         </div>` : ""}
+        <div class="receipt-chat-callout no-print">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">💬</span>
+            <div>
+              <strong style="color:#166534; font-size:13px; display:block;">Your delivery chat is ready</strong>
+              <span style="font-size:12px; color:#15803d;">You can send a message now. A delivery man will join the conversation once one is assigned to your order.</span>
+            </div>
+          </div>
+          <button type="button" class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${orderRef}" style="white-space:nowrap; background:#16a34a; border-color:#16a34a;">
+            💬 Chat with Delivery Man
+          </button>
+        </div>
       `;
     }
   }
@@ -10985,6 +11078,17 @@ export function showReceiptModal(order) {
       newWalkinBtn.style.display = "inline-flex";
     } else {
       newWalkinBtn.style.display = "none";
+    }
+  }
+
+  // 8B. Chat with Delivery Driver Action Button
+  const chatDriverBtn = $("#receipt-chat-driver-btn");
+  if (chatDriverBtn) {
+    if (!isWalkin && !isPickup) {
+      chatDriverBtn.style.display = "inline-flex";
+      chatDriverBtn.dataset.orderId = orderRef;
+    } else {
+      chatDriverBtn.style.display = "none";
     }
   }
 
@@ -12288,17 +12392,29 @@ function bindEventListeners() {
       order.assignedStaff = driver;
       try { updateOrderStatus(orderId, status, driver); } catch (_) {}
       recordStaffAudit("UPDATE_ORDER_STATUS", "orders", orderId, `Status updated to ${status}, Driver: ${driver}`);
-      const conv = STATE.conversations.find(c => c.orderId === (order.orderNumber || order.id) || c.orderId === order.id);
+      const conv = STATE.conversations.find(c => c.orderId === (order.orderNumber || order.id) || c.orderId === order.id || c.id === `CHAT-${order.orderNumber || order.id}`);
       if (conv) {
-        if (driver) conv.deliveryManName = driver;
+        if (driver && driver !== "Unassigned" && driver !== "Pending Assignment") {
+          conv.deliveryManName = driver;
+          const driverUser = STATE.users.find(u => u.displayName === driver || u.name === driver || u.email === driver);
+          conv.deliveryManId = driverUser ? driverUser.uid : "usr-5";
+          if (conv.deliveryStatus === "PENDING" || !conv.deliveryStatus) {
+            conv.deliveryStatus = "ASSIGNED";
+          }
+        }
         if (status === "Delivered" || status === "Completed") {
           conv.deliveryStatus = "DELIVERED";
-          conv.status = "COMPLETED";
         } else if (status === "Out for Delivery") {
           conv.deliveryStatus = "OUT_FOR_DELIVERY";
         }
         conv.updatedAt = new Date().toISOString();
         saveConversationsToStorage();
+      }
+      const del = STATE.deliveries.find(d => d.orderId === (order.orderNumber || order.id) || d.orderNumber === (order.orderNumber || order.id));
+      if (del && driver && driver !== "Unassigned" && driver !== "Pending Assignment") {
+        del.deliveryStaffName = driver;
+        const driverUser = STATE.users.find(u => u.displayName === driver || u.name === driver || u.email === driver);
+        if (driverUser) del.deliveryStaffId = driverUser.uid;
       }
     }
     $("#order-status-dialog").close();

@@ -182,31 +182,29 @@ test("13. MESSAGE LENGTH VALIDATION: Enforces 500-character upper boundary", asy
   assert.ok(result.error.includes("500"), "Error message must mention 500 characters");
 });
 
-test("14. COMPLETED ORDER IMMUTABILITY: Messaging closed when order is delivered or completed", async () => {
+test("14. CHAT ACCESSIBILITY & NON-CLOSING RULE: Messaging remains open and accessible even when order is delivered or completed", async () => {
   const { sendChatMessage, STATE } = await import("../BLOOMCARE-main/app.js");
-  let completedConv = STATE.conversations.find(c => c.status === "COMPLETED" || c.deliveryStatus === "DELIVERED" || c.deliveryStatus === "Delivered");
-  if (!completedConv) {
-    completedConv = {
-      id: "CHAT-COMPLETED-TEST",
-      conversationId: "CHAT-COMPLETED-TEST",
-      orderId: "BC-ORD-COMPLETED",
-      orderRef: "BC-ORD-COMPLETED",
-      customerId: "usr-1",
-      customerName: "Sarah Namubiru",
-      deliveryManId: "usr-5",
-      deliveryManName: "Moses Kato",
-      deliveryStatus: "DELIVERED",
-      status: "COMPLETED",
-      unreadCountForDelivery: 0,
-      unreadCountForCustomer: 0
-    };
-    STATE.conversations.push(completedConv);
-  }
+  const completedConv = {
+    id: "CHAT-COMPLETED-TEST",
+    conversationId: "CHAT-COMPLETED-TEST",
+    orderId: "BC-ORD-COMPLETED-TEST",
+    orderRef: "BC-ORD-COMPLETED-TEST",
+    customerId: "usr-1",
+    customerName: "Sarah Namubiru",
+    deliveryManId: "usr-5",
+    deliveryManName: "Moses Kato",
+    deliveryStatus: "DELIVERED",
+    status: "COMPLETED",
+    unreadCountForDelivery: 0,
+    unreadCountForCustomer: 0
+  };
+  STATE.conversations.push(completedConv);
 
-  const convId = completedConv.id || completedConv.conversationId;
-  const result = sendChatMessage(convId, "Hello, can you still deliver?");
-  assert.equal(result.success, false, "Sending a message to a completed delivery must fail");
-  assert.ok(result.error.toLowerCase().includes("completed") || result.error.toLowerCase().includes("closed"), "Error message must state messaging is closed");
+  const convId = completedConv.id;
+  const result = sendChatMessage(convId, "Hello, following up on my delivery confirmation.");
+  assert.equal(result.success, true, "Sending a message to a completed delivery must succeed per non-closing rule");
+  assert.ok(result.message, "Sent message object must be returned");
+  assert.equal(result.message.text, "Hello, following up on my delivery confirmation.");
 });
 
 test("15. READ STATUS & UNREAD COUNTERS: markConversationMessagesAsRead resets unread count", async () => {
@@ -245,3 +243,145 @@ test("16. ZERO EXTERNAL REDIRECTS: Internal real-time chat links Customer <-> De
   assert.ok(chatModalMatch, "#customer-order-chat-dialog must exist");
   assert.ok(!chatModalMatch[0].includes("wa.me"), "Customer order chat modal must not contain external WhatsApp links");
 });
+
+test("17. IMMEDIATE CONVERSATION CREATION: Chat is initialized immediately without assigned delivery driver", async () => {
+  const { getOrCreateOrderDeliveryChat, STATE } = await import("../BLOOMCARE-main/app.js");
+  
+  const testOrderRef = `BC-TEST-${Date.now()}`;
+  const unassignedOrder = {
+    id: testOrderRef,
+    orderNumber: testOrderRef,
+    customerId: "usr-test-customer",
+    customerName: "Alice Nambi",
+    customerPhone: "0772111222",
+    customerEmail: "alice@example.com",
+    fulfillmentType: "delivery",
+    deliveryAddress: "Plot 10, High Street, Mbarara",
+    orderStatus: "Confirmed",
+    assignedStaff: "Pending Assignment"
+  };
+  STATE.orders.push(unassignedOrder);
+
+  const conv = getOrCreateOrderDeliveryChat(testOrderRef);
+  assert.ok(conv, "Conversation must be initialized immediately");
+  assert.equal(conv.orderId, testOrderRef, "Conversation must link to order");
+  assert.equal(conv.customerId, "usr-test-customer", "Conversation must have customerId");
+  assert.equal(conv.deliveryManId, null, "deliveryManId must be null before driver assignment");
+  assert.equal(conv.status, "ACTIVE", "Conversation status must be ACTIVE");
+});
+
+test("18. PRE-ASSIGNMENT MESSAGING: Customer can send messages immediately before driver assignment", async () => {
+  const { getOrCreateOrderDeliveryChat, sendChatMessage, STATE } = await import("../BLOOMCARE-main/app.js");
+  
+  const testOrderRef = `BC-PRE-${Date.now()}`;
+  const unassignedOrder = {
+    id: testOrderRef,
+    orderNumber: testOrderRef,
+    customerId: "usr-test-customer",
+    customerName: "Alice Nambi",
+    orderStatus: "Confirmed",
+    assignedStaff: "Pending Assignment"
+  };
+  STATE.orders.push(unassignedOrder);
+
+  const conv = getOrCreateOrderDeliveryChat(testOrderRef);
+  assert.equal(conv.deliveryManId, null, "Driver must not be assigned yet");
+
+  const customerUser = { uid: "usr-test-customer", displayName: "Alice Nambi", role: "customer" };
+  const result = sendChatMessage(conv.id, "Please call when you reach the blue gate.", customerUser);
+  
+  assert.equal(result.success, true, "Customer sending message prior to driver assignment must succeed");
+  assert.ok(result.message, "Saved message object returned");
+  assert.equal(result.message.text, "Please call when you reach the blue gate.");
+  assert.equal(result.message.senderRole, "customer");
+  assert.equal(result.message.recipientRole, "delivery");
+
+  // Verify message is in STATE.messages
+  const foundMsg = STATE.messages.find(m => m.conversationId === conv.id);
+  assert.ok(foundMsg, "Message must be stored and preserved in STATE.messages");
+  assert.equal(foundMsg.text, "Please call when you reach the blue gate.");
+});
+
+test("19. DRIVER ASSIGNMENT SYNC & MESSAGE PRESERVATION: Updating driver syncs conversation without duplicates", async () => {
+  const { getOrCreateOrderDeliveryChat, sendChatMessage, STATE } = await import("../BLOOMCARE-main/app.js");
+  
+  const testOrderRef = `BC-SYNC-${Date.now()}`;
+  const testOrder = {
+    id: testOrderRef,
+    orderNumber: testOrderRef,
+    customerId: "usr-cust-99",
+    customerName: "James Kato",
+    orderStatus: "Confirmed",
+    assignedStaff: "Pending Assignment"
+  };
+  STATE.orders.push(testOrder);
+
+  // 1. Immediate conversation creation
+  const conv = getOrCreateOrderDeliveryChat(testOrderRef);
+  const initialConvCount = STATE.conversations.filter(c => c.orderId === testOrderRef).length;
+  assert.equal(initialConvCount, 1, "Exactly one conversation created");
+
+  // 2. Customer sends pre-assignment message
+  sendChatMessage(conv.id, "I will be waiting outside.", { uid: "usr-cust-99", displayName: "James Kato", role: "customer" });
+
+  // 3. Admin assigns driver "Moses Kato"
+  testOrder.assignedStaff = "Moses Kato";
+  conv.deliveryManName = "Moses Kato";
+  conv.deliveryManId = "usr-5";
+  conv.deliveryStatus = "ASSIGNED";
+
+  // Re-requesting conversation must return existing conversation, not create duplicate
+  const convAfterAssign = getOrCreateOrderDeliveryChat(testOrderRef);
+  assert.equal(convAfterAssign.id, conv.id, "Must return existing conversation");
+  assert.equal(convAfterAssign.deliveryManName, "Moses Kato", "Driver name must be updated");
+  assert.equal(convAfterAssign.deliveryManId, "usr-5", "Driver ID must be updated");
+
+  const totalConvCount = STATE.conversations.filter(c => c.orderId === testOrderRef).length;
+  assert.equal(totalConvCount, 1, "Must never duplicate conversation on driver assignment");
+
+  // 4. Assigned driver Moses Kato can view prior customer message
+  const driverMsgs = STATE.messages.filter(m => m.conversationId === conv.id);
+  assert.ok(driverMsgs.length >= 1, "Assigned driver must see all prior customer messages");
+  assert.equal(driverMsgs[0].text, "I will be waiting outside.");
+});
+
+test("20. ACCESS CONTROL & DATA ISOLATION: Unassigned drivers blocked, assigned driver and customer allowed", async () => {
+  const { canUserAccessConversation } = await import("../BLOOMCARE-main/app.js");
+
+  const unassignedConv = {
+    id: "CHAT-UNASSIGNED-TEST",
+    orderId: "BC-UNASSIGNED",
+    customerId: "usr-cust-123",
+    customerName: "Grace Nakato",
+    deliveryManId: null,
+    deliveryManName: null,
+    status: "ACTIVE"
+  };
+
+  const driverUser = { uid: "usr-5", role: "delivery_person", displayName: "Moses Kato" };
+  const customerUser = { uid: "usr-cust-123", role: "customer", displayName: "Grace Nakato" };
+  const otherCustomer = { uid: "usr-other", role: "customer", displayName: "Other Person" };
+
+  assert.equal(canUserAccessConversation(unassignedConv, driverUser, "delivery_person"), false, "Driver cannot access unassigned chat");
+  assert.equal(canUserAccessConversation(unassignedConv, customerUser, "customer"), true, "Customer can access their own unassigned chat");
+  assert.equal(canUserAccessConversation(unassignedConv, otherCustomer, "customer"), false, "Other customer cannot access");
+
+  // Now assign driver
+  const assignedConv = { ...unassignedConv, deliveryManId: "usr-5", deliveryManName: "Moses Kato" };
+  assert.equal(canUserAccessConversation(assignedConv, driverUser, "delivery_person"), true, "Assigned driver can access chat");
+});
+
+test("21. UI MARKUP: Customer chat modal contains pre-assignment notice and enabled chat form", () => {
+  const indexHtml = fs.readFileSync(indexHtmlPath, "utf-8");
+  assert.ok(indexHtml.includes('id="customer-chat-preassign-notice"'), "Pre-assignment notice banner must exist in modal");
+  assert.ok(indexHtml.includes('id="receipt-chat-driver-btn"'), "Receipt chat driver action button must exist");
+  assert.ok(indexHtml.includes('id="customer-chat-form"'), "Customer chat form must exist");
+  assert.ok(indexHtml.includes('id="customer-chat-send-btn"'), "Customer chat send button must exist");
+});
+
+test("22. DASHBOARD INTEGRATION: Customer and Delivery dashboard messages sections defined", () => {
+  const appJs = fs.readFileSync(appJsPath, "utf-8");
+  assert.ok(appJs.includes("customer-messages-card"), "Customer dashboard must have Messages section");
+  assert.ok(appJs.includes("CUSTOMER CHAT"), "Delivery dashboard must have Customer Chat section");
+});
+

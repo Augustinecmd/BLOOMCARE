@@ -2814,6 +2814,9 @@
     <button class="btn btn-secondary" id="download-receipt-action" type="button">
       ⬇ Download Receipt
     </button>
+    <button class="btn btn-primary open-order-chat-btn" id="receipt-chat-driver-btn" type="button" style="display:none;">
+      💬 Chat with Delivery Man
+    </button>
     <button class="btn btn-primary" id="receipt-new-walkin-btn" type="button" style="display:none;">
       + Start New Walk-in Sale
     </button>
@@ -2842,6 +2845,15 @@
     <button class="dialog-close-btn" id="close-customer-chat-modal">&times;</button>
   </div>
   <div class="customer-chat-modal-body">
+    <!-- Pre-assignment Informational Notice -->
+    <div class="chat-preassign-notice hidden" id="customer-chat-preassign-notice">
+      <span class="notice-icon" aria-hidden="true">💬</span>
+      <div>
+        <strong>Delivery Chat Ready</strong>
+        <p>Your delivery chat is ready. You can send a message now. A delivery man will join the conversation once one is assigned to your order.</p>
+      </div>
+    </div>
+
     <!-- Completed Notice Banner -->
     <div class="chat-completed-notice hidden" id="customer-chat-completed-notice">
       <span class="notice-icon" aria-hidden="true">
@@ -2849,7 +2861,7 @@
       </span>
       <div>
         <strong>Order Delivered</strong>
-        <p>This order delivery has been completed. Chat history is preserved for your records, but new messages cannot be sent.</p>
+        <p>This order delivery has been completed. Chat history is preserved, and follow-up messaging remains open.</p>
       </div>
     </div>
 
