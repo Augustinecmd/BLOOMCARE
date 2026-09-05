@@ -61,8 +61,33 @@ import {
   validatePassword,
   validateName
 } from "../validators.js";
+import {
+  BLOOMCARE_CENTRAL_LOCATION,
+  MBARARA_DIVISIONS,
+  MBARARA_DELIVERY_AREAS,
+  getMbararaDivisions,
+  getMbararaAreas,
+  isValidMbararaDivision,
+  isValidMbararaArea,
+  searchMbararaLocations,
+  formatDeliveryAddress,
+  validateMbararaDeliveryAddress
+} from "./mbarara-delivery-areas.js";
 
-export { isPaidOrder, getPaidOrdersForPeriod };
+export {
+  isPaidOrder,
+  getPaidOrdersForPeriod,
+  BLOOMCARE_CENTRAL_LOCATION,
+  MBARARA_DIVISIONS,
+  MBARARA_DELIVERY_AREAS,
+  getMbararaDivisions,
+  getMbararaAreas,
+  isValidMbararaDivision,
+  isValidMbararaArea,
+  searchMbararaLocations,
+  formatDeliveryAddress,
+  validateMbararaDeliveryAddress
+};
 
 // DOM Utility
 const $ = (selector) => document.querySelector(selector);
@@ -1310,6 +1335,66 @@ export function clearSavedSessionUser() {
   } catch (_) {}
 }
 
+export function getCustomerDeliveryAddress(user = STATE.currentUser) {
+  if (!user) return null;
+  if (user.deliveryAddress && typeof user.deliveryAddress === "object" && (user.deliveryAddress.deliveryDivision || user.deliveryAddress.division)) {
+    return user.deliveryAddress;
+  }
+  if (typeof localStorage !== "undefined" && user.uid) {
+    try {
+      const stored = localStorage.getItem(`bloomcare_delivery_address_${user.uid}`);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed && (parsed.deliveryDivision || parsed.division)) {
+          return parsed;
+        }
+      }
+    } catch (_) {}
+  }
+  return null;
+}
+
+export function saveCustomerDeliveryAddress(locObj, user = STATE.currentUser) {
+  if (!locObj || !user) return false;
+  const normalized = {
+    deliveryDivision: locObj.deliveryDivision || locObj.division || "",
+    deliveryArea: locObj.deliveryArea || locObj.area || "",
+    customArea: locObj.customArea || "",
+    specificLocation: locObj.specificLocation || locObj.location || locObj.address || "",
+    landmark: locObj.landmark || locObj.specificLocation || "",
+    deliveryInstructions: locObj.deliveryInstructions || locObj.instructions || "",
+    city: "Mbarara City",
+    formattedAddress: formatDeliveryAddress(locObj),
+    updatedAt: new Date().toISOString()
+  };
+
+  user.deliveryAddress = normalized;
+  if (STATE.currentUser && (STATE.currentUser.uid === user.uid || STATE.currentUser === user)) {
+    STATE.currentUser.deliveryAddress = normalized;
+    saveSessionUser(STATE.currentUser);
+  }
+
+  // Update in STATE.users if exists
+  const uInState = STATE.users?.find(u => u.uid === user.uid || u.id === user.uid);
+  if (uInState) {
+    uInState.deliveryAddress = normalized;
+  }
+
+  // Persist to localStorage
+  if (typeof localStorage !== "undefined" && user.uid) {
+    try {
+      localStorage.setItem(`bloomcare_delivery_address_${user.uid}`, JSON.stringify(normalized));
+    } catch (_) {}
+  }
+
+  // Fire-and-forget sync to Firestore profile
+  try {
+    updateClientProfile(user.uid, { deliveryAddress: normalized }).catch(() => {});
+  } catch (_) {}
+
+  return true;
+}
+
 const INITIAL_CUSTOMERS = [
   { id: "cust-1", name: "Grace Nakato", phone: "0751234567", email: "grace.nakato@example.com", status: "Active", registrationDate: "2026-03-01", ordersCount: 4 },
   { id: "cust-2", name: "David Mukasa", phone: "0772334455", email: "david.m@example.com", status: "Active", registrationDate: "2026-03-12", ordersCount: 2 },
@@ -1624,12 +1709,14 @@ export const STATE = {
   selectedUserIds: new Set(),
   auditSearchQuery: "",
   auditActionFilter: "all",
+  orderDivisionFilter: "all",
+  orderAreaFilter: "all",
   systemSettings: {
     pharmacyName: "BloomCare Pharmacy",
     phone: "+256 700 000 000",
     email: "care@bloomcare.com",
     whatsapp: "256750210886",
-    address: "Plot 14, Kampala Road, Kampala, Uganda",
+    address: "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda",
     openingHours: "Mon - Fri: 8:00 AM - 8:00 PM | Sat: 9:00 AM - 6:00 PM | Sun: 10:00 AM - 4:00 PM",
     deliveryFee: 5000,
     lowStockThreshold: 10,
@@ -2579,6 +2666,7 @@ export function checkRouteAccess(route, user, role = null) {
   if ((effectiveRole === "delivery_person" || effectiveRole === "deliveryStaff") && (clean === "about" || clean === "contact")) {
     return {
       allowed: false,
+      redirect: "delivery_person/dashboard",
       redirectRoute: "delivery_person/dashboard",
       reason: "Access Denied: About Us and Contact Us are not available for Delivery Staff."
     };
@@ -3599,7 +3687,7 @@ function renderRoleDashboard() {
         <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.deliveries}</div><div><strong class="kpi-value">${assigned.length}</strong><span class="kpi-label">Assigned Deliveries</span></div></div>
         <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.deliveries}</div><div><strong class="kpi-value">${outForDelivery.length}</strong><span class="kpi-label">Out for Delivery</span></div></div>
         <div class="kpi-card" data-route="deliveries"><div class="kpi-icon-wrap">${ICONS.check}</div><div><strong class="kpi-value">${completed.length}</strong><span class="kpi-label">Completed Deliveries</span></div></div>
-        <div class="kpi-card" data-route="delivery_person/chat"><div class="kpi-icon-wrap">${ICONS.chat}</div><div><strong class="kpi-value">${activeConvs.length}</strong><span class="kpi-label">Active Chats (${unreadMessagesCount} unread)</span></div></div>
+        <div class="kpi-card" data-route="delivery_person/chat"><div class="kpi-icon-wrap">${ICONS.chat}</div><div><strong class="kpi-value" id="dash-active-chats-count">${activeConvs.length}</strong><span class="kpi-label">Active Chats (<span id="dash-unread-chats-count">${unreadMessagesCount} unread</span>)</span></div></div>
       </div>
 
       <!-- CUSTOMER CHAT DASHBOARD SECTION -->
@@ -3610,7 +3698,7 @@ function renderRoleDashboard() {
               <span>💬</span>
               <span>CUSTOMER CHAT</span>
             </h3>
-            <span class="muted" style="font-size:12.5px;">Active Conversations: <strong>${activeConvs.length}</strong> &bull; Unread Messages: <strong style="color:${unreadMessagesCount > 0 ? '#dc2626' : 'inherit'};">${unreadMessagesCount}</strong></span>
+            <span class="muted" style="font-size:12.5px;">Active Conversations: <strong>${activeConvs.length}</strong> &bull; Unread Messages: <strong id="dash-unread-chats-preview-count" style="color:${unreadMessagesCount > 0 ? '#dc2626' : 'inherit'};">${unreadMessagesCount}</strong></span>
           </div>
           <div style="display:flex; gap:8px;">
             <button class="btn btn-primary btn-sm" data-route="delivery_person/chat" type="button">Open Full Chat Workspace &rarr;</button>
@@ -3727,6 +3815,11 @@ function renderRoleDashboard() {
       else { currentStep = 0; progressPercent = 5; } // Order Placed / Pending
     }
 
+    const savedLoc = getCustomerDeliveryAddress(STATE.currentUser);
+    const isEditingLoc = Boolean(STATE.isEditingCustLocation);
+    const savedDiv = savedLoc?.deliveryDivision || savedLoc?.division || "";
+    const savedAreas = savedDiv ? getMbararaAreas(savedDiv) : [];
+
     container.innerHTML = `
       <!-- 1. Compact Welcome Section & Quick Actions -->
       <div class="customer-welcome-card">
@@ -3826,7 +3919,94 @@ function renderRoleDashboard() {
         </div>
       ` : ""}
 
-      <!-- 4. Recent Orders -->
+      <!-- 4. Delivery Location Section (Mbarara City Central Delivery System) -->
+      <div class="customer-delivery-location-section">
+        <div class="delivery-location-card">
+          <div class="delivery-location-header">
+            <div class="delivery-location-title-group">
+              <div class="delivery-location-icon-wrap">📍</div>
+              <div>
+                <h3 class="delivery-location-heading">Delivery Location</h3>
+                <p class="delivery-location-subheading">📍 Where should we deliver your order in Mbarara City?</p>
+              </div>
+            </div>
+            ${savedLoc ? `
+              <button type="button" class="btn btn-outline btn-sm" id="cust-dash-toggle-edit-loc">
+                ${isEditingLoc ? "Cancel Edit" : "Change Location"}
+              </button>
+            ` : ""}
+          </div>
+
+          <!-- Central Dispensary Reference Hub Callout -->
+          <div class="delivery-hub-reference-box">
+            <div class="delivery-hub-ref-icon">🏥</div>
+            <div class="delivery-hub-ref-content">
+              <div class="delivery-hub-ref-title">BloomCare Pharmacy Central Dispensary</div>
+              <div>Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City.</div>
+              <div class="delivery-hub-ref-landmarks"><strong>Service Policy:</strong> BloomCare delivers within Mbarara City and surrounding service areas.</div>
+            </div>
+          </div>
+
+          ${savedLoc && !isEditingLoc ? `
+            <div class="saved-location-display-card">
+              <div>
+                <div class="saved-location-badges-row">
+                  <span class="delivery-division-tag">🏛 ${escapeHtml(savedLoc.deliveryDivision || savedLoc.division || "Mbarara")}</span>
+                  <span class="delivery-area-tag">📍 ${escapeHtml(savedLoc.deliveryArea === "Other" && savedLoc.customArea ? savedLoc.customArea : (savedLoc.deliveryArea || savedLoc.area || "Central"))}</span>
+                  <span class="status-pill status-delivered">Default Saved Address</span>
+                </div>
+                <div class="saved-location-full-text">${escapeHtml(savedLoc.specificLocation || savedLoc.location || savedLoc.address || "")}</div>
+                ${savedLoc.landmark && savedLoc.landmark !== (savedLoc.specificLocation || savedLoc.location) ? `<div style="font-size:12px; color:var(--muted); margin-top:2px;">Landmark: ${escapeHtml(savedLoc.landmark)}</div>` : ""}
+                ${savedLoc.deliveryInstructions ? `<div class="saved-location-instructions-text">Instructions: ${escapeHtml(savedLoc.deliveryInstructions)}</div>` : ""}
+              </div>
+              <div>
+                <button type="button" class="btn btn-secondary btn-sm" id="cust-dash-edit-loc-btn">Update Location</button>
+              </div>
+            </div>
+          ` : `
+            <form id="cust-delivery-location-form" class="standard-form">
+              <div class="delivery-form-grid">
+                <div>
+                  <label for="cust-loc-division" style="font-weight:600; font-size:13px;">Mbarara City Division</label>
+                  <select id="cust-loc-division" class="form-control" required style="width:100%; padding:8px 10px; border-radius:var(--radius-xs); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);">
+                    <option value="">-- Select Division --</option>
+                    ${MBARARA_DIVISIONS.map(d => `<option value="${d}" ${savedLoc && (savedLoc.deliveryDivision === d || savedLoc.division === d) ? "selected" : ""}>${d}</option>`).join("")}
+                  </select>
+                </div>
+                <div>
+                  <label for="cust-loc-area" style="font-weight:600; font-size:13px;">Area / Neighborhood</label>
+                  <select id="cust-loc-area" class="form-control" required style="width:100%; padding:8px 10px; border-radius:var(--radius-xs); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);" ${!savedDiv ? "disabled" : ""}>
+                    <option value="">-- Select Area --</option>
+                    ${savedAreas.map(a => `<option value="${a}" ${savedLoc && (savedLoc.deliveryArea === a || savedLoc.area === a) ? "selected" : ""}>${a}</option>`).join("")}
+                  </select>
+                </div>
+              </div>
+
+              <div id="cust-loc-custom-area-wrap" class="${savedLoc && (savedLoc.deliveryArea === "Other" || savedLoc.area === "Other") ? "" : "hidden"}" style="margin-bottom:12px;">
+                <label for="cust-loc-custom-area" style="font-weight:600; font-size:13px;">Specify Your Neighborhood / Area Name</label>
+                <input type="text" id="cust-loc-custom-area" placeholder="Enter neighborhood or village name" value="${escapeHtml(savedLoc?.customArea || "")}" style="width:100%;" />
+              </div>
+
+              <div style="margin-bottom:12px;">
+                <label for="cust-loc-specific" style="font-weight:600; font-size:13px;">Specific Location &amp; Landmark</label>
+                <input type="text" id="cust-loc-specific" placeholder="e.g. Near Kiyanja Market, Plot 4, Blue gate, Opposite School" value="${escapeHtml(savedLoc?.specificLocation || savedLoc?.location || savedLoc?.address || "")}" required style="width:100%;" />
+              </div>
+
+              <div style="margin-bottom:14px;">
+                <label for="cust-loc-instructions" style="font-weight:600; font-size:13px;">Delivery Instructions (Optional)</label>
+                <input type="text" id="cust-loc-instructions" placeholder="e.g. Call when at gate, leave with reception" value="${escapeHtml(savedLoc?.deliveryInstructions || "")}" style="width:100%;" />
+              </div>
+
+              <div style="display:flex; gap:10px; align-items:center;">
+                <button type="submit" class="btn btn-primary btn-sm">💾 Save Delivery Location</button>
+                ${savedLoc ? `<button type="button" id="cust-loc-cancel-btn" class="btn btn-outline btn-sm">Cancel</button>` : ""}
+              </div>
+            </form>
+          `}
+        </div>
+      </div>
+
+      <!-- 5. Recent Orders -->
       <div class="content-card">
         <div class="flex-between" style="margin-bottom:12px;">
           <h3>Recent Orders</h3>
@@ -3868,6 +4048,91 @@ function renderRoleDashboard() {
         `}
       </div>
     `;
+
+    // Attach Customer Dashboard Location Listeners
+    const toggleEditBtn = container.querySelector("#cust-dash-toggle-edit-loc");
+    const editLocBtn = container.querySelector("#cust-dash-edit-loc-btn");
+    const cancelLocBtn = container.querySelector("#cust-loc-cancel-btn");
+    const divSelect = container.querySelector("#cust-loc-division");
+    const areaSelect = container.querySelector("#cust-loc-area");
+    const customAreaWrap = container.querySelector("#cust-loc-custom-area-wrap");
+    const locForm = container.querySelector("#cust-delivery-location-form");
+
+    if (toggleEditBtn) {
+      toggleEditBtn.addEventListener("click", () => {
+        STATE.isEditingCustLocation = !STATE.isEditingCustLocation;
+        renderRoleDashboard();
+      });
+    }
+    if (editLocBtn) {
+      editLocBtn.addEventListener("click", () => {
+        STATE.isEditingCustLocation = true;
+        renderRoleDashboard();
+      });
+    }
+    if (cancelLocBtn) {
+      cancelLocBtn.addEventListener("click", () => {
+        STATE.isEditingCustLocation = false;
+        renderRoleDashboard();
+      });
+    }
+
+    if (divSelect && areaSelect) {
+      divSelect.addEventListener("change", (e) => {
+        const val = e.target.value;
+        if (!val) {
+          areaSelect.innerHTML = `<option value="">-- First Select Division --</option>`;
+          areaSelect.disabled = true;
+          if (customAreaWrap) customAreaWrap.classList.add("hidden");
+          return;
+        }
+        const areas = getMbararaAreas(val);
+        areaSelect.innerHTML = `<option value="">-- Select Area --</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+        areaSelect.disabled = false;
+        if (customAreaWrap) customAreaWrap.classList.add("hidden");
+      });
+
+      areaSelect.addEventListener("change", (e) => {
+        if (customAreaWrap) {
+          customAreaWrap.classList.toggle("hidden", e.target.value !== "Other");
+          if (e.target.value === "Other") {
+            container.querySelector("#cust-loc-custom-area")?.focus();
+          }
+        }
+      });
+    }
+
+    if (locForm) {
+      locForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const division = divSelect?.value || "";
+        const area = areaSelect?.value || "";
+        const customArea = container.querySelector("#cust-loc-custom-area")?.value.trim() || "";
+        const specificLocation = container.querySelector("#cust-loc-specific")?.value.trim() || "";
+        const deliveryInstructions = container.querySelector("#cust-loc-instructions")?.value.trim() || "";
+
+        const locData = {
+          deliveryDivision: division,
+          deliveryArea: area,
+          customArea,
+          specificLocation,
+          landmark: specificLocation,
+          deliveryInstructions,
+          city: "Mbarara City"
+        };
+
+        const validation = validateMbararaDeliveryAddress(locData);
+        if (!validation.valid) {
+          openNotice("Invalid Delivery Location", validation.error);
+          return;
+        }
+
+        saveCustomerDeliveryAddress(locData, STATE.currentUser);
+        STATE.isEditingCustLocation = false;
+        openNotice("Delivery Location Saved", "Your Mbarara City delivery location has been successfully saved to your profile.");
+        renderRoleDashboard();
+      });
+    }
 
   } else {
     // 6. PUBLIC VISITOR HOME VIEW
@@ -6965,7 +7230,19 @@ function renderDeliveriesView() {
             <td><strong>${escapeHtml(d.id)}</strong></td>
             <td>${escapeHtml(d.orderNumber)}</td>
             <td>${escapeHtml(d.customerName)}<br><small class="muted">${escapeHtml(d.phone)}</small></td>
-            <td>${escapeHtml(d.address)}</td>
+            <td>
+              ${(d.deliveryDivision || d.deliveryArea) ? `
+                <div style="display:flex; gap:4px; margin-bottom:4px; flex-wrap:wrap; align-items:center;">
+                  ${d.deliveryDivision ? `<span class="delivery-division-tag">🏛 ${escapeHtml(d.deliveryDivision)}</span>` : ""}
+                  ${d.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(d.deliveryArea)}</span>` : ""}
+                </div>
+                <div style="font-weight:600; font-size:12.5px; color:var(--text-main);">${escapeHtml(d.specificLocation || d.address)}</div>
+                ${d.landmark && d.landmark !== d.specificLocation ? `<div style="font-size:11.5px; color:var(--muted); margin-top:1px;">Near ${escapeHtml(d.landmark)}</div>` : ""}
+                ${d.deliveryInstructions ? `<div style="font-size:11px; color:var(--primary); font-style:italic; margin-top:2px;">Instructions: ${escapeHtml(d.deliveryInstructions)}</div>` : ""}
+              ` : `
+                <div style="font-size:12.5px;">${escapeHtml(d.address)}</div>
+              `}
+            </td>
             <td><strong>${escapeHtml(d.deliveryStaffName || "Unassigned")}</strong></td>
             <td><span class="status-pill status-${d.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(d.status)}</span></td>
             <td>
@@ -7047,8 +7324,15 @@ export function getOrCreateOrderDeliveryChat(orderId) {
   const resolvedOrderRef = order ? (order.orderNumber || order.id) : (delivery ? (delivery.orderNumber || delivery.id) : cleanId);
 
   // Check if conversation already exists in STATE.conversations
-  let conv = STATE.conversations.find(c => c.orderId === resolvedOrderRef || c.id === `CHAT-${resolvedOrderRef}` || (order && (c.orderId === order.id || c.orderId === order.orderNumber)));
-  if (conv) return conv;
+  let conv = STATE.conversations.find(c => c.orderId === resolvedOrderRef || c.orderNumber === resolvedOrderRef || c.id === `CHAT-${resolvedOrderRef}` || c.conversationId === `CHAT-${resolvedOrderRef}` || (order && (c.orderId === order.id || c.orderId === order.orderNumber)));
+  if (conv) {
+    if (!conv.id) conv.id = conv.conversationId || `CHAT-${conv.orderId || conv.orderNumber}`;
+    if (!conv.conversationId) conv.conversationId = conv.id;
+    if (!conv.orderRef) conv.orderRef = conv.orderNumber || conv.orderId;
+    if (conv.unreadCountForDelivery === undefined) conv.unreadCountForDelivery = conv.unreadDelivery || 0;
+    if (conv.unreadCountForCustomer === undefined) conv.unreadCountForCustomer = conv.unreadCustomer || 0;
+    return conv;
+  }
 
   // Resolve Customer & Driver info
   const customerId = order ? (order.customerId || "usr-1") : "usr-1";
@@ -7066,8 +7350,10 @@ export function getOrCreateOrderDeliveryChat(orderId) {
 
   conv = {
     id: `CHAT-${resolvedOrderRef}`,
+    conversationId: `CHAT-${resolvedOrderRef}`,
     orderId: resolvedOrderRef,
     orderRef: resolvedOrderRef,
+    orderNumber: resolvedOrderRef,
     customerId: customerId,
     customerName: customerName,
     customerPhone: customerPhone,
@@ -7079,6 +7365,8 @@ export function getOrCreateOrderDeliveryChat(orderId) {
     status: isDelivered ? "COMPLETED" : "ACTIVE",
     unreadCountForDelivery: 0,
     unreadCountForCustomer: 0,
+    unreadDelivery: 0,
+    unreadCustomer: 0,
     lastMessageText: "Delivery dispatch created.",
     lastMessageTimestamp: new Date().toISOString(),
     createdAt: new Date().toISOString(),
@@ -7105,6 +7393,7 @@ export function getOrCreateOrderDeliveryChat(orderId) {
 }
 
 export function updateChatUnreadBadges() {
+  if (typeof document === "undefined") return;
   const effRole = getEffectiveRole();
   const user = STATE.currentUser;
   let unreadCount = 0;
@@ -7113,11 +7402,11 @@ export function updateChatUnreadBadges() {
     if (effRole === "delivery_person" || effRole === "deliveryStaff") {
       unreadCount = STATE.conversations
         .filter(c => canUserAccessConversation(c, user, effRole))
-        .reduce((sum, c) => sum + (c.unreadCountForDelivery || 0), 0);
+        .reduce((sum, c) => sum + (c.unreadCountForDelivery || c.unreadDelivery || 0), 0);
     } else if (effRole === "customer") {
       unreadCount = STATE.conversations
         .filter(c => canUserAccessConversation(c, user, effRole))
-        .reduce((sum, c) => sum + (c.unreadCountForCustomer || 0), 0);
+        .reduce((sum, c) => sum + (c.unreadCountForCustomer || c.unreadCustomer || 0), 0);
     }
   }
 
@@ -7143,18 +7432,20 @@ export function updateChatUnreadBadges() {
 }
 
 export function markConversationMessagesAsRead(conversationId, readerRole) {
-  const conv = STATE.conversations.find(c => c.id === conversationId);
+  const conv = STATE.conversations.find(c => c.id === conversationId || c.conversationId === conversationId);
   if (!conv) return;
 
   const isDelivery = readerRole === "delivery" || readerRole === "delivery_person" || readerRole === "deliveryStaff";
   if (isDelivery) {
     conv.unreadCountForDelivery = 0;
+    conv.unreadDelivery = 0;
   } else {
     conv.unreadCountForCustomer = 0;
+    conv.unreadCustomer = 0;
   }
 
   STATE.messages.forEach(m => {
-    if (m.conversationId === conversationId) {
+    if (m.conversationId === conversationId || (conv.id && m.conversationId === conv.id) || (conv.conversationId && m.conversationId === conv.conversationId)) {
       if (isDelivery && m.senderRole !== "delivery") {
         m.read = true;
       } else if (!isDelivery && m.senderRole !== "customer") {
@@ -7168,7 +7459,7 @@ export function markConversationMessagesAsRead(conversationId, readerRole) {
 
   try {
     if (STATE.currentUser) {
-      markDeliveryMessagesRead(conversationId, STATE.currentUser.uid).catch(() => {});
+      markDeliveryMessagesRead(conv.id || conv.conversationId, STATE.currentUser.uid).catch(() => {});
     }
   } catch (_) {}
 
@@ -7184,12 +7475,12 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
     return { success: false, error: "Message exceeds maximum limit of 500 characters." };
   }
 
-  const conv = STATE.conversations.find(c => c.id === conversationId);
+  const conv = STATE.conversations.find(c => c.id === conversationId || c.conversationId === conversationId);
   if (!conv) {
     return { success: false, error: "Delivery conversation not found." };
   }
 
-  if (conv.status === "COMPLETED" || conv.deliveryStatus === "DELIVERED") {
+  if (conv.status === "COMPLETED" || conv.deliveryStatus === "DELIVERED" || String(conv.deliveryStatus).toUpperCase() === "DELIVERED") {
     return { success: false, error: "This order delivery is completed. Messaging is closed." };
   }
 
@@ -7205,7 +7496,7 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   const now = new Date().toISOString();
   const newMsg = {
     id: `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-    conversationId: conv.id,
+    conversationId: conv.id || conv.conversationId,
     orderId: conv.orderId,
     senderId: senderId,
     senderName: senderName,
@@ -7224,13 +7515,15 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   conv.updatedAt = now;
   if (isDelivery) {
     conv.unreadCountForCustomer = (conv.unreadCountForCustomer || 0) + 1;
+    conv.unreadCustomer = (conv.unreadCustomer || 0) + 1;
   } else {
     conv.unreadCountForDelivery = (conv.unreadCountForDelivery || 0) + 1;
+    conv.unreadDelivery = (conv.unreadDelivery || 0) + 1;
   }
   saveConversationsToStorage();
 
   try {
-    sendDeliveryChatMessage(conv.id, {
+    sendDeliveryChatMessage(conv.id || conv.conversationId, {
       orderId: conv.orderId,
       senderId: newMsg.senderId,
       senderName: newMsg.senderName,
@@ -8742,10 +9035,102 @@ function openCheckoutDialog() {
   $("#chk-total-val").textContent = formatUGX(total);
 
   if (STATE.currentUser) {
-    $("#chk-name").value = STATE.currentUser.displayName || "";
-    $("#chk-email").value = STATE.currentUser.email || "";
-    $("#chk-phone").value = STATE.currentUser.phone || "";
-    if (!$("#chk-address").value) $("#chk-address").value = "Bukoto, Plot 14, Kampala";
+    if ($("#chk-name")) $("#chk-name").value = STATE.currentUser.displayName || "";
+    if ($("#chk-email")) $("#chk-email").value = STATE.currentUser.email || "";
+    if ($("#chk-phone")) $("#chk-phone").value = STATE.currentUser.phone || "";
+  }
+
+  // Pre-fill Mbarara City Delivery Location
+  const savedLoc = getCustomerDeliveryAddress(STATE.currentUser);
+  const savedBox = $("#chk-saved-location-box");
+  const savedDisplay = $("#chk-saved-location-display");
+  const inputsWrap = $("#chk-location-inputs-wrap");
+  const divSelect = $("#chk-delivery-division");
+  const areaSelect = $("#chk-delivery-area");
+  const customAreaWrap = $("#chk-custom-area-group");
+  const customAreaInput = $("#chk-delivery-custom-area");
+  const specificInput = $("#chk-delivery-specific");
+  const instrInput = $("#chk-instructions");
+  const toggleEditBtn = $("#chk-toggle-edit-location-btn");
+
+  if (divSelect && areaSelect) {
+    if (divSelect.options.length <= 1) {
+      divSelect.innerHTML = `<option value="">-- Select Division --</option>` + MBARARA_DIVISIONS.map(d => `<option value="${d}">${d}</option>`).join("");
+    }
+
+    divSelect.onchange = (e) => {
+      const val = e.target.value;
+      if (!val) {
+        areaSelect.innerHTML = `<option value="">-- First Select Division --</option>`;
+        areaSelect.disabled = true;
+        if (customAreaWrap) customAreaWrap.classList.add("hidden");
+        return;
+      }
+      const areas = getMbararaAreas(val);
+      areaSelect.innerHTML = `<option value="">-- Select Area --</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+      areaSelect.disabled = false;
+      if (customAreaWrap) customAreaWrap.classList.add("hidden");
+    };
+
+    areaSelect.onchange = (e) => {
+      if (customAreaWrap) {
+        customAreaWrap.classList.toggle("hidden", e.target.value !== "Other");
+        if (e.target.value === "Other" && customAreaInput) customAreaInput.focus();
+      }
+    };
+  }
+
+  if (savedLoc && (savedLoc.deliveryDivision || savedLoc.division) && (savedLoc.deliveryArea || savedLoc.area)) {
+    const sDiv = savedLoc.deliveryDivision || savedLoc.division;
+    const sArea = savedLoc.deliveryArea || savedLoc.area;
+    const sCustom = savedLoc.customArea || "";
+    const sSpec = savedLoc.specificLocation || savedLoc.location || savedLoc.address || "";
+    const sInstr = savedLoc.deliveryInstructions || savedLoc.instructions || "";
+
+    if (savedDisplay) {
+      savedDisplay.innerHTML = `
+        <div style="font-weight:600; margin-bottom:2px;">${escapeHtml(formatDeliveryAddress(savedLoc))}</div>
+        <div style="font-size:11.5px; color:var(--muted);">${escapeHtml(sSpec)}${sInstr ? ` • Note: ${escapeHtml(sInstr)}` : ""}</div>
+      `;
+    }
+    if (savedBox) savedBox.classList.remove("hidden");
+    if (inputsWrap) inputsWrap.classList.add("hidden");
+    if (toggleEditBtn) toggleEditBtn.textContent = "Change Location";
+
+    if (divSelect) {
+      divSelect.value = sDiv;
+      const areas = getMbararaAreas(sDiv);
+      if (areaSelect) {
+        areaSelect.innerHTML = `<option value="">-- Select Area --</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+        areaSelect.disabled = false;
+        areaSelect.value = sArea;
+      }
+    }
+    if (customAreaInput) customAreaInput.value = sCustom;
+    if (customAreaWrap) customAreaWrap.classList.toggle("hidden", sArea !== "Other");
+    if (specificInput) specificInput.value = sSpec;
+    if (instrInput) instrInput.value = sInstr;
+
+    if ($("#chk-address")) $("#chk-address").value = formatDeliveryAddress(savedLoc);
+    if ($("#chk-city")) $("#chk-city").value = "Mbarara City";
+  } else {
+    if (savedBox) savedBox.classList.add("hidden");
+    if (inputsWrap) inputsWrap.classList.remove("hidden");
+    if ($("#chk-address")) $("#chk-address").value = "Mbarara City";
+    if ($("#chk-city")) $("#chk-city").value = "Mbarara City";
+  }
+
+  if (toggleEditBtn) {
+    toggleEditBtn.onclick = () => {
+      const isHidden = inputsWrap?.classList.contains("hidden");
+      if (isHidden) {
+        inputsWrap?.classList.remove("hidden");
+        toggleEditBtn.textContent = "Keep Saved Location";
+      } else {
+        inputsWrap?.classList.add("hidden");
+        toggleEditBtn.textContent = "Change Location";
+      }
+    };
   }
 
   modal.showModal();
@@ -8790,12 +9175,66 @@ async function handleCheckoutOrder(e) {
 
   // 3. Validate Fulfillment Information
   const fulfillmentType = $("#chk-fulfillment-option")?.value || "delivery"; // delivery | pickup
-  const address = fulfillmentType === "pickup" ? "BloomCare Pharmacy Main Dispensary, Plot 14 Kampala Road" : ($("#chk-address")?.value.trim() || "");
-  const city = fulfillmentType === "pickup" ? "Kampala" : ($("#chk-city")?.value.trim() || "Kampala");
-  const instructions = $("#chk-instructions")?.value.trim() || "";
+  let deliveryDivision = "";
+  let deliveryArea = "";
+  let customArea = "";
+  let specificLocation = "";
+  let instructions = $("#chk-instructions")?.value.trim() || "";
+  let formattedAddress = "";
+  let addressObj = null;
 
-  if (fulfillmentType === "delivery" && (!address || address.length < 3)) {
-    return openNotice("Missing Delivery Address", "Please provide a delivery street or residence address in Kampala.");
+  if (fulfillmentType === "delivery") {
+    const savedLoc = getCustomerDeliveryAddress(STATE.currentUser);
+    const inputsWrap = $("#chk-location-inputs-wrap");
+    const isUsingSaved = inputsWrap && inputsWrap.classList.contains("hidden") && savedLoc && (savedLoc.deliveryDivision || savedLoc.division);
+
+    if (isUsingSaved) {
+      deliveryDivision = savedLoc.deliveryDivision || savedLoc.division || "";
+      deliveryArea = savedLoc.deliveryArea || savedLoc.area || "";
+      customArea = savedLoc.customArea || "";
+      specificLocation = savedLoc.specificLocation || savedLoc.location || savedLoc.address || "";
+      if (!instructions) instructions = savedLoc.deliveryInstructions || savedLoc.instructions || "";
+    } else {
+      deliveryDivision = $("#chk-delivery-division")?.value || "";
+      deliveryArea = $("#chk-delivery-area")?.value || "";
+      customArea = $("#chk-delivery-custom-area")?.value.trim() || "";
+      specificLocation = $("#chk-delivery-specific")?.value.trim() || ($("#chk-address")?.value.trim() || "");
+    }
+
+    addressObj = {
+      deliveryDivision,
+      deliveryArea,
+      customArea,
+      specificLocation,
+      landmark: specificLocation,
+      deliveryInstructions: instructions,
+      city: "Mbarara City"
+    };
+
+    const validation = validateMbararaDeliveryAddress(addressObj);
+    if (!validation.valid) {
+      return openNotice("Delivery Location Required", validation.error);
+    }
+
+    formattedAddress = formatDeliveryAddress(addressObj);
+
+    if (STATE.currentUser && !getCustomerDeliveryAddress(STATE.currentUser)) {
+      saveCustomerDeliveryAddress(addressObj, STATE.currentUser);
+    }
+  } else {
+    // Pharmacy Pickup at BloomCare Main Dispensary in Mbarara City
+    deliveryDivision = "Kamukuzi";
+    deliveryArea = "Booma";
+    specificLocation = "Near Mbarara Regional Referral Hospital, Opposite Rubis Station";
+    formattedAddress = "BloomCare Pharmacy Main Dispensary, Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City";
+    addressObj = {
+      deliveryDivision,
+      deliveryArea,
+      specificLocation,
+      landmark: "Mbarara Regional Referral Hospital",
+      city: "Mbarara City",
+      formattedAddress
+    };
   }
 
   // 4. Validate Payment Information
@@ -8824,9 +9263,15 @@ async function handleCheckoutOrder(e) {
     customerPhone: phoneVal.normalized,
     customerEmail: email,
     fulfillmentType,
-    deliveryAddress: fulfillmentType === "pickup" ? "BloomCare Pharmacy Main Dispensary, Plot 14 Kampala Road" : `${address}, ${city}`,
-    deliveryCity: city,
+    deliveryAddress: formattedAddress,
+    deliveryCity: "Mbarara City",
+    deliveryDivision,
+    deliveryArea: deliveryArea === "Other" && customArea ? customArea : deliveryArea,
+    specificLocation,
+    landmark: specificLocation,
     deliveryNotes: instructions,
+    deliveryInstructions: instructions,
+    deliveryAddressDetails: addressObj,
     items: [...STATE.cart.map(i => {
       const pPrice = i.price ?? i.product?.price ?? 0;
       return {
@@ -8880,7 +9325,12 @@ async function handleCheckoutOrder(e) {
       orderNumber: orderRef,
       customerName: name,
       phone: phoneVal.normalized,
-      address: `${address}, ${city}`,
+      address: formattedAddress,
+      deliveryDivision,
+      deliveryArea: deliveryArea === "Other" && customArea ? customArea : deliveryArea,
+      specificLocation,
+      landmark: specificLocation,
+      deliveryInstructions: instructions,
       itemsSummary: newOrder.items.map(i => `${i.quantity}x ${i.name}`).join(", "),
       deliveryStaffId: null,
       deliveryStaffName: "Unassigned",
@@ -10194,11 +10644,19 @@ function bindEventListeners() {
     if (val === "pickup") {
       $("#chk-delivery-fields")?.classList.add("hidden");
       $("#chk-pickup-fields")?.classList.remove("hidden");
-      $("#chk-address").removeAttribute("required");
+      $("#chk-delivery-division")?.removeAttribute("required");
+      $("#chk-delivery-area")?.removeAttribute("required");
+      $("#chk-delivery-specific")?.removeAttribute("required");
+      $("#chk-address")?.removeAttribute("required");
     } else {
       $("#chk-delivery-fields")?.classList.remove("hidden");
       $("#chk-pickup-fields")?.classList.add("hidden");
-      $("#chk-address").setAttribute("required", "true");
+      const isUsingSaved = $("#chk-location-inputs-wrap")?.classList.contains("hidden");
+      if (!isUsingSaved) {
+        $("#chk-delivery-division")?.setAttribute("required", "true");
+        $("#chk-delivery-area")?.setAttribute("required", "true");
+        $("#chk-delivery-specific")?.setAttribute("required", "true");
+      }
     }
     const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * i.quantity), 0);
     const fee = val === "pickup" ? 0 : STATE.deliveryFee;

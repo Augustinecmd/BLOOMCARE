@@ -11,7 +11,7 @@
         "build": "npm --prefix BLOOMCARE-main run build",
         "verify:firebase": "node scripts/verify-firebase-config.mjs",
         "demo": "node scripts/demo.mjs",
-        "test": "node scripts/verify-firebase-config.mjs && node --test tests/*.test.mjs && python -m unittest tests.test_payment_api"
+        "test": "node scripts/verify-firebase-config.mjs && node --test --test-concurrency=1 tests/*.test.mjs && python -m unittest tests.test_payment_api"
     },
     "dependencies": {
         "expo": "^57.0.18"

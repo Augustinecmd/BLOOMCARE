@@ -370,7 +370,7 @@
         </div>
 
         <div class="content-card">
-          <div class="filter-pills-row" id="orders-status-filter-pills" style="margin-bottom: 14px;">
+          <div class="filter-pills-row" id="orders-status-filter-pills" style="margin-bottom: 12px;">
             <button class="pill-btn active" data-order-filter="all">All Orders</button>
             <button class="pill-btn" data-order-filter="Pending">Pending</button>
             <button class="pill-btn" data-order-filter="Awaiting Prescription Review">Awaiting Rx Review</button>
@@ -380,6 +380,28 @@
             <button class="pill-btn" data-order-filter="Out for Delivery">Out for Delivery</button>
             <button class="pill-btn" data-order-filter="Delivered">Delivered</button>
             <button class="pill-btn" data-order-filter="Cancelled">Cancelled</button>
+          </div>
+          <div class="orders-location-filters-row" id="orders-location-filter-controls" style="display:flex; gap:12px; margin-bottom: 14px; flex-wrap:wrap; align-items:center; background:var(--bg-page); padding:8px 12px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+            <span style="font-size:12px; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:4px;">📍 Mbarara Location Filter:</span>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label for="orders-filter-division" style="font-size:12px; font-weight:600; color:var(--muted); margin:0;">Division:</label>
+              <select id="orders-filter-division" class="filter-select" style="padding:4px 8px; font-size:12px; border-radius:var(--radius-xs); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);">
+                <option value="all">All Divisions</option>
+                <option value="Kamukuzi">Kamukuzi</option>
+                <option value="Kakoba">Kakoba</option>
+                <option value="Nyamitanga">Nyamitanga</option>
+                <option value="Kakiika">Kakiika</option>
+                <option value="Biharwe">Biharwe</option>
+                <option value="Nyakayojo">Nyakayojo</option>
+              </select>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <label for="orders-filter-area" style="font-size:12px; font-weight:600; color:var(--muted); margin:0;">Area:</label>
+              <select id="orders-filter-area" class="filter-select" style="padding:4px 8px; font-size:12px; border-radius:var(--radius-xs); border:1px solid var(--border-color); background:var(--bg-card); color:var(--text-main);">
+                <option value="all">All Areas</option>
+              </select>
+            </div>
+            <button type="button" id="orders-filter-reset-location" class="btn btn-outline btn-xs" style="margin-left:auto;">Reset Location Filter</button>
           </div>
           <div class="table-responsive" id="orders-table-box"></div>
         </div>
@@ -1880,22 +1902,77 @@
     <h4 style="margin-top:10px;">2. Fulfillment &amp; Delivery Option</h4>
     <label>Choose Fulfillment Method
       <select id="chk-fulfillment-option" required>
-        <option value="delivery">Home Delivery in Kampala (UGX 5,000)</option>
+        <option value="delivery">Doorstep Delivery in Mbarara City (UGX 5,000)</option>
         <option value="pickup">Pharmacy Pickup (Free / UGX 0)</option>
       </select>
     </label>
 
     <div id="chk-delivery-fields">
-      <label>Delivery Address in Kampala<input type="text" id="chk-address" placeholder="e.g. Bukoto, Plot 14, Kampala" required /></label>
-      <label>City / Town<input type="text" id="chk-city" value="Kampala" required /></label>
-      <label>Additional Delivery Instructions<input type="text" id="chk-instructions" placeholder="e.g. Landmark, gate color, or reception delivery" /></label>
+      <!-- Saved Location Preview (Populated if customer has a saved delivery location) -->
+      <div id="chk-saved-location-box" class="saved-delivery-location-card hidden" style="background:var(--bg-page); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:10px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <div style="display:flex; align-items:center; gap:6px;">
+            <span style="font-size:15px;">📍</span>
+            <strong style="font-size:13px; color:var(--text-main);">Delivering to Saved Location:</strong>
+          </div>
+          <button type="button" id="chk-toggle-edit-location-btn" class="btn btn-outline btn-xs">Change Location</button>
+        </div>
+        <div id="chk-saved-location-display" style="font-size:12px; color:var(--text-main); line-height:1.4;"></div>
+      </div>
+
+      <!-- Mbarara City Location Selectors -->
+      <div id="chk-location-inputs-wrap" class="checkout-mbarara-location-fields">
+        <div class="location-hub-notice" style="font-size:12px; background:rgba(37,99,235,0.06); border:1px solid rgba(37,99,235,0.15); border-radius:var(--radius-xs); padding:8px 10px; margin-bottom:10px; color:var(--text-main); line-height:1.4;">
+          <strong>📍 Dispatched from Mbarara Hub:</strong> Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station.
+        </div>
+
+        <div class="form-row-2">
+          <label>Mbarara City Division
+            <select id="chk-delivery-division" required>
+              <option value="">-- Select Division --</option>
+              <option value="Kamukuzi">Kamukuzi</option>
+              <option value="Kakoba">Kakoba</option>
+              <option value="Nyamitanga">Nyamitanga</option>
+              <option value="Kakiika">Kakiika</option>
+              <option value="Biharwe">Biharwe</option>
+              <option value="Nyakayojo">Nyakayojo</option>
+            </select>
+          </label>
+          <label>Area / Neighborhood
+            <select id="chk-delivery-area" required disabled>
+              <option value="">-- First Select Division --</option>
+            </select>
+          </label>
+        </div>
+
+        <div id="chk-custom-area-group" class="hidden" style="margin-bottom:8px;">
+          <label>Specify Area / Neighborhood Name
+            <input type="text" id="chk-delivery-custom-area" placeholder="Enter your specific neighborhood or village" />
+          </label>
+        </div>
+
+        <label>Specific Location &amp; Landmark
+          <input type="text" id="chk-delivery-specific" placeholder="e.g. Near Kiyanja Market, Plot 4, Blue gate, Opposite School" required />
+        </label>
+
+        <label>Additional Delivery Instructions (Optional)
+          <input type="text" id="chk-instructions" placeholder="e.g. Call when at gate, leave with reception" />
+        </label>
+
+        <!-- Hidden backward-compatibility input for any script expecting chk-address -->
+        <input type="hidden" id="chk-address" value="" />
+        <input type="hidden" id="chk-city" value="Mbarara City" />
+      </div>
     </div>
 
-    <div id="chk-pickup-fields" class="hidden" style="background:var(--bg-page); padding:10px; border-radius:var(--radius-sm); margin-bottom:10px;">
-      <strong>Pickup Station:</strong>
-      <p style="font-size:13px; margin:2px 0;">BloomCare Pharmacy Main Dispensary</p>
-      <p style="font-size:12px; color:var(--muted);">Plot 14, Kampala Road, Central Kampala, Uganda</p>
-      <p style="font-size:12px; color:var(--primary); font-weight:700; margin-top:4px;">Available for pickup Mon–Sat: 8:00 AM – 8:00 PM</p>
+    <div id="chk-pickup-fields" class="hidden" style="background:var(--bg-page); padding:12px; border-radius:var(--radius-sm); margin-bottom:10px; border:1px solid var(--border-color);">
+      <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+        <span style="color:var(--primary); font-size:16px;">🏥</span>
+        <strong style="color:var(--text-main);">Pickup Station:</strong>
+      </div>
+      <p style="font-size:13px; font-weight:600; margin:2px 0;">BloomCare Pharmacy Main Dispensary</p>
+      <p style="font-size:12px; color:var(--muted); line-height:1.4;">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda</p>
+      <p style="font-size:12px; color:var(--primary); font-weight:700; margin-top:6px;">Available for pickup Mon–Sat: 8:00 AM – 8:00 PM</p>
     </div>
 
     <h4 style="margin-top:10px;">3. Order Review &amp; Payment</h4>
