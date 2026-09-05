@@ -375,7 +375,7 @@ def is_paid_payment(item: dict) -> bool:
     return status in {"paid", "successful"}
 
 
-def get_sales_analytics(period: str = "today", custom_now: datetime | None = None) -> dict:
+def get_sales_analytics(period: str = "today", custom_now: datetime | None = None, source: str = "all") -> dict:
     payments_dict = read_payments()
     now = custom_now or datetime.now().astimezone()
 
@@ -396,13 +396,25 @@ def get_sales_analytics(period: str = "today", custom_now: datetime | None = Non
             else:
                 dt = dt.astimezone(now.tzinfo)
             amount = int(float(item.get("amount") or 0))
-            paid_entries.append({"dt": dt, "amount": amount, "item": item})
+            is_walkin = (
+                item.get("saleSource") == "WALK_IN"
+                or item.get("source") == "WALK_IN"
+                or item.get("type") == "walkin_sale"
+                or str(item.get("reference", "")).startswith("BC-SALE-")
+                or str(item.get("orderId", "")).startswith("BC-SALE-")
+            )
+            paid_entries.append({"dt": dt, "amount": amount, "item": item, "is_walkin": is_walkin})
         except Exception:
             continue
 
     period = (period or "today").strip().lower()
+    source = (source or "all").strip().lower()
     total_sales = 0
     total_orders = 0
+    online_sales = 0
+    online_orders = 0
+    walkin_sales = 0
+    walkin_orders = 0
     breakdown = []
     prev_total_sales = 0
 
@@ -415,13 +427,31 @@ def get_sales_analytics(period: str = "today", custom_now: datetime | None = Non
         hourly_data = {h: {"sales": 0, "orders": 0} for h in range(24)}
         for entry in paid_entries:
             edt = entry["dt"]
+            is_w = entry["is_walkin"]
+            amt = entry["amount"]
             if start_of_today <= edt < end_of_today:
-                hourly_data[edt.hour]["sales"] += entry["amount"]
+                if is_w:
+                    walkin_sales += amt
+                    walkin_orders += 1
+                else:
+                    online_sales += amt
+                    online_orders += 1
+
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+
+                hourly_data[edt.hour]["sales"] += amt
                 hourly_data[edt.hour]["orders"] += 1
-                total_sales += entry["amount"]
+                total_sales += amt
                 total_orders += 1
             elif start_of_prev <= edt < end_of_prev:
-                prev_total_sales += entry["amount"]
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+                prev_total_sales += amt
 
         for h in range(24):
             if h == 0:
@@ -450,14 +480,32 @@ def get_sales_analytics(period: str = "today", custom_now: datetime | None = Non
 
         for entry in paid_entries:
             edt = entry["dt"]
+            is_w = entry["is_walkin"]
+            amt = entry["amount"]
             if start_of_week <= edt < end_of_week:
+                if is_w:
+                    walkin_sales += amt
+                    walkin_orders += 1
+                else:
+                    online_sales += amt
+                    online_orders += 1
+
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+
                 w_day = edt.weekday()
-                daily_data[w_day]["sales"] += entry["amount"]
+                daily_data[w_day]["sales"] += amt
                 daily_data[w_day]["orders"] += 1
-                total_sales += entry["amount"]
+                total_sales += amt
                 total_orders += 1
             elif start_of_prev <= edt < end_of_prev:
-                prev_total_sales += entry["amount"]
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+                prev_total_sales += amt
 
         for d in range(7):
             breakdown.append({
@@ -485,13 +533,31 @@ def get_sales_analytics(period: str = "today", custom_now: datetime | None = Non
 
         for entry in paid_entries:
             edt = entry["dt"]
+            is_w = entry["is_walkin"]
+            amt = entry["amount"]
             if start_of_month <= edt < next_month:
-                daily_data[edt.day]["sales"] += entry["amount"]
+                if is_w:
+                    walkin_sales += amt
+                    walkin_orders += 1
+                else:
+                    online_sales += amt
+                    online_orders += 1
+
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+
+                daily_data[edt.day]["sales"] += amt
                 daily_data[edt.day]["orders"] += 1
-                total_sales += entry["amount"]
+                total_sales += amt
                 total_orders += 1
             elif prev_month <= edt < start_of_month:
-                prev_total_sales += entry["amount"]
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+                prev_total_sales += amt
 
         for d in range(1, num_days + 1):
             breakdown.append({
@@ -514,13 +580,31 @@ def get_sales_analytics(period: str = "today", custom_now: datetime | None = Non
 
         for entry in paid_entries:
             edt = entry["dt"]
+            is_w = entry["is_walkin"]
+            amt = entry["amount"]
             if start_of_year <= edt < next_year:
-                monthly_data[edt.month]["sales"] += entry["amount"]
+                if is_w:
+                    walkin_sales += amt
+                    walkin_orders += 1
+                else:
+                    online_sales += amt
+                    online_orders += 1
+
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+
+                monthly_data[edt.month]["sales"] += amt
                 monthly_data[edt.month]["orders"] += 1
-                total_sales += entry["amount"]
+                total_sales += amt
                 total_orders += 1
             elif prev_year <= edt < start_of_year:
-                prev_total_sales += entry["amount"]
+                if source == "online" and is_w:
+                    continue
+                if (source == "walk_in" or source == "walkin") and not is_w:
+                    continue
+                prev_total_sales += amt
 
         for m in range(1, 13):
             breakdown.append({
@@ -539,8 +623,13 @@ def get_sales_analytics(period: str = "today", custom_now: datetime | None = Non
 
     return {
         "period": period,
+        "source": source,
         "totalSales": total_sales,
         "totalOrders": total_orders,
+        "onlineSales": online_sales,
+        "onlineOrders": online_orders,
+        "walkinSales": walkin_sales,
+        "walkinOrders": walkin_orders,
         "avgOrderValue": avg_order_value,
         "comparison": comparison,
         "breakdown": breakdown
@@ -616,7 +705,8 @@ class PaymentHandler(BaseHTTPRequestHandler):
                 return
             query_params = parse_qs(parsed.query)
             period = query_params.get("period", ["today"])[0]
-            data = get_sales_analytics(period)
+            source = query_params.get("source", ["all"])[0]
+            data = get_sales_analytics(period, source=source)
             self.send_json(200, {"success": True, **data})
             return
 

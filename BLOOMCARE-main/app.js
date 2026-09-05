@@ -43,7 +43,13 @@ import {
   markNotificationRead,
   requestPasswordReset,
   getSystemSettings,
-  updateSystemSettings
+  updateSystemSettings,
+  getOrCreateDeliveryConversation,
+  subscribeToDeliveryConversation,
+  subscribeToDeliveryMessages,
+  sendDeliveryChatMessage,
+  markDeliveryMessagesRead,
+  getDeliveryConversationsForUser
 } from "./firebase.js";
 import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
@@ -91,7 +97,9 @@ export const ICONS = {
   contact: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>`,
   check: `<svg class="svg-icon" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg>`,
   shield: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,
-  cart: `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`
+  cart: `<svg class="svg-icon" viewBox="0 0 24 24"><circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"/></svg>`,
+  chat: `<svg class="svg-icon" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>`,
+  send: `<svg class="svg-icon" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>`
 };
 
 // -------------------------------------------------------------
@@ -117,40 +125,40 @@ const ESSENTIAL_CATEGORIES = [
 
 // Product Catalog (Demonstration Medicine Catalog with All 14 Required Structured Fields)
 const INITIAL_MEDICINES = [
-  {"id":"DEMO-MED-001","name":"Paracetamol 500mg Tablets","genericName":"Paracetamol","strength":"500mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":5000,"stockQuantity":150,"reorderLevel":20,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Fast-acting analgesic and antipyretic for mild to moderate headache, muscle pain, and fever reduction.","manufacturer":"GSK Consumer Healthcare","batchNumber":"DEMO-2026-PA50","expiryDate":"2028-08-31","imageUrl":"products/paracetamol-500mg.webp","sku":"BC-SKU-0001","brandName":"Paracetamol","activeIngredients":"Paracetamol","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-002","name":"Ibuprofen 400mg Tablets","genericName":"Ibuprofen","strength":"400mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":8000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Non-steroidal anti-inflammatory drug (NSAID) for dental pain, backache, and inflammatory joint stiffness.","manufacturer":"Abbott Laboratories","batchNumber":"DEMO-2026-IB40","expiryDate":"2028-11-30","imageUrl":"products/ibuprofen-400mg.webp","sku":"BC-SKU-0002","brandName":"Ibuprofen","activeIngredients":"Ibuprofen","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-003","name":"Diclofenac 50mg Tablets","genericName":"Diclofenac Sodium","strength":"50mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":12000,"stockQuantity":60,"reorderLevel":12,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Potent targeted anti-inflammatory analgesic for acute musculoskeletal strain and arthritis.","manufacturer":"Novartis","batchNumber":"DEMO-2026-DC50","expiryDate":"2028-04-15","imageUrl":"products/diclofenac-50mg.webp","sku":"BC-SKU-0003","brandName":"Diclofenac","activeIngredients":"Diclofenac Sodium","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-026","name":"Tramadol Capsules 50mg","genericName":"Tramadol Hydrochloride","strength":"50mg","dosageForm":"Pack of 10 Capsules","category":"Pain Relief","price":18000,"stockQuantity":30,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Centrally acting opioid analgesic for moderate to severe postoperative pain management.","manufacturer":"Grunenthal Pharma","batchNumber":"DEMO-2026-TR50","expiryDate":"2027-11-20","imageUrl":"products/tramadol-50mg.webp","sku":"BC-SKU-0004","brandName":"Tramadol","activeIngredients":"Tramadol Hydrochloride","subcategory":"Pain Relief","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-004","name":"Amoxicillin 500mg Capsules","genericName":"Amoxicillin Trihydrate","strength":"500mg","dosageForm":"Pack of 20 Capsules","category":"Cold & Flu","price":18000,"stockQuantity":45,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum penicillin antibiotic for bacterial respiratory tract, ENT, and dental infections.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-AM50","expiryDate":"2027-10-15","imageUrl":"products/amoxicillin-500mg.webp","sku":"BC-SKU-0005","brandName":"Amoxicillin","activeIngredients":"Amoxicillin Trihydrate","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-005","name":"Azithromycin 500mg Tablets","genericName":"Azithromycin Monohydrate","strength":"500mg","dosageForm":"Pack of 3 Tablets","category":"Cold & Flu","price":28000,"stockQuantity":40,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Short-course macrolide antibiotic for upper and lower respiratory bacterial infections.","manufacturer":"Pfizer","batchNumber":"DEMO-2026-AZ50","expiryDate":"2028-05-30","imageUrl":"products/azithromycin-500mg.webp","sku":"BC-SKU-0006","brandName":"Azithromycin","activeIngredients":"Azithromycin Monohydrate","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-021","name":"Cough Syrup","genericName":"Guaifenesin Expectorant + Menthol","strength":"100mg/5ml","dosageForm":"100ml Liquid Bottle","category":"Cold & Flu","price":14000,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Soothing expectorant cough formulation to liquefy chest mucus and relieve dry irritated throat coughs.","manufacturer":"Johnson & Johnson","batchNumber":"DEMO-2026-CS10","expiryDate":"2028-07-15","imageUrl":"products/cough-syrup.webp","sku":"BC-SKU-0007","brandName":"Cough","activeIngredients":"Guaifenesin Expectorant + Menthol","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-022","name":"Nasal Saline Drops","genericName":"Sodium Chloride 0.9% Isotonic Solution","strength":"0.9% w/v","dosageForm":"15ml Dropper Bottle","category":"Cold & Flu","price":7000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Natural preservative-free isotonic nasal saline drops to clear blocked nasal passages and relieve dryness.","manufacturer":"SurgiPharm Uganda","batchNumber":"DEMO-2026-NS15","expiryDate":"2028-11-30","imageUrl":"products/nasal-saline-drops.webp","sku":"BC-SKU-0008","brandName":"Nasal","activeIngredients":"Sodium Chloride 0.9% Isotonic Solution","subcategory":"Cold & Flu","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-006","name":"Cetirizine 10mg Tablets","genericName":"Cetirizine Hydrochloride","strength":"10mg","dosageForm":"Pack of 10 Tablets","category":"Allergy Care","price":8500,"stockQuantity":85,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Non-drowsy second-generation antihistamine for allergic rhinitis, sneezing, and skin urticaria.","manufacturer":"UCB Pharma","batchNumber":"DEMO-2026-CT10","expiryDate":"2028-06-20","imageUrl":"products/cetirizine-10mg.webp","sku":"BC-SKU-0009","brandName":"Cetirizine","activeIngredients":"Cetirizine Hydrochloride","subcategory":"Allergy Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-007","name":"Loratadine 10mg Tablets","genericName":"Loratadine","strength":"10mg","dosageForm":"Pack of 10 Tablets","category":"Allergy Care","price":10500,"stockQuantity":70,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] 24-hour non-sedating antihistamine for seasonal hay fever and chronic allergic skin conditions.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-LR10","expiryDate":"2028-08-31","imageUrl":"products/loratadine-10mg.webp","sku":"BC-SKU-0010","brandName":"Loratadine","activeIngredients":"Loratadine","subcategory":"Allergy Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-008","name":"Omeprazole 20mg Capsules","genericName":"Omeprazole","strength":"20mg","dosageForm":"Pack of 14 Capsules","category":"Digestive Health","price":15000,"stockQuantity":75,"reorderLevel":15,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Proton pump inhibitor for gastric acid reduction, peptic ulcer healing, and GERD acid reflux.","manufacturer":"AstraZeneca","batchNumber":"DEMO-2026-OM20","expiryDate":"2028-03-31","imageUrl":"products/omeprazole-20mg.webp","sku":"BC-SKU-0011","brandName":"Omeprazole","activeIngredients":"Omeprazole","subcategory":"Digestive Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-009","name":"Oral Rehydration Salts","genericName":"WHO Formula Electrolytes","strength":"20.5g/sachet","dosageForm":"Box of 5 Sachets","category":"Digestive Health","price":3500,"stockQuantity":200,"reorderLevel":30,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Balanced glucose-electrolyte solution for rehydration therapy during acute diarrhea and dehydration.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-ORS1","expiryDate":"2029-01-30","imageUrl":"products/oral-rehydration-salts.webp","sku":"BC-SKU-0012","brandName":"Oral","activeIngredients":"WHO Formula Electrolytes","subcategory":"Digestive Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-010","name":"Antacid Tablets","genericName":"Magnesium + Aluminum Hydroxide","strength":"400mg","dosageForm":"Pack of 12 Chewable Tablets","category":"Digestive Health","price":6000,"stockQuantity":130,"reorderLevel":20,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Fast-acting chewable tablets for immediate neutralization of stomach acid, heartburn, and sour stomach.","manufacturer":"Reckitt Benckiser","batchNumber":"DEMO-2026-ANT1","expiryDate":"2028-07-25","imageUrl":"products/antacid-tablets.webp","sku":"BC-SKU-0013","brandName":"Antacid","activeIngredients":"Magnesium + Aluminum Hydroxide","subcategory":"Digestive Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-011","name":"Vitamin C 500mg Tablets","genericName":"Ascorbic Acid","strength":"500mg","dosageForm":"Bottle of 30 Chewable Tablets","category":"Vitamins & Supplements","price":12000,"stockQuantity":110,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Daily immune defense booster and antioxidant supplement supporting collagen synthesis.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-VC50","expiryDate":"2028-04-10","imageUrl":"products/vitamin-c-500mg.webp","sku":"BC-SKU-0014","brandName":"Vitamin","activeIngredients":"Ascorbic Acid","subcategory":"Vitamins & Supplements","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-012","name":"Zinc 20mg Tablets","genericName":"Zinc Sulfate Monohydrate","strength":"20mg","dosageForm":"Pack of 10 Tablets","category":"Vitamins & Supplements","price":6500,"stockQuantity":140,"reorderLevel":25,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Essential trace mineral for cellular immunity, tissue repair, and diarrhea recovery.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-ZN20","expiryDate":"2029-02-28","imageUrl":"products/zinc-20mg.webp","sku":"BC-SKU-0015","brandName":"Zinc","activeIngredients":"Zinc Sulfate Monohydrate","subcategory":"Vitamins & Supplements","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-027","name":"Daily Multivitamin Complete","genericName":"Complete A-Z Formula","strength":"24 Nutrients","dosageForm":"Bottle of 30 Tablets","category":"Vitamins & Supplements","price":25000,"stockQuantity":60,"reorderLevel":10,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Complete daily micronutrient supplement supporting physical vitality and mental clarity.","manufacturer":"Vitabiotics","batchNumber":"DEMO-2026-MV30","expiryDate":"2028-09-15","imageUrl":"products/daily-multivitamin.webp","sku":"BC-SKU-0016","brandName":"Daily","activeIngredients":"Complete A-Z Formula","subcategory":"Vitamins & Supplements","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-013","name":"Ferrous Sulfate Tablets","genericName":"Dried Ferrous Sulfate","strength":"200mg (65mg Elemental Iron)","dosageForm":"Bottle of 60 Tablets","category":"Maternal Health","price":9000,"stockQuantity":80,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Essential iron supplement for prevention and treatment of iron deficiency anemia in pregnancy and convalescence.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-FE20","expiryDate":"2028-10-31","imageUrl":"products/ferrous-sulfate.webp","sku":"BC-SKU-0017","brandName":"Ferrous","activeIngredients":"Dried Ferrous Sulfate","subcategory":"Maternal Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-028","name":"Folic Acid 5mg Tablets","genericName":"Folic Acid","strength":"5mg","dosageForm":"Bottle of 100 Tablets","category":"Maternal Health","price":7000,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Crucial folate supplement for neural tube defect prevention during conception and early pregnancy.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-FA05","expiryDate":"2028-11-15","imageUrl":"products/folic-acid-5mg.webp","sku":"BC-SKU-0018","brandName":"Folic","activeIngredients":"Folic Acid","subcategory":"Maternal Health","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-014","name":"Antiseptic Solution","genericName":"Chloroxylenol 4.8%","strength":"4.8% w/v","dosageForm":"500ml Liquid Bottle","category":"First Aid","price":14000,"stockQuantity":75,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Concentrated antiseptic liquid for wound cleansing, disinfection of cuts, abrasions, and skin hygiene.","manufacturer":"Reckitt Benckiser","batchNumber":"DEMO-2026-AS50","expiryDate":"2029-03-31","imageUrl":"products/antiseptic-solution.webp","sku":"BC-SKU-0019","brandName":"Antiseptic","activeIngredients":"Chloroxylenol 4.8%","subcategory":"First Aid","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-015","name":"Hydrogen Peroxide 3%","genericName":"Hydrogen Peroxide Solution (10 Vol)","strength":"3% w/v","dosageForm":"200ml Liquid Bottle","category":"First Aid","price":6500,"stockQuantity":90,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Mild topical antiseptic for minor wound debridement, effervescent cleansing of cuts, and hygiene.","manufacturer":"SurgiPharm Uganda","batchNumber":"DEMO-2026-HP03","expiryDate":"2028-09-30","imageUrl":"products/hydrogen-peroxide.webp","sku":"BC-SKU-0020","brandName":"Hydrogen","activeIngredients":"Hydrogen Peroxide Solution (10 Vol)","subcategory":"First Aid","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-016","name":"Povidone-Iodine 10%","genericName":"Povidone-Iodine Topical Solution","strength":"10% w/v","dosageForm":"100ml Liquid Bottle","category":"First Aid","price":9500,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum non-stinging microbicidal antiseptic for skin disinfection, minor burns, and wound asepsis.","manufacturer":"Mundipharma","batchNumber":"DEMO-2026-PI10","expiryDate":"2029-04-30","imageUrl":"products/povidone-iodine.webp","sku":"BC-SKU-0021","brandName":"Povidone-Iodine","activeIngredients":"Povidone-Iodine Topical Solution","subcategory":"First Aid","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-017","name":"Hydrocortisone 1% Cream","genericName":"Hydrocortisone Acetate","strength":"1% w/w","dosageForm":"15g Aluminum Tube","category":"Skin Care","price":7500,"stockQuantity":50,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Mild topical corticosteroid cream for inflammatory dermatitis, allergic eczema, and insect bite irritation.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-HC01","expiryDate":"2027-11-30","imageUrl":"products/hydrocortisone-cream.webp","sku":"BC-SKU-0022","brandName":"Hydrocortisone","activeIngredients":"Hydrocortisone Acetate","subcategory":"Skin Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-018","name":"Clotrimazole 1% Cream","genericName":"Clotrimazole","strength":"1% w/w","dosageForm":"20g Aluminum Tube","category":"Skin Care","price":9000,"stockQuantity":65,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum topical imidazole antifungal cream for ringworm (tinea corporis), athlete's foot, and candidiasis.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-CL01","expiryDate":"2028-09-30","imageUrl":"products/clotrimazole-cream.webp","sku":"BC-SKU-0023","brandName":"Clotrimazole","activeIngredients":"Clotrimazole","subcategory":"Skin Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-019","name":"Calamine Lotion","genericName":"Calamine 15% + Zinc Oxide 5%","strength":"15% w/v","dosageForm":"100ml Suspension Bottle","category":"Skin Care","price":8000,"stockQuantity":70,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Soothing, cooling astringent protective lotion for itch relief, sunburn, chickenpox rash, and prickly heat.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-CAL1","expiryDate":"2028-12-31","imageUrl":"products/calamine-lotion.webp","sku":"BC-SKU-0024","brandName":"Calamine","activeIngredients":"Calamine 15% + Zinc Oxide 5%","subcategory":"Skin Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-020","name":"Salbutamol Inhaler","genericName":"Salbutamol Sulfate","strength":"100mcg/metered dose","dosageForm":"200 Dose Pressurized Inhaler","category":"Respiratory Care","price":22000,"stockQuantity":28,"reorderLevel":8,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Rapid-acting selective beta-2 agonist bronchodilator for prompt relief of acute asthma bronchospasm.","manufacturer":"GSK","batchNumber":"DEMO-2026-SL10","expiryDate":"2027-09-30","imageUrl":"products/salbutamol-inhaler.webp","sku":"BC-SKU-0025","brandName":"Salbutamol","activeIngredients":"Salbutamol Sulfate","subcategory":"Respiratory Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-023","name":"Digital Thermometer","genericName":"Electronic Clinical Fever Thermometer","strength":"Digital Sensor (+/-0.1 C)","dosageForm":"1 Digital Unit in Case","category":"Medical Devices","price":25000,"stockQuantity":40,"reorderLevel":8,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] High-speed clinical digital oral, axillary, and rectal thermometer with fever beep indicator and auto shut-off.","manufacturer":"Omron Healthcare","batchNumber":"DEMO-2026-DT01","expiryDate":"2032-12-31","imageUrl":"products/digital-thermometer.webp","sku":"BC-SKU-0026","brandName":"Digital","activeIngredients":"Electronic Clinical Fever Thermometer","subcategory":"Medical Devices","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-024","name":"Blood Pressure Monitor","genericName":"Automatic Upper Arm Digital BP Monitor","strength":"Digital Oscillometric Sensor","dosageForm":"1 Digital Monitor Unit + Cuff","category":"Medical Devices","price":185000,"stockQuantity":18,"reorderLevel":5,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Clinically validated automatic digital upper-arm blood pressure and pulse monitor with hypertension indicator.","manufacturer":"Omron Healthcare","batchNumber":"DEMO-2026-BP02","expiryDate":"2032-12-31","imageUrl":"products/blood-pressure-monitor.webp","sku":"BC-SKU-0027","brandName":"Blood","activeIngredients":"Automatic Upper Arm Digital BP Monitor","subcategory":"Medical Devices","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-025","name":"Hand Sanitizer 70%","genericName":"70% Isopropyl Alcohol Antiseptic Gel","strength":"70% v/v","dosageForm":"500ml Pump Bottle","category":"Personal Care","price":10000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Hospital-grade 70% alcohol hand rub with moisturizers for rapid destruction of germs and pathogens.","manufacturer":"Saraya East Africa","batchNumber":"DEMO-2026-HS70","expiryDate":"2029-06-30","imageUrl":"products/hand-sanitizer.webp","sku":"BC-SKU-0028","brandName":"Hand","activeIngredients":"70% Isopropyl Alcohol Antiseptic Gel","subcategory":"Personal Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-029","name":"Amlodipine 5mg Tablets","genericName":"Amlodipine Besylate","strength":"5mg","dosageForm":"Box of 28 Tablets","category":"Chronic Care","price":24000,"stockQuantity":50,"reorderLevel":15,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Calcium channel blocker for arterial hypertension and chronic stable angina management.","manufacturer":"Pfizer","batchNumber":"DEMO-2026-AM05","expiryDate":"2027-12-31","imageUrl":"products/amlodipine-5mg.webp","sku":"BC-SKU-0029","brandName":"Amlodipine","activeIngredients":"Amlodipine Besylate","subcategory":"Chronic Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-030","name":"Losartan Potassium 50mg Tablets","genericName":"Losartan Potassium","strength":"50mg","dosageForm":"Box of 30 Tablets","category":"Chronic Care","price":28000,"stockQuantity":42,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Angiotensin II receptor blocker for blood pressure regulation and renal protection in diabetes.","manufacturer":"Organon Pharma","batchNumber":"DEMO-2026-LS50","expiryDate":"2028-02-28","imageUrl":"products/losartan-50mg.webp","sku":"BC-SKU-0030","brandName":"Losartan","activeIngredients":"Losartan Potassium","subcategory":"Chronic Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-031","name":"Metformin 500mg Tablets","genericName":"Metformin Hydrochloride","strength":"500mg","dosageForm":"Box of 30 Tablets","category":"Diabetes Care","price":15000,"stockQuantity":40,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] First-line oral biguanide antidiabetic for glycemic control in adult Type 2 Diabetes.","manufacturer":"Merck Healthcare","batchNumber":"DEMO-2026-MF50","expiryDate":"2028-05-30","imageUrl":"products/metformin-500mg.webp","sku":"BC-SKU-0031","brandName":"Metformin","activeIngredients":"Metformin Hydrochloride","subcategory":"Diabetes Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-032","name":"Accu-Chek Blood Glucose Test Strips","genericName":"Blood Glucose Test Strips (50s)","strength":"50 Test Strips","dosageForm":"Vial of 50 Strips","category":"Diabetes Care","price":65000,"stockQuantity":30,"reorderLevel":8,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] High-precision capillary blood glucose test strips for regular home blood sugar monitoring.","manufacturer":"Roche Diabetes Care","batchNumber":"DEMO-2026-AC50","expiryDate":"2027-11-30","imageUrl":"products/glucose-test-strips.webp","sku":"BC-SKU-0032","brandName":"Accu-Chek","activeIngredients":"Blood Glucose Test Strips (50s)","subcategory":"Diabetes Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-033","name":"Pediatric Paracetamol Syrup 100ml","genericName":"Paracetamol 120mg/5ml","strength":"120mg/5ml","dosageForm":"100ml Bottle + Spoon","category":"Baby & Child Care","price":9500,"stockQuantity":80,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Sugar-free strawberry flavored pediatric suspension for infant fever, pain, and immunization discomfort.","manufacturer":"GSK Consumer Healthcare","batchNumber":"DEMO-2026-CP10","expiryDate":"2028-08-31","imageUrl":"products/pediatric-paracetamol.webp","sku":"BC-SKU-0033","brandName":"Pediatric","activeIngredients":"Paracetamol 120mg/5ml","subcategory":"Baby & Child Care","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
-  {"id":"DEMO-MED-034","name":"Omega-3 Fish Oil 1000mg Capsules","genericName":"Fish Oil EPA 180mg / DHA 120mg","strength":"1000mg","dosageForm":"Bottle of 60 Capsules","category":"Wellness Products","price":32000,"stockQuantity":48,"reorderLevel":10,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Concentrated essential fatty acids supporting cardiovascular wellness, brain health, and joint mobility.","manufacturer":"P&G Health","batchNumber":"DEMO-2026-OM03","expiryDate":"2028-10-31","imageUrl":"products/omega-3-fish-oil.webp","sku":"BC-SKU-0034","brandName":"Omega-3","activeIngredients":"Fish Oil EPA 180mg / DHA 120mg","subcategory":"Wellness Products","packSize":"Pack of 1","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z"},
+  {"id":"DEMO-MED-001","name":"Paracetamol 500mg Tablets","genericName":"Paracetamol","strength":"500mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":5000,"stockQuantity":150,"reorderLevel":20,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Fast-acting analgesic and antipyretic for mild to moderate headache, muscle pain, and fever reduction.","manufacturer":"GSK Consumer Healthcare","batchNumber":"DEMO-2026-PA50","expiryDate":"2028-08-31","imageUrl":"products/paracetamol-500mg.webp","sku":"BC-SKU-0001","brandName":"Paracetamol","activeIngredients":"Paracetamol","subcategory":"Pain Relief","packSize":"Pack of 20 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":5000,"costPrice":3200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 20 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":5000,"newPrice":5000,"costPrice":3200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-002","name":"Ibuprofen 400mg Tablets","genericName":"Ibuprofen","strength":"400mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":8000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Non-steroidal anti-inflammatory drug (NSAID) for dental pain, backache, and inflammatory joint stiffness.","manufacturer":"Abbott Laboratories","batchNumber":"DEMO-2026-IB40","expiryDate":"2028-11-30","imageUrl":"products/ibuprofen-400mg.webp","sku":"BC-SKU-0002","brandName":"Ibuprofen","activeIngredients":"Ibuprofen","subcategory":"Pain Relief","packSize":"Pack of 20 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":8000,"costPrice":5200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 20 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":8000,"newPrice":8000,"costPrice":5200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-003","name":"Diclofenac 50mg Tablets","genericName":"Diclofenac Sodium","strength":"50mg","dosageForm":"Pack of 20 Tablets","category":"Pain Relief","price":12000,"stockQuantity":60,"reorderLevel":12,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Potent targeted anti-inflammatory analgesic for acute musculoskeletal strain and arthritis.","manufacturer":"Novartis","batchNumber":"DEMO-2026-DC50","expiryDate":"2028-04-15","imageUrl":"products/diclofenac-50mg.webp","sku":"BC-SKU-0003","brandName":"Diclofenac","activeIngredients":"Diclofenac Sodium","subcategory":"Pain Relief","packSize":"Pack of 20 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":12000,"costPrice":8000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 20 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":12000,"newPrice":12000,"costPrice":8000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-026","name":"Tramadol Capsules 50mg","genericName":"Tramadol Hydrochloride","strength":"50mg","dosageForm":"Pack of 10 Capsules","category":"Pain Relief","price":18000,"stockQuantity":30,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Centrally acting opioid analgesic for moderate to severe postoperative pain management.","manufacturer":"Grunenthal Pharma","batchNumber":"DEMO-2026-TR50","expiryDate":"2027-11-20","imageUrl":"products/tramadol-50mg.webp","sku":"BC-SKU-0004","brandName":"Tramadol","activeIngredients":"Tramadol Hydrochloride","subcategory":"Pain Relief","packSize":"Pack of 10 Capsules","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":18000,"costPrice":12000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 10 Capsules aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":18000,"newPrice":18000,"costPrice":12000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-004","name":"Amoxicillin 500mg Capsules","genericName":"Amoxicillin Trihydrate","strength":"500mg","dosageForm":"Pack of 20 Capsules","category":"Cold & Flu","price":18000,"stockQuantity":45,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum penicillin antibiotic for bacterial respiratory tract, ENT, and dental infections.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-AM50","expiryDate":"2027-10-15","imageUrl":"products/amoxicillin-500mg.webp","sku":"BC-SKU-0005","brandName":"Amoxicillin","activeIngredients":"Amoxicillin Trihydrate","subcategory":"Cold & Flu","packSize":"Pack of 20 Capsules","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":18000,"costPrice":12000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 20 Capsules aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":18000,"newPrice":18000,"costPrice":12000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-005","name":"Azithromycin 500mg Tablets","genericName":"Azithromycin Monohydrate","strength":"500mg","dosageForm":"Pack of 3 Tablets","category":"Cold & Flu","price":28000,"stockQuantity":40,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Short-course macrolide antibiotic for upper and lower respiratory bacterial infections.","manufacturer":"Pfizer","batchNumber":"DEMO-2026-AZ50","expiryDate":"2028-05-30","imageUrl":"products/azithromycin-500mg.webp","sku":"BC-SKU-0006","brandName":"Azithromycin","activeIngredients":"Azithromycin Monohydrate","subcategory":"Cold & Flu","packSize":"Pack of 3 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":28000,"costPrice":19500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 3 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":28000,"newPrice":28000,"costPrice":19500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-021","name":"Cough Syrup","genericName":"Guaifenesin Expectorant + Menthol","strength":"100mg/5ml","dosageForm":"100ml Liquid Bottle","category":"Cold & Flu","price":14000,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Soothing expectorant cough formulation to liquefy chest mucus and relieve dry irritated throat coughs.","manufacturer":"Johnson & Johnson","batchNumber":"DEMO-2026-CS10","expiryDate":"2028-07-15","imageUrl":"products/cough-syrup.webp","sku":"BC-SKU-0007","brandName":"Cough","activeIngredients":"Guaifenesin Expectorant + Menthol","subcategory":"Cold & Flu","packSize":"100ml Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":14000,"costPrice":9500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 100ml Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":14000,"newPrice":14000,"costPrice":9500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-022","name":"Nasal Saline Drops","genericName":"Sodium Chloride 0.9% Isotonic Solution","strength":"0.9% w/v","dosageForm":"15ml Dropper Bottle","category":"Cold & Flu","price":7000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Natural preservative-free isotonic nasal saline drops to clear blocked nasal passages and relieve dryness.","manufacturer":"SurgiPharm Uganda","batchNumber":"DEMO-2026-NS15","expiryDate":"2028-11-30","imageUrl":"products/nasal-saline-drops.webp","sku":"BC-SKU-0008","brandName":"Nasal","activeIngredients":"Sodium Chloride 0.9% Isotonic Solution","subcategory":"Cold & Flu","packSize":"15ml Dropper Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":7000,"costPrice":4500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 15ml Dropper Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":7000,"newPrice":7000,"costPrice":4500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-006","name":"Cetirizine 10mg Tablets","genericName":"Cetirizine Hydrochloride","strength":"10mg","dosageForm":"Pack of 10 Tablets","category":"Allergy Care","price":8500,"stockQuantity":85,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Non-drowsy second-generation antihistamine for allergic rhinitis, sneezing, and skin urticaria.","manufacturer":"UCB Pharma","batchNumber":"DEMO-2026-CT10","expiryDate":"2028-06-20","imageUrl":"products/cetirizine-10mg.webp","sku":"BC-SKU-0009","brandName":"Cetirizine","activeIngredients":"Cetirizine Hydrochloride","subcategory":"Allergy Care","packSize":"Pack of 10 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":8500,"costPrice":5500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 10 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":8500,"newPrice":8500,"costPrice":5500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-007","name":"Loratadine 10mg Tablets","genericName":"Loratadine","strength":"10mg","dosageForm":"Pack of 10 Tablets","category":"Allergy Care","price":10500,"stockQuantity":70,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] 24-hour non-sedating antihistamine for seasonal hay fever and chronic allergic skin conditions.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-LR10","expiryDate":"2028-08-31","imageUrl":"products/loratadine-10mg.webp","sku":"BC-SKU-0010","brandName":"Loratadine","activeIngredients":"Loratadine","subcategory":"Allergy Care","packSize":"Pack of 10 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":10500,"costPrice":7000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 10 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":10500,"newPrice":10500,"costPrice":7000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-008","name":"Omeprazole 20mg Capsules","genericName":"Omeprazole","strength":"20mg","dosageForm":"Pack of 14 Capsules","category":"Digestive Health","price":15000,"stockQuantity":75,"reorderLevel":15,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Proton pump inhibitor for gastric acid reduction, peptic ulcer healing, and GERD acid reflux.","manufacturer":"AstraZeneca","batchNumber":"DEMO-2026-OM20","expiryDate":"2028-03-31","imageUrl":"products/omeprazole-20mg.webp","sku":"BC-SKU-0011","brandName":"Omeprazole","activeIngredients":"Omeprazole","subcategory":"Digestive Health","packSize":"Pack of 14 Capsules","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":15000,"costPrice":10000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 14 Capsules aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":15000,"newPrice":15000,"costPrice":10000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-009","name":"Oral Rehydration Salts","genericName":"WHO Formula Electrolytes","strength":"20.5g/sachet","dosageForm":"Box of 5 Sachets","category":"Digestive Health","price":3500,"stockQuantity":200,"reorderLevel":30,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Balanced glucose-electrolyte solution for rehydration therapy during acute diarrhea and dehydration.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-ORS1","expiryDate":"2029-01-30","imageUrl":"products/oral-rehydration-salts.webp","sku":"BC-SKU-0012","brandName":"Oral","activeIngredients":"WHO Formula Electrolytes","subcategory":"Digestive Health","packSize":"Box of 5 Sachets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":3500,"costPrice":2200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Box of 5 Sachets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":3500,"newPrice":3500,"costPrice":2200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-010","name":"Antacid Tablets","genericName":"Magnesium + Aluminum Hydroxide","strength":"400mg","dosageForm":"Pack of 12 Chewable Tablets","category":"Digestive Health","price":6000,"stockQuantity":130,"reorderLevel":20,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Fast-acting chewable tablets for immediate neutralization of stomach acid, heartburn, and sour stomach.","manufacturer":"Reckitt Benckiser","batchNumber":"DEMO-2026-ANT1","expiryDate":"2028-07-25","imageUrl":"products/antacid-tablets.webp","sku":"BC-SKU-0013","brandName":"Antacid","activeIngredients":"Magnesium + Aluminum Hydroxide","subcategory":"Digestive Health","packSize":"Pack of 12 Chewable Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":6000,"costPrice":4000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 12 Chewable Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":6000,"newPrice":6000,"costPrice":4000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-011","name":"Vitamin C 500mg Tablets","genericName":"Ascorbic Acid","strength":"500mg","dosageForm":"Bottle of 30 Chewable Tablets","category":"Vitamins & Supplements","price":12000,"stockQuantity":110,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Daily immune defense booster and antioxidant supplement supporting collagen synthesis.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-VC50","expiryDate":"2028-04-10","imageUrl":"products/vitamin-c-500mg.webp","sku":"BC-SKU-0014","brandName":"Vitamin","activeIngredients":"Ascorbic Acid","subcategory":"Vitamins & Supplements","packSize":"Bottle of 30 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":12000,"costPrice":8000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Bottle of 30 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":12000,"newPrice":12000,"costPrice":8000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-012","name":"Zinc 20mg Tablets","genericName":"Zinc Sulfate Monohydrate","strength":"20mg","dosageForm":"Pack of 10 Tablets","category":"Vitamins & Supplements","price":6500,"stockQuantity":140,"reorderLevel":25,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Essential trace mineral for cellular immunity, tissue repair, and diarrhea recovery.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-ZN20","expiryDate":"2029-02-28","imageUrl":"products/zinc-20mg.webp","sku":"BC-SKU-0015","brandName":"Zinc","activeIngredients":"Zinc Sulfate Monohydrate","subcategory":"Vitamins & Supplements","packSize":"Pack of 10 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":6500,"costPrice":4200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Pack of 10 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":6500,"newPrice":6500,"costPrice":4200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-027","name":"Daily Multivitamin Complete","genericName":"Complete A-Z Formula","strength":"24 Nutrients","dosageForm":"Bottle of 30 Tablets","category":"Vitamins & Supplements","price":25000,"stockQuantity":60,"reorderLevel":10,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Complete daily micronutrient supplement supporting physical vitality and mental clarity.","manufacturer":"Vitabiotics","batchNumber":"DEMO-2026-MV30","expiryDate":"2028-09-15","imageUrl":"products/daily-multivitamin.webp","sku":"BC-SKU-0016","brandName":"Daily","activeIngredients":"Complete A-Z Formula","subcategory":"Vitamins & Supplements","packSize":"Bottle of 30 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":25000,"costPrice":17500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Bottle of 30 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":25000,"newPrice":25000,"costPrice":17500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-013","name":"Ferrous Sulfate Tablets","genericName":"Dried Ferrous Sulfate","strength":"200mg (65mg Elemental Iron)","dosageForm":"Bottle of 60 Tablets","category":"Maternal Health","price":9000,"stockQuantity":80,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Essential iron supplement for prevention and treatment of iron deficiency anemia in pregnancy and convalescence.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-FE20","expiryDate":"2028-10-31","imageUrl":"products/ferrous-sulfate.webp","sku":"BC-SKU-0017","brandName":"Ferrous","activeIngredients":"Dried Ferrous Sulfate","subcategory":"Maternal Health","packSize":"Bottle of 60 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":9000,"costPrice":5800,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Bottle of 60 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":9000,"newPrice":9000,"costPrice":5800,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-028","name":"Folic Acid 5mg Tablets","genericName":"Folic Acid","strength":"5mg","dosageForm":"Bottle of 100 Tablets","category":"Maternal Health","price":7000,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Crucial folate supplement for neural tube defect prevention during conception and early pregnancy.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-FA05","expiryDate":"2028-11-15","imageUrl":"products/folic-acid-5mg.webp","sku":"BC-SKU-0018","brandName":"Folic","activeIngredients":"Folic Acid","subcategory":"Maternal Health","packSize":"Bottle of 100 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":7000,"costPrice":4500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Bottle of 100 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":7000,"newPrice":7000,"costPrice":4500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-014","name":"Antiseptic Solution","genericName":"Chloroxylenol 4.8%","strength":"4.8% w/v","dosageForm":"500ml Liquid Bottle","category":"First Aid","price":14000,"stockQuantity":75,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Concentrated antiseptic liquid for wound cleansing, disinfection of cuts, abrasions, and skin hygiene.","manufacturer":"Reckitt Benckiser","batchNumber":"DEMO-2026-AS50","expiryDate":"2029-03-31","imageUrl":"products/antiseptic-solution.webp","sku":"BC-SKU-0019","brandName":"Antiseptic","activeIngredients":"Chloroxylenol 4.8%","subcategory":"First Aid","packSize":"500ml Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":14000,"costPrice":9500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 500ml Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":14000,"newPrice":14000,"costPrice":9500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-015","name":"Hydrogen Peroxide 3%","genericName":"Hydrogen Peroxide Solution (10 Vol)","strength":"3% w/v","dosageForm":"200ml Liquid Bottle","category":"First Aid","price":6500,"stockQuantity":90,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Mild topical antiseptic for minor wound debridement, effervescent cleansing of cuts, and hygiene.","manufacturer":"SurgiPharm Uganda","batchNumber":"DEMO-2026-HP03","expiryDate":"2028-09-30","imageUrl":"products/hydrogen-peroxide.webp","sku":"BC-SKU-0020","brandName":"Hydrogen","activeIngredients":"Hydrogen Peroxide Solution (10 Vol)","subcategory":"First Aid","packSize":"200ml Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":6500,"costPrice":4200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 200ml Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":6500,"newPrice":6500,"costPrice":4200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-016","name":"Povidone-Iodine 10%","genericName":"Povidone-Iodine Topical Solution","strength":"10% w/v","dosageForm":"100ml Liquid Bottle","category":"First Aid","price":9500,"stockQuantity":85,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum non-stinging microbicidal antiseptic for skin disinfection, minor burns, and wound asepsis.","manufacturer":"Mundipharma","batchNumber":"DEMO-2026-PI10","expiryDate":"2029-04-30","imageUrl":"products/povidone-iodine.webp","sku":"BC-SKU-0021","brandName":"Povidone-Iodine","activeIngredients":"Povidone-Iodine Topical Solution","subcategory":"First Aid","packSize":"100ml Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":9500,"costPrice":6200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 100ml Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":9500,"newPrice":9500,"costPrice":6200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-017","name":"Hydrocortisone 1% Cream","genericName":"Hydrocortisone Acetate","strength":"1% w/w","dosageForm":"15g Aluminum Tube","category":"Skin Care","price":7500,"stockQuantity":50,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Mild topical corticosteroid cream for inflammatory dermatitis, allergic eczema, and insect bite irritation.","manufacturer":"Medreich Laboratories","batchNumber":"DEMO-2026-HC01","expiryDate":"2027-11-30","imageUrl":"products/hydrocortisone-cream.webp","sku":"BC-SKU-0022","brandName":"Hydrocortisone","activeIngredients":"Hydrocortisone Acetate","subcategory":"Skin Care","packSize":"15g Tube","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":7500,"costPrice":4800,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 15g Tube aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":7500,"newPrice":7500,"costPrice":4800,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-018","name":"Clotrimazole 1% Cream","genericName":"Clotrimazole","strength":"1% w/w","dosageForm":"20g Aluminum Tube","category":"Skin Care","price":9000,"stockQuantity":65,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Broad-spectrum topical imidazole antifungal cream for ringworm (tinea corporis), athlete's foot, and candidiasis.","manufacturer":"Bayer Healthcare","batchNumber":"DEMO-2026-CL01","expiryDate":"2028-09-30","imageUrl":"products/clotrimazole-cream.webp","sku":"BC-SKU-0023","brandName":"Clotrimazole","activeIngredients":"Clotrimazole","subcategory":"Skin Care","packSize":"20g Tube","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":9000,"costPrice":5800,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 20g Tube aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":9000,"newPrice":9000,"costPrice":5800,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-019","name":"Calamine Lotion","genericName":"Calamine 15% + Zinc Oxide 5%","strength":"15% w/v","dosageForm":"100ml Suspension Bottle","category":"Skin Care","price":8000,"stockQuantity":70,"reorderLevel":12,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Soothing, cooling astringent protective lotion for itch relief, sunburn, chickenpox rash, and prickly heat.","manufacturer":"Cipla Uganda","batchNumber":"DEMO-2026-CAL1","expiryDate":"2028-12-31","imageUrl":"products/calamine-lotion.webp","sku":"BC-SKU-0024","brandName":"Calamine","activeIngredients":"Calamine 15% + Zinc Oxide 5%","subcategory":"Skin Care","packSize":"100ml Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":8000,"costPrice":5200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 100ml Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":8000,"newPrice":8000,"costPrice":5200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-020","name":"Salbutamol Inhaler","genericName":"Salbutamol Sulfate","strength":"100mcg/metered dose","dosageForm":"200 Dose Pressurized Inhaler","category":"Respiratory Care","price":22000,"stockQuantity":28,"reorderLevel":8,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Rapid-acting selective beta-2 agonist bronchodilator for prompt relief of acute asthma bronchospasm.","manufacturer":"GSK","batchNumber":"DEMO-2026-SL10","expiryDate":"2027-09-30","imageUrl":"products/salbutamol-inhaler.webp","sku":"BC-SKU-0025","brandName":"Salbutamol","activeIngredients":"Salbutamol Sulfate","subcategory":"Respiratory Care","packSize":"1 Inhaler (200 Doses)","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":22000,"costPrice":15000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 1 Inhaler (200 Doses) aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":22000,"newPrice":22000,"costPrice":15000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-023","name":"Digital Thermometer","genericName":"Electronic Clinical Fever Thermometer","strength":"Digital Sensor (+/-0.1 C)","dosageForm":"1 Digital Unit in Case","category":"Medical Devices","price":25000,"stockQuantity":40,"reorderLevel":8,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] High-speed clinical digital oral, axillary, and rectal thermometer with fever beep indicator and auto shut-off.","manufacturer":"Omron Healthcare","batchNumber":"DEMO-2026-DT01","expiryDate":"2032-12-31","imageUrl":"products/digital-thermometer.webp","sku":"BC-SKU-0026","brandName":"Digital","activeIngredients":"Electronic Clinical Fever Thermometer","subcategory":"Medical Devices","packSize":"1 Digital Unit","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":25000,"costPrice":16500,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 1 Digital Unit aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":25000,"newPrice":25000,"costPrice":16500,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-024","name":"Blood Pressure Monitor","genericName":"Automatic Upper Arm Digital BP Monitor","strength":"Digital Oscillometric Sensor","dosageForm":"1 Digital Monitor Unit + Cuff","category":"Medical Devices","price":185000,"stockQuantity":18,"reorderLevel":5,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Clinically validated automatic digital upper-arm blood pressure and pulse monitor with hypertension indicator.","manufacturer":"Omron Healthcare","batchNumber":"DEMO-2026-BP02","expiryDate":"2032-12-31","imageUrl":"products/blood-pressure-monitor.webp","sku":"BC-SKU-0027","brandName":"Blood","activeIngredients":"Automatic Upper Arm Digital BP Monitor","subcategory":"Medical Devices","packSize":"1 Complete Monitor Kit","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":185000,"costPrice":130000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 1 Complete Monitor Kit aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":185000,"newPrice":185000,"costPrice":130000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-025","name":"Hand Sanitizer 70%","genericName":"70% Isopropyl Alcohol Antiseptic Gel","strength":"70% v/v","dosageForm":"500ml Pump Bottle","category":"Personal Care","price":10000,"stockQuantity":95,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Hospital-grade 70% alcohol hand rub with moisturizers for rapid destruction of germs and pathogens.","manufacturer":"Saraya East Africa","batchNumber":"DEMO-2026-HS70","expiryDate":"2029-06-30","imageUrl":"products/hand-sanitizer.webp","sku":"BC-SKU-0028","brandName":"Hand","activeIngredients":"70% Isopropyl Alcohol Antiseptic Gel","subcategory":"Personal Care","packSize":"500ml Pump Bottle","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":10000,"costPrice":6800,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 500ml Pump Bottle aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":10000,"newPrice":10000,"costPrice":6800,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-029","name":"Amlodipine 5mg Tablets","genericName":"Amlodipine Besylate","strength":"5mg","dosageForm":"Box of 28 Tablets","category":"Chronic Care","price":9500,"stockQuantity":50,"reorderLevel":15,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Calcium channel blocker for arterial hypertension and chronic stable angina management.","manufacturer":"Pfizer","batchNumber":"DEMO-2026-AM05","expiryDate":"2027-12-31","imageUrl":"products/amlodipine-5mg.webp","sku":"BC-SKU-0029","brandName":"Amlodipine","activeIngredients":"Amlodipine Besylate","subcategory":"Chronic Care","packSize":"Box of 28 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":9500,"costPrice":6200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Box of 28 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":24000,"newPrice":9500,"costPrice":6200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-030","name":"Losartan Potassium 50mg Tablets","genericName":"Losartan Potassium","strength":"50mg","dosageForm":"Box of 30 Tablets","category":"Chronic Care","price":18500,"stockQuantity":42,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] Angiotensin II receptor blocker for blood pressure regulation and renal protection in diabetes.","manufacturer":"Organon Pharma","batchNumber":"DEMO-2026-LS50","expiryDate":"2028-02-28","imageUrl":"products/losartan-50mg.webp","sku":"BC-SKU-0030","brandName":"Losartan","activeIngredients":"Losartan Potassium","subcategory":"Chronic Care","packSize":"Box of 30 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":18500,"costPrice":12000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Box of 30 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":28000,"newPrice":18500,"costPrice":12000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-031","name":"Metformin 500mg Tablets","genericName":"Metformin Hydrochloride","strength":"500mg","dosageForm":"Box of 30 Tablets","category":"Diabetes Care","price":6500,"stockQuantity":40,"reorderLevel":10,"requiresPrescription":true,"status":"active","description":"[DEMONSTRATION TEST DATA] First-line oral biguanide antidiabetic for glycemic control in adult Type 2 Diabetes.","manufacturer":"Merck Healthcare","batchNumber":"DEMO-2026-MF50","expiryDate":"2028-05-30","imageUrl":"products/metformin-500mg.webp","sku":"BC-SKU-0031","brandName":"Metformin","activeIngredients":"Metformin Hydrochloride","subcategory":"Diabetes Care","packSize":"Box of 30 Tablets","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":6500,"costPrice":4200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Box of 30 Tablets aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":15000,"newPrice":6500,"costPrice":4200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-032","name":"Accu-Chek Blood Glucose Test Strips","genericName":"Blood Glucose Test Strips (50s)","strength":"50 Test Strips","dosageForm":"Vial of 50 Strips","category":"Diabetes Care","price":65000,"stockQuantity":30,"reorderLevel":8,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] High-precision capillary blood glucose test strips for regular home blood sugar monitoring.","manufacturer":"Roche Diabetes Care","batchNumber":"DEMO-2026-AC50","expiryDate":"2027-11-30","imageUrl":"products/glucose-test-strips.webp","sku":"BC-SKU-0032","brandName":"Accu-Chek","activeIngredients":"Blood Glucose Test Strips (50s)","subcategory":"Diabetes Care","packSize":"Vial of 50 Test Strips","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":65000,"costPrice":48000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Vial of 50 Test Strips aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":65000,"newPrice":65000,"costPrice":48000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-033","name":"Pediatric Paracetamol Syrup 100ml","genericName":"Paracetamol 120mg/5ml","strength":"120mg/5ml","dosageForm":"100ml Bottle + Spoon","category":"Baby & Child Care","price":9500,"stockQuantity":80,"reorderLevel":15,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Sugar-free strawberry flavored pediatric suspension for infant fever, pain, and immunization discomfort.","manufacturer":"GSK Consumer Healthcare","batchNumber":"DEMO-2026-CP10","expiryDate":"2028-08-31","imageUrl":"products/pediatric-paracetamol.webp","sku":"BC-SKU-0033","brandName":"Pediatric","activeIngredients":"Paracetamol 120mg/5ml","subcategory":"Baby & Child Care","packSize":"100ml Bottle + Spoon","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":9500,"costPrice":6200,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for 100ml Bottle + Spoon aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":9500,"newPrice":9500,"costPrice":6200,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
+  {"id":"DEMO-MED-034","name":"Omega-3 Fish Oil 1000mg Capsules","genericName":"Fish Oil EPA 180mg / DHA 120mg","strength":"1000mg","dosageForm":"Bottle of 60 Capsules","category":"Wellness Products","price":32000,"stockQuantity":48,"reorderLevel":10,"requiresPrescription":false,"status":"active","description":"[DEMONSTRATION TEST DATA] Concentrated essential fatty acids supporting cardiovascular wellness, brain health, and joint mobility.","manufacturer":"P&G Health","batchNumber":"DEMO-2026-OM03","expiryDate":"2028-10-31","imageUrl":"products/omega-3-fish-oil.webp","sku":"BC-SKU-0034","brandName":"Omega-3","activeIngredients":"Fish Oil EPA 180mg / DHA 120mg","subcategory":"Wellness Products","packSize":"Bottle of 60 Capsules","createdAt":"2024-01-15T08:00:00.000Z","updatedAt":"2024-09-01T12:00:00.000Z","sellingPrice":32000,"costPrice":22000,"currency":"UGX","priceSource":"Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)","priceLastUpdated":"2026-09-05","priceNotes":"Retail market reference price for Bottle of 60 Capsules aligned with EMHSLU 2023 formulation standards.","priceHistory":[{"previousPrice":32000,"newPrice":32000,"costPrice":22000,"changedBy":"Uganda Market Reference Baseline","date":"2026-09-05","reason":"Initial community pharmacy retail market review and EMHSLU 2023 alignment"}]},
 
   // Expanded EMHSLU 2023 Ugandan Pharmacy Catalog (715 additional clinical products, strictly deduped)
   ...(typeof UGANDA_PHARMACY_CATALOG !== "undefined" ? UGANDA_PHARMACY_CATALOG.filter(m => !m.id.startsWith("DEMO-MED-")) : [])
@@ -1002,7 +1010,10 @@ export const PERMISSIONS = {
   USER_MANAGE: "user:manage",
   REPORTS_VIEW: "reports:view",
   SYSTEM_SETTINGS: "system:settings",
-  DEVELOPER_SIMULATE: "developer:simulate"
+  DEVELOPER_SIMULATE: "developer:simulate",
+
+  // Point of Sale & Physical Counter Sales
+  SALE_CREATE_WALKIN: "sale:create_walkin"
 };
 
 // 3. Complete Role Permission Mapping
@@ -1023,7 +1034,8 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.USER_VIEW,
     PERMISSIONS.USER_MANAGE,
     PERMISSIONS.REPORTS_VIEW,
-    PERMISSIONS.SYSTEM_SETTINGS
+    PERMISSIONS.SYSTEM_SETTINGS,
+    PERMISSIONS.SALE_CREATE_WALKIN
   ],
   pharmacist: [
     PERMISSIONS.CATALOG_BROWSE,
@@ -1033,13 +1045,15 @@ export const ROLE_PERMISSIONS = {
     PERMISSIONS.INVENTORY_VIEW,
     PERMISSIONS.INVENTORY_ADJUST,
     PERMISSIONS.MEDICINE_MANAGE,
-    PERMISSIONS.ORDER_PACK
+    PERMISSIONS.ORDER_PACK,
+    PERMISSIONS.SALE_CREATE_WALKIN
   ],
   assistant_pharmacist: [
     PERMISSIONS.CATALOG_BROWSE,
     PERMISSIONS.INVENTORY_VIEW,
     PERMISSIONS.INVENTORY_ADJUST,
-    PERMISSIONS.ORDER_PACK
+    PERMISSIONS.ORDER_PACK,
+    PERMISSIONS.SALE_CREATE_WALKIN
   ],
   delivery_person: [
     PERMISSIONS.CATALOG_BROWSE,
@@ -1347,6 +1361,229 @@ const INITIAL_INVENTORY_LOGS = [
   { id: "log-8", productName: "Vitamin C 500mg Chewable", type: "stock_in", quantity: 80, previousStock: 30, newStock: 110, reason: "Bayer Healthcare stock intake", performedBy: "Dr. Admin Mugisha", timestamp: "2026-08-29T13:00:00Z" }
 ];
 
+export const INITIAL_CONVERSATIONS = [
+  {
+    conversationId: "CHAT-BC-ORD-0042",
+    orderId: "BC-ORD-0042",
+    orderNumber: "BC-ORD-0042",
+    customerId: "cust-2",
+    customerName: "David Mukasa",
+    customerPhone: "0772334455",
+    customerEmail: "david.m@example.com",
+    deliveryManId: "usr-5",
+    deliveryManName: "Moses Kato",
+    deliveryAddress: "Ntinda, Kimera Road, Kampala",
+    deliveryStatus: "Out for Delivery",
+    status: "ACTIVE",
+    unreadDelivery: 1,
+    unreadCustomer: 0,
+    createdAt: new Date(Date.now() - 3600000).toISOString(),
+    updatedAt: new Date(Date.now() - 5 * 60000).toISOString(),
+    lastMessage: {
+      messageId: "MSG-101",
+      message: "Please call when nearby.",
+      senderId: "cust-2",
+      senderRole: "customer",
+      senderName: "David Mukasa",
+      createdAt: new Date(Date.now() - 5 * 60000).toISOString()
+    }
+  },
+  {
+    conversationId: "CHAT-BC-ORD-0046",
+    orderId: "BC-ORD-0046",
+    orderNumber: "BC-ORD-0046",
+    customerId: "cust-6",
+    customerName: "Aisha Nabawanuka",
+    customerPhone: "0702667788",
+    customerEmail: "aisha.n@example.com",
+    deliveryManId: "usr-5",
+    deliveryManName: "Moses Kato",
+    deliveryAddress: "Muyenga, Tank Hill Road, Kampala",
+    deliveryStatus: "Out for Delivery",
+    status: "ACTIVE",
+    unreadDelivery: 1,
+    unreadCustomer: 0,
+    createdAt: new Date(Date.now() - 1800000).toISOString(),
+    updatedAt: new Date(Date.now() - 2 * 60000).toISOString(),
+    lastMessage: {
+      messageId: "MSG-103",
+      message: "I am at the gate.",
+      senderId: "cust-6",
+      senderRole: "customer",
+      senderName: "Aisha Nabawanuka",
+      createdAt: new Date(Date.now() - 2 * 60000).toISOString()
+    }
+  },
+  {
+    conversationId: "CHAT-BC-ORD-0041",
+    orderId: "BC-ORD-0041",
+    orderNumber: "BC-ORD-0041",
+    customerId: "usr-demo-customer",
+    customerName: "Grace Nakato",
+    customerPhone: "0751234567",
+    customerEmail: "grace.nakato@example.com",
+    deliveryManId: "usr-5",
+    deliveryManName: "Moses Kato",
+    deliveryAddress: "Bukoto, Plot 14, Kampala",
+    deliveryStatus: "Delivered",
+    status: "COMPLETED",
+    unreadDelivery: 0,
+    unreadCustomer: 0,
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+    updatedAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    lastMessage: {
+      messageId: "MSG-105",
+      message: "Package handed over to security desk. Thank you for choosing BloomCare!",
+      senderId: "usr-5",
+      senderRole: "delivery_person",
+      senderName: "Moses Kato",
+      createdAt: new Date(Date.now() - 86400000 * 2).toISOString()
+    }
+  },
+  {
+    conversationId: "CHAT-BC-ORD-0044",
+    orderId: "BC-ORD-0044",
+    orderNumber: "BC-ORD-0044",
+    customerId: "cust-3",
+    customerName: "Florence Kembabazi",
+    customerPhone: "0701889900",
+    customerEmail: "florence.k@example.com",
+    deliveryManId: "usr-6",
+    deliveryManName: "Emmanuel Otim",
+    deliveryAddress: "Kololo, Upper Kololo Terrace, Kampala",
+    deliveryStatus: "Picked Up",
+    status: "ACTIVE",
+    unreadDelivery: 0,
+    unreadCustomer: 0,
+    createdAt: new Date(Date.now() - 7200000).toISOString(),
+    updatedAt: new Date(Date.now() - 40 * 60000).toISOString(),
+    lastMessage: {
+      messageId: "MSG-106",
+      message: "Order picked up from dispensary, heading out soon.",
+      senderId: "usr-6",
+      senderRole: "delivery_person",
+      senderName: "Emmanuel Otim",
+      createdAt: new Date(Date.now() - 40 * 60000).toISOString()
+    }
+  }
+];
+
+export const INITIAL_MESSAGES = [
+  {
+    messageId: "MSG-100",
+    conversationId: "CHAT-BC-ORD-0042",
+    orderId: "BC-ORD-0042",
+    senderId: "usr-5",
+    senderRole: "delivery_person",
+    senderName: "Moses Kato",
+    message: "Hello David, I have picked up your Emergency First Aid Kit and I am heading towards Ntinda.",
+    createdAt: new Date(Date.now() - 15 * 60000).toISOString(),
+    readAt: new Date(Date.now() - 10 * 60000).toISOString()
+  },
+  {
+    messageId: "MSG-101",
+    conversationId: "CHAT-BC-ORD-0042",
+    orderId: "BC-ORD-0042",
+    senderId: "cust-2",
+    senderRole: "customer",
+    senderName: "David Mukasa",
+    message: "Please call when nearby.",
+    createdAt: new Date(Date.now() - 5 * 60000).toISOString(),
+    readAt: null
+  },
+  {
+    messageId: "MSG-102",
+    conversationId: "CHAT-BC-ORD-0046",
+    orderId: "BC-ORD-0046",
+    senderId: "usr-5",
+    senderRole: "delivery_person",
+    senderName: "Moses Kato",
+    message: "Good afternoon Aisha, I am about 5 minutes away from Tank Hill Road.",
+    createdAt: new Date(Date.now() - 7 * 60000).toISOString(),
+    readAt: new Date(Date.now() - 4 * 60000).toISOString()
+  },
+  {
+    messageId: "MSG-103",
+    conversationId: "CHAT-BC-ORD-0046",
+    orderId: "BC-ORD-0046",
+    senderId: "cust-6",
+    senderRole: "customer",
+    senderName: "Aisha Nabawanuka",
+    message: "I am at the gate.",
+    createdAt: new Date(Date.now() - 2 * 60000).toISOString(),
+    readAt: null
+  },
+  {
+    messageId: "MSG-104",
+    conversationId: "CHAT-BC-ORD-0041",
+    orderId: "BC-ORD-0041",
+    senderId: "usr-demo-customer",
+    senderRole: "customer",
+    senderName: "Grace Nakato",
+    message: "Please leave package with the gate security guard.",
+    createdAt: new Date(Date.now() - 86400000 * 3 + 3600000).toISOString(),
+    readAt: new Date(Date.now() - 86400000 * 2).toISOString()
+  },
+  {
+    messageId: "MSG-105",
+    conversationId: "CHAT-BC-ORD-0041",
+    orderId: "BC-ORD-0041",
+    senderId: "usr-5",
+    senderRole: "delivery_person",
+    senderName: "Moses Kato",
+    message: "Package handed over to security desk. Thank you for choosing BloomCare!",
+    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
+    readAt: new Date(Date.now() - 86400000 * 2).toISOString()
+  },
+  {
+    messageId: "MSG-106",
+    conversationId: "CHAT-BC-ORD-0044",
+    orderId: "BC-ORD-0044",
+    senderId: "usr-6",
+    senderRole: "delivery_person",
+    senderName: "Emmanuel Otim",
+    message: "Order picked up from dispensary, heading out soon.",
+    createdAt: new Date(Date.now() - 40 * 60000).toISOString(),
+    readAt: null
+  }
+];
+
+export function loadConversationsFromStorage() {
+  try {
+    if (typeof localStorage !== "undefined") {
+      const raw = localStorage.getItem("bloomcare_conversations_v1");
+      if (raw) return JSON.parse(raw);
+    }
+  } catch (_) {}
+  return [...INITIAL_CONVERSATIONS];
+}
+
+export function saveConversationsToStorage() {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("bloomcare_conversations_v1", JSON.stringify(STATE.conversations));
+    }
+  } catch (_) {}
+}
+
+export function loadMessagesFromStorage() {
+  try {
+    if (typeof localStorage !== "undefined") {
+      const raw = localStorage.getItem("bloomcare_messages_v1");
+      if (raw) return JSON.parse(raw);
+    }
+  } catch (_) {}
+  return [...INITIAL_MESSAGES];
+}
+
+export function saveMessagesToStorage() {
+  try {
+    if (typeof localStorage !== "undefined") {
+      localStorage.setItem("bloomcare_messages_v1", JSON.stringify(STATE.messages));
+    }
+  } catch (_) {}
+}
+
 // -------------------------------------------------------------
 // 3. GLOBAL STATE & HELPERS
 // -------------------------------------------------------------
@@ -1372,6 +1609,11 @@ export const STATE = {
   deliveries: [...INITIAL_DELIVERIES],
   payments: [...INITIAL_PAYMENTS],
   notifications: [...INITIAL_NOTIFICATIONS],
+  conversations: loadConversationsFromStorage(),
+  messages: loadMessagesFromStorage(),
+  activeChatConversationId: null,
+  chatFilter: "all",
+  chatSearchQuery: "",
   inventoryLogs: [...INITIAL_INVENTORY_LOGS],
   auditLogs: [...INITIAL_AUDIT_LOGS],
   salesOverviewPeriod: "today",
@@ -2735,6 +2977,7 @@ function renderRoleDashboard() {
           <p class="page-desc">Real-time architecture status, role preview simulation, audit traces, and system diagnostics.</p>
         </div>
         <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary btn-sm" id="dev-btn-walkin-sale" type="button">+ New Walk-in Sale</button>
           <button class="btn btn-outline btn-sm" id="dev-btn-manage-users" type="button" data-route="admin/users">Manage Staff Accounts</button>
         </div>
       </div>
@@ -2938,6 +3181,7 @@ function renderRoleDashboard() {
         enterDeveloperPreview(btn.dataset.previewRole);
       });
     });
+    $("#dev-btn-walkin-sale")?.addEventListener("click", () => openWalkinSaleModal());
 
   } else if (role === "admin") {
     // 1. REDESIGNED MODERN ADMINISTRATOR DASHBOARD
@@ -3043,9 +3287,15 @@ function renderRoleDashboard() {
           <h1 class="admin-dash-greeting">${greetingPrefix}, ${escapeHtml(adminDisplayName)}</h1>
           <p class="admin-dash-sub">Here's what's happening at BloomCare today.</p>
         </div>
-        <div class="admin-dash-date-badge">
-          <svg class="admin-cal-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-          <span>${todayDateFormatted}</span>
+        <div style="display:flex; align-items:center; gap:10px;">
+          <button class="btn btn-primary btn-sm" id="admin-btn-walkin-sale" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>+ New Walk-in Sale</span>
+          </button>
+          <div class="admin-dash-date-badge">
+            <svg class="admin-cal-svg" viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <span>${todayDateFormatted}</span>
+          </div>
         </div>
       </div>
 
@@ -3175,14 +3425,23 @@ function renderRoleDashboard() {
     `;
 
     $("#dash-btn-add-prod")?.addEventListener("click", () => openProductFormModal());
+    $("#admin-btn-walkin-sale")?.addEventListener("click", () => openWalkinSaleModal());
     renderSalesOverviewSection($("#admin-sales-overview-section"), STATE.salesOverviewPeriod || "today");
 
   } else if (role === "pharmacist") {
     // 2. PHARMACIST DASHBOARD
     container.innerHTML = `
-      <div class="page-header-block">
-        <h1 class="page-title">Pharmacist Dashboard</h1>
-        <p class="page-desc">Review prescriptions, manage clinical consultations and handle refill requests.</p>
+      <div class="page-header-block flex-between">
+        <div>
+          <h1 class="page-title">Pharmacist Dashboard</h1>
+          <p class="page-desc">Review prescriptions, manage clinical consultations and handle refill requests.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" id="pharmacist-btn-walkin-sale" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>+ New Walk-in Sale</span>
+          </button>
+        </div>
       </div>
 
       <div class="kpi-grid-4">
@@ -3235,12 +3494,22 @@ function renderRoleDashboard() {
       </div>
     `;
 
+    $("#pharmacist-btn-walkin-sale")?.addEventListener("click", () => openWalkinSaleModal());
+
   } else if (role === "assistant_pharmacist" || role === "pharmacyAssistant") {
     // 3. PHARMACY ASSISTANT DASHBOARD
     container.innerHTML = `
-      <div class="page-header-block">
-        <h1 class="page-title">Assistant Pharmacist Dashboard</h1>
-        <p class="page-desc">Monitor inventory stock levels, prepare pending orders and assist dispensing.</p>
+      <div class="page-header-block flex-between">
+        <div>
+          <h1 class="page-title">Assistant Pharmacist Dashboard</h1>
+          <p class="page-desc">Monitor inventory stock levels, prepare pending orders and assist dispensing.</p>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-primary" id="assistant-btn-walkin-sale" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>+ New Walk-in Sale</span>
+          </button>
+        </div>
       </div>
 
       <div class="kpi-grid-4">
@@ -3270,6 +3539,8 @@ function renderRoleDashboard() {
         </div>
       </div>
     `;
+
+    $("#assistant-btn-walkin-sale")?.addEventListener("click", () => openWalkinSaleModal());
 
   } else if (role === "delivery_person" || role === "deliveryStaff") {
     // 4. DELIVERY STAFF DASHBOARD
@@ -3586,27 +3857,44 @@ function renderMedicinesView() {
           </div>
         `;
       } else {
+        const isAdmin = effRole === "admin" || effRole === "developer";
         box.innerHTML = `
           <table class="standard-table">
             <thead>
-              <tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Min</th><th>Rx</th><th>Batch</th><th>Expiry</th><th>Availability</th><th>Actions</th></tr>
+              <tr>
+                <th>Product</th>
+                <th>Category</th>
+                <th>Selling Price</th>
+                ${isAdmin ? '<th>Cost Price</th>' : ''}
+                <th>Stock</th>
+                <th>Min</th>
+                <th>Rx</th>
+                <th>Batch</th>
+                <th>Expiry</th>
+                <th>Availability</th>
+                <th>Actions</th>
+              </tr>
             </thead>
             <tbody>
               ${pagedStaffList.map(p => {
                 const avail = getProductAvailability(p);
+                const selling = p.sellingPrice || p.price;
+                const cost = p.costPrice || Math.round(selling * 0.68);
                 return `
                   <tr>
-                    <td><strong>${escapeHtml(p.name)}</strong><br><small class="muted">${escapeHtml(p.genericName)} ${p.sku ? `&bull; <code>${escapeHtml(p.sku)}</code>` : ''}</small></td>
+                    <td><strong>${escapeHtml(p.name)}</strong><br><small class="muted">${escapeHtml(p.genericName || "—")} ${p.sku ? `&bull; <code>${escapeHtml(p.sku)}</code>` : ''}</small></td>
                     <td>${escapeHtml(p.category)}</td>
-                    <td><strong>${formatUGX(p.price)}</strong></td>
+                    <td><strong>${formatUGX(selling)}</strong></td>
+                    ${isAdmin ? `<td><span class="muted" style="font-size:12px; font-weight:600;">${formatUGX(cost)}</span></td>` : ''}
                     <td><span class="stock-pill ${avail.badgeClass}">${p.stockQuantity}</span></td>
                     <td>${p.reorderLevel}</td>
                     <td>${p.requiresPrescription ? '<span class="rx-pill rx-req">Rx</span>' : '<span class="rx-pill otc-ok">OTC</span>'}</td>
                     <td><code>${escapeHtml(p.batchNumber)}</code></td>
                     <td>${escapeHtml(p.expiryDate)}</td>
                     <td><span class="status-pill status-${avail.badgeClass.replace(/-/g, "_")}">${avail.status}</span></td>
-                    <td>
+                    <td style="white-space:nowrap;">
                       <button class="btn btn-secondary btn-sm edit-prod-btn" data-id="${p.id}">Edit</button>
+                      ${isAdmin ? `<button class="btn btn-outline btn-sm edit-price-btn" data-id="${p.id}" title="Price Control & History">Price</button>` : ''}
                       <button class="btn btn-outline btn-sm toggle-prod-btn" data-id="${p.id}">${p.status === "active" ? "Deactivate" : "Activate"}</button>
                     </td>
                   </tr>
@@ -3804,6 +4092,292 @@ function renderProductCardHtml(prod) {
   `;
 }
 
+// -------------------------------------------------------------
+// 3B. ADMIN PRICE CONTROL & PRICE AUDIT TRAIL
+// -------------------------------------------------------------
+
+export function openPriceControlModal(productId) {
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    openNotice("Permission Denied", "Only administrators and developers have authority to adjust medicine prices.");
+    return;
+  }
+
+  const prod = STATE.products.find(p => p.id === productId);
+  if (!prod) {
+    openNotice("Product Not Found", "Unable to find product details for price control.");
+    return;
+  }
+
+  const currSelling = prod.sellingPrice || prod.price || 0;
+  const currCost = prod.costPrice || Math.round(currSelling * 0.68);
+  const marginPct = currSelling > 0 ? (((currSelling - currCost) / currSelling) * 100).toFixed(1) : "0.0";
+
+  if ($("#price-ctrl-prod-id")) $("#price-ctrl-prod-id").value = prod.id;
+  if ($("#price-ctrl-title")) $("#price-ctrl-title").textContent = `Price Control — ${prod.name}`;
+  if ($("#price-ctrl-subtitle")) $("#price-ctrl-subtitle").textContent = `Manage commercial pricing for ${prod.name} (${prod.category})`;
+  if ($("#price-ctrl-prod-name")) $("#price-ctrl-prod-name").textContent = prod.name;
+  if ($("#price-ctrl-prod-generic")) $("#price-ctrl-prod-generic").textContent = prod.genericName || "—";
+  if ($("#price-ctrl-prod-sku")) $("#price-ctrl-prod-sku").textContent = prod.sku || "BC-SKU";
+  if ($("#price-ctrl-prod-cat")) $("#price-ctrl-prod-cat").textContent = prod.category;
+  if ($("#price-ctrl-packsize-badge")) $("#price-ctrl-packsize-badge").textContent = prod.packSize || prod.dosageForm || "Standard Unit";
+  if ($("#price-ctrl-curr-selling")) $("#price-ctrl-curr-selling").textContent = formatUGX(currSelling);
+  if ($("#price-ctrl-curr-cost")) $("#price-ctrl-curr-cost").textContent = formatUGX(currCost);
+  if ($("#price-ctrl-curr-margin")) $("#price-ctrl-curr-margin").textContent = `${marginPct}%`;
+  if ($("#price-ctrl-last-updated")) $("#price-ctrl-last-updated").textContent = prod.priceLastUpdated || "2026-09-05";
+
+  if ($("#price-ctrl-selling-input")) $("#price-ctrl-selling-input").value = currSelling;
+  if ($("#price-ctrl-cost-input")) $("#price-ctrl-cost-input").value = currCost;
+  if ($("#price-ctrl-packsize-input")) $("#price-ctrl-packsize-input").value = prod.packSize || prod.dosageForm || "Pack of 20 Tablets";
+  if ($("#price-ctrl-source-input")) $("#price-ctrl-source-input").value = prod.priceSource || "Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)";
+  if ($("#price-ctrl-reason-input")) $("#price-ctrl-reason-input").value = "";
+
+  // Reset large change warning
+  $("#price-ctrl-large-change-alert")?.classList.add("hidden");
+  if ($("#price-ctrl-confirm-check")) $("#price-ctrl-confirm-check").checked = false;
+
+  // Render price history
+  renderPriceHistoryTable(prod);
+
+  $("#price-control-dialog")?.showModal();
+}
+
+export function closePriceControlModal() {
+  $("#price-control-dialog")?.close();
+}
+
+export function renderPriceHistoryTable(prod) {
+  const container = $("#price-history-table-container");
+  if (!container) return;
+
+  const history = Array.isArray(prod.priceHistory) && prod.priceHistory.length > 0
+    ? prod.priceHistory
+    : [{
+        previousPrice: prod.sellingPrice || prod.price,
+        newPrice: prod.sellingPrice || prod.price,
+        costPrice: prod.costPrice || Math.round((prod.sellingPrice || prod.price) * 0.68),
+        changedBy: "Baseline Market Survey",
+        date: prod.priceLastUpdated || "2026-09-05",
+        reason: "Initial Uganda community pharmacy market catalog review",
+        source: prod.priceSource || "Uganda community pharmacy market reference"
+      }];
+
+  container.innerHTML = `
+    <table class="price-history-table">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Staff / Actor</th>
+          <th>Previous</th>
+          <th>New Selling</th>
+          <th>Cost Price</th>
+          <th>Reason</th>
+          <th>Source</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${history.map(h => `
+          <tr>
+            <td><strong>${escapeHtml(h.date || "2026-09-05")}</strong></td>
+            <td>${escapeHtml(h.changedBy || "Admin")}</td>
+            <td>${h.previousPrice ? formatUGX(h.previousPrice) : "—"}</td>
+            <td><strong style="color:#0f766e;">${formatUGX(h.newPrice)}</strong></td>
+            <td>${h.costPrice ? formatUGX(h.costPrice) : "—"}</td>
+            <td><small>${escapeHtml(h.reason || "Market adjustment")}</small></td>
+            <td><small class="muted">${escapeHtml(h.source || "Market reference")}</small></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+// -------------------------------------------------------------
+// 3C. ADMIN PRICE REVIEW SUMMARY REPORT & CSV EXPORT
+// -------------------------------------------------------------
+
+export function openPriceSummaryModal() {
+  const effRole = getEffectiveRole();
+  const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
+  if (!isStaff) {
+    openNotice("Permission Denied", "Price Review Summary is reserved for authorized pharmacy personnel.");
+    return;
+  }
+
+  // Populate Categories Filter
+  const catFilter = $("#price-summary-cat-filter");
+  if (catFilter) {
+    catFilter.innerHTML = `<option value="all">All Categories (${STATE.products.length})</option>` +
+      STATE.categories.map(c => `<option value="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${STATE.products.filter(p => p.category === c.name).length})</option>`).join("");
+    catFilter.value = "all";
+  }
+
+  // Calculate Metrics
+  const total = STATE.products.length;
+  const updatedCount = STATE.products.filter(p => Array.isArray(p.priceHistory) && p.priceHistory.some(h => h.previousPrice && h.previousPrice !== h.newPrice)).length;
+  const verifiedCount = total - updatedCount;
+
+  if ($("#kpi-total-reviewed")) $("#kpi-total-reviewed").textContent = total;
+  if ($("#kpi-prices-updated")) $("#kpi-prices-updated").textContent = updatedCount;
+  if ($("#kpi-prices-verified")) $("#kpi-prices-verified").textContent = verifiedCount;
+  if ($("#kpi-missing-reference")) $("#kpi-missing-reference").textContent = "0";
+  if ($("#kpi-manual-review")) $("#kpi-manual-review").textContent = "0";
+
+  if ($("#price-summary-search")) $("#price-summary-search").value = "";
+
+  renderPriceSummaryTable();
+  $("#price-summary-dialog")?.showModal();
+}
+
+export function closePriceSummaryModal() {
+  $("#price-summary-dialog")?.close();
+}
+
+export function renderPriceSummaryTable(searchQuery = "", category = "all") {
+  const box = $("#price-summary-table-box");
+  if (!box) return;
+
+  let list = [...STATE.products];
+  const q = (searchQuery || "").trim().toLowerCase();
+  if (q) {
+    list = list.filter(p => 
+      (p.name && p.name.toLowerCase().includes(q)) ||
+      (p.genericName && p.genericName.toLowerCase().includes(q)) ||
+      (p.brandName && p.brandName.toLowerCase().includes(q)) ||
+      (p.sku && p.sku.toLowerCase().includes(q))
+    );
+  }
+  if (category && category !== "all") {
+    list = list.filter(p => p.category === category);
+  }
+
+  if (list.length === 0) {
+    box.innerHTML = `
+      <div style="padding:40px 20px; text-align:center; color:var(--text-muted);">
+        <p style="font-weight:600; font-size:15px;">No products match your search.</p>
+        <p style="font-size:13px;">Try clearing filters or searching for another medicine.</p>
+      </div>
+    `;
+    return;
+  }
+
+  const effRole = getEffectiveRole();
+  const isAdmin = effRole === "admin" || effRole === "developer";
+
+  box.innerHTML = `
+    <table class="price-audit-table">
+      <thead>
+        <tr>
+          <th>Product / Generic</th>
+          <th>Category</th>
+          <th>Pack Size</th>
+          <th>Cost Price</th>
+          <th>Selling Price</th>
+          <th>Margin</th>
+          <th>Price Reference</th>
+          <th>Last Updated</th>
+          ${isAdmin ? '<th>Action</th>' : ''}
+        </tr>
+      </thead>
+      <tbody>
+        ${list.map(p => {
+          const selling = p.sellingPrice || p.price || 0;
+          const cost = p.costPrice || Math.round(selling * 0.68);
+          const margin = selling > 0 ? (((selling - cost) / selling) * 100).toFixed(1) : "0.0";
+          const isHealthy = Number(margin) >= 25;
+          return `
+            <tr>
+              <td>
+                <strong>${escapeHtml(p.name)}</strong>
+                <br><small class="muted">${escapeHtml(p.genericName || "—")} &bull; <code>${escapeHtml(p.sku || "")}</code></small>
+              </td>
+              <td><span style="font-size:12px;">${escapeHtml(p.category)}</span></td>
+              <td><span style="font-size:12px; font-weight:600; color:#334155;">${escapeHtml(p.packSize || p.dosageForm || "—")}</span></td>
+              <td><strong style="color:#475569;">${formatUGX(cost)}</strong></td>
+              <td><strong style="color:#0f766e;">${formatUGX(selling)}</strong></td>
+              <td>
+                <span class="margin-badge ${isHealthy ? 'margin-healthy' : 'margin-tight'}">
+                  ${margin}%
+                </span>
+              </td>
+              <td>
+                <span style="font-size:11.5px; color:#64748b;" title="${escapeHtml(p.priceNotes || '')}">
+                  ${escapeHtml(p.priceSource || "Uganda market reference")}
+                </span>
+              </td>
+              <td><small style="color:#64748b;">${escapeHtml(p.priceLastUpdated || "2026-09-05")}</small></td>
+              ${isAdmin ? `
+                <td>
+                  <button type="button" class="btn btn-secondary btn-sm quick-edit-price-btn" data-id="${p.id}">
+                    Edit Price
+                  </button>
+                </td>
+              ` : ''}
+            </tr>
+          `;
+        }).join("")}
+      </tbody>
+    </table>
+  `;
+}
+
+export function exportPriceCatalogCsv() {
+  const headers = [
+    "Product ID",
+    "Product Name",
+    "Generic Name",
+    "Brand",
+    "SKU",
+    "Category",
+    "Strength",
+    "Dosage Form",
+    "Pack Size",
+    "Cost Price (UGX)",
+    "Selling Price (UGX)",
+    "Gross Margin (%)",
+    "Prescription Required",
+    "Price Source",
+    "Price Notes",
+    "Last Updated"
+  ];
+
+  const rows = STATE.products.map(p => {
+    const selling = p.sellingPrice || p.price || 0;
+    const cost = p.costPrice || Math.round(selling * 0.68);
+    const margin = selling > 0 ? (((selling - cost) / selling) * 100).toFixed(1) : "0.0";
+    return [
+      p.id,
+      `"${(p.name || '').replace(/"/g, '""')}"`,
+      `"${(p.genericName || '').replace(/"/g, '""')}"`,
+      `"${(p.brandName || '').replace(/"/g, '""')}"`,
+      p.sku || "",
+      `"${(p.category || '').replace(/"/g, '""')}"`,
+      `"${(p.strength || '').replace(/"/g, '""')}"`,
+      `"${(p.dosageForm || '').replace(/"/g, '""')}"`,
+      `"${(p.packSize || p.dosageForm || '').replace(/"/g, '""')}"`,
+      cost,
+      selling,
+      margin,
+      p.requiresPrescription ? "Yes (Rx)" : "No (OTC)",
+      `"${(p.priceSource || 'Uganda pharmacy market reference').replace(/"/g, '""')}"`,
+      `"${(p.priceNotes || '').replace(/"/g, '""')}"`,
+      p.priceLastUpdated || "2026-09-05"
+    ].join(",");
+  });
+
+  const csvContent = [headers.join(","), ...rows].join("\r\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.setAttribute("href", url);
+  link.setAttribute("download", `BloomCare_Uganda_Price_Catalog_Report_${new Date().toISOString().split("T")[0]}.csv`);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  showToast("Price catalog CSV report exported successfully.", "success");
+}
+
 function openProductFormModal(prodId = null) {
   const prod = prodId ? STATE.products.find(p => p.id === prodId) : null;
   $("#prod-id").value = prod ? prod.id : "";
@@ -3816,7 +4390,11 @@ function openProductFormModal(prodId = null) {
   $("#prod-strength").value = prod ? (prod.strength || "") : "";
   $("#prod-brand").value = prod ? (prod.brandName || "") : "";
   $("#prod-category").value = prod ? prod.category : "Pain Relief";
-  $("#prod-price").value = prod ? prod.price : "";
+  $("#prod-price").value = prod ? (prod.sellingPrice || prod.price || "") : "";
+  if ($("#prod-cost-price")) $("#prod-cost-price").value = prod ? (prod.costPrice || Math.round((prod.sellingPrice || prod.price) * 0.68)) : "";
+  if ($("#prod-pack-size")) $("#prod-pack-size").value = prod ? (prod.packSize || prod.dosageForm || "Pack of 20 Tablets") : "Pack of 20 Tablets";
+  if ($("#prod-price-source")) $("#prod-price-source").value = prod ? (prod.priceSource || "Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)") : "Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)";
+  if ($("#prod-price-notes")) $("#prod-price-notes").value = prod ? (prod.priceNotes || "") : "Retail market reference price aligned with EMHSLU 2023 formulation standards.";
   $("#prod-stock").value = prod ? prod.stockQuantity : "";
   $("#prod-min-stock").value = prod ? (prod.reorderLevel ?? 10) : 10;
   $("#prod-unit").value = prod ? prod.dosageForm : "Pack of 20 Tablets";
@@ -4330,9 +4908,10 @@ function renderOrdersView() {
         <thead>
           <tr>
             <th>Order Reference</th>
-            <th>Date</th>
+            <th>Date &amp; Time</th>
             <th>Customer</th>
-            <th>Fulfillment</th>
+            <th>Channel / Source</th>
+            <th>Staff Member</th>
             <th>Items Summary</th>
             <th>Total</th>
             <th>Status</th>
@@ -4340,22 +4919,33 @@ function renderOrdersView() {
           </tr>
         </thead>
         <tbody>
-          ${list.map(o => `
+          ${list.map(o => {
+            const isWalkin = isWalkinOrder(o);
+            return `
             <tr>
               <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
-              <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-              <td>${escapeHtml(o.customerName)}<br><small class="muted">${escapeHtml(o.customerPhone || "")}</small></td>
-              <td><small>${o.fulfillmentType === "pickup" ? "Pharmacy Pickup" : "Home Delivery"}</small></td>
-              <td>${o.items.map(i => `${i.quantity}x ${i.name}`).join(", ")}</td>
+              <td>
+                <div>${new Date(o.createdAt).toLocaleDateString()}</div>
+                <small class="muted">${new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+              </td>
+              <td>${escapeHtml(o.customerName || (isWalkin ? 'Walk-in Customer' : 'Customer'))}<br><small class="muted">${escapeHtml(o.customerPhone || "")}</small></td>
+              <td>
+                <span class="source-pill ${isWalkin ? 'source-walkin' : 'source-online'}">${isWalkin ? 'WALK-IN' : 'ONLINE'}</span>
+                <div style="font-size:11px; margin-top:2px;" class="muted">${escapeHtml(o.paymentMethod || "Cash")}</div>
+              </td>
+              <td>
+                ${o.staffName ? `<strong>${escapeHtml(o.staffName)}</strong><br><small class="muted">${escapeHtml(o.staffRole || 'Staff')}</small>` : '<span class="muted">Online System</span>'}
+              </td>
+              <td>${(o.items || []).map(i => `${i.quantity}x ${escapeHtml(i.name)}`).join(", ")}</td>
               <td><strong>${formatUGX(o.total)}</strong></td>
-              <td><span class="status-pill status-${o.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus)}</span></td>
+              <td><span class="status-pill status-${(o.orderStatus || 'Confirmed').toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus || 'Confirmed')}</span></td>
               <td>
                 <button class="btn btn-primary btn-sm track-order-btn" data-id="${o.id}">Track</button>
                 <button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">Receipt</button>
                 <button class="btn btn-outline btn-sm manage-order-btn" data-id="${o.id}">Manage</button>
               </td>
             </tr>
-          `).join("")}
+          `;}).join("")}
         </tbody>
       </table>
     `;
@@ -6270,22 +6860,76 @@ function renderPaymentsView() {
 // MODULE 15: SALES OVERVIEW ANALYTICS & INTERACTIVE LINE CHART (Admin Exclusive)
 // -------------------------------------------------------------
 
-export function calculateSalesOverviewData(period = "today", ordersList = STATE.orders, referenceDate = new Date()) {
+export function isWalkinOrder(order) {
+  if (!order) return false;
+  const src = String(order.saleSource || "").trim().toUpperCase();
+  const ful = String(order.fulfillmentType || "").trim().toLowerCase();
+  return src === "WALK_IN" || ful === "counter walk-in sale" || ful === "walk_in";
+}
+
+export function calculateSalesOverviewData(period = "today", ordersList = STATE.orders, referenceDate = new Date(), sourceFilter = "all") {
   const now = new Date(referenceDate);
   const paidOrders = (ordersList || []).filter(isPaidOrder);
+  sourceFilter = String(sourceFilter || "all").toLowerCase();
 
   period = String(period || "today").toLowerCase();
   let totalSales = 0;
   let totalOrders = 0;
   let prevTotalSales = 0;
+  let onlineSales = 0;
+  let onlineOrders = 0;
+  let walkinSales = 0;
+  let walkinOrders = 0;
   const breakdown = [];
 
-  if (period === "today") {
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
-    const startOfPrev = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
-    const endOfPrev = startOfToday;
+  let startOfPeriod, endOfPeriod, startOfPrev, endOfPrev;
 
+  if (period === "today") {
+    startOfPeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
+    endOfPeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 0, 0, 0);
+    startOfPrev = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1, 0, 0, 0, 0);
+    endOfPrev = startOfPeriod;
+  } else if (period === "week") {
+    const dayOfWeek = now.getDay();
+    const distToMon = (dayOfWeek + 6) % 7;
+    startOfPeriod = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distToMon, 0, 0, 0, 0);
+    endOfPeriod = new Date(startOfPeriod.getTime() + 7 * 86400000);
+    startOfPrev = new Date(startOfPeriod.getTime() - 7 * 86400000);
+    endOfPrev = startOfPeriod;
+  } else if (period === "month") {
+    startOfPeriod = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    endOfPeriod = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
+    startOfPrev = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    endOfPrev = startOfPeriod;
+  } else { // "year"
+    startOfPeriod = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
+    endOfPeriod = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
+    startOfPrev = new Date(now.getFullYear() - 1, 0, 1, 0, 0, 0, 0);
+    endOfPrev = startOfPeriod;
+  }
+
+  paidOrders.forEach(o => {
+    const dt = new Date(o.createdAt || o.updatedAt || Date.now());
+    if (isNaN(dt.getTime())) return;
+    if (dt >= startOfPeriod && dt < endOfPeriod) {
+      const amt = Number(o.total) || 0;
+      if (isWalkinOrder(o)) {
+        walkinSales += amt;
+        walkinOrders += 1;
+      } else {
+        onlineSales += amt;
+        onlineOrders += 1;
+      }
+    }
+  });
+
+  const filteredPaidOrders = paidOrders.filter(o => {
+    if (sourceFilter === "online") return !isWalkinOrder(o);
+    if (sourceFilter === "walk_in" || sourceFilter === "walkin") return isWalkinOrder(o);
+    return true;
+  });
+
+  if (period === "today") {
     const hourlyBuckets = Array.from({ length: 24 }, (_, h) => {
       let label;
       if (h === 0) label = "12 AM";
@@ -6295,10 +6939,10 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       return { label, hour: h, sales: 0, orders: 0 };
     });
 
-    paidOrders.forEach(o => {
+    filteredPaidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
-      if (dt >= startOfToday && dt < endOfToday) {
+      if (dt >= startOfPeriod && dt < endOfPeriod) {
         const h = dt.getHours();
         const amt = Number(o.total) || 0;
         hourlyBuckets[h].sales += amt;
@@ -6313,13 +6957,6 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
     hourlyBuckets.forEach(b => breakdown.push(b));
 
   } else if (period === "week") {
-    const dayOfWeek = now.getDay();
-    const distToMon = (dayOfWeek + 6) % 7;
-    const startOfWeek = new Date(now.getFullYear(), now.getMonth(), now.getDate() - distToMon, 0, 0, 0, 0);
-    const endOfWeek = new Date(startOfWeek.getTime() + 7 * 86400000);
-    const startOfPrev = new Date(startOfWeek.getTime() - 7 * 86400000);
-    const endOfPrev = startOfWeek;
-
     const dayNames = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const dailyBuckets = dayNames.map((name, idx) => ({
       label: name,
@@ -6328,10 +6965,10 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       orders: 0
     }));
 
-    paidOrders.forEach(o => {
+    filteredPaidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
-      if (dt >= startOfWeek && dt < endOfWeek) {
+      if (dt >= startOfPeriod && dt < endOfPeriod) {
         const dIdx = (dt.getDay() + 6) % 7;
         const amt = Number(o.total) || 0;
         dailyBuckets[dIdx].sales += amt;
@@ -6346,9 +6983,6 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
     dailyBuckets.forEach(b => breakdown.push(b));
 
   } else if (period === "month") {
-    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
-    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1, 0, 0, 0, 0);
-    const prevMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
     const numDays = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
     const monthShort = now.toLocaleDateString("en-US", { month: "short" });
 
@@ -6359,17 +6993,17 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       orders: 0
     }));
 
-    paidOrders.forEach(o => {
+    filteredPaidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
-      if (dt >= startOfMonth && dt < nextMonth) {
+      if (dt >= startOfPeriod && dt < endOfPeriod) {
         const d = dt.getDate();
         const amt = Number(o.total) || 0;
         dailyBuckets[d - 1].sales += amt;
         dailyBuckets[d - 1].orders += 1;
         totalSales += amt;
         totalOrders += 1;
-      } else if (dt >= prevMonth && dt < startOfMonth) {
+      } else if (dt >= startOfPrev && dt < endOfPrev) {
         prevTotalSales += Number(o.total) || 0;
       }
     });
@@ -6377,10 +7011,6 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
     dailyBuckets.forEach(b => breakdown.push(b));
 
   } else { // "year"
-    const startOfYear = new Date(now.getFullYear(), 0, 1, 0, 0, 0, 0);
-    const nextYear = new Date(now.getFullYear() + 1, 0, 1, 0, 0, 0, 0);
-    const prevYear = new Date(now.getFullYear() - 1, 0, 1, 0, 0, 0, 0);
-
     const monthNames = [
       "January", "February", "March", "April", "May", "June",
       "July", "August", "September", "October", "November", "December"
@@ -6392,17 +7022,17 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       orders: 0
     }));
 
-    paidOrders.forEach(o => {
+    filteredPaidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
-      if (dt >= startOfYear && dt < nextYear) {
+      if (dt >= startOfPeriod && dt < endOfPeriod) {
         const m = dt.getMonth();
         const amt = Number(o.total) || 0;
         monthBuckets[m].sales += amt;
         monthBuckets[m].orders += 1;
         totalSales += amt;
         totalOrders += 1;
-      } else if (dt >= prevYear && dt < startOfYear) {
+      } else if (dt >= startOfPrev && dt < endOfPrev) {
         prevTotalSales += Number(o.total) || 0;
       }
     });
@@ -6422,12 +7052,17 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
 
   return {
     period,
+    sourceFilter,
     totalSales,
     totalOrders,
     avgOrderValue,
     comparison,
     comparisonTrend,
-    breakdown
+    breakdown,
+    onlineSales,
+    onlineOrders,
+    walkinSales,
+    walkinOrders
   };
 }
 
@@ -6651,7 +7286,7 @@ export function attachSalesChartInteractions(wrapper) {
   wrapper.addEventListener("mouseleave", hideTooltip);
 }
 
-export function renderSalesOverviewSectionContent(period = "today") {
+export function renderSalesOverviewSectionContent(period = "today", sourceFilter = "all") {
   const container = $("#admin-sales-overview-section");
   if (!container) return;
 
@@ -6664,7 +7299,8 @@ export function renderSalesOverviewSectionContent(period = "today") {
   container.classList.remove("hidden");
 
   STATE.salesOverviewPeriod = period;
-  const analytics = calculateSalesOverviewData(period, STATE.orders);
+  STATE.salesOverviewSource = sourceFilter;
+  const analytics = calculateSalesOverviewData(period, STATE.orders, new Date(), sourceFilter);
 
   const totalEl = $("#sales-kpi-total");
   const ordersEl = $("#sales-kpi-orders");
@@ -6675,6 +7311,21 @@ export function renderSalesOverviewSectionContent(period = "today") {
   if (totalEl) totalEl.textContent = formatUGX(analytics.totalSales);
   if (ordersEl) ordersEl.textContent = `${analytics.totalOrders} ${analytics.totalOrders === 1 ? "Order" : "Orders"}`;
   if (avgEl) avgEl.textContent = `${formatUGX(analytics.avgOrderValue)} Average Order`;
+
+  // Daily Source Breakdown Summary
+  const onlineRevEl = $("#sales-breakdown-online");
+  const onlineOrdEl = $("#sales-breakdown-online-orders");
+  const walkinRevEl = $("#sales-breakdown-walkin");
+  const walkinOrdEl = $("#sales-breakdown-walkin-orders");
+  const combinedRevEl = $("#sales-breakdown-combined");
+  const combinedOrdEl = $("#sales-breakdown-combined-orders");
+
+  if (onlineRevEl) onlineRevEl.textContent = formatUGX(analytics.onlineSales);
+  if (onlineOrdEl) onlineOrdEl.textContent = `${analytics.onlineOrders} ${analytics.onlineOrders === 1 ? "order" : "orders"}`;
+  if (walkinRevEl) walkinRevEl.textContent = formatUGX(analytics.walkinSales);
+  if (walkinOrdEl) walkinOrdEl.textContent = `${analytics.walkinOrders} ${analytics.walkinOrders === 1 ? "sale" : "sales"}`;
+  if (combinedRevEl) combinedRevEl.textContent = formatUGX(analytics.onlineSales + analytics.walkinSales);
+  if (combinedOrdEl) combinedOrdEl.textContent = `${analytics.onlineOrders + analytics.walkinOrders} total transactions`;
 
   if (compEl) {
     if (analytics.comparison) {
@@ -6692,8 +7343,8 @@ export function renderSalesOverviewSectionContent(period = "today") {
   }
 }
 
-export function exportSalesReport(period = "today", analyticsData = null) {
-  const data = analyticsData || calculateSalesOverviewData(period, STATE.orders);
+export function exportSalesReport(period = "today", analyticsData = null, sourceFilter = "all") {
+  const data = analyticsData || calculateSalesOverviewData(period, STATE.orders, new Date(), sourceFilter);
   const periodLabel = {
     today: "Today (Hourly Breakdown)",
     week: "This Week (Daily Breakdown)",
@@ -6701,11 +7352,20 @@ export function exportSalesReport(period = "today", analyticsData = null) {
     year: "This Year (Monthly Breakdown)"
   }[period] || String(period).toUpperCase();
 
+  const sourceLabel = {
+    all: "All Sales (Online + Physical Walk-in)",
+    online: "Online Storefront Orders Only",
+    walk_in: "Physical Counter Walk-in Sales Only"
+  }[sourceFilter] || String(sourceFilter).toUpperCase();
+
   const lines = [
     ["BloomCare Pharmacy - Sales Performance Report"],
     ["Selected Period", `"${periodLabel}"`],
+    ["Sales Channel", `"${sourceLabel}"`],
     ["Generated At", `"${new Date().toLocaleString()}"`],
     ["Currency", "UGX (Ugandan Shillings)"],
+    ["Online Orders Revenue", `"${formatUGX(data.onlineSales)} (${data.onlineOrders} orders)"`],
+    ["Physical Walk-in Sales", `"${formatUGX(data.walkinSales)} (${data.walkinOrders} sales)"`],
     ["Total Sales", `"${formatUGX(data.totalSales)}"`],
     ["Number of Orders", `"${data.totalOrders} Orders"`],
     ["Average Order Value", `"${formatUGX(data.avgOrderValue)}"`],
@@ -6723,7 +7383,7 @@ export function exportSalesReport(period = "today", analyticsData = null) {
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = `BloomCare_Sales_Report_${period}_${new Date().toISOString().slice(0, 10)}.csv`;
+  link.download = `BloomCare_Sales_Report_${period}_${sourceFilter}_${new Date().toISOString().slice(0, 10)}.csv`;
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
@@ -6742,21 +7402,59 @@ export function renderSalesOverviewSection(container, period = "today") {
   container.classList.remove("hidden");
 
   STATE.salesOverviewPeriod = period;
+  const activeSource = STATE.salesOverviewSource || "all";
 
   container.innerHTML = `
-    <div class="admin-sales-overview-header flex-between">
+    <div class="admin-sales-overview-header flex-between" style="flex-wrap:wrap; gap:12px;">
       <div>
         <h2 class="admin-section-title">Sales Overview</h2>
         <p class="admin-section-caption">Track BloomCare sales performance over time.</p>
       </div>
-      <div class="sales-period-control-wrap">
-        <label for="sales-period-select" class="sr-only">Sales Period Filter</label>
-        <select id="sales-period-select" class="form-select sales-period-select" aria-label="Select sales period">
-          <option value="today" ${period === "today" ? "selected" : ""}>Today</option>
-          <option value="week" ${period === "week" ? "selected" : ""}>This Week</option>
-          <option value="month" ${period === "month" ? "selected" : ""}>This Month</option>
-          <option value="year" ${period === "year" ? "selected" : ""}>This Year</option>
-        </select>
+      <div class="sales-controls-row" style="display:flex; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div class="sales-source-tabs" role="tablist" id="sales-source-tabs">
+          <button type="button" class="sales-source-pill ${activeSource === 'all' ? 'active' : ''}" data-source="all">All Sales</button>
+          <button type="button" class="sales-source-pill ${activeSource === 'online' ? 'active' : ''}" data-source="online">Online Orders</button>
+          <button type="button" class="sales-source-pill ${activeSource === 'walk_in' ? 'active' : ''}" data-source="walk_in">Walk-in Sales</button>
+        </div>
+        <div class="sales-period-control-wrap">
+          <label for="sales-period-select" class="sr-only">Sales Period Filter</label>
+          <select id="sales-period-select" class="form-select sales-period-select" aria-label="Select sales period">
+            <option value="today" ${period === "today" ? "selected" : ""}>Today</option>
+            <option value="week" ${period === "week" ? "selected" : ""}>This Week</option>
+            <option value="month" ${period === "month" ? "selected" : ""}>This Month</option>
+            <option value="year" ${period === "year" ? "selected" : ""}>This Year</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Daily / Period Source Breakdown Summary -->
+    <div class="sales-source-breakdown-grid">
+      <div class="sales-source-breakdown-card">
+        <div class="source-card-header">
+          <span class="source-dot source-dot-online"></span>
+          <span class="source-card-label">Online Orders</span>
+        </div>
+        <strong class="source-card-amount" id="sales-breakdown-online">UGX 0</strong>
+        <small class="muted" id="sales-breakdown-online-orders">0 orders</small>
+      </div>
+
+      <div class="sales-source-breakdown-card">
+        <div class="source-card-header">
+          <span class="source-dot source-dot-walkin"></span>
+          <span class="source-card-label">Walk-in Counter Sales</span>
+        </div>
+        <strong class="source-card-amount" id="sales-breakdown-walkin">UGX 0</strong>
+        <small class="muted" id="sales-breakdown-walkin-orders">0 sales</small>
+      </div>
+
+      <div class="sales-source-breakdown-card highlight-card">
+        <div class="source-card-header">
+          <span class="source-dot source-dot-total"></span>
+          <span class="source-card-label">Total Combined Revenue</span>
+        </div>
+        <strong class="source-card-amount" id="sales-breakdown-combined">UGX 0</strong>
+        <small class="muted" id="sales-breakdown-combined-orders">All channels</small>
       </div>
     </div>
 
@@ -6764,7 +7462,7 @@ export function renderSalesOverviewSection(container, period = "today") {
     <div class="sales-summary-kpi-grid">
       <div class="sales-kpi-card">
         <div class="sales-kpi-card-header">
-          <span class="sales-kpi-label">Total Sales</span>
+          <span class="sales-kpi-label">Filtered Sales Revenue</span>
           <span class="sales-kpi-icon-pill">UGX</span>
         </div>
         <strong class="sales-kpi-val" id="sales-kpi-total">UGX 0</strong>
@@ -6775,7 +7473,7 @@ export function renderSalesOverviewSection(container, period = "today") {
 
       <div class="sales-kpi-card">
         <div class="sales-kpi-card-header">
-          <span class="sales-kpi-label">Number of Orders</span>
+          <span class="sales-kpi-label">Number of Transactions</span>
           <span class="sales-kpi-icon-pill">#</span>
         </div>
         <strong class="sales-kpi-val" id="sales-kpi-orders">0 Orders</strong>
@@ -6788,7 +7486,7 @@ export function renderSalesOverviewSection(container, period = "today") {
           <span class="sales-kpi-icon-pill">AOV</span>
         </div>
         <strong class="sales-kpi-val" id="sales-kpi-avg">UGX 0</strong>
-        <p class="sales-kpi-sub muted">Average revenue per paid order</p>
+        <p class="sales-kpi-sub muted">Average revenue per transaction</p>
       </div>
     </div>
 
@@ -6797,7 +7495,7 @@ export function renderSalesOverviewSection(container, period = "today") {
 
     <!-- Footer Action: Export Report -->
     <div class="sales-overview-footer flex-between">
-      <span class="sales-data-note muted">Revenue calculated strictly from confirmed customer payments.</span>
+      <span class="sales-data-note muted">Revenue calculated strictly from confirmed customer payments and counter sales.</span>
       <button class="btn btn-outline btn-sm" id="btn-export-sales-report" type="button">
         <svg class="svg-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" style="margin-right:6px; vertical-align:-2px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         Export Report
@@ -6805,17 +7503,30 @@ export function renderSalesOverviewSection(container, period = "today") {
     </div>
   `;
 
-  renderSalesOverviewSectionContent(period);
+  renderSalesOverviewSectionContent(period, activeSource);
 
   $("#sales-period-select")?.addEventListener("change", (e) => {
     const selected = e.target.value;
-    renderSalesOverviewSectionContent(selected);
+    const src = STATE.salesOverviewSource || "all";
+    renderSalesOverviewSectionContent(selected, src);
+  });
+
+  const sourceTabs = container.querySelectorAll(".sales-source-pill");
+  sourceTabs.forEach(tab => {
+    tab.addEventListener("click", () => {
+      sourceTabs.forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      const src = tab.dataset.source || "all";
+      const p = $("#sales-period-select")?.value || STATE.salesOverviewPeriod || "today";
+      renderSalesOverviewSectionContent(p, src);
+    });
   });
 
   $("#btn-export-sales-report")?.addEventListener("click", () => {
     const activePeriod = $("#sales-period-select")?.value || STATE.salesOverviewPeriod || "today";
-    const data = calculateSalesOverviewData(activePeriod, STATE.orders);
-    exportSalesReport(activePeriod, data);
+    const activeSrc = STATE.salesOverviewSource || "all";
+    const data = calculateSalesOverviewData(activePeriod, STATE.orders, new Date(), activeSrc);
+    exportSalesReport(activePeriod, data, activeSrc);
   });
 }
 
@@ -7000,7 +7711,8 @@ function renderReportsView() {
               <th>Invoice / Order #</th>
               <th>Date &amp; Time</th>
               <th>Customer</th>
-              <th>Channel</th>
+              <th>Channel / Source</th>
+              <th>Staff Member</th>
               <th>Items Dispensed</th>
               <th>Gross (UGX)</th>
               <th>Status</th>
@@ -7008,18 +7720,29 @@ function renderReportsView() {
             </tr>
           </thead>
           <tbody>
-            ${analytics.orders.length > 0 ? analytics.orders.map(o => `
+            ${analytics.orders.length > 0 ? analytics.orders.map(o => {
+              const isWalkin = isWalkinOrder(o);
+              return `
               <tr>
                 <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
-                <td>${new Date(o.createdAt).toLocaleDateString()}</td>
-                <td>${escapeHtml(o.customerName)}<br><small class="muted">${escapeHtml(o.customerPhone || "")}</small></td>
-                <td><small>${escapeHtml(o.paymentMethod || "MTN MoMo")}</small></td>
-                <td>${o.items.map(i => `${i.quantity}x ${i.name}`).join(", ")}</td>
+                <td>
+                  <div>${new Date(o.createdAt).toLocaleDateString()}</div>
+                  <small class="muted">${new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                </td>
+                <td>${escapeHtml(o.customerName || (isWalkin ? 'Walk-in Customer' : 'Customer'))}<br><small class="muted">${escapeHtml(o.customerPhone || "")}</small></td>
+                <td>
+                  <span class="source-pill ${isWalkin ? 'source-walkin' : 'source-online'}">${isWalkin ? 'WALK-IN' : 'ONLINE'}</span>
+                  <div style="font-size:11px; margin-top:2px;" class="muted">${escapeHtml(o.paymentMethod || "Cash")}</div>
+                </td>
+                <td>
+                  ${o.staffName ? `<strong>${escapeHtml(o.staffName)}</strong><br><small class="muted">${escapeHtml(o.staffRole || 'Staff')}</small>` : '<span class="muted">Online System</span>'}
+                </td>
+                <td>${(o.items || []).map(i => `${i.quantity}x ${escapeHtml(i.name)}`).join(", ")}</td>
                 <td><strong>${formatUGX(o.total)}</strong></td>
-                <td><span class="status-pill status-${o.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus)}</span></td>
+                <td><span class="status-pill status-${(o.orderStatus || 'Confirmed').toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus || 'Confirmed')}</span></td>
                 <td><button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">Receipt</button></td>
               </tr>
-            `).join("") : `<tr><td colspan="8" class="muted text-center">No transactions recorded for the selected period.</td></tr>`}
+            `;}).join("") : `<tr><td colspan="9" class="muted text-center">No transactions recorded for the selected period.</td></tr>`}
           </tbody>
         </table>
       </div>
@@ -7522,6 +8245,600 @@ async function handleCheckoutOrder(e) {
   }
 }
 
+// =============================================================
+// MODULE: PHYSICAL COUNTER / WALK-IN SALES POS SYSTEM
+// =============================================================
+
+export let activeWalkinCart = [];
+export let activeWalkinPaymentMethod = "Cash";
+
+export function generateWalkinSaleReference() {
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  const dd = String(d.getDate()).padStart(2, "0");
+  const rand = Math.floor(1000 + Math.random() * 9000);
+  return `BC-SALE-${yyyy}${mm}${dd}-${rand}`;
+}
+
+export function openWalkinSaleModal() {
+  const effRole = getEffectiveRole();
+  const isAuthorized = effRole === "pharmacist" || effRole === "assistant_pharmacist" || effRole === "admin" || effRole === "developer";
+  if (!isAuthorized) {
+    openNotice("Permission Denied", "Only licensed Pharmacists, Pharmacy Assistants, Administrators, and Developers can access Counter Walk-in Sales.");
+    return;
+  }
+
+  // Update staff badge
+  const staffInfoEl = $("#walkin-staff-info");
+  const staffName = STATE.currentUser?.displayName || STATE.currentUser?.name || "Staff";
+  const roleLabel = {
+    pharmacist: "Pharmacist",
+    assistant_pharmacist: "Pharmacy Assistant",
+    admin: "Admin",
+    developer: "Developer"
+  }[effRole] || "Pharmacy Staff";
+  if (staffInfoEl) staffInfoEl.textContent = `Staff: ${staffName} (${roleLabel})`;
+
+  // Reset state
+  activeWalkinCart = [];
+  activeWalkinPaymentMethod = "Cash";
+
+  const custNameInput = $("#walkin-cust-name");
+  if (custNameInput) custNameInput.value = "Walk-in Customer";
+
+  const custPhoneInput = $("#walkin-cust-phone");
+  if (custPhoneInput) custPhoneInput.value = "";
+
+  const searchInput = $("#walkin-search-input");
+  if (searchInput) searchInput.value = "";
+
+  const discountInput = $("#walkin-discount-input");
+  if (discountInput) discountInput.value = "0";
+
+  const cashInput = $("#walkin-cash-received");
+  if (cashInput) cashInput.value = "";
+
+  const rxCheck = $("#walkin-rx-verified");
+  if (rxCheck) rxCheck.checked = false;
+
+  const rxNote = $("#walkin-rx-doctor-note");
+  if (rxNote) rxNote.value = "";
+
+  // Reset category pills
+  $$(".pos-cat-pill").forEach(p => p.classList.toggle("active", p.dataset.cat === "all"));
+
+  // Reset payment method buttons
+  $$(".pos-pay-method-btn").forEach(btn => btn.classList.toggle("active", btn.dataset.method === "Cash"));
+  $("#walkin-cash-box")?.classList.remove("hidden");
+  $("#walkin-momo-box")?.classList.add("hidden");
+  $("#walkin-card-box")?.classList.add("hidden");
+
+  // Render search results & cart
+  renderWalkinSearchResults("", "all");
+  renderWalkinCart();
+
+  // Show dialog
+  const dlg = $("#walkin-sale-dialog");
+  if (dlg) {
+    if (typeof dlg.showModal === "function") dlg.showModal();
+    else dlg.setAttribute("open", "true");
+  }
+}
+
+export function closeWalkinSaleModal() {
+  const dlg = $("#walkin-sale-dialog");
+  if (dlg) {
+    if (typeof dlg.close === "function") dlg.close();
+    else dlg.removeAttribute("open");
+  }
+}
+
+export function renderWalkinSearchResults(query = "", category = "all") {
+  const container = $("#walkin-results-container");
+  if (!container) return;
+
+  const results = searchMedicinesCatalog(STATE.products, query, {
+    category: category === "all" ? null : category,
+    sortBy: "name-asc"
+  });
+
+  if (!results || results.length === 0) {
+    container.innerHTML = `
+      <div class="pos-empty-catalog">
+        <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="#94a3b8" stroke-width="1.5"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <p><strong>No medicines found</strong></p>
+        <small class="muted">Try searching with different keywords or switch the category filter.</small>
+      </div>
+    `;
+    return;
+  }
+
+  container.innerHTML = results.map(prod => {
+    const stock = typeof prod.stockQuantity === "number" ? prod.stockQuantity : (prod.stock || 0);
+    const inCart = activeWalkinCart.find(i => i.productId === prod.id);
+    const inCartQty = inCart ? inCart.quantity : 0;
+    const isOut = stock <= 0;
+    const isMaxInCart = inCartQty >= stock;
+
+    let stockBadgeClass = "in-stock";
+    let stockBadgeLabel = `${stock} in stock`;
+    if (stock <= 0) {
+      stockBadgeClass = "out-of-stock";
+      stockBadgeLabel = "Out of stock";
+    } else if (stock <= (prod.reorderLevel || 10)) {
+      stockBadgeClass = "low-stock";
+      stockBadgeLabel = `Low: ${stock} left`;
+    }
+
+    const imgUrl = prod.imageUrl || prod.image || "bloomcare-logo.svg";
+
+    return `
+      <div class="pos-med-card ${isOut ? 'out-of-stock-card' : ''}" data-product-id="${prod.id}">
+        <div class="pos-med-card-top">
+          <img src="${escapeHtml(imgUrl)}" alt="${escapeHtml(prod.name)}" class="pos-med-thumb" onerror="this.src='bloomcare-logo.svg'" />
+          <div class="pos-med-info">
+            <h4 class="pos-med-name">${escapeHtml(prod.name)}</h4>
+            <div class="pos-med-generic">${escapeHtml(prod.genericName || prod.brandName || prod.category || "")}</div>
+            <div class="pos-med-meta-row">
+              <span class="pos-stock-pill ${stockBadgeClass}">${stockBadgeLabel}</span>
+              ${prod.requiresPrescription ? '<span class="pos-rx-pill">Rx Required</span>' : ''}
+              <span class="pos-med-strength">${escapeHtml(prod.strength || prod.dosageForm || "")}</span>
+            </div>
+          </div>
+        </div>
+        <div class="pos-med-card-bottom flex-between">
+          <div class="pos-med-price">${formatUGX(prod.price)}</div>
+          <button 
+            type="button" 
+            class="btn btn-sm btn-primary pos-add-med-btn" 
+            data-id="${prod.id}" 
+            ${(isOut || isMaxInCart) ? "disabled" : ""}
+          >
+            ${isOut ? "Out of Stock" : (isMaxInCart ? "In Cart (Max)" : "+ Add to Sale")}
+          </button>
+        </div>
+      </div>
+    `;
+  }).join("");
+
+  // Attach add button click events
+  container.querySelectorAll(".pos-add-med-btn").forEach(btn => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const prodId = btn.dataset.id;
+      addWalkinCartItem(prodId, 1);
+    });
+  });
+
+  // Clicking anywhere on card also adds if available
+  container.querySelectorAll(".pos-med-card").forEach(card => {
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".pos-add-med-btn")) return;
+      const prodId = card.dataset.productId;
+      const prod = STATE.products.find(p => p.id === prodId);
+      const stock = prod ? (typeof prod.stockQuantity === "number" ? prod.stockQuantity : (prod.stock || 0)) : 0;
+      const inCart = activeWalkinCart.find(i => i.productId === prodId);
+      if (stock > 0 && (!inCart || inCart.quantity < stock)) {
+        addWalkinCartItem(prodId, 1);
+      }
+    });
+  });
+}
+
+export function addWalkinCartItem(productId, qty = 1) {
+  const prod = STATE.products.find(p => p.id === productId);
+  if (!prod) return;
+
+  const stock = typeof prod.stockQuantity === "number" ? prod.stockQuantity : (prod.stock || 0);
+  if (stock <= 0) {
+    showToast(`"${prod.name}" is currently out of stock.`, "error");
+    return;
+  }
+
+  const existing = activeWalkinCart.find(i => i.productId === productId);
+  if (existing) {
+    if (existing.quantity + qty > stock) {
+      existing.quantity = stock;
+      showToast(`Maximum available stock (${stock} units) reached for ${prod.name}.`, "warning");
+    } else {
+      existing.quantity += qty;
+    }
+  } else {
+    activeWalkinCart.push({
+      productId: prod.id,
+      product: prod,
+      quantity: Math.min(qty, stock),
+      unitPrice: prod.price
+    });
+  }
+
+  renderWalkinCart();
+  const query = $("#walkin-search-input")?.value || "";
+  const activeCat = document.querySelector(".pos-cat-pill.active")?.dataset.cat || "all";
+  renderWalkinSearchResults(query, activeCat);
+}
+
+export function updateWalkinCartItemQty(productId, newQty) {
+  const prod = STATE.products.find(p => p.id === productId);
+  if (!prod) return;
+
+  const stock = typeof prod.stockQuantity === "number" ? prod.stockQuantity : (prod.stock || 0);
+  const itemIndex = activeWalkinCart.findIndex(i => i.productId === productId);
+  if (itemIndex < 0) return;
+
+  if (newQty <= 0) {
+    activeWalkinCart.splice(itemIndex, 1);
+  } else {
+    if (newQty > stock) {
+      activeWalkinCart[itemIndex].quantity = stock;
+      showToast(`Cannot exceed available stock of ${stock} units for ${prod.name}.`, "warning");
+    } else {
+      activeWalkinCart[itemIndex].quantity = newQty;
+    }
+  }
+
+  renderWalkinCart();
+  const query = $("#walkin-search-input")?.value || "";
+  const activeCat = document.querySelector(".pos-cat-pill.active")?.dataset.cat || "all";
+  renderWalkinSearchResults(query, activeCat);
+}
+
+export function removeWalkinCartItem(productId) {
+  activeWalkinCart = activeWalkinCart.filter(i => i.productId !== productId);
+  renderWalkinCart();
+  const query = $("#walkin-search-input")?.value || "";
+  const activeCat = document.querySelector(".pos-cat-pill.active")?.dataset.cat || "all";
+  renderWalkinSearchResults(query, activeCat);
+}
+
+export function renderWalkinCart() {
+  const listEl = $("#walkin-cart-list");
+  const countEl = $("#walkin-cart-count");
+  if (!listEl) return;
+
+  const totalItemCount = activeWalkinCart.reduce((sum, i) => sum + i.quantity, 0);
+  if (countEl) countEl.textContent = `${totalItemCount} ${totalItemCount === 1 ? "unit" : "units"}`;
+
+  if (activeWalkinCart.length === 0) {
+    listEl.innerHTML = `
+      <div class="pos-cart-empty">
+        <span class="pos-cart-empty-icon">🛒</span>
+        <p><strong>Current Sale is Empty</strong></p>
+        <small class="muted">Search or click medicines from the catalog on the left to add them to this sale.</small>
+      </div>
+    `;
+  } else {
+    listEl.innerHTML = activeWalkinCart.map(item => {
+      const p = item.product;
+      const stock = typeof p.stockQuantity === "number" ? p.stockQuantity : (p.stock || 0);
+      const lineTotal = item.unitPrice * item.quantity;
+      const isMax = item.quantity >= stock;
+
+      return `
+        <div class="pos-cart-item-row" data-id="${p.id}">
+          <div class="pos-cart-item-info">
+            <div class="pos-cart-item-name">
+              <strong>${escapeHtml(p.name)}</strong>
+              ${p.requiresPrescription ? '<span class="pos-rx-tag">Rx</span>' : ''}
+            </div>
+            <div class="pos-cart-item-unitprice">${formatUGX(item.unitPrice)} each</div>
+          </div>
+          <div class="pos-cart-item-qty-stepper">
+            <button type="button" class="pos-stepper-btn pos-stepper-minus" data-id="${p.id}" aria-label="Decrease quantity">&minus;</button>
+            <input type="number" class="pos-stepper-input" data-id="${p.id}" value="${item.quantity}" min="1" max="${stock}" />
+            <button type="button" class="pos-stepper-btn pos-stepper-plus" data-id="${p.id}" ${isMax ? "disabled" : ""} aria-label="Increase quantity">+</button>
+          </div>
+          <div class="pos-cart-item-total">
+            ${formatUGX(lineTotal)}
+          </div>
+          <button type="button" class="pos-cart-item-remove" data-id="${p.id}" title="Remove item" aria-label="Remove item">&times;</button>
+        </div>
+      `;
+    }).join("");
+
+    // Stepper & remove event listeners
+    listEl.querySelectorAll(".pos-stepper-minus").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const item = activeWalkinCart.find(i => i.productId === id);
+        if (item) updateWalkinCartItemQty(id, item.quantity - 1);
+      });
+    });
+
+    listEl.querySelectorAll(".pos-stepper-plus").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const id = btn.dataset.id;
+        const item = activeWalkinCart.find(i => i.productId === id);
+        if (item) updateWalkinCartItemQty(id, item.quantity + 1);
+      });
+    });
+
+    listEl.querySelectorAll(".pos-stepper-input").forEach(input => {
+      input.addEventListener("change", () => {
+        const id = input.dataset.id;
+        const val = parseInt(input.value, 10) || 1;
+        updateWalkinCartItemQty(id, val);
+      });
+    });
+
+    listEl.querySelectorAll(".pos-cart-item-remove").forEach(btn => {
+      btn.addEventListener("click", () => {
+        removeWalkinCartItem(btn.dataset.id);
+      });
+    });
+  }
+
+  // Prescription gate banner visibility
+  const hasRx = activeWalkinCart.some(i => i.product.requiresPrescription);
+  const rxBanner = $("#walkin-rx-gate-banner");
+  if (rxBanner) {
+    rxBanner.classList.toggle("hidden", !hasRx);
+  }
+
+  // Billing calculations
+  const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+  const discount = Math.min(Math.max(0, discountInput), subtotal);
+  const total = Math.max(0, subtotal - discount);
+
+  if ($("#walkin-subtotal-val")) $("#walkin-subtotal-val").textContent = formatUGX(subtotal);
+  if ($("#walkin-discount-val")) $("#walkin-discount-val").textContent = "- " + formatUGX(discount);
+  if ($("#walkin-total-val")) $("#walkin-total-val").textContent = formatUGX(total);
+
+  calculateWalkinCashChange(total);
+}
+
+export function calculateWalkinCashChange(total = null) {
+  if (total === null) {
+    const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+    const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+    const discount = Math.min(Math.max(0, discountInput), subtotal);
+    total = Math.max(0, subtotal - discount);
+  }
+
+  const completeBtn = $("#walkin-complete-btn");
+  const hasRx = activeWalkinCart.some(i => i.product.requiresPrescription);
+  const rxVerified = $("#walkin-rx-verified")?.checked;
+  const isRxAllowed = !hasRx || rxVerified;
+
+  if (activeWalkinPaymentMethod === "Cash") {
+    const cashInput = $("#walkin-cash-received");
+    const receivedVal = parseFloat(cashInput?.value || 0) || 0;
+    const changeValEl = $("#walkin-change-val");
+    const alertEl = $("#walkin-insufficient-cash-alert");
+
+    const change = receivedVal - total;
+
+    if (activeWalkinCart.length > 0 && total > 0) {
+      if (receivedVal >= total) {
+        if (changeValEl) {
+          changeValEl.textContent = formatUGX(change);
+          changeValEl.style.color = "#16a34a";
+        }
+        alertEl?.classList.add("hidden");
+        if (completeBtn) completeBtn.disabled = !isRxAllowed;
+      } else {
+        if (changeValEl) {
+          changeValEl.textContent = "UGX 0";
+          changeValEl.style.color = "#dc2626";
+        }
+        if (receivedVal > 0) alertEl?.classList.remove("hidden");
+        else alertEl?.classList.add("hidden");
+        if (completeBtn) completeBtn.disabled = true;
+      }
+    } else {
+      if (changeValEl) changeValEl.textContent = "UGX 0";
+      alertEl?.classList.add("hidden");
+      if (completeBtn) completeBtn.disabled = true;
+    }
+  } else if (activeWalkinPaymentMethod === "MTN Mobile Money" || activeWalkinPaymentMethod === "Airtel Money") {
+    const phoneInput = $("#walkin-momo-phone");
+    const phone = (phoneInput?.value || "").replace(/\s+/g, "");
+    const isValidPhone = /^07\d{8}$/.test(phone);
+    let isPrefixValid = false;
+    if (activeWalkinPaymentMethod === "MTN Mobile Money") {
+      isPrefixValid = ["076", "077", "078"].some(p => phone.startsWith(p));
+    } else {
+      isPrefixValid = ["070", "074", "075"].some(p => phone.startsWith(p));
+    }
+
+    if (completeBtn) {
+      completeBtn.disabled = !(activeWalkinCart.length > 0 && total > 0 && isValidPhone && isPrefixValid && isRxAllowed);
+    }
+  } else {
+    // Card / POS
+    if (completeBtn) {
+      completeBtn.disabled = !(activeWalkinCart.length > 0 && total > 0 && isRxAllowed);
+    }
+  }
+}
+
+export function completeWalkinSale() {
+  if (activeWalkinCart.length === 0) {
+    showToast("Cannot complete sale with an empty cart. Please add medicines first.", "error");
+    return;
+  }
+
+  const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+  const discount = Math.min(Math.max(0, discountInput), subtotal);
+  const total = Math.max(0, subtotal - discount);
+
+  // Prescription clinical review safety gate
+  const hasRx = activeWalkinCart.some(i => i.product.requiresPrescription);
+  if (hasRx && !$("#walkin-rx-verified")?.checked) {
+    showToast("Prescription verification check required before dispensing prescription medicine.", "error");
+    return;
+  }
+
+  // Payment validation
+  let amountReceived = total;
+  let changeGiven = 0;
+  let paymentPhone = "";
+  let paymentRef = "";
+
+  if (activeWalkinPaymentMethod === "Cash") {
+    amountReceived = parseFloat($("#walkin-cash-received")?.value || 0) || 0;
+    if (amountReceived < total) {
+      showToast(`Insufficient cash received. Received: ${formatUGX(amountReceived)}, Total: ${formatUGX(total)}.`, "error");
+      return;
+    }
+    changeGiven = amountReceived - total;
+    paymentPhone = "Counter Cash";
+    paymentRef = `CASH-${Date.now().toString(36).toUpperCase()}`;
+  } else if (activeWalkinPaymentMethod === "MTN Mobile Money" || activeWalkinPaymentMethod === "Airtel Money") {
+    paymentPhone = ($("#walkin-momo-phone")?.value || "").replace(/\s+/g, "");
+    if (!/^07\d{8}$/.test(paymentPhone)) {
+      showToast("Please enter a valid 10-digit Ugandan phone number.", "error");
+      return;
+    }
+    if (activeWalkinPaymentMethod === "MTN Mobile Money" && !["076", "077", "078"].some(p => paymentPhone.startsWith(p))) {
+      showToast("Invalid MTN phone number. Must start with 076, 077, or 078.", "error");
+      return;
+    }
+    if (activeWalkinPaymentMethod === "Airtel Money" && !["070", "074", "075"].some(p => paymentPhone.startsWith(p))) {
+      showToast("Invalid Airtel phone number. Must start with 070, 074, or 075.", "error");
+      return;
+    }
+    paymentRef = `MOMO-${Date.now().toString(36).toUpperCase()}`;
+  } else {
+    paymentRef = $("#walkin-card-ref")?.value?.trim() || `POS-AUTH-${Date.now().toString(36).toUpperCase()}`;
+    paymentPhone = "POS Terminal";
+  }
+
+  // Verify stock sufficiency for every item before proceeding
+  for (const item of activeWalkinCart) {
+    const prod = STATE.products.find(p => p.id === item.productId);
+    const stock = prod ? (typeof prod.stockQuantity === "number" ? prod.stockQuantity : (prod.stock || 0)) : 0;
+    if (item.quantity > stock) {
+      showToast(`Stock depleted: Only ${stock} units of ${item.product.name} are available.`, "error");
+      return;
+    }
+  }
+
+  const saleRef = generateWalkinSaleReference();
+  const effRole = getEffectiveRole();
+  const staffUser = STATE.currentUser || {};
+  const staffName = staffUser.displayName || staffUser.name || "Pharmacist Staff";
+  const staffId = staffUser.uid || staffUser.id || "staff-counter";
+  const roleLabel = {
+    pharmacist: "Pharmacist",
+    assistant_pharmacist: "Assistant Pharmacist",
+    admin: "Administrator",
+    developer: "System Developer"
+  }[effRole] || "Pharmacy Staff";
+
+  const custName = $("#walkin-cust-name")?.value?.trim() || "Walk-in Customer";
+  const custPhone = $("#walkin-cust-phone")?.value?.trim() || "";
+  const now = new Date();
+
+  // Deduct inventory & record audit logs
+  activeWalkinCart.forEach(item => {
+    const prod = STATE.products.find(p => p.id === item.productId);
+    if (prod) {
+      const prevStock = typeof prod.stockQuantity === "number" ? prod.stockQuantity : (prod.stock || 0);
+      const newStock = Math.max(0, prevStock - item.quantity);
+      prod.stockQuantity = newStock;
+
+      STATE.inventoryLogs.unshift({
+        id: "log-walkin-" + Date.now() + "-" + Math.random().toString(36).slice(2, 6),
+        productName: prod.name,
+        type: "stock_out",
+        quantity: item.quantity,
+        previousStock: prevStock,
+        newStock: newStock,
+        reason: `Physical counter sale (${saleRef})`,
+        performedBy: staffName,
+        timestamp: now.toISOString()
+      });
+      try { updateProductStock(prod.id, -item.quantity, `Walk-in sale ${saleRef}`, staffName); } catch (_) {}
+    }
+  });
+
+  const orderItems = activeWalkinCart.map(item => ({
+    id: item.productId,
+    name: item.product.name,
+    genericName: item.product.genericName || "",
+    brand: item.product.brandName || item.product.brand || "",
+    price: item.unitPrice,
+    unitPrice: item.unitPrice,
+    quantity: item.quantity,
+    subtotal: item.unitPrice * item.quantity,
+    requiresPrescription: !!item.product.requiresPrescription,
+    imageUrl: item.product.imageUrl || item.product.image || ""
+  }));
+
+  const newSaleOrder = {
+    id: saleRef,
+    orderNumber: saleRef,
+    saleSource: "WALK_IN",
+    source: "WALK_IN",
+    fulfillmentType: "pickup",
+    customerName: custName,
+    customerPhone: custPhone,
+    customerEmail: "walkin@bloomcare.local",
+    customerId: "walkin-" + Date.now(),
+    deliveryAddress: "BloomCare Pharmacy Counter (Dispensary)",
+    deliveryCity: "Kampala",
+    deliveryFee: 0,
+    subtotal: subtotal,
+    discount: discount,
+    total: total,
+    paymentMethod: activeWalkinPaymentMethod,
+    paymentPhone: paymentPhone,
+    paymentRef: paymentRef,
+    paymentStatus: "Paid",
+    orderStatus: "Completed",
+    items: orderItems,
+    amountReceived: amountReceived,
+    changeGiven: changeGiven,
+    staffId: staffId,
+    staffName: staffName,
+    staffRole: roleLabel,
+    rxVerified: hasRx,
+    rxDoctorNote: $("#walkin-rx-doctor-note")?.value?.trim() || "",
+    createdAt: now.toISOString(),
+    completedAt: now.toISOString(),
+    updatedAt: now.toISOString()
+  };
+
+  // Record payment
+  STATE.payments.unshift({
+    id: "PAY-" + saleRef,
+    reference: saleRef,
+    orderId: saleRef,
+    amount: total,
+    currency: "UGX",
+    provider: activeWalkinPaymentMethod,
+    phone: custPhone || paymentPhone,
+    status: "Successful",
+    type: "walkin_sale",
+    saleSource: "WALK_IN",
+    staffName: staffName,
+    createdAt: now.toISOString(),
+    verifiedAt: now.toISOString()
+  });
+
+  // Save order to central STATE.orders
+  STATE.orders.unshift(newSaleOrder);
+  try { saveOrder(newSaleOrder); } catch (_) {}
+  try { saveCartToStorage(); } catch (_) {}
+
+  // Close POS dialog
+  closeWalkinSaleModal();
+
+  // Open receipt modal
+  showReceiptModal(newSaleOrder);
+
+  // Refresh views
+  renderDashboardView();
+  renderMedicinesView();
+  renderOrdersView();
+
+  showToast(`Walk-in sale ${saleRef} completed! Total: ${formatUGX(total)}`, "success");
+}
+
 export function showReceiptModal(order) {
   if (!order) return;
 
@@ -7569,25 +8886,61 @@ export function showReceiptModal(order) {
     else statusBadge.classList.add("status-confirmed");
   }
 
+  const isWalkin = order.saleSource === "WALK_IN" || isWalkinOrder(order);
+
+  // Staff Attribution
+  const staffMetaItem = $("#rec-staff-meta-item");
+  const staffNameVal = $("#rec-staff-name");
+  if (staffMetaItem && staffNameVal) {
+    if (order.staffName) {
+      staffMetaItem.style.display = "flex";
+      staffNameVal.textContent = `${order.staffName} (${order.staffRole || "Staff"})`;
+    } else {
+      staffMetaItem.style.display = "none";
+    }
+  }
+
   // Fulfillment Method
-  const isPickup = order.fulfillmentType === "pickup";
+  const isPickup = order.fulfillmentType === "pickup" || isWalkin;
   const fulfillmentEl = $("#rec-fulfillment-type");
-  if (fulfillmentEl) fulfillmentEl.textContent = isPickup ? "Pharmacy Pickup" : "Home Delivery";
+  if (fulfillmentEl) {
+    if (isWalkin) fulfillmentEl.textContent = "Counter Sale (Walk-in)";
+    else fulfillmentEl.textContent = isPickup ? "Pharmacy Pickup" : "Home Delivery";
+  }
 
   // 2. Customer Information
   const custNameEl = $("#rec-cust-name");
-  if (custNameEl) custNameEl.textContent = order.customerName || "Customer";
+  if (custNameEl) custNameEl.textContent = order.customerName || (isWalkin ? "Walk-in Customer" : "Customer");
 
   const custEmailEl = $("#rec-cust-email");
-  if (custEmailEl) custEmailEl.textContent = order.customerEmail || "Not provided";
+  if (custEmailEl) custEmailEl.textContent = order.customerEmail || (isWalkin ? "Counter Sale" : "Not provided");
 
   const custPhoneEl = $("#rec-cust-phone");
-  if (custPhoneEl) custPhoneEl.textContent = order.customerPhone || "Not provided";
+  if (custPhoneEl) custPhoneEl.textContent = order.customerPhone || (isWalkin ? "Counter Walk-in" : "Not provided");
 
   // 3. Delivery Information
   const deliveryBody = $("#rec-delivery-details-body");
   if (deliveryBody) {
-    if (isPickup) {
+    if (isWalkin) {
+      deliveryBody.innerHTML = `
+        <div class="receipt-detail-row">
+          <span class="detail-label">Sale Channel:</span>
+          <strong class="detail-val">Over-The-Counter Walk-in Sale</strong>
+        </div>
+        <div class="receipt-detail-row">
+          <span class="detail-label">Dispensary:</span>
+          <span class="detail-val">BloomCare Pharmacy Dispensary</span>
+        </div>
+        <div class="receipt-detail-row">
+          <span class="detail-label">Location:</span>
+          <span class="detail-val">Plot 14, Kampala Road, Central Kampala</span>
+        </div>
+        <div class="receipt-detail-row">
+          <span class="detail-label">Fulfillment:</span>
+          <span class="detail-val">Dispensed Immediately at Counter</span>
+        </div>
+      `;
+    } else if (isPickup) {
       deliveryBody.innerHTML = `
         <div class="receipt-detail-row">
           <span class="detail-label">Fulfillment:</span>
@@ -7634,13 +8987,34 @@ export function showReceiptModal(order) {
   if (payMethodEl) payMethodEl.textContent = order.paymentMethod || "Cash on Delivery";
 
   const payPhoneEl = $("#rec-pay-phone");
-  if (payPhoneEl) payPhoneEl.textContent = order.paymentPhone || order.customerPhone || "N/A";
+  if (payPhoneEl) payPhoneEl.textContent = order.paymentPhone || order.customerPhone || (isWalkin ? "Counter Cash" : "N/A");
 
   const payStatusEl = $("#rec-pay-status");
   if (payStatusEl) {
     const pStatus = order.paymentStatus || (order.paymentMethod === "Cash on Delivery" ? "Pending" : "Paid");
     payStatusEl.textContent = pStatus;
     payStatusEl.className = "receipt-pay-pill " + (pStatus === "Paid" || pStatus === "Successful" ? "pay-paid" : "pay-pending");
+  }
+
+  // Cash Received & Change Given Rows
+  const cashReceivedRow = $("#rec-cash-received-row");
+  const cashReceivedVal = $("#rec-cash-received-val");
+  const cashChangeRow = $("#rec-cash-change-row");
+  const cashChangeVal = $("#rec-cash-change-row");
+  const cashChangeNum = $("#rec-cash-change-val");
+
+  if (order.amountReceived != null && (order.paymentMethod === "Cash" || order.paymentMethod === "cash")) {
+    if (cashReceivedRow && cashReceivedVal) {
+      cashReceivedRow.style.display = "flex";
+      cashReceivedVal.textContent = formatUGX(order.amountReceived);
+    }
+    if (cashChangeRow && cashChangeNum) {
+      cashChangeRow.style.display = "flex";
+      cashChangeNum.textContent = formatUGX(order.changeGiven || 0);
+    }
+  } else {
+    if (cashReceivedRow) cashReceivedRow.style.display = "none";
+    if (cashChangeRow) cashChangeRow.style.display = "none";
   }
 
   // 5. Order Items Table
@@ -7669,8 +9043,9 @@ export function showReceiptModal(order) {
 
   // 6. Order Summary Calculations
   const subtotal = order.subtotal ?? calculatedSubtotal;
-  const deliveryFee = order.deliveryFee ?? (isPickup ? 0 : 5000);
-  const total = order.total ?? (subtotal + deliveryFee);
+  const deliveryFee = order.deliveryFee ?? ((isPickup || isWalkin) ? 0 : 5000);
+  const discount = order.discount || 0;
+  const total = order.total ?? Math.max(0, subtotal + deliveryFee - discount);
 
   const subtotalEl = $("#rec-subtotal-val");
   if (subtotalEl) subtotalEl.textContent = formatUGX(subtotal);
@@ -7688,6 +9063,18 @@ export function showReceiptModal(order) {
       STATE.systemSettings.whatsapp,
       `Hello BloomCare Pharmacy, I have an inquiry regarding my order ${orderRef}.`
     );
+  }
+
+  // 8. Start New Walk-in Sale Action Button
+  const newWalkinBtn = $("#receipt-new-walkin-btn");
+  if (newWalkinBtn) {
+    const effRole = getEffectiveRole();
+    const canDoWalkin = effRole === "pharmacist" || effRole === "assistant_pharmacist" || effRole === "admin" || effRole === "developer";
+    if (isWalkin && canDoWalkin) {
+      newWalkinBtn.style.display = "inline-flex";
+    } else {
+      newWalkinBtn.style.display = "none";
+    }
   }
 
   $("#receipt-dialog")?.showModal();
@@ -8305,6 +9692,9 @@ function bindEventListeners() {
     const editProdBtn = e.target.closest(".edit-prod-btn");
     if (editProdBtn) openProductFormModal(editProdBtn.dataset.id);
 
+    const editPriceBtn = e.target.closest(".edit-price-btn") || e.target.closest(".quick-edit-price-btn");
+    if (editPriceBtn) openPriceControlModal(editPriceBtn.dataset.id);
+
     const toggleProdBtn = e.target.closest(".toggle-prod-btn");
     if (toggleProdBtn) {
       const prod = STATE.products.find(p => p.id === toggleProdBtn.dataset.id);
@@ -8522,6 +9912,8 @@ function bindEventListeners() {
     }
     const id = $("#prod-id").value || "DEMO-MED-" + Date.now().toString().slice(-4);
     const existing = STATE.products.find(p => p.id === id);
+    const newPriceVal = Number($("#prod-price").value) || 0;
+    const newCostVal = Number($("#prod-cost-price")?.value) || Math.round(newPriceVal * 0.68);
     const prodData = {
       id,
       name: $("#prod-name").value.trim(),
@@ -8529,7 +9921,14 @@ function bindEventListeners() {
       strength: $("#prod-strength")?.value.trim() || "Standard Dose",
       brandName: $("#prod-brand").value.trim(),
       category: $("#prod-category").value,
-      price: Number($("#prod-price").value) || 0,
+      price: newPriceVal,
+      sellingPrice: newPriceVal,
+      costPrice: newCostVal,
+      packSize: $("#prod-pack-size")?.value.trim() || $("#prod-unit").value.trim(),
+      currency: "UGX",
+      priceSource: $("#prod-price-source")?.value.trim() || "Uganda community pharmacy market reference (Kampala retail survey & EMHSLU 2023)",
+      priceNotes: $("#prod-price-notes")?.value.trim() || "Retail market reference price aligned with EMHSLU 2023 formulation standards.",
+      priceLastUpdated: new Date().toISOString().split("T")[0],
       stockQuantity: Number($("#prod-stock").value) || 0,
       reorderLevel: Number($("#prod-min-stock")?.value) || 10,
       dosageForm: $("#prod-unit").value.trim(),
@@ -8548,14 +9947,142 @@ function bindEventListeners() {
     }
 
     if (existing) {
+      if (!Array.isArray(existing.priceHistory)) existing.priceHistory = [];
+      if (existing.price !== prodData.sellingPrice) {
+        existing.priceHistory.unshift({
+          previousPrice: existing.price || existing.sellingPrice,
+          newPrice: prodData.sellingPrice,
+          costPrice: prodData.costPrice,
+          changedBy: (STATE.currentUser?.displayName || STATE.currentUser?.name || "Admin Staff"),
+          date: new Date().toISOString().split("T")[0],
+          reason: prodData.priceNotes || "Product catalog edit",
+          source: prodData.priceSource
+        });
+      }
       Object.assign(existing, prodData);
     } else {
+      prodData.priceHistory = [{
+        previousPrice: prodData.sellingPrice,
+        newPrice: prodData.sellingPrice,
+        costPrice: prodData.costPrice,
+        changedBy: (STATE.currentUser?.displayName || STATE.currentUser?.name || "Admin Staff"),
+        date: new Date().toISOString().split("T")[0],
+        reason: "New catalog product entry",
+        source: prodData.priceSource
+      }];
       STATE.products.unshift(prodData);
     }
     try { saveProduct(prodData); } catch (_) {}
     $("#product-form-dialog").close();
     renderMedicinesView();
     openNotice("Product Saved", `Product <strong>${escapeHtml(prodData.name)}</strong> saved successfully.`);
+  });
+
+  // Price Review Summary & Export Listeners
+  $("#btn-open-price-summary")?.addEventListener("click", openPriceSummaryModal);
+  $("#close-price-summary-modal")?.addEventListener("click", closePriceSummaryModal);
+  $("#close-price-summary-btn")?.addEventListener("click", closePriceSummaryModal);
+  $("#btn-export-price-csv")?.addEventListener("click", exportPriceCatalogCsv);
+  $("#price-summary-search")?.addEventListener("input", (e) => {
+    renderPriceSummaryTable(e.target.value, $("#price-summary-cat-filter")?.value || "all");
+  });
+  $("#price-summary-cat-filter")?.addEventListener("change", (e) => {
+    renderPriceSummaryTable($("#price-summary-search")?.value || "", e.target.value);
+  });
+
+  // Price Control Modal Listeners
+  $("#close-price-ctrl-modal")?.addEventListener("click", closePriceControlModal);
+  $("#cancel-price-ctrl-btn")?.addEventListener("click", closePriceControlModal);
+  $("#price-ctrl-selling-input")?.addEventListener("input", (e) => {
+    const prodId = $("#price-ctrl-prod-id")?.value;
+    const prod = STATE.products.find(p => p.id === prodId);
+    if (!prod) return;
+    const cur = prod.sellingPrice || prod.price || 0;
+    const nVal = parseFloat(e.target.value) || 0;
+    const alertBox = $("#price-ctrl-large-change-alert");
+    if (cur > 0 && nVal > 0) {
+      const diffPct = Math.abs(nVal - cur) / cur;
+      if (diffPct >= 0.5) {
+        alertBox?.classList.remove("hidden");
+        const dir = nVal > cur ? "+" : "-";
+        const pct = Math.round(diffPct * 100);
+        if ($("#price-ctrl-large-change-msg")) {
+          $("#price-ctrl-large-change-msg").textContent = `Proposed price (${formatUGX(nVal)}) represents an unusually large variance (${dir}${pct}%) from current price (${formatUGX(cur)}). Please verify before saving.`;
+        }
+      } else {
+        alertBox?.classList.add("hidden");
+        if ($("#price-ctrl-confirm-check")) $("#price-ctrl-confirm-check").checked = false;
+      }
+    }
+  });
+
+  $("#price-control-form")?.addEventListener("submit", (e) => {
+    e.preventDefault();
+    const effRole = getEffectiveRole();
+    if (effRole !== "admin" && effRole !== "developer") {
+      openNotice("Permission Denied", "Only administrators and developers can adjust medicine prices.");
+      return;
+    }
+
+    const prodId = $("#price-ctrl-prod-id")?.value;
+    const prod = STATE.products.find(p => p.id === prodId);
+    if (!prod) return;
+
+    const newSelling = parseFloat($("#price-ctrl-selling-input")?.value || 0);
+    const newCost = parseFloat($("#price-ctrl-cost-input")?.value || 0);
+    const newPack = $("#price-ctrl-packsize-input")?.value?.trim() || prod.packSize || prod.dosageForm;
+    const newSource = $("#price-ctrl-source-input")?.value?.trim() || "Uganda community pharmacy market reference";
+    const newReason = $("#price-ctrl-reason-input")?.value?.trim() || "Price adjustment via Admin Price Control";
+
+    if (newSelling <= 0 || isNaN(newSelling)) {
+      openNotice("Invalid Price", "Selling price must be greater than UGX 0.");
+      return;
+    }
+    if (newCost <= 0 || isNaN(newCost)) {
+      openNotice("Invalid Cost", "Cost price must be greater than UGX 0.");
+      return;
+    }
+
+    const cur = prod.sellingPrice || prod.price || 0;
+    const diffPct = cur > 0 ? Math.abs(newSelling - cur) / cur : 0;
+    if (diffPct >= 0.5 && !$("#price-ctrl-confirm-check")?.checked) {
+      openNotice("Confirmation Required", "Large price change detected. Please verify by checking the confirmation box before saving.");
+      return;
+    }
+
+    const prevSelling = prod.sellingPrice || prod.price;
+    const staffName = STATE.currentUser?.displayName || STATE.currentUser?.name || "Admin Staff";
+    const todayStr = new Date().toISOString().split("T")[0];
+
+    prod.sellingPrice = newSelling;
+    prod.price = newSelling;
+    prod.costPrice = newCost;
+    prod.packSize = newPack;
+    prod.priceSource = newSource;
+    prod.priceLastUpdated = todayStr;
+    prod.priceNotes = newReason;
+
+    if (!Array.isArray(prod.priceHistory)) prod.priceHistory = [];
+    prod.priceHistory.unshift({
+      previousPrice: prevSelling,
+      newPrice: newSelling,
+      costPrice: newCost,
+      changedBy: staffName,
+      date: todayStr,
+      reason: newReason,
+      source: newSource
+    });
+
+    try { saveProduct(prod); } catch (_) {}
+    recordStaffAudit("PRICE_UPDATE", "products", prod.id, `Price changed from ${formatUGX(prevSelling)} to ${formatUGX(newSelling)} by ${staffName}. Reason: ${newReason}`);
+
+    closePriceControlModal();
+    renderMedicinesView();
+    if ($("#price-summary-dialog")?.open) {
+      renderPriceSummaryTable($("#price-summary-search")?.value || "", $("#price-summary-cat-filter")?.value || "all");
+    }
+
+    openNotice("Price Updated", `Selling price for <strong>${escapeHtml(prod.name)}</strong> updated to <strong>${formatUGX(newSelling)}</strong>.`);
   });
 
   // Stock Adjustment Modal (Staff Only)
@@ -8776,6 +10303,107 @@ function bindEventListeners() {
   });
   $("#close-notice-modal")?.addEventListener("click", () => $("#notice-modal")?.close());
   $("#notice-confirm-btn")?.addEventListener("click", () => $("#notice-modal")?.close());
+
+  // Walk-in Counter Sale & POS Dialog Bindings
+  $("#close-walkin-sale-modal")?.addEventListener("click", () => closeWalkinSaleModal());
+  $("#walkin-cancel-btn")?.addEventListener("click", () => closeWalkinSaleModal());
+  $("#receipt-new-walkin-btn")?.addEventListener("click", () => {
+    $("#receipt-dialog")?.close();
+    openWalkinSaleModal();
+  });
+
+  $("#walkin-search-input")?.addEventListener("input", (e) => {
+    const q = e.target.value;
+    const clearBtn = $("#walkin-search-clear");
+    if (clearBtn) clearBtn.classList.toggle("hidden", !q);
+    const activeCat = document.querySelector(".pos-cat-pill.active")?.dataset.cat || "all";
+    renderWalkinSearchResults(q, activeCat);
+  });
+
+  $("#walkin-search-clear")?.addEventListener("click", () => {
+    const searchInput = $("#walkin-search-input");
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.focus();
+    }
+    $("#walkin-search-clear")?.classList.add("hidden");
+    const activeCat = document.querySelector(".pos-cat-pill.active")?.dataset.cat || "all";
+    renderWalkinSearchResults("", activeCat);
+  });
+
+  $$(".pos-cat-pill").forEach(pill => {
+    pill.addEventListener("click", () => {
+      $$(".pos-cat-pill").forEach(p => p.classList.remove("active"));
+      pill.classList.add("active");
+      const cat = pill.dataset.cat || "all";
+      const q = $("#walkin-search-input")?.value || "";
+      renderWalkinSearchResults(q, cat);
+    });
+  });
+
+  $$(".pos-pay-method-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $$(".pos-pay-method-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      activeWalkinPaymentMethod = btn.dataset.method || "Cash";
+
+      $("#walkin-cash-box")?.classList.toggle("hidden", activeWalkinPaymentMethod !== "Cash");
+      $("#walkin-momo-box")?.classList.toggle("hidden", activeWalkinPaymentMethod !== "MTN Mobile Money" && activeWalkinPaymentMethod !== "Airtel Money");
+      $("#walkin-card-box")?.classList.toggle("hidden", activeWalkinPaymentMethod !== "Card / POS");
+
+      if (activeWalkinPaymentMethod === "MTN Mobile Money") {
+        const hint = $("#walkin-momo-hint");
+        if (hint) hint.textContent = "Enter customer MTN phone number (076, 077, or 078).";
+      } else if (activeWalkinPaymentMethod === "Airtel Money") {
+        const hint = $("#walkin-momo-hint");
+        if (hint) hint.textContent = "Enter customer Airtel phone number (070, 074, or 075).";
+      }
+
+      calculateWalkinCashChange();
+    });
+  });
+
+  $("#walkin-cash-received")?.addEventListener("input", () => {
+    calculateWalkinCashChange();
+  });
+
+  $("#walkin-discount-input")?.addEventListener("input", () => {
+    renderWalkinCart();
+  });
+
+  $$(".pos-chip-btn").forEach(chip => {
+    chip.addEventListener("click", () => {
+      const amt = chip.dataset.amt;
+      const cashInput = $("#walkin-cash-received");
+      if (!cashInput) return;
+
+      const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+      const discountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+      const discount = Math.min(Math.max(0, discountInput), subtotal);
+      const total = Math.max(0, subtotal - discount);
+
+      if (amt === "exact") {
+        cashInput.value = String(total);
+      } else {
+        const val = Number(amt) || 0;
+        const current = parseFloat(cashInput.value || 0) || 0;
+        cashInput.value = String(current + val);
+      }
+      calculateWalkinCashChange(total);
+    });
+  });
+
+  $("#walkin-momo-phone")?.addEventListener("input", () => {
+    calculateWalkinCashChange();
+  });
+
+  $("#walkin-rx-verified")?.addEventListener("change", () => {
+    calculateWalkinCashChange();
+  });
+
+  $("#walkin-complete-btn")?.addEventListener("click", () => {
+    completeWalkinSale();
+  });
 
   // Logout Flow
   $("#sidebar-logout-btn")?.addEventListener("click", () => {

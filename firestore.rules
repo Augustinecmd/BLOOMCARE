@@ -141,5 +141,44 @@ service cloud.firestore {
       allow create: if isStaff();
       allow update, delete: if false; // Immutable audit logs
     }
+
+    // 14. Delivery Customer Chat Conversations & Messages
+    match /conversations/{conversationId} {
+      allow read: if isSignedIn() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.deliveryManId == request.auth.uid ||
+        isAdmin()
+      );
+      allow create: if isSignedIn() && (
+        request.resource.data.customerId == request.auth.uid ||
+        request.resource.data.deliveryManId == request.auth.uid ||
+        isStaff()
+      );
+      allow update: if isSignedIn() && (
+        resource.data.customerId == request.auth.uid ||
+        resource.data.deliveryManId == request.auth.uid ||
+        isAdmin()
+      );
+      allow delete: if isAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isSignedIn() && (
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid ||
+          isAdmin()
+        );
+        allow create: if isSignedIn() && (
+          (get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid && request.resource.data.senderId == request.auth.uid) ||
+          (get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid && request.resource.data.senderId == request.auth.uid) ||
+          isAdmin()
+        );
+        allow update: if isSignedIn() && (
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid
+        );
+        allow delete: if isAdmin();
+      }
+    }
   }
 }
+

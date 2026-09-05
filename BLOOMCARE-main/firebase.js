@@ -23,7 +23,9 @@ import {
     query,
     where,
     orderBy,
-    limit
+    limit,
+    onSnapshot,
+    serverTimestamp
 } from "firebase/firestore";
 
 // Your web app's Firebase configuration
@@ -696,4 +698,177 @@ export async function getNotifications(userId = null, role = "customer") {
 
 export async function markNotificationRead(notifId) {
     await updateDoc(doc(db, "notifications", notifId), { read: true });
+}
+
+// -------------------------------------------------------------
+// 10. DELIVERY CUSTOMER IN-SYSTEM CHAT
+// -------------------------------------------------------------
+
+export async function getOrCreateDeliveryConversation(convData) {
+    const conversationId = convData.conversationId || `CHAT-${convData.orderId || convData.orderNumber}`;
+    try {
+        const convRef = doc(db, "conversations", conversationId);
+        const snap = await getDoc(convRef);
+        if (snap.exists()) {
+            return { id: snap.id, ...snap.data() };
+        }
+        const record = {
+            conversationId,
+            orderId: convData.orderId || convData.orderNumber,
+            orderNumber: convData.orderNumber || convData.orderId,
+            customerId: convData.customerId || null,
+            customerName: convData.customerName || "Customer",
+            customerPhone: convData.customerPhone || "",
+            deliveryManId: convData.deliveryManId || null,
+            deliveryManName: convData.deliveryManName || "Unassigned",
+            deliveryStatus: convData.deliveryStatus || "Assigned",
+            status: convData.status || "ACTIVE",
+            unreadDelivery: 0,
+            unreadCustomer: 0,
+            lastMessage: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+        await setDoc(convRef, record, { merge: true });
+        return { id: conversationId, ...record };
+    } catch (err) {
+        console.warn("[BloomCare Chat] Firestore getOrCreate error (fallback to memory):", err?.message || err);
+        return {
+            id: conversationId,
+            conversationId,
+            orderId: convData.orderId || convData.orderNumber,
+            orderNumber: convData.orderNumber || convData.orderId,
+            customerId: convData.customerId || null,
+            customerName: convData.customerName || "Customer",
+            customerPhone: convData.customerPhone || "",
+            deliveryManId: convData.deliveryManId || null,
+            deliveryManName: convData.deliveryManName || "Unassigned",
+            deliveryStatus: convData.deliveryStatus || "Assigned",
+            status: convData.status || "ACTIVE",
+            unreadDelivery: 0,
+            unreadCustomer: 0,
+            lastMessage: null,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
+    }
+}
+
+export function subscribeToDeliveryConversation(conversationId, callback) {
+    try {
+        const convRef = doc(db, "conversations", conversationId);
+        return onSnapshot(convRef, (snap) => {
+            if (snap.exists()) {
+                callback({ id: snap.id, ...snap.data() });
+            }
+        }, (err) => {
+            console.warn("[BloomCare Chat] Conversation snapshot warning:", err?.message || err);
+        });
+    } catch (err) {
+        console.warn("[BloomCare Chat] subscribeToDeliveryConversation error:", err?.message || err);
+        return () => {};
+    }
+}
+
+export function subscribeToDeliveryMessages(conversationId, callback) {
+    try {
+        const q = query(
+            collection(db, "conversations", conversationId, "messages"),
+            orderBy("createdAt", "asc")
+        );
+        return onSnapshot(q, (snap) => {
+            const msgs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+            callback(msgs);
+        }, (err) => {
+            console.warn("[BloomCare Chat] Messages snapshot warning:", err?.message || err);
+        });
+    } catch (err) {
+        console.warn("[BloomCare Chat] subscribeToDeliveryMessages error:", err?.message || err);
+        return () => {};
+    }
+}
+
+export async function sendDeliveryChatMessage({ conversationId, senderId, senderRole, senderName, message, orderId = null }) {
+    const trimmed = String(message || "").trim();
+    if (!trimmed) throw new Error("Message cannot be empty");
+    if (trimmed.length > 1000) throw new Error("Message exceeds 1000 characters limit");
+
+    const messageData = {
+        conversationId,
+        orderId,
+        senderId,
+        senderRole,
+        senderName,
+        message: trimmed,
+        createdAt: new Date().toISOString(),
+        readAt: null
+    };
+
+    try {
+        const msgColRef = collection(db, "conversations", conversationId, "messages");
+        const docRef = await addDoc(msgColRef, messageData);
+
+        // Update conversation summary
+        const convRef = doc(db, "conversations", conversationId);
+        const updatePayload = {
+            lastMessage: {
+                messageId: docRef.id,
+                message: trimmed,
+                senderId,
+                senderRole,
+                senderName,
+                createdAt: messageData.createdAt
+            },
+            updatedAt: messageData.createdAt
+        };
+        if (senderRole === "delivery_person" || senderRole === "deliveryStaff") {
+            // Unread for customer
+            await updateDoc(convRef, {
+                ...updatePayload,
+                unreadCustomer: (await getDoc(convRef)).data()?.unreadCustomer + 1 || 1
+            });
+        } else {
+            // Unread for delivery person
+            await updateDoc(convRef, {
+                ...updatePayload,
+                unreadDelivery: (await getDoc(convRef)).data()?.unreadDelivery + 1 || 1
+            });
+        }
+
+        return { id: docRef.id, ...messageData };
+    } catch (err) {
+        console.warn("[BloomCare Chat] Firestore message write warning (local fallback handled):", err?.message || err);
+        return { id: "MSG-" + Date.now(), ...messageData };
+    }
+}
+
+export async function markDeliveryMessagesRead(conversationId, userRole) {
+    try {
+        const convRef = doc(db, "conversations", conversationId);
+        if (userRole === "delivery_person" || userRole === "deliveryStaff") {
+            await updateDoc(convRef, { unreadDelivery: 0 });
+        } else if (userRole === "customer") {
+            await updateDoc(convRef, { unreadCustomer: 0 });
+        }
+    } catch (err) {
+        console.warn("[BloomCare Chat] Mark read error:", err?.message || err);
+    }
+}
+
+export async function getDeliveryConversationsForUser(userId, role) {
+    try {
+        let q;
+        if (role === "delivery_person" || role === "deliveryStaff") {
+            q = query(collection(db, "conversations"), where("deliveryManId", "==", userId));
+        } else if (role === "customer") {
+            q = query(collection(db, "conversations"), where("customerId", "==", userId));
+        } else {
+            q = query(collection(db, "conversations"), limit(50));
+        }
+        const snap = await getDocs(q);
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+        console.warn("[BloomCare Chat] getConversations error:", err?.message || err);
+        return [];
+    }
 }
