@@ -284,6 +284,79 @@ class TestPharmacyPaymentAPI(unittest.TestCase):
             self.assertTrue(data.get("success"))
             self.assertEqual(data.get("user", {}).get("status"), "active")
 
+    def test_delivery_auto_assignment_and_notifications(self):
+        # 1. Test finding eligible delivery driver
+        driver = payment_api.find_eligible_delivery_man()
+        self.assertIsNotNone(driver)
+        self.assertIn("name", driver)
+        self.assertIn("id", driver)
+        self.assertEqual(driver.get("role"), "delivery_person")
+
+        # 2. Test auto assigning an online customer order
+        test_order = {
+            "orderNumber": "BC-TEST-AUTO-001",
+            "paymentStatus": "PAID",
+            "customerName": "Joan Atuhaire",
+            "customerEmail": "joan@example.com",
+            "customerPhone": "0770123456",
+            "deliveryDivision": "Mbarara City South",
+            "deliveryArea": "Kakoba",
+            "address": "Kakoba Central, Mbarara",
+            "specificLocation": "Near Kakoba Market",
+            "items": [{"name": "Amoxicillin 500mg", "quantity": 1, "price": 15000}],
+            "total": 20000
+        }
+        res = payment_api.auto_assign_delivery("BC-TEST-AUTO-001", test_order)
+        self.assertIsNotNone(res)
+        self.assertEqual(res.get("orderNumber"), "BC-TEST-AUTO-001")
+        self.assertEqual(res.get("status"), "ASSIGNED")
+        self.assertIsNotNone(res.get("deliveryManId"))
+        driver_id = res["deliveryManId"]
+
+        # 3. Verify notification created for delivery person (even without customer message)
+        notifs = payment_api.read_notifications()
+        driver_notif = next((n for n in notifs if n.get("orderId") == "BC-TEST-AUTO-001" and n.get("type") == "NEW_DELIVERY_ASSIGNED"), None)
+        self.assertIsNotNone(driver_notif, "Delivery driver must receive NEW_DELIVERY_ASSIGNED notification")
+        self.assertEqual(driver_notif.get("recipientId"), driver_id)
+
+        # 4. Verify atomic conversation creation
+        convs = payment_api.read_conversations()
+        conv = convs.get("CHAT-BC-TEST-AUTO-001")
+        self.assertIsNotNone(conv, "1:1 Chat conversation must be created atomically upon assignment")
+        self.assertEqual(conv.get("deliveryManId"), driver_id)
+
+        # 5. Customer sends a message -> delivery driver gets NEW_CUSTOMER_MESSAGE notification
+        msg_res = payment_api.add_message_to_conversation(
+            order_id="BC-TEST-AUTO-001",
+            sender_role="customer",
+            sender_id="usr-test-cust",
+            sender_name="Joan Atuhaire",
+            text="Please call when you reach the gate."
+        )
+        self.assertTrue(msg_res.get("success"))
+
+        notifs_after_msg = payment_api.read_notifications()
+        cust_msg_notif = next((n for n in notifs_after_msg if n.get("orderId") == "BC-TEST-AUTO-001" and n.get("type") == "NEW_CUSTOMER_MESSAGE"), None)
+        self.assertIsNotNone(cust_msg_notif, "Driver must receive NEW_CUSTOMER_MESSAGE notification")
+
+        # 6. Mark delivery complete
+        status_res = payment_api.update_delivery_status(
+            order_id="BC-TEST-AUTO-001",
+            status="Delivered",
+            updated_by=driver_id,
+            notes="Handed over to customer"
+        )
+        self.assertTrue(status_res.get("success"))
+
+        # Verify conversation marked COMPLETED
+        convs_after_del = payment_api.read_conversations()
+        conv_del = convs_after_del.get("CHAT-BC-TEST-AUTO-001")
+        self.assertEqual(conv_del.get("status"), "COMPLETED")
+
+        # 7. Test Driver Load Balancing (find driver with fewest active deliveries)
+        next_driver = payment_api.find_eligible_delivery_man()
+        self.assertIsNotNone(next_driver)
+
 
 if __name__ == "__main__":
     unittest.main()

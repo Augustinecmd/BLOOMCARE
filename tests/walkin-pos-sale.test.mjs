@@ -155,3 +155,24 @@ test('9. RECENT COUNTER SALES VIEWER & SALE SOURCE ISOLATION', () => {
   const walkinOrder = { id: 'BC-SALE-20260905-1234', saleSource: 'WALK_IN', items: [{ price: 10000, quantity: 2 }] };
   assert.ok(isWalkinOrder(walkinOrder), 'isWalkinOrder must return true for WALK_IN order');
 });
+
+test('10. BRIEF 1-PAGE WALK-IN CUSTOMER RECEIPT: Hides delivery boilerplate & guarantees single-page layout', () => {
+  // DOM assertions
+  assert.ok(indexHtml.includes('id="rec-doc-title"'), 'Must have #rec-doc-title for Walk-in Sale Receipt title');
+  assert.ok(indexHtml.includes('id="rec-delivery-fee-line"'), 'Must have #rec-delivery-fee-line to suppress delivery fee');
+  assert.ok(indexHtml.includes('id="rec-walkin-footer"'), 'Must have #rec-walkin-footer for brief customer footer');
+  assert.ok(indexHtml.includes('id="rec-standard-footer"'), 'Must retain #rec-standard-footer for online orders');
+  assert.ok(indexHtml.includes('id="rec-discount-line"'), 'Must have #rec-discount-line for itemized discounts');
+
+  // app.js logic assertions
+  assert.ok(appJs.includes('walkin-receipt-mode'), 'app.js must toggle walkin-receipt-mode class');
+  assert.ok(appJs.includes('WALK-IN SALE RECEIPT'), 'app.js must set document title to WALK-IN SALE RECEIPT');
+  assert.ok(appJs.includes('fulfillmentSection.style.display = "none"'), 'app.js must hide delivery section for walk-ins');
+  assert.ok(appJs.includes('deliveryFeeLine.style.display'), 'app.js must manage delivery fee visibility');
+  assert.ok(appJs.includes('walkinFooter.style.display = "block"'), 'app.js must activate walk-in brief footer');
+
+  // styles.css 1-page print budget assertions
+  assert.ok(stylesCss.includes('.receipt-sheet.walkin-receipt-mode'), 'styles.css must style walkin-receipt-mode');
+  assert.ok(stylesCss.includes('page-break-inside: avoid'), 'styles.css must enforce page-break-inside: avoid for 1-page fit');
+});
+

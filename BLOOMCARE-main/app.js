@@ -1027,6 +1027,133 @@ const INITIAL_ORDERS = [
     orderStatus: "Processing",
     assignedStaff: "Moses Kato",
     createdAt: new Date(Date.now() - 3600000 * 2).toISOString()
+  },
+  {
+    id: "BC-SALE-20260905-0101",
+    orderNumber: "BC-SALE-20260905-0101",
+    customerId: "walkin-customer-1",
+    customerName: "Walk-in Customer",
+    customerPhone: "0772111222",
+    saleSource: "WALK_IN",
+    fulfillmentType: "counter_sale",
+    deliveryAddress: "BloomCare Main Dispensary Counter",
+    deliveryCity: "Mbarara City",
+    items: [
+      { productId: "BC-PROD-001", name: "Paracetamol 500mg Tablets", quantity: 2, price: 5000 },
+      { productId: "BC-PROD-033", name: "Cetirizine 10mg Tablets", quantity: 1, price: 8500 }
+    ],
+    subtotal: 18500,
+    deliveryFee: 0,
+    discountAmount: 0,
+    total: 18500,
+    paymentMethod: "Cash",
+    paymentStatus: "Paid",
+    paymentReference: "CASH-20260905-0101",
+    orderStatus: "Completed",
+    staffName: "Dr. Amina Nanyonga",
+    staffRole: "Pharmacist",
+    createdAt: new Date(Date.now() - 3600000 * 1).toISOString()
+  },
+  {
+    id: "BC-SALE-20260905-0102",
+    orderNumber: "BC-SALE-20260905-0102",
+    customerId: "walkin-customer-2",
+    customerName: "James Tumusiime",
+    customerPhone: "0752334455",
+    saleSource: "WALK_IN",
+    fulfillmentType: "counter_sale",
+    deliveryAddress: "BloomCare Main Dispensary Counter",
+    deliveryCity: "Mbarara City",
+    items: [
+      { productId: "BC-PROD-005", name: "Amoxicillin Capsules 500mg", quantity: 2, price: 18000 }
+    ],
+    subtotal: 36000,
+    deliveryFee: 0,
+    discountAmount: 0,
+    total: 36000,
+    paymentMethod: "Cash",
+    paymentStatus: "Paid",
+    paymentReference: "CASH-20260905-0102",
+    orderStatus: "Completed",
+    staffName: "Dr. Amina Nanyonga",
+    staffRole: "Pharmacist",
+    createdAt: new Date(Date.now() - 3600000 * 3).toISOString()
+  },
+  {
+    id: "BC-SALE-20260905-0103",
+    orderNumber: "BC-SALE-20260905-0103",
+    customerId: "walkin-customer-3",
+    customerName: "Mary Kigozi",
+    customerPhone: "0788445566",
+    saleSource: "WALK_IN",
+    fulfillmentType: "counter_sale",
+    deliveryAddress: "BloomCare Main Dispensary Counter",
+    deliveryCity: "Mbarara City",
+    items: [
+      { productId: "BC-PROD-036", name: "Omron M2 Blood Pressure Monitor", quantity: 1, price: 185000 }
+    ],
+    subtotal: 185000,
+    deliveryFee: 0,
+    discountAmount: 5000,
+    total: 180000,
+    paymentMethod: "MTN Mobile Money",
+    paymentStatus: "Paid",
+    paymentReference: "MM-WALK-881920",
+    orderStatus: "Completed",
+    staffName: "Pharm. David Mukasa",
+    staffRole: "Pharmacist",
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString()
+  },
+  {
+    id: "BC-SALE-20260905-0104",
+    orderNumber: "BC-SALE-20260905-0104",
+    customerId: "walkin-customer-4",
+    customerName: "Walk-in Customer",
+    customerPhone: "",
+    saleSource: "WALK_IN",
+    fulfillmentType: "counter_sale",
+    deliveryAddress: "BloomCare Main Dispensary Counter",
+    deliveryCity: "Mbarara City",
+    items: [
+      { productId: "BC-PROD-012", name: "Ibuprofen 400mg Tablets", quantity: 2, price: 6000 },
+      { productId: "BC-PROD-019", name: "Oral Rehydration Salts (ORS)", quantity: 3, price: 5000 }
+    ],
+    subtotal: 27000,
+    deliveryFee: 0,
+    discountAmount: 0,
+    total: 27000,
+    paymentMethod: "Cash",
+    paymentStatus: "Paid",
+    paymentReference: "CASH-20260905-0104",
+    orderStatus: "Completed",
+    staffName: "Dr. Amina Nanyonga",
+    staffRole: "Pharmacist",
+    createdAt: new Date(Date.now() - 86400000).toISOString()
+  },
+  {
+    id: "BC-SALE-20260905-0105",
+    orderNumber: "BC-SALE-20260905-0105",
+    customerId: "walkin-customer-5",
+    customerName: "Kato Paul",
+    customerPhone: "0703998877",
+    saleSource: "WALK_IN",
+    fulfillmentType: "counter_sale",
+    deliveryAddress: "BloomCare Main Dispensary Counter",
+    deliveryCity: "Mbarara City",
+    items: [
+      { productId: "BC-PROD-015", name: "Emergency First Aid Kit (60pcs)", quantity: 1, price: 65000 }
+    ],
+    subtotal: 65000,
+    deliveryFee: 0,
+    discountAmount: 0,
+    total: 65000,
+    paymentMethod: "Airtel Money",
+    paymentStatus: "Paid",
+    paymentReference: "AM-WALK-334190",
+    orderStatus: "Completed",
+    staffName: "Pharm. David Mukasa",
+    staffRole: "Pharmacist",
+    createdAt: new Date(Date.now() - 86400000 * 3).toISOString()
   }
 ];
 
@@ -2230,6 +2357,10 @@ async function initApp() {
 
   loadCartFromStorage();
   bindEventListeners();
+
+  // Background Delivery, Notifications & Chat Sync
+  syncDeliverySystemWithBackend();
+  setInterval(syncDeliverySystemWithBackend, 4000);
 
   // Load public catalog and settings in parallel
   await Promise.all([
@@ -3557,6 +3688,9 @@ function renderRoleDashboard() {
       <!-- Sales Overview Analytics Section (Admin Exclusive) -->
       <div class="admin-section-block" id="admin-sales-overview-section"></div>
 
+      <!-- Walk-in Pharmacy Sales & Counter Register Hub (Admin Access) -->
+      <div class="admin-section-block" id="admin-walkin-overview-section"></div>
+
       <!-- Quick Actions Section (Max 4 Actions) -->
       <div class="admin-section-block">
         <div class="admin-section-head">
@@ -3631,6 +3765,7 @@ function renderRoleDashboard() {
     $("#dash-btn-add-prod")?.addEventListener("click", () => openProductFormModal());
     $("#admin-btn-walkin-sale")?.addEventListener("click", () => openWalkinSaleModal());
     renderSalesOverviewSection($("#admin-sales-overview-section"), STATE.salesOverviewPeriod || "today");
+    renderAdminWalkinSection();
 
   } else if (role === "pharmacist") {
     // 2. PHARMACIST DASHBOARD
@@ -3763,6 +3898,13 @@ function renderRoleDashboard() {
     const activeConvs = myConversations.filter(c => c.status === "ACTIVE" && c.deliveryStatus !== "Delivered");
     const unreadMessagesCount = myConversations.reduce((sum, c) => sum + (c.unreadCountForDelivery || c.unreadDelivery || 0), 0);
 
+    // Driver notifications
+    const myUserId = STATE.currentUser?.uid || STATE.currentUser?.id;
+    const myNotifs = STATE.notifications.filter(n => 
+      !n.recipientId || n.recipientId === myUserId || n.role === "delivery_person" || n.role === "deliveryStaff"
+    );
+    const unreadNotifs = myNotifs.filter(n => !n.read);
+
     container.innerHTML = `
       <div class="page-header-block flex-between">
         <div>
@@ -3782,13 +3924,142 @@ function renderRoleDashboard() {
         <div class="kpi-card" data-route="delivery_person/chat"><div class="kpi-icon-wrap">${ICONS.chat}</div><div><strong class="kpi-value" id="dash-active-chats-count">${activeConvs.length}</strong><span class="kpi-label">Active Chats (<span id="dash-unread-chats-count">${unreadMessagesCount} unread</span>)</span></div></div>
       </div>
 
+      <!-- PROMINENT NEW & ACTIVE DELIVERIES SECTION -->
+      <div class="content-card new-deliveries-section" style="margin-top:20px; border-left:4px solid #0284c7;">
+        <div class="flex-between" style="margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
+              <span>🛵</span>
+              <span>NEW &amp; ACTIVE DELIVERIES</span>
+            </h3>
+            <p class="muted" style="margin:2px 0 0; font-size:12.5px;">Newly assigned online customer orders requiring doorstep fulfillment in Mbarara City.</p>
+          </div>
+          <span class="badge" style="background:#e0f2fe; color:#0369a1; font-weight:700; font-size:12px; padding:4px 10px; border-radius:12px;">
+            ${assigned.length} Active Run${assigned.length === 1 ? '' : 's'}
+          </span>
+        </div>
+
+        <div class="new-deliveries-list" id="dash-new-deliveries-list">
+          ${assigned.length === 0 ? `
+            <div style="padding:24px 16px; text-align:center; background:#f8fafc; border-radius:10px; border:1px dashed #cbd5e1;">
+              <p class="muted" style="margin:0; font-size:13.5px;">No active deliveries currently waiting. Newly placed online orders will appear here automatically.</p>
+            </div>
+          ` : assigned.map(d => {
+            const relOrder = STATE.orders.find(o => o.id === d.orderId || o.orderNumber === d.orderNumber);
+            const feeVal = relOrder?.deliveryFee ?? 5000;
+            return `
+              <div class="new-delivery-card" id="card-${escapeHtml(d.id)}">
+                <div class="new-delivery-header">
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <span class="new-delivery-badge">NEW ASSIGNMENT</span>
+                    <strong style="font-size:15px; color:#0f172a;">Order #${escapeHtml(d.orderNumber || d.orderId || d.id)}</strong>
+                  </div>
+                  <span class="status-pill status-${d.status.toLowerCase().replace(/ /g, '_')}">${escapeHtml(d.status)}</span>
+                </div>
+
+                <div class="new-delivery-grid">
+                  <div class="new-delivery-cell">
+                    <span class="confirm-cell-label">Customer</span>
+                    <strong style="font-size:13.5px; color:#0f172a;">${escapeHtml(d.customerName || 'Customer')}</strong>
+                    <small style="color:#64748b;">📞 ${escapeHtml(d.phone || 'No phone')}</small>
+                  </div>
+                  <div class="new-delivery-cell">
+                    <span class="confirm-cell-label">Delivery Location</span>
+                    <strong style="font-size:13.5px; color:#0f172a;">${escapeHtml(d.specificLocation || d.address || 'Mbarara City')}</strong>
+                    ${(d.deliveryDivision || d.deliveryArea) ? `<small style="color:#64748b;">${escapeHtml(d.deliveryDivision || '')}${d.deliveryArea ? ' • ' + escapeHtml(d.deliveryArea) : ''}</small>` : ''}
+                    ${d.landmark ? `<small style="color:#0284c7;">📍 Landmark: Near ${escapeHtml(d.landmark)}</small>` : ''}
+                  </div>
+                  <div class="new-delivery-cell">
+                    <span class="confirm-cell-label">Delivery Fee</span>
+                    <strong style="font-size:14px; color:#15803d;">${formatUGX(feeVal)}</strong>
+                    <small style="color:#64748b;">Status: PAID</small>
+                  </div>
+                  <div class="new-delivery-cell">
+                    <span class="confirm-cell-label">Items Summary</span>
+                    <span style="font-size:12.5px; color:#334155;">${escapeHtml(d.itemsSummary || 'Prescription / Medicines')}</span>
+                  </div>
+                </div>
+
+                <div class="new-delivery-actions">
+                  <button class="btn btn-outline btn-sm view-dash-del-details" data-id="${d.id}" type="button">
+                    🔍 View Delivery Details
+                  </button>
+                  <button class="btn btn-primary btn-sm quick-driver-chat-btn" data-order-id="${d.orderNumber || d.orderId || d.id}" type="button" style="display:inline-flex; align-items:center; gap:5px;">
+                    ${ICONS.chat}
+                    <span>💬 Chat with Customer</span>
+                  </button>
+                  <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="picked-up" type="button">
+                    Picked Up
+                  </button>
+                  <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-delivered" type="button" style="background:#16a34a; border-color:#16a34a; color:#fff;">
+                    📦 Mark Delivered
+                  </button>
+                </div>
+              </div>
+            `;
+          }).join("")}
+        </div>
+      </div>
+
+      <!-- DELIVERY NOTIFICATIONS SECTION -->
+      <div class="content-card delivery-notifs-container">
+        <div class="flex-between" style="margin-bottom:12px; flex-wrap:wrap; gap:10px;">
+          <div>
+            <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
+              <span>🔔</span>
+              <span>DELIVERY NOTIFICATIONS</span>
+            </h3>
+            <p class="muted" style="margin:2px 0 0; font-size:12.5px;">Real-time dispatch alerts and direct customer message notifications.</p>
+          </div>
+          ${unreadNotifs.length > 0 ? `
+            <span class="badge" style="background:#dc2626; color:#fff; font-size:11.5px; font-weight:700; padding:3px 8px; border-radius:10px;">
+              ${unreadNotifs.length} Unread
+            </span>
+          ` : ''}
+        </div>
+
+        <div class="delivery-notifs-list" id="delivery-dash-notifs-list">
+          ${myNotifs.length === 0 ? `
+            <p class="muted" style="font-size:13px; padding:12px 0; margin:0;">No delivery notifications.</p>
+          ` : myNotifs.slice(0, 5).map(n => `
+            <div class="delivery-notif-card ${n.read ? '' : 'notif-unread'}">
+              <div class="delivery-notif-left">
+                <span class="delivery-notif-badge">${n.type === 'NEW_CUSTOMER_MESSAGE' ? '💬' : '🛵'}</span>
+                <div>
+                  <div class="delivery-notif-title">${escapeHtml(n.title || 'Notification')}</div>
+                  <div class="delivery-notif-desc">${escapeHtml(n.message || '')}</div>
+                  <div class="delivery-notif-meta">
+                    ${n.customerName ? `<span>Customer: <strong>${escapeHtml(n.customerName)}</strong></span> &bull; ` : ''}
+                    ${n.deliveryLocation ? `<span>📍 ${escapeHtml(n.deliveryLocation)}</span> &bull; ` : ''}
+                    ${n.deliveryFee ? `<span>Fee: ${formatUGX(n.deliveryFee)}</span> &bull; ` : ''}
+                    <span>${formatTimeAgo(n.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="display:flex; gap:6px; align-items:center;">
+                ${(n.orderId || n.conversationId) ? `
+                  <button class="btn btn-primary btn-xs quick-driver-chat-btn" data-order-id="${n.orderId}" type="button">
+                    💬 Open Chat
+                  </button>
+                ` : ''}
+                ${!n.read ? `
+                  <button class="btn btn-outline btn-xs mark-driver-notif-read" data-id="${n.id}" type="button">
+                    Mark Read
+                  </button>
+                ` : `<span class="muted" style="font-size:11.5px;">Read</span>`}
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+
       <!-- CUSTOMER CHAT DASHBOARD SECTION -->
       <div class="content-card" style="margin-top:20px;">
         <div class="flex-between" style="flex-wrap:wrap; gap:10px; margin-bottom:14px;">
           <div>
             <h3 style="display:flex; align-items:center; gap:8px; margin:0;">
               <span>💬</span>
-              <span>CUSTOMER CHAT</span>
+              <span>CUSTOMER CHAT WORKSPACE</span>
             </h3>
             <span class="muted" style="font-size:12.5px;">Active Conversations: <strong>${activeConvs.length}</strong> &bull; Unread Messages: <strong id="dash-unread-chats-preview-count" style="color:${unreadMessagesCount > 0 ? '#dc2626' : 'inherit'};">${unreadMessagesCount}</strong></span>
           </div>
@@ -3848,6 +4119,9 @@ function renderRoleDashboard() {
                   <td><span class="status-pill status-${d.status.toLowerCase().replace(/ /g, "_")}">${escapeHtml(d.status)}</span></td>
                   <td>
                     <div style="display:flex; gap:4px; flex-wrap:wrap;">
+                      <button class="btn btn-outline btn-sm view-dash-del-details" data-id="${d.id}" title="View Delivery Details" type="button">
+                        🔍 Details
+                      </button>
                       <button class="btn btn-outline btn-sm quick-driver-chat-btn" data-order-id="${d.orderNumber || d.orderId}" title="Chat with Customer" type="button" style="display:inline-flex; align-items:center; gap:4px;">
                         ${ICONS.chat}
                         <span>Chat</span>
@@ -3867,6 +4141,27 @@ function renderRoleDashboard() {
         </div>
       </div>
     `;
+
+    container.querySelectorAll(".view-dash-del-details").forEach(btn => {
+      btn.addEventListener("click", () => {
+        openDeliveryDetailsModal(btn.dataset.id);
+      });
+    });
+
+    container.querySelectorAll(".mark-driver-notif-read").forEach(btn => {
+      btn.addEventListener("click", () => {
+        const notif = STATE.notifications.find(n => n.id === btn.dataset.id);
+        if (notif) notif.read = true;
+        try {
+          fetch("http://127.0.0.1:8787/api/notifications/mark-read", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ notificationId: btn.dataset.id })
+          }).catch(() => {});
+        } catch (_) {}
+        renderRoleDashboard();
+      });
+    });
 
     container.querySelectorAll(".open-dash-chat-trigger").forEach(btn => {
       btn.addEventListener("click", () => {
@@ -4006,7 +4301,7 @@ function renderRoleDashboard() {
             </div>
             <div style="display: flex; gap: 8px;">
               <button class="btn btn-primary btn-sm track-order-btn" data-id="${latestActive.id}">Track Order</button>
-              <button class="btn btn-outline btn-sm view-rec-btn" data-id="${latestActive.id}">View Receipt</button>
+              <button class="btn btn-outline btn-sm view-rec-btn" data-id="${latestActive.id}">Order Confirmation</button>
             </div>
           </div>
         </div>
@@ -5789,8 +6084,19 @@ function renderOrdersView() {
     list = list.filter(o => {
       const area = o.deliveryArea || o.deliveryAddressDetails?.deliveryArea || o.deliveryAddressDetails?.area;
       if (area) return area.toLowerCase() === STATE.orderAreaFilter.toLowerCase();
-      return (o.deliveryAddress || "").toLowerCase().includes(STATE.orderAreaFilter.toLowerCase());
     });
+  }
+  if (STATE.orderChannelFilter && STATE.orderChannelFilter !== "all") {
+    if (STATE.orderChannelFilter === "walk_in") {
+      list = list.filter(o => isWalkinOrder(o));
+    } else if (STATE.orderChannelFilter === "online") {
+      list = list.filter(o => !isWalkinOrder(o));
+    }
+  }
+
+  const channelSelect = $("#orders-filter-channel");
+  if (channelSelect && STATE.orderChannelFilter) {
+    channelSelect.value = STATE.orderChannelFilter;
   }
 
   if (list.length === 0) {
@@ -8094,6 +8400,23 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   } else {
     conv.unreadCountForDelivery = (conv.unreadCountForDelivery || 0) + 1;
     conv.unreadDelivery = (conv.unreadDelivery || 0) + 1;
+
+    // Delivery Man receives notification in real time for new customer message
+    const driverId = conv.deliveryManId || "usr-5";
+    const notifItem = {
+      id: "notif-msg-" + Date.now(),
+      recipientId: driverId,
+      role: "delivery_person",
+      type: "NEW_CUSTOMER_MESSAGE",
+      orderId: conv.orderId,
+      conversationId: conv.id || conv.conversationId,
+      title: "NEW CUSTOMER MESSAGE",
+      message: `New message from ${senderName} for order #${conv.orderId}: "${cleanText.slice(0, 60)}"`,
+      customerName: senderName,
+      read: false,
+      createdAt: now
+    };
+    STATE.notifications.unshift(notifItem);
   }
   saveConversationsToStorage();
 
@@ -8108,6 +8431,21 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
         text: newMsg.text
       }).catch(() => {});
     }
+  } catch (_) {}
+
+  try {
+    fetch("http://127.0.0.1:8787/api/conversations/messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        conversationId: conv.id || conv.conversationId,
+        orderId: conv.orderId,
+        senderId: newMsg.senderId,
+        senderRole: newMsg.senderRole,
+        senderName: newMsg.senderName,
+        text: newMsg.text
+      })
+    }).catch(() => {});
   } catch (_) {}
 
   updateChatUnreadBadges();
@@ -8421,8 +8759,15 @@ export function isWalkinOrder(order) {
 }
 
 export function calculateSalesOverviewData(period = "today", ordersList = STATE.orders, referenceDate = new Date(), sourceFilter = "all") {
+  if (typeof ordersList === "string") {
+    sourceFilter = ordersList;
+    ordersList = STATE.orders;
+  }
+  if (!Array.isArray(ordersList)) {
+    ordersList = Array.isArray(STATE.orders) ? STATE.orders : [];
+  }
   const now = new Date(referenceDate);
-  const paidOrders = (ordersList || []).filter(isPaidOrder);
+  const paidOrders = ordersList.filter(isPaidOrder);
   sourceFilter = String(sourceFilter || "all").toLowerCase();
 
   period = String(period || "today").toLowerCase();
@@ -8489,21 +8834,38 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       else if (h < 12) label = `${h} AM`;
       else if (h === 12) label = "12 PM";
       else label = `${h - 12} PM`;
-      return { label, hour: h, sales: 0, orders: 0 };
+      return { label, hour: h, sales: 0, orders: 0, walkinSales: 0, walkinOrders: 0, onlineSales: 0, onlineOrders: 0, totalSales: 0, totalOrders: 0 };
     });
 
-    filteredPaidOrders.forEach(o => {
+    paidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
+      const isWalkin = isWalkinOrder(o);
+      const matchesFilter = sourceFilter === "all" || (sourceFilter === "online" && !isWalkin) || ((sourceFilter === "walk_in" || sourceFilter === "walkin") && isWalkin);
+      const amt = Number(o.total) || 0;
+
       if (dt >= startOfPeriod && dt < endOfPeriod) {
         const h = dt.getHours();
-        const amt = Number(o.total) || 0;
-        hourlyBuckets[h].sales += amt;
-        hourlyBuckets[h].orders += 1;
-        totalSales += amt;
-        totalOrders += 1;
+        if (isWalkin) {
+          hourlyBuckets[h].walkinSales += amt;
+          hourlyBuckets[h].walkinOrders += 1;
+        } else {
+          hourlyBuckets[h].onlineSales += amt;
+          hourlyBuckets[h].onlineOrders += 1;
+        }
+        hourlyBuckets[h].totalSales += amt;
+        hourlyBuckets[h].totalOrders += 1;
+
+        if (matchesFilter) {
+          hourlyBuckets[h].sales += amt;
+          hourlyBuckets[h].orders += 1;
+          totalSales += amt;
+          totalOrders += 1;
+        }
       } else if (dt >= startOfPrev && dt < endOfPrev) {
-        prevTotalSales += Number(o.total) || 0;
+        if (matchesFilter) {
+          prevTotalSales += amt;
+        }
       }
     });
 
@@ -8515,21 +8877,44 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       label: name,
       day: idx,
       sales: 0,
-      orders: 0
+      orders: 0,
+      walkinSales: 0,
+      walkinOrders: 0,
+      onlineSales: 0,
+      onlineOrders: 0,
+      totalSales: 0,
+      totalOrders: 0
     }));
 
-    filteredPaidOrders.forEach(o => {
+    paidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
+      const isWalkin = isWalkinOrder(o);
+      const matchesFilter = sourceFilter === "all" || (sourceFilter === "online" && !isWalkin) || ((sourceFilter === "walk_in" || sourceFilter === "walkin") && isWalkin);
+      const amt = Number(o.total) || 0;
+
       if (dt >= startOfPeriod && dt < endOfPeriod) {
         const dIdx = (dt.getDay() + 6) % 7;
-        const amt = Number(o.total) || 0;
-        dailyBuckets[dIdx].sales += amt;
-        dailyBuckets[dIdx].orders += 1;
-        totalSales += amt;
-        totalOrders += 1;
+        if (isWalkin) {
+          dailyBuckets[dIdx].walkinSales += amt;
+          dailyBuckets[dIdx].walkinOrders += 1;
+        } else {
+          dailyBuckets[dIdx].onlineSales += amt;
+          dailyBuckets[dIdx].onlineOrders += 1;
+        }
+        dailyBuckets[dIdx].totalSales += amt;
+        dailyBuckets[dIdx].totalOrders += 1;
+
+        if (matchesFilter) {
+          dailyBuckets[dIdx].sales += amt;
+          dailyBuckets[dIdx].orders += 1;
+          totalSales += amt;
+          totalOrders += 1;
+        }
       } else if (dt >= startOfPrev && dt < endOfPrev) {
-        prevTotalSales += Number(o.total) || 0;
+        if (matchesFilter) {
+          prevTotalSales += amt;
+        }
       }
     });
 
@@ -8543,21 +8928,44 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       label: `${i + 1} ${monthShort}`,
       day: i + 1,
       sales: 0,
-      orders: 0
+      orders: 0,
+      walkinSales: 0,
+      walkinOrders: 0,
+      onlineSales: 0,
+      onlineOrders: 0,
+      totalSales: 0,
+      totalOrders: 0
     }));
 
-    filteredPaidOrders.forEach(o => {
+    paidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
+      const isWalkin = isWalkinOrder(o);
+      const matchesFilter = sourceFilter === "all" || (sourceFilter === "online" && !isWalkin) || ((sourceFilter === "walk_in" || sourceFilter === "walkin") && isWalkin);
+      const amt = Number(o.total) || 0;
+
       if (dt >= startOfPeriod && dt < endOfPeriod) {
         const d = dt.getDate();
-        const amt = Number(o.total) || 0;
-        dailyBuckets[d - 1].sales += amt;
-        dailyBuckets[d - 1].orders += 1;
-        totalSales += amt;
-        totalOrders += 1;
+        if (isWalkin) {
+          dailyBuckets[d - 1].walkinSales += amt;
+          dailyBuckets[d - 1].walkinOrders += 1;
+        } else {
+          dailyBuckets[d - 1].onlineSales += amt;
+          dailyBuckets[d - 1].onlineOrders += 1;
+        }
+        dailyBuckets[d - 1].totalSales += amt;
+        dailyBuckets[d - 1].totalOrders += 1;
+
+        if (matchesFilter) {
+          dailyBuckets[d - 1].sales += amt;
+          dailyBuckets[d - 1].orders += 1;
+          totalSales += amt;
+          totalOrders += 1;
+        }
       } else if (dt >= startOfPrev && dt < endOfPrev) {
-        prevTotalSales += Number(o.total) || 0;
+        if (matchesFilter) {
+          prevTotalSales += amt;
+        }
       }
     });
 
@@ -8572,21 +8980,44 @@ export function calculateSalesOverviewData(period = "today", ordersList = STATE.
       label: name,
       month: idx + 1,
       sales: 0,
-      orders: 0
+      orders: 0,
+      walkinSales: 0,
+      walkinOrders: 0,
+      onlineSales: 0,
+      onlineOrders: 0,
+      totalSales: 0,
+      totalOrders: 0
     }));
 
-    filteredPaidOrders.forEach(o => {
+    paidOrders.forEach(o => {
       const dt = new Date(o.createdAt || o.updatedAt || Date.now());
       if (isNaN(dt.getTime())) return;
+      const isWalkin = isWalkinOrder(o);
+      const matchesFilter = sourceFilter === "all" || (sourceFilter === "online" && !isWalkin) || ((sourceFilter === "walk_in" || sourceFilter === "walkin") && isWalkin);
+      const amt = Number(o.total) || 0;
+
       if (dt >= startOfPeriod && dt < endOfPeriod) {
         const m = dt.getMonth();
-        const amt = Number(o.total) || 0;
-        monthBuckets[m].sales += amt;
-        monthBuckets[m].orders += 1;
-        totalSales += amt;
-        totalOrders += 1;
+        if (isWalkin) {
+          monthBuckets[m].walkinSales += amt;
+          monthBuckets[m].walkinOrders += 1;
+        } else {
+          monthBuckets[m].onlineSales += amt;
+          monthBuckets[m].onlineOrders += 1;
+        }
+        monthBuckets[m].totalSales += amt;
+        monthBuckets[m].totalOrders += 1;
+
+        if (matchesFilter) {
+          monthBuckets[m].sales += amt;
+          monthBuckets[m].orders += 1;
+          totalSales += amt;
+          totalOrders += 1;
+        }
       } else if (dt >= startOfPrev && dt < endOfPrev) {
-        prevTotalSales += Number(o.total) || 0;
+        if (matchesFilter) {
+          prevTotalSales += amt;
+        }
       }
     });
 
@@ -8632,18 +9063,10 @@ export function formatUGXShort(amount) {
 }
 
 export function renderSalesLineChartSvg(analyticsData) {
-  if (!analyticsData || (analyticsData.totalSales === 0 && analyticsData.totalOrders === 0)) {
+  if (!analyticsData) {
     return `
       <div class="sales-chart-empty-state">
-        <div class="empty-state-icon">
-          <svg viewBox="0 0 24 24" width="36" height="36" fill="none" stroke="currentColor" stroke-width="1.8">
-            <line x1="12" y1="20" x2="12" y2="10"/>
-            <line x1="18" y1="20" x2="18" y2="4"/>
-            <line x1="6" y1="20" x2="6" y2="16"/>
-          </svg>
-        </div>
-        <p class="empty-state-title">No sales recorded for this period.</p>
-        <p class="empty-state-desc">Customer purchases with confirmed payment will automatically plot your sales trajectory here.</p>
+        <p class="empty-state-title">No sales data available.</p>
       </div>
     `;
   }
@@ -8658,47 +9081,68 @@ export function renderSalesLineChartSvg(analyticsData) {
     `;
   }
 
-  const W = 900;
-  const H = 320;
-  const padLeft = 90;
+  const W = 920;
+  const H = 340;
+  const padLeft = 85;
   const padRight = 35;
-  const padTop = 30;
-  const padBottom = 45;
+  const padTop = 32;
+  const padBottom = 48;
   const chartW = W - padLeft - padRight;
   const chartH = H - padTop - padBottom;
 
-  const rawMax = Math.max(...pointsData.map(p => p.sales), 0);
-  const maxVal = Math.max(Math.ceil((rawMax * 1.15) / 10000) * 10000, 10000);
+  const rawMax = Math.max(
+    ...pointsData.map(p => Math.max(p.sales || 0, p.walkinSales || 0, p.onlineSales || 0, p.totalSales || 0)),
+    0
+  );
+  const maxVal = Math.max(Math.ceil((rawMax * 1.18) / 10000) * 10000, 10000);
 
   const coords = pointsData.map((pt, i) => {
     const x = padLeft + (N > 1 ? (i / (N - 1)) * chartW : chartW / 2);
-    const y = padTop + chartH - (pt.sales / maxVal) * chartH;
-    return { ...pt, x, y };
+    const ySales = padTop + chartH - ((pt.sales || 0) / maxVal) * chartH;
+    const yOnline = padTop + chartH - ((pt.onlineSales || 0) / maxVal) * chartH;
+    const yWalkin = padTop + chartH - ((pt.walkinSales || 0) / maxVal) * chartH;
+    const yTotal = padTop + chartH - (((pt.walkinSales || 0) + (pt.onlineSales || 0)) / maxVal) * chartH;
+    return { ...pt, x, y: ySales, yOnline, yWalkin, yTotal };
   });
 
-  let lineD = `M ${coords[0].x.toFixed(1)} ${coords[0].y.toFixed(1)}`;
-  if (N > 1) {
-    for (let i = 0; i < N - 1; i++) {
-      const p0 = coords[i === 0 ? i : i - 1];
-      const p1 = coords[i];
-      const p2 = coords[i + 1];
-      const p3 = coords[i + 2 < N ? i + 2 : i + 1];
+  function generateSpline(coordsList, yProp = "y") {
+    if (coordsList.length === 0) return "";
+    let d = `M ${coordsList[0].x.toFixed(1)} ${coordsList[0][yProp].toFixed(1)}`;
+    if (coordsList.length > 1) {
+      for (let i = 0; i < coordsList.length - 1; i++) {
+        const p0 = coordsList[i === 0 ? i : i - 1];
+        const p1 = coordsList[i];
+        const p2 = coordsList[i + 1];
+        const p3 = coordsList[i + 2 < coordsList.length ? i + 2 : i + 1];
 
-      const cp1x = p1.x + (p2.x - p0.x) / 6;
-      const cp1y = p1.y + (p2.y - p0.y) / 6;
-      const cp2x = p2.x - (p3.x - p1.x) / 6;
-      const cp2y = p2.y - (p3.y - p1.y) / 6;
+        const cp1x = p1.x + (p2.x - p0.x) / 6;
+        const cp1y = p1[yProp] + (p2[yProp] - p0[yProp]) / 6;
+        const cp2x = p2.x - (p3.x - p1.x) / 6;
+        const cp2y = p2[yProp] - (p3[yProp] - p1[yProp]) / 6;
 
-      lineD += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2.y.toFixed(1)}`;
+        d += ` C ${cp1x.toFixed(1)} ${cp1y.toFixed(1)}, ${cp2x.toFixed(1)} ${cp2y.toFixed(1)}, ${p2.x.toFixed(1)} ${p2[yProp].toFixed(1)}`;
+      }
     }
+    return d;
   }
 
-  const areaD = `${lineD} L ${coords[N - 1].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} L ${coords[0].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} Z`;
+  const isAll = !analyticsData.sourceFilter || analyticsData.sourceFilter === "all";
+  const isOnline = analyticsData.sourceFilter === "online";
+  const isWalkin = analyticsData.sourceFilter === "walk_in" || analyticsData.sourceFilter === "walkin";
+
+  const onlineLineD = generateSpline(coords, "yOnline");
+  const onlineAreaD = `${onlineLineD} L ${coords[N - 1].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} L ${coords[0].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} Z`;
+
+  const walkinLineD = generateSpline(coords, "yWalkin");
+  const walkinAreaD = `${walkinLineD} L ${coords[N - 1].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} L ${coords[0].x.toFixed(1)} ${(padTop + chartH).toFixed(1)} Z`;
+
+  const totalLineD = generateSpline(coords, "yTotal");
 
   const yTicks = [
     { val: 0, y: padTop + chartH },
-    { val: Math.round(maxVal * 0.33), y: padTop + chartH * 0.67 },
-    { val: Math.round(maxVal * 0.67), y: padTop + chartH * 0.33 },
+    { val: Math.round(maxVal * 0.25), y: padTop + chartH * 0.75 },
+    { val: Math.round(maxVal * 0.5), y: padTop + chartH * 0.5 },
+    { val: Math.round(maxVal * 0.75), y: padTop + chartH * 0.25 },
     { val: maxVal, y: padTop }
   ];
 
@@ -8721,15 +9165,53 @@ export function renderSalesLineChartSvg(analyticsData) {
 
   return `
     <div class="sales-chart-interactive-box" style="position:relative; width:100%;">
+      <!-- Chart Channel Legend & Performance Pill -->
+      <div class="sales-chart-legend flex-between">
+        <div class="sales-legend-channels">
+          <span class="sales-legend-pill pill-online ${isOnline ? 'focused' : ''}">
+            <span class="legend-swatch swatch-online"></span>
+            <span>Online Store: <strong>${formatUGX(analyticsData.onlineSales || 0)}</strong></span>
+            <small class="muted">(${analyticsData.onlineOrders || 0})</small>
+          </span>
+          <span class="sales-legend-pill pill-walkin ${isWalkin ? 'focused' : ''}">
+            <span class="legend-swatch swatch-walkin"></span>
+            <span>Walk-in Counter: <strong>${formatUGX(analyticsData.walkinSales || 0)}</strong></span>
+            <small class="muted">(${analyticsData.walkinOrders || 0})</small>
+          </span>
+          ${isAll ? `
+            <span class="sales-legend-pill pill-total">
+              <span class="legend-swatch swatch-total"></span>
+              <span>Combined Total: <strong>${formatUGX(analyticsData.totalSales || 0)}</strong></span>
+            </span>
+          ` : ''}
+        </div>
+        <div class="sales-legend-peak">
+          <span class="peak-badge">📈 Max Peak: <strong>${formatUGX(rawMax)}</strong></span>
+        </div>
+      </div>
+
       <svg class="sales-line-chart-svg" viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" role="img" aria-label="Sales Trend Line Chart">
         <defs>
+          <!-- Online Orders Emerald Gradient Area -->
+          <linearGradient id="salesGradientOnline" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#10b981" stop-opacity="0.25"/>
+            <stop offset="100%" stop-color="#10b981" stop-opacity="0.01"/>
+          </linearGradient>
+
+          <!-- Walk-in Counter Sales Cyan Gradient Area -->
+          <linearGradient id="salesGradientWalkin" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#0284c7" stop-opacity="0.28"/>
+            <stop offset="100%" stop-color="#0284c7" stop-opacity="0.01"/>
+          </linearGradient>
+
+          <!-- Default Area Gradient for Legacy or Single Stroke -->
           <linearGradient id="salesGradientArea" x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stop-color="#00875A" stop-opacity="0.25"/>
             <stop offset="100%" stop-color="#00875A" stop-opacity="0.0"/>
           </linearGradient>
         </defs>
 
-        <!-- Horizontal Gridlines & Y-Axis Labels -->
+        <!-- Horizontal Dotted Gridlines & Y-Axis Labels -->
         ${yTicks.map(t => `
           <g class="chart-gridline-group">
             <line x1="${padLeft}" y1="${t.y.toFixed(1)}" x2="${(padLeft + chartW).toFixed(1)}" y2="${t.y.toFixed(1)}" class="sales-grid-line" />
@@ -8740,34 +9222,90 @@ export function renderSalesLineChartSvg(analyticsData) {
         <!-- Baseline Axis Line -->
         <line x1="${padLeft}" y1="${(padTop + chartH).toFixed(1)}" x2="${(padLeft + chartW).toFixed(1)}" y2="${(padTop + chartH).toFixed(1)}" class="sales-axis-line" />
 
-        <!-- Area Under Curve Fill -->
-        <path d="${areaD}" fill="url(#salesGradientArea)" class="sales-chart-area" />
+        <!-- Crosshair Guide Line (Mouse tracking) -->
+        <line id="sales-chart-crosshair" class="sales-chart-crosshair hidden" x1="0" y1="${padTop}" x2="0" y2="${padTop + chartH}" />
 
-        <!-- Line Stroke -->
-        <path d="${lineD}" fill="none" class="sales-chart-stroke" />
+        ${isAll ? `
+          <!-- Dual Channel Layer: Walk-in Area & Stroke -->
+          <path d="${walkinAreaD}" fill="url(#salesGradientWalkin)" class="sales-chart-area-walkin" />
+          <!-- Dual Channel Layer: Online Area & Stroke -->
+          <path d="${onlineAreaD}" fill="url(#salesGradientOnline)" class="sales-chart-area" />
+
+          <!-- Combined Total Dotted Guide Stroke -->
+          <path d="${totalLineD}" fill="none" class="sales-chart-stroke" />
+
+          <!-- Walk-in Sales Stroke (Cyan) -->
+          <path d="${walkinLineD}" fill="none" class="sales-chart-stroke-walkin" />
+
+          <!-- Online Orders Stroke (Emerald) -->
+          <path d="${onlineLineD}" fill="none" class="sales-chart-stroke-online" />
+        ` : isWalkin ? `
+          <path d="${walkinAreaD}" fill="url(#salesGradientWalkin)" class="sales-chart-area" />
+          <path d="${walkinLineD}" fill="none" class="sales-chart-stroke" />
+        ` : `
+          <path d="${onlineAreaD}" fill="url(#salesGradientOnline)" class="sales-chart-area" />
+          <path d="${onlineLineD}" fill="none" class="sales-chart-stroke" />
+        `}
 
         <!-- X-Axis Labels -->
         ${xLabelsHtml}
 
         <!-- Interactive Data Circles -->
-        ${coords.map(pt => `
-          <circle class="sales-chart-point"
-                  cx="${pt.x.toFixed(1)}"
-                  cy="${pt.y.toFixed(1)}"
-                  r="${pt.sales > 0 ? 5 : 3.5}"
-                  data-label="${escapeHtml(pt.label)}"
-                  data-sales="${pt.sales}"
-                  data-orders="${pt.orders}"
-                  tabindex="0"
-                  aria-label="${escapeHtml(pt.label)}: ${formatUGX(pt.sales)}, ${pt.orders} orders" />
-        `).join("")}
+        ${coords.map(pt => {
+          const mainY = isWalkin ? pt.yWalkin : isOnline ? pt.yOnline : pt.y;
+          return `
+            <g class="sales-point-group">
+              ${isAll && pt.walkinSales > 0 ? `
+                <circle class="sales-chart-subpoint subpoint-walkin"
+                        cx="${pt.x.toFixed(1)}"
+                        cy="${pt.yWalkin.toFixed(1)}"
+                        r="3.5" />
+              ` : ''}
+              ${isAll && pt.onlineSales > 0 ? `
+                <circle class="sales-chart-subpoint subpoint-online"
+                        cx="${pt.x.toFixed(1)}"
+                        cy="${pt.yOnline.toFixed(1)}"
+                        r="3.5" />
+              ` : ''}
+              <circle class="sales-chart-point" data-channel="${isWalkin ? 'walkin' : isOnline ? 'online' : 'total'}"
+                      cx="${pt.x.toFixed(1)}"
+                      cy="${mainY.toFixed(1)}"
+                      r="${pt.sales > 0 ? 5.5 : 3.5}"
+                      data-label="${escapeHtml(pt.label)}"
+                      data-sales="${pt.sales || 0}"
+                      data-orders="${pt.orders || 0}"
+                      data-walkin-sales="${pt.walkinSales || 0}"
+                      data-walkin-orders="${pt.walkinOrders || 0}"
+                      data-online-sales="${pt.onlineSales || 0}"
+                      data-online-orders="${pt.onlineOrders || 0}"
+                      tabindex="0"
+                      aria-label="${escapeHtml(pt.label)}: ${formatUGX(pt.sales)}, ${pt.orders} orders" />
+            </g>
+          `;
+        }).join("")}
       </svg>
 
-      <!-- Tooltip Element -->
+      <!-- Rich Floating Tooltip Element -->
       <div class="sales-chart-tooltip hidden" id="sales-chart-tooltip" role="tooltip" aria-hidden="true">
-        <div class="tooltip-time" id="tooltip-time"></div>
-        <div class="tooltip-sales">Sales: <strong id="tooltip-sales"></strong></div>
-        <div class="tooltip-orders">Orders: <strong id="tooltip-orders"></strong></div>
+        <div class="tooltip-time" id="tooltip-time">Time</div>
+        <div class="tooltip-channel-row tooltip-row-online">
+          <span class="tooltip-channel-dot dot-online"></span>
+          <span class="tooltip-channel-name">Online Orders:</span>
+          <strong class="tooltip-channel-val" id="tooltip-online-val">UGX 0</strong>
+          <small class="tooltip-channel-qty" id="tooltip-online-qty">(0)</small>
+        </div>
+        <div class="tooltip-channel-row tooltip-row-walkin">
+          <span class="tooltip-channel-dot dot-walkin"></span>
+          <span class="tooltip-channel-name">Walk-in Sales:</span>
+          <strong class="tooltip-channel-val" id="tooltip-walkin-val">UGX 0</strong>
+          <small class="tooltip-channel-qty" id="tooltip-walkin-qty">(0)</small>
+        </div>
+        <div class="tooltip-channel-row tooltip-row-total">
+          <span class="tooltip-channel-dot dot-total"></span>
+          <span class="tooltip-channel-name">Total:</span>
+          <strong class="tooltip-channel-val" id="tooltip-sales">UGX 0</strong>
+          <small class="tooltip-channel-qty" id="tooltip-orders">(0 orders)</small>
+        </div>
       </div>
     </div>
   `;
@@ -8779,15 +9317,43 @@ export function attachSalesChartInteractions(wrapper) {
   const timeEl = wrapper.querySelector("#tooltip-time");
   const salesEl = wrapper.querySelector("#tooltip-sales");
   const ordersEl = wrapper.querySelector("#tooltip-orders");
+  const onlineValEl = wrapper.querySelector("#tooltip-online-val");
+  const onlineQtyEl = wrapper.querySelector("#tooltip-online-qty");
+  const walkinValEl = wrapper.querySelector("#tooltip-walkin-val");
+  const walkinQtyEl = wrapper.querySelector("#tooltip-walkin-qty");
+  const crosshair = wrapper.querySelector("#sales-chart-crosshair");
   const points = wrapper.querySelectorAll(".sales-chart-point");
   const svg = wrapper.querySelector(".sales-line-chart-svg");
 
   if (!tooltip || !timeEl || !salesEl || !ordersEl || !svg) return;
 
-  function showTooltip(label, sales, orders, clientX, clientY) {
+  function showTooltip(pt, clientX, clientY) {
+    const label = pt.dataset.label;
+    const sales = Number(pt.dataset.sales) || 0;
+    const orders = Number(pt.dataset.orders) || 0;
+    const walkinSales = Number(pt.dataset.walkinSales) || 0;
+    const walkinOrders = Number(pt.dataset.walkinOrders) || 0;
+    const onlineSales = Number(pt.dataset.onlineSales) || 0;
+    const onlineOrders = Number(pt.dataset.onlineOrders) || 0;
+
     timeEl.textContent = label;
     salesEl.textContent = formatUGX(sales);
     ordersEl.textContent = `${orders} ${Number(orders) === 1 ? "order" : "orders"}`;
+
+    if (onlineValEl) onlineValEl.textContent = formatUGX(onlineSales);
+    if (onlineQtyEl) onlineQtyEl.textContent = `(${onlineOrders} ${onlineOrders === 1 ? "ord" : "ords"})`;
+    if (walkinValEl) walkinValEl.textContent = formatUGX(walkinSales);
+    if (walkinQtyEl) walkinQtyEl.textContent = `(${walkinOrders} ${walkinOrders === 1 ? "sale" : "sales"})`;
+
+    if (crosshair) {
+      const cx = pt.getAttribute("cx");
+      if (cx) {
+        crosshair.setAttribute("x1", cx);
+        crosshair.setAttribute("x2", cx);
+        crosshair.classList.remove("hidden");
+      }
+    }
+
     tooltip.classList.remove("hidden");
     tooltip.setAttribute("aria-hidden", "false");
 
@@ -8795,14 +9361,14 @@ export function attachSalesChartInteractions(wrapper) {
     const tooltipRect = tooltip.getBoundingClientRect();
 
     let left = clientX - wrapperRect.left - tooltipRect.width / 2;
-    let top = clientY - wrapperRect.top - tooltipRect.height - 12;
+    let top = clientY - wrapperRect.top - tooltipRect.height - 14;
 
     if (left < 10) left = 10;
     if (left + tooltipRect.width > wrapperRect.width - 10) {
       left = wrapperRect.width - tooltipRect.width - 10;
     }
     if (top < 10) {
-      top = clientY - wrapperRect.top + 16;
+      top = clientY - wrapperRect.top + 18;
     }
 
     tooltip.style.left = `${left}px`;
@@ -8812,14 +9378,12 @@ export function attachSalesChartInteractions(wrapper) {
   function hideTooltip() {
     tooltip.classList.add("hidden");
     tooltip.setAttribute("aria-hidden", "true");
+    if (crosshair) crosshair.classList.add("hidden");
   }
 
   points.forEach(pt => {
     const handleMove = (e) => {
-      const label = pt.dataset.label;
-      const sales = Number(pt.dataset.sales) || 0;
-      const orders = Number(pt.dataset.orders) || 0;
-      showTooltip(label, sales, orders, e.clientX, e.clientY);
+      showTooltip(pt, e.clientX, e.clientY);
     };
 
     pt.addEventListener("mouseenter", handleMove);
@@ -8828,10 +9392,7 @@ export function attachSalesChartInteractions(wrapper) {
 
     pt.addEventListener("focus", () => {
       const rect = pt.getBoundingClientRect();
-      const label = pt.dataset.label;
-      const sales = Number(pt.dataset.sales) || 0;
-      const orders = Number(pt.dataset.orders) || 0;
-      showTooltip(label, sales, orders, rect.left + rect.width / 2, rect.top);
+      showTooltip(pt, rect.left + rect.width / 2, rect.top);
     });
     pt.addEventListener("blur", hideTooltip);
   });
@@ -9080,6 +9641,171 @@ export function renderSalesOverviewSection(container, period = "today") {
     const activeSrc = STATE.salesOverviewSource || "all";
     const data = calculateSalesOverviewData(activePeriod, STATE.orders, new Date(), activeSrc);
     exportSalesReport(activePeriod, data, activeSrc);
+  });
+}
+
+export function renderAdminWalkinSection() {
+  const wrapper = $("#admin-walkin-overview-section");
+  if (!wrapper) return;
+
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    wrapper.innerHTML = "";
+    wrapper.classList.add("hidden");
+    return;
+  }
+  wrapper.classList.remove("hidden");
+
+  const now = new Date();
+  const todayStr = now.toISOString().slice(0, 10);
+  const allWalkinOrders = (STATE.orders || [])
+    .filter(o => isWalkinOrder(o) && isPaidOrder(o))
+    .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+  const todayWalkin = allWalkinOrders.filter(o => (o.createdAt || "").slice(0, 10) === todayStr);
+  const todayWalkinSales = todayWalkin.reduce((s, o) => s + (o.total || 0), 0);
+  const todayTotalSales = (STATE.orders || [])
+    .filter(o => isPaidOrder(o) && (o.createdAt || "").slice(0, 10) === todayStr)
+    .reduce((s, o) => s + (o.total || 0), 0);
+
+  const sharePct = todayTotalSales > 0 ? Math.round((todayWalkinSales / todayTotalSales) * 100) : 0;
+  const avgBasket = todayWalkin.length > 0 ? Math.round(todayWalkinSales / todayWalkin.length) : 0;
+
+  const cashCount = todayWalkin.filter(o => (o.paymentMethod || "").toLowerCase().includes("cash")).length;
+  const momoCount = todayWalkin.length - cashCount;
+
+  wrapper.innerHTML = `
+    <div class="admin-walkin-panel">
+      <div class="admin-walkin-header flex-between" style="flex-wrap:wrap; gap:12px;">
+        <div class="admin-walkin-title-wrap">
+          <div class="admin-walkin-badge">
+            <span class="admin-walkin-pulse-dot"></span>
+            <span>PHYSICAL DISPENSARY REGISTER</span>
+          </div>
+          <h2 class="admin-section-title" style="margin-top:6px; margin-bottom:2px;">Walk-in Counter Sales</h2>
+          <p class="admin-section-caption">Instant point-of-sale register, counter revenue audit &amp; customer receipt management.</p>
+        </div>
+        <div class="admin-walkin-action-group" style="display:flex; align-items:center; flex-wrap:wrap; gap:8px;">
+          <button class="btn btn-primary btn-sm admin-walkin-main-btn" id="admin-walkin-hub-launch-btn" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            <span>+ Launch Walk-in POS</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="admin-walkin-hub-history-btn" type="button" title="View Recent Counter Sales">
+            <span>📋 Counter Sales History</span>
+          </button>
+          <button class="btn btn-outline btn-sm" id="admin-walkin-hub-calc-btn" type="button" title="Open Pharmacist Scratchpad Calculator">
+            <span>🧮 Calculator</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Walk-in KPI Counters -->
+      <div class="admin-walkin-kpi-grid">
+        <div class="admin-walkin-kpi-card">
+          <span class="walkin-kpi-sub">Today's Counter Revenue</span>
+          <strong class="walkin-kpi-num" id="admin-walkin-kpi-rev">${formatUGX(todayWalkinSales)}</strong>
+          <small class="walkin-kpi-meta" id="admin-walkin-kpi-share">${sharePct}% of today's total sales</small>
+        </div>
+        <div class="admin-walkin-kpi-card">
+          <span class="walkin-kpi-sub">Completed Counter Sales</span>
+          <strong class="walkin-kpi-num" id="admin-walkin-kpi-count">${todayWalkin.length} ${todayWalkin.length === 1 ? 'sale' : 'sales'}</strong>
+          <small class="walkin-kpi-meta" id="admin-walkin-kpi-avg">${formatUGX(avgBasket)} avg sale</small>
+        </div>
+        <div class="admin-walkin-kpi-card">
+          <span class="walkin-kpi-sub">Cash vs Mobile Money</span>
+          <strong class="walkin-kpi-num" id="admin-walkin-kpi-pay">${todayWalkin.length > 0 ? `${Math.round((cashCount / todayWalkin.length) * 100)}% Cash` : '100% Cash'}</strong>
+          <small class="walkin-kpi-meta" id="admin-walkin-kpi-pay-meta">${cashCount} Cash &bull; ${momoCount} MoMo/Card</small>
+        </div>
+        <div class="admin-walkin-kpi-card">
+          <span class="walkin-kpi-sub">Active Duty Pharmacist</span>
+          <strong class="walkin-kpi-num" style="font-size:15px; color:#0f766e;">Dr. Amina Nanyonga</strong>
+          <small class="walkin-kpi-meta">Central Dispensary Desk</small>
+        </div>
+      </div>
+
+      <!-- Recent Walk-in Transactions Preview -->
+      <div class="admin-walkin-recent-box">
+        <div class="admin-walkin-recent-head flex-between">
+          <span class="admin-walkin-recent-title">Latest Counter Sales</span>
+          <button class="btn btn-link btn-xs" id="admin-walkin-view-all-orders" type="button">View All in Orders &rarr;</button>
+        </div>
+        <div class="admin-walkin-table-wrap">
+          ${allWalkinOrders.length === 0 ? `
+            <div class="admin-walkin-empty" style="text-align:center; padding:24px 16px;">
+              <span style="font-size:28px; display:block; margin-bottom:6px;">🚶</span>
+              <p style="margin:0; font-weight:700;">No counter sales recorded yet today.</p>
+              <p class="muted" style="margin:4px 0 10px; font-size:12px;">Process customer purchases at the physical dispensary counter.</p>
+              <button class="btn btn-primary btn-sm" id="admin-walkin-empty-start-btn" type="button">+ Start First Walk-in Sale</button>
+            </div>
+          ` : `
+            <table class="standard-table admin-walkin-table">
+              <thead>
+                <tr>
+                  <th>Reference</th>
+                  <th>Time</th>
+                  <th>Customer</th>
+                  <th>Items Dispensed</th>
+                  <th>Staff / Pharmacist</th>
+                  <th>Payment</th>
+                  <th>Total</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${allWalkinOrders.slice(0, 5).map(o => `
+                  <tr>
+                    <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
+                    <td>
+                      <small>${new Date(o.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</small>
+                      <div class="muted" style="font-size:10.5px;">${new Date(o.createdAt).toLocaleDateString([], { month: 'short', day: 'numeric' })}</div>
+                    </td>
+                    <td>
+                      <span class="walkin-cust-name">${escapeHtml(o.customerName || 'Walk-in Customer')}</span>
+                      ${o.customerPhone ? `<div class="muted" style="font-size:11px;">${escapeHtml(o.customerPhone)}</div>` : ''}
+                    </td>
+                    <td>
+                      <span class="walkin-items-preview" title="${escapeHtml((o.items || []).map(i => `${i.quantity}x ${i.name}`).join(', '))}">
+                        ${(o.items || []).map(i => `${i.quantity}x ${escapeHtml(i.name)}`).join(", ")}
+                      </span>
+                    </td>
+                    <td>
+                      <small><strong>${escapeHtml(o.staffName || 'Dr. Amina Nanyonga')}</strong></small>
+                      <div class="muted" style="font-size:10.5px;">${escapeHtml(o.staffRole || 'Pharmacist')}</div>
+                    </td>
+                    <td>
+                      <span class="walkin-pay-tag">${escapeHtml(o.paymentMethod || 'Cash')}</span>
+                    </td>
+                    <td><strong class="walkin-total-amt" style="color:#0f766e;">${formatUGX(o.total)}</strong></td>
+                    <td>
+                      <button class="btn btn-outline btn-xs admin-walkin-row-receipt-btn" data-id="${o.id}" type="button">
+                        🧾 Receipt
+                      </button>
+                    </td>
+                  </tr>
+                `).join("")}
+              </tbody>
+            </table>
+          `}
+        </div>
+      </div>
+    </div>
+  `;
+
+  $("#admin-walkin-hub-launch-btn")?.addEventListener("click", () => openWalkinSaleModal());
+  $("#admin-walkin-hub-history-btn")?.addEventListener("click", () => openRecentSalesModal());
+  $("#admin-walkin-hub-calc-btn")?.addEventListener("click", () => openPosCalculator());
+  $("#admin-walkin-empty-start-btn")?.addEventListener("click", () => openWalkinSaleModal());
+  $("#admin-walkin-view-all-orders")?.addEventListener("click", () => {
+    STATE.orderFilter = "all";
+    STATE.orderChannelFilter = "walk_in";
+    navigateTo("admin/orders");
+  });
+
+  wrapper.querySelectorAll(".admin-walkin-row-receipt-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      const orderId = btn.dataset.id;
+      openReceiptModal(orderId);
+    });
   });
 }
 
@@ -9910,8 +10636,9 @@ async function handleCheckoutOrder(e) {
   }
 
   // Create Delivery Record if Delivery fulfillment was chosen
+  let newDelivery = null;
   if (fulfillmentType === "delivery") {
-    const newDelivery = {
+    newDelivery = {
       id: "DEL-" + Date.now().toString().slice(-3),
       orderId: orderRef,
       orderNumber: orderRef,
@@ -9930,6 +10657,115 @@ async function handleCheckoutOrder(e) {
       createdAt: new Date().toISOString().slice(0, 10)
     };
     STATE.deliveries.unshift(newDelivery);
+
+    // =========================================================
+    // AUTOMATED BACKEND DELIVERY ASSIGNMENT
+    // =========================================================
+    let deliveryAssignment = null;
+    try {
+      const assignRes = await fetch("http://127.0.0.1:8787/api/deliveries/auto-assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: orderRef,
+          orderData: {
+            orderNumber: orderRef,
+            customerId: newOrder.customerId,
+            customerName: name,
+            customerPhone: phoneVal.normalized,
+            deliveryArea: newOrder.deliveryArea,
+            deliveryDivision: newOrder.deliveryDivision,
+            specificLocation,
+            landmark: specificLocation,
+            deliveryFee: fee,
+            itemsSummary: newOrder.items.map(i => `${i.quantity}x ${i.name}`).join(", "),
+            paymentStatus: "PAID"
+          }
+        })
+      });
+      if (assignRes.ok) {
+        const assignData = await assignRes.json();
+        if (assignData.success && assignData.assignment) {
+          deliveryAssignment = assignData.assignment;
+        }
+      }
+    } catch (_) {}
+
+    // Deterministic fallback for test environments / offline mode
+    if (!deliveryAssignment) {
+      const drivers = (STATE.users || []).filter(u => 
+        (u.role === "delivery_person" || u.role === "deliveryStaff") && 
+        (String(u.status || "").toLowerCase() === "active" || !u.status)
+      );
+      if (drivers.length > 0) {
+        const counts = {};
+        drivers.forEach(d => { counts[d.uid || d.id] = 0; });
+        (STATE.deliveries || []).forEach(d => {
+          const s = String(d.status || "").toLowerCase();
+          if (s !== "delivered" && s !== "failed" && s !== "cancelled") {
+            const sid = d.deliveryStaffId || d.deliveryManId;
+            if (counts[sid] !== undefined) counts[sid]++;
+          }
+        });
+        const belowLimit = drivers.filter(d => (counts[d.uid || d.id] || 0) < 5);
+        if (belowLimit.length > 0) {
+          belowLimit.sort((a, b) => {
+            const ca = counts[a.uid || a.id] || 0;
+            const cb = counts[b.uid || b.id] || 0;
+            if (ca !== cb) return ca - cb;
+            return String(a.uid || a.id || "").localeCompare(String(b.uid || b.id || ""));
+          });
+          const sel = belowLimit[0];
+          deliveryAssignment = {
+            orderId: orderRef,
+            deliveryManId: sel.uid || sel.id,
+            deliveryManName: sel.displayName || sel.name,
+            deliveryManPhone: sel.phone || "0700000005",
+            status: "ASSIGNED"
+          };
+        } else {
+          deliveryAssignment = {
+            orderId: orderRef,
+            status: "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+          };
+        }
+      }
+    }
+
+    if (deliveryAssignment && deliveryAssignment.deliveryManId) {
+      newOrder.assignedStaff = deliveryAssignment.deliveryManName;
+      newOrder.deliveryManId = deliveryAssignment.deliveryManId;
+      newOrder.deliveryManName = deliveryAssignment.deliveryManName;
+      newOrder.deliveryManPhone = deliveryAssignment.deliveryManPhone;
+      newOrder.orderStatus = "Assigned";
+      newDelivery.deliveryStaffId = deliveryAssignment.deliveryManId;
+      newDelivery.deliveryStaffName = deliveryAssignment.deliveryManName;
+      newDelivery.status = "Assigned";
+
+      // Dispatch real-time notification to the Delivery Man (even if customer has not sent a message)
+      const notifItem = {
+        id: "notif-del-" + Date.now(),
+        recipientId: deliveryAssignment.deliveryManId,
+        role: "delivery_person",
+        type: "NEW_DELIVERY_ASSIGNED",
+        orderId: orderRef,
+        title: "NEW DELIVERY ASSIGNED",
+        message: `Order #${orderRef} assigned to you in ${newOrder.deliveryArea || 'Mbarara City'}.`,
+        customerName: name,
+        deliveryArea: newOrder.deliveryArea || "Mbarara City",
+        deliveryLocation: formattedAddress,
+        landmark: specificLocation,
+        deliveryFee: fee,
+        read: false,
+        createdAt: new Date().toISOString()
+      };
+      STATE.notifications.unshift(notifItem);
+    } else if (deliveryAssignment && deliveryAssignment.status === "WAITING_FOR_AVAILABLE_DELIVERY_MAN") {
+      newOrder.assignedStaff = "Waiting for Available Delivery Man";
+      newOrder.orderStatus = "Waiting for Available Delivery Man";
+      newDelivery.deliveryStaffName = "Waiting for Available Delivery Man";
+      newDelivery.status = "Waiting for Available Delivery Man";
+    }
   }
 
   // Create Payment Record
@@ -9952,18 +10788,24 @@ async function handleCheckoutOrder(e) {
 
   // Initialize delivery chat conversation immediately upon order placement!
   try {
-    getOrCreateOrderDeliveryChat(orderRef);
+    const conv = getOrCreateOrderDeliveryChat(orderRef);
+    if (conv && newOrder.deliveryManId) {
+      conv.deliveryManId = newOrder.deliveryManId;
+      conv.deliveryManName = newOrder.deliveryManName;
+      conv.deliveryStatus = "ASSIGNED";
+      saveConversationsToStorage();
+    }
   } catch (err) {
     console.error("Failed to initialize delivery chat:", err);
   }
 
-  // Always show the professional receipt for the order!
-  showReceiptModal(newOrder);
+  // ONLINE CUSTOMER ORDERS RECEIVE ORDER CONFIRMATION (NOT COUNTER RECEIPT!)
+  showOrderConfirmationModal(newOrder);
   renderOrdersView();
   renderRoleDashboard();
 
   if (hasRx) {
-    openNotice("Prescription Verification Note", `Order <strong>${orderRef}</strong> contains prescription medications and has been marked <strong>Awaiting Prescription Review</strong> on your official receipt.`);
+    openNotice("Prescription Verification Note", `Order <strong>${orderRef}</strong> contains prescription medications and has been marked <strong>Awaiting Prescription Review</strong> on your order confirmation.`);
   }
 }
 
@@ -10116,6 +10958,7 @@ export function setWalkinDiscountMode(mode) {
 export function renderWalkinSearchResults(query = "", category = "all") {
   const container = $("#walkin-results-container");
   if (!container) return;
+  container.scrollTop = 0;
 
   const results = searchMedicinesCatalog(STATE.products, query, {
     category: category === "all" ? null : category,
@@ -10982,6 +11825,12 @@ export async function completeWalkinSale() {
   renderDashboardView();
   renderMedicinesView();
   renderOrdersView();
+  if ($("#admin-walkin-overview-section")) {
+    renderAdminWalkinSection();
+  }
+  if ($("#admin-sales-overview-section")) {
+    renderSalesOverviewSectionContent(STATE.salesOverviewPeriod || "today");
+  }
 
   showToast(`Walk-in sale ${saleRef} completed! Total: ${formatUGX(total)}`, "success");
 }
@@ -11029,18 +11878,28 @@ export function showReceiptModal(order) {
   const orderTimeEl = $("#rec-order-time");
   if (orderTimeEl) orderTimeEl.textContent = formattedTime;
 
+  const isWalkin = order.saleSource === "WALK_IN" || isWalkinOrder(order);
+  const printableSheet = $("#printable-receipt");
+  if (printableSheet) {
+    printableSheet.classList.toggle("walkin-receipt-mode", isWalkin);
+  }
+
+  // Document Title
+  const docTitleEl = $("#rec-doc-title");
+  if (docTitleEl) {
+    docTitleEl.textContent = isWalkin ? "WALK-IN SALE RECEIPT" : "ORDER RECEIPT";
+  }
+
   // Status Badge
   const statusBadge = $("#rec-status-badge");
   if (statusBadge) {
-    const st = order.orderStatus || "Confirmed";
+    const st = isWalkin ? "Paid" : (order.orderStatus || "Confirmed");
     statusBadge.textContent = st;
     statusBadge.className = "receipt-status-pill";
     if (st.toLowerCase().includes("awaiting")) statusBadge.classList.add("status-awaiting");
-    else if (st.toLowerCase().includes("delivered")) statusBadge.classList.add("status-delivered");
+    else if (st.toLowerCase().includes("delivered") || st.toLowerCase() === "paid") statusBadge.classList.add("status-delivered");
     else statusBadge.classList.add("status-confirmed");
   }
-
-  const isWalkin = order.saleSource === "WALK_IN" || isWalkinOrder(order);
 
   // Staff Attribution
   const staffMetaItem = $("#rec-staff-meta-item");
@@ -11049,6 +11908,11 @@ export function showReceiptModal(order) {
     if (order.staffName) {
       staffMetaItem.style.display = "flex";
       staffNameVal.textContent = `${order.staffName} (${order.staffRole || "Staff"})`;
+    } else if (isWalkin) {
+      staffMetaItem.style.display = "flex";
+      const u = STATE.currentUser;
+      const fallbackName = u ? (u.displayName || u.name || u.email || "Pharmacist") : "Pharmacist";
+      staffNameVal.textContent = `${fallbackName} (Dispensary)`;
     } else {
       staffMetaItem.style.display = "none";
     }
@@ -11056,10 +11920,16 @@ export function showReceiptModal(order) {
 
   // Fulfillment Method
   const isPickup = order.fulfillmentType === "pickup" || isWalkin;
+  const fulfillmentMetaItem = $("#rec-fulfillment-meta-item");
   const fulfillmentEl = $("#rec-fulfillment-type");
   if (fulfillmentEl) {
-    if (isWalkin) fulfillmentEl.textContent = "Counter Sale (Walk-in)";
-    else fulfillmentEl.textContent = isPickup ? "Pharmacy Pickup" : "Home Delivery";
+    if (isWalkin) {
+      fulfillmentEl.textContent = "Counter Sale (Walk-in)";
+      if (fulfillmentMetaItem) fulfillmentMetaItem.style.display = "none";
+    } else {
+      fulfillmentEl.textContent = isPickup ? "Pharmacy Pickup" : "Home Delivery";
+      if (fulfillmentMetaItem) fulfillmentMetaItem.style.display = "flex";
+    }
   }
 
   // 2. Customer Information
@@ -11067,105 +11937,128 @@ export function showReceiptModal(order) {
   if (custNameEl) custNameEl.textContent = order.customerName || (isWalkin ? "Walk-in Customer" : "Customer");
 
   const custEmailEl = $("#rec-cust-email");
-  if (custEmailEl) custEmailEl.textContent = order.customerEmail || (isWalkin ? "Counter Sale" : "Not provided");
-
+  const custEmailRow = $("#rec-cust-email-row");
   const custPhoneEl = $("#rec-cust-phone");
-  if (custPhoneEl) custPhoneEl.textContent = order.customerPhone || (isWalkin ? "Counter Walk-in" : "Not provided");
+  const custPhoneRow = $("#rec-cust-phone-row");
 
-  // 3. Delivery Information
-  const deliveryBody = $("#rec-delivery-details-body");
-  if (deliveryBody) {
-    if (isWalkin) {
-      deliveryBody.innerHTML = `
-        <div class="receipt-detail-row">
-          <span class="detail-label">Sale Channel:</span>
-          <strong class="detail-val">Over-The-Counter Walk-in Sale</strong>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">Dispensary:</span>
-          <span class="detail-val">BloomCare Pharmacy Dispensary</span>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">Location:</span>
-          <span class="detail-val">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City</span>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">Fulfillment:</span>
-          <span class="detail-val">Dispensed Immediately at Counter</span>
-        </div>
-      `;
-    } else if (isPickup) {
-      deliveryBody.innerHTML = `
-        <div class="receipt-detail-row">
-          <span class="detail-label">Fulfillment:</span>
-          <strong class="detail-val">Pharmacy Pickup (Free)</strong>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">Pickup Station:</span>
-          <span class="detail-val">BloomCare Pharmacy Dispensary</span>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">Location:</span>
-          <span class="detail-val">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City</span>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">Dispensary Hours:</span>
-          <span class="detail-val">Mon–Sat: 8:00 AM – 8:00 PM</span>
-        </div>
-      `;
+  if (isWalkin) {
+    // Brief Walk-in: Hide dummy placeholders, only show if customer provided real info
+    if (order.customerEmail && order.customerEmail !== "Counter Sale") {
+      if (custEmailRow) custEmailRow.style.display = "flex";
+      if (custEmailEl) custEmailEl.textContent = order.customerEmail;
     } else {
-      deliveryBody.innerHTML = `
-        <div class="receipt-detail-row">
-          <span class="detail-label">Fulfillment:</span>
-          <strong class="detail-val">Doorstep Delivery (Mbarara City)</strong>
-        </div>
-        ${order.deliveryDivision ? `
-        <div class="receipt-detail-row">
-          <span class="detail-label">Delivery Zone:</span>
-          <span class="detail-val" style="display:flex; gap:4px; flex-wrap:wrap;">
-            <span class="delivery-division-tag">🏛 ${escapeHtml(order.deliveryDivision)}</span>
-            ${order.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(order.deliveryArea)}</span>` : ""}
-          </span>
-        </div>` : ""}
-        <div class="receipt-detail-row">
-          <span class="detail-label">Delivery Address:</span>
-          <strong class="detail-val">${escapeHtml(order.deliveryAddress || "Mbarara City")}</strong>
-        </div>
-        <div class="receipt-detail-row">
-          <span class="detail-label">City/Town:</span>
-          <span class="detail-val">${escapeHtml(order.deliveryCity || "Mbarara City")}</span>
-        </div>
-        ${(order.deliveryNotes || order.deliveryInstructions) ? `
-        <div class="receipt-detail-row">
-          <span class="detail-label">Instructions:</span>
-          <span class="detail-val">${escapeHtml(order.deliveryNotes || order.deliveryInstructions)}</span>
-        </div>` : ""}
-        <div class="receipt-chat-callout no-print">
-          <div style="display:flex; align-items:center; gap:10px;">
-            <span style="font-size:22px;">💬</span>
-            <div>
-              <strong style="color:#166534; font-size:13px; display:block;">Your delivery chat is ready</strong>
-              <span style="font-size:12px; color:#15803d;">You can send a message now. A delivery man will join the conversation once one is assigned to your order.</span>
-            </div>
+      if (custEmailRow) custEmailRow.style.display = "none";
+      if (custEmailEl) custEmailEl.textContent = "";
+    }
+
+    if (order.customerPhone && order.customerPhone !== "Counter Walk-in") {
+      if (custPhoneRow) custPhoneRow.style.display = "flex";
+      if (custPhoneEl) custPhoneEl.textContent = order.customerPhone;
+    } else {
+      if (custPhoneRow) custPhoneRow.style.display = "none";
+      if (custPhoneEl) custPhoneEl.textContent = "";
+    }
+  } else {
+    if (custEmailRow) custEmailRow.style.display = "flex";
+    if (custEmailEl) custEmailEl.textContent = order.customerEmail || "Not provided";
+    if (custPhoneRow) custPhoneRow.style.display = "flex";
+    if (custPhoneEl) custPhoneEl.textContent = order.customerPhone || "Not provided";
+  }
+
+  // 3. Delivery Information (completely hidden for counter walk-ins)
+  const fulfillmentSection = $("#rec-fulfillment-section");
+  const deliveryBody = $("#rec-delivery-details-body");
+  if (isWalkin) {
+    if (fulfillmentSection) fulfillmentSection.style.display = "none";
+  } else {
+    if (fulfillmentSection) fulfillmentSection.style.display = "block";
+    if (deliveryBody) {
+      if (isPickup) {
+        deliveryBody.innerHTML = `
+          <div class="receipt-detail-row">
+            <span class="detail-label">Fulfillment:</span>
+            <strong class="detail-val">Pharmacy Pickup (Free)</strong>
           </div>
-          <button type="button" class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${orderRef}" style="white-space:nowrap; background:#16a34a; border-color:#16a34a;">
-            💬 Chat with Delivery Man
-          </button>
-        </div>
-      `;
+          <div class="receipt-detail-row">
+            <span class="detail-label">Pickup Station:</span>
+            <span class="detail-val">BloomCare Pharmacy Dispensary</span>
+          </div>
+          <div class="receipt-detail-row">
+            <span class="detail-label">Location:</span>
+            <span class="detail-val">Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City</span>
+          </div>
+          <div class="receipt-detail-row">
+            <span class="detail-label">Dispensary Hours:</span>
+            <span class="detail-val">Mon–Sat: 8:00 AM – 8:00 PM</span>
+          </div>
+        `;
+      } else {
+        deliveryBody.innerHTML = `
+          <div class="receipt-detail-row">
+            <span class="detail-label">Fulfillment:</span>
+            <strong class="detail-val">Doorstep Delivery (Mbarara City)</strong>
+          </div>
+          ${order.deliveryDivision ? `
+          <div class="receipt-detail-row">
+            <span class="detail-label">Delivery Zone:</span>
+            <span class="detail-val" style="display:flex; gap:4px; flex-wrap:wrap;">
+              <span class="delivery-division-tag">🏛 ${escapeHtml(order.deliveryDivision)}</span>
+              ${order.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(order.deliveryArea)}</span>` : ""}
+            </span>
+          </div>` : ""}
+          <div class="receipt-detail-row">
+            <span class="detail-label">Delivery Address:</span>
+            <strong class="detail-val">${escapeHtml(order.deliveryAddress || "Mbarara City")}</strong>
+          </div>
+          <div class="receipt-detail-row">
+            <span class="detail-label">City/Town:</span>
+            <span class="detail-val">${escapeHtml(order.deliveryCity || "Mbarara City")}</span>
+          </div>
+          ${(order.deliveryNotes || order.deliveryInstructions) ? `
+          <div class="receipt-detail-row">
+            <span class="detail-label">Instructions:</span>
+            <span class="detail-val">${escapeHtml(order.deliveryNotes || order.deliveryInstructions)}</span>
+          </div>` : ""}
+          <div class="receipt-chat-callout no-print">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:22px;">💬</span>
+              <div>
+                <strong style="color:#166534; font-size:13px; display:block;">Your delivery chat is ready</strong>
+                <span style="font-size:12px; color:#15803d;">You can send a message now. A delivery man will join the conversation once one is assigned to your order.</span>
+              </div>
+            </div>
+            <button type="button" class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${orderRef}" style="white-space:nowrap; background:#16a34a; border-color:#16a34a;">
+              💬 Chat with Delivery Man
+            </button>
+          </div>
+        `;
+      }
     }
   }
 
   // 4. Payment Information
   const payMethodEl = $("#rec-pay-method");
-  if (payMethodEl) payMethodEl.textContent = order.paymentMethod || "Cash on Delivery";
+  if (payMethodEl) payMethodEl.textContent = order.paymentMethod || (isWalkin ? "Cash" : "Cash on Delivery");
 
+  const payPhoneRow = $("#rec-pay-phone-row");
   const payPhoneEl = $("#rec-pay-phone");
-  if (payPhoneEl) payPhoneEl.textContent = order.paymentPhone || order.customerPhone || (isWalkin ? "Counter Cash" : "N/A");
+  const hasPhoneRef = order.paymentPhone || (order.paymentMethod && order.paymentMethod !== "Cash" && order.customerPhone);
+  if (isWalkin) {
+    if (hasPhoneRef && order.paymentMethod !== "Cash") {
+      if (payPhoneRow) payPhoneRow.style.display = "flex";
+      if (payPhoneEl) payPhoneEl.textContent = order.paymentPhone || order.customerPhone;
+    } else {
+      if (payPhoneRow) payPhoneRow.style.display = "none";
+      if (payPhoneEl) payPhoneEl.textContent = "";
+    }
+  } else {
+    if (payPhoneRow) payPhoneRow.style.display = "flex";
+    if (payPhoneEl) payPhoneEl.textContent = order.paymentPhone || order.customerPhone || "N/A";
+  }
 
   const payStatusEl = $("#rec-pay-status");
   if (payStatusEl) {
-    const pStatus = order.paymentStatus || (order.paymentMethod === "Cash on Delivery" ? "Pending" : "Paid");
+    const pStatus = isWalkin ? "Paid" : (order.paymentStatus || (order.paymentMethod === "Cash on Delivery" ? "Pending" : "Paid"));
     payStatusEl.textContent = pStatus;
     payStatusEl.className = "receipt-pay-pill " + (pStatus === "Paid" || pStatus === "Successful" ? "pay-paid" : "pay-pending");
   }
@@ -11174,10 +12067,9 @@ export function showReceiptModal(order) {
   const cashReceivedRow = $("#rec-cash-received-row");
   const cashReceivedVal = $("#rec-cash-received-val");
   const cashChangeRow = $("#rec-cash-change-row");
-  const cashChangeVal = $("#rec-cash-change-row");
   const cashChangeNum = $("#rec-cash-change-val");
 
-  if (order.amountReceived != null && (order.paymentMethod === "Cash" || order.paymentMethod === "cash")) {
+  if (order.amountReceived != null && (order.paymentMethod === "Cash" || order.paymentMethod === "cash" || !order.paymentMethod)) {
     if (cashReceivedRow && cashReceivedVal) {
       cashReceivedRow.style.display = "flex";
       cashReceivedVal.textContent = formatUGX(order.amountReceived);
@@ -11246,13 +12138,41 @@ export function showReceiptModal(order) {
   const subtotalEl = $("#rec-subtotal-val");
   if (subtotalEl) subtotalEl.textContent = formatUGX(subtotal);
 
+  // Discount Line
+  const discountLine = $("#rec-discount-line");
+  const discountValEl = $("#rec-discount-val");
+  if (discountLine && discountValEl) {
+    if (discount > 0) {
+      discountLine.style.display = "flex";
+      discountValEl.textContent = "- " + formatUGX(discount);
+    } else {
+      discountLine.style.display = "none";
+    }
+  }
+
+  // Delivery Fee Line (hidden on walk-in sales)
+  const deliveryFeeLine = $("#rec-delivery-fee-line");
   const feeEl = $("#rec-delivery-fee-val");
   if (feeEl) feeEl.textContent = formatUGX(deliveryFee);
+  if (deliveryFeeLine) {
+    deliveryFeeLine.style.display = (isWalkin || isPickup || deliveryFee === 0) ? "none" : "flex";
+  }
 
   const totalEl = $("#rec-total-payable-val");
   if (totalEl) totalEl.textContent = formatUGX(total);
 
-  // 7. WhatsApp link in footer
+  // 7. Footers (Brief 1-Page Footer for Walk-in, Standard for Online)
+  const standardFooter = $("#rec-standard-footer");
+  const walkinFooter = $("#rec-walkin-footer");
+  if (isWalkin) {
+    if (standardFooter) standardFooter.style.display = "none";
+    if (walkinFooter) walkinFooter.style.display = "block";
+  } else {
+    if (standardFooter) standardFooter.style.display = "block";
+    if (walkinFooter) walkinFooter.style.display = "none";
+  }
+
+  // WhatsApp link in footer
   const whatsappBtn = $("#rec-whatsapp-btn");
   if (whatsappBtn) {
     whatsappBtn.href = createWhatsAppUrl(
@@ -11287,6 +12207,351 @@ export function showReceiptModal(order) {
   $("#receipt-dialog")?.showModal();
 }
 
+// =============================================================
+// MODULE: ONLINE ORDER CONFIRMATION (NO COUNTER RECEIPT REQUIRED)
+// =============================================================
+
+export function showOrderConfirmationModal(order) {
+  if (!order) return;
+  const modal = $("#order-confirmation-dialog");
+  if (!modal) return;
+
+  // Level 2 Security: Verify customer ownership
+  if (getEffectiveRole() === "customer" && STATE.currentUser) {
+    const isOwner = order.customerId === STATE.currentUser.uid || (STATE.currentUser.email && order.customerEmail === STATE.currentUser.email);
+    if (!isOwner) {
+      openNotice("Access Denied", "You do not have permission to view confirmation for an order belonging to another customer.");
+      return;
+    }
+  }
+
+  STATE.activeConfirmationOrder = order;
+  const orderNumber = order.orderNumber || order.id || "BC-ORDER";
+  const orderNumberEl = $("#confirm-order-number");
+  if (orderNumberEl) orderNumberEl.textContent = orderNumber;
+
+  const statusEl = $("#confirm-order-status");
+  if (statusEl) {
+    const st = order.orderStatus || "Confirmed";
+    statusEl.textContent = st;
+    statusEl.className = `confirm-status-pill status-${st.toLowerCase().replace(/ /g, "_")}`;
+  }
+
+  const payStatusEl = $("#confirm-payment-status");
+  if (payStatusEl) {
+    const isPending = (order.paymentStatus || "").toUpperCase() === "PENDING";
+    payStatusEl.textContent = isPending ? "PENDING" : "PAID ✓";
+    payStatusEl.style.background = isPending ? "#fef3c7" : "#dcfce7";
+    payStatusEl.style.color = isPending ? "#b45309" : "#15803d";
+    payStatusEl.style.borderColor = isPending ? "#fde68a" : "#86efac";
+  }
+
+  const feeEl = $("#confirm-delivery-fee");
+  if (feeEl) feeEl.textContent = formatUGX(order.deliveryFee ?? 5000);
+
+  const locEl = $("#confirm-delivery-location");
+  if (locEl) {
+    let locStr = order.deliveryAddress || "";
+    if (order.deliveryDivision || order.deliveryArea) {
+      locStr = `${order.deliveryArea ? order.deliveryArea + ", " : ""}${order.deliveryDivision || ""}, Mbarara City`;
+      if (order.specificLocation) locStr += ` (${order.specificLocation})`;
+    }
+    if (order.fulfillmentType === "pickup") {
+      locStr = "Pharmacy Pickup — BloomCare Main Dispensary, Booma, Kamukuzi, Mbarara City";
+    }
+    locEl.textContent = locStr || "Mbarara City";
+  }
+
+  const landmarkRow = $("#confirm-landmark-row");
+  const landmarkText = $("#confirm-landmark-text");
+  const note = order.landmark || order.specificLocation || order.deliveryNotes || order.deliveryInstructions;
+  if (landmarkRow && landmarkText) {
+    if (note && order.fulfillmentType !== "pickup") {
+      landmarkRow.style.display = "flex";
+      landmarkText.textContent = note;
+    } else {
+      landmarkRow.style.display = "none";
+    }
+  }
+
+  const etaEl = $("#confirm-delivery-eta");
+  if (etaEl) {
+    if (order.fulfillmentType === "pickup") {
+      etaEl.textContent = "Ready for Pickup today during dispensary hours (8am - 8pm)";
+    } else {
+      etaEl.textContent = "⏱ Estimated arrival in 30 – 45 minutes";
+    }
+  }
+
+  // Assigned Delivery Man Details
+  const driverCard = $("#confirm-driver-card");
+  const driverNameEl = $("#confirm-driver-name");
+  const driverPhoneEl = $("#confirm-driver-phone");
+  const driverStatusEl = $("#confirm-driver-status");
+  const driverAvatarEl = $("#confirm-driver-avatar");
+
+  const driverName = order.deliveryManName || order.assignedStaff;
+  const isDriverAssigned = driverName && driverName !== "Pending Assignment" && driverName !== "Unassigned" && driverName !== "Waiting for Available Delivery Man";
+
+  if (driverCard) {
+    if (order.fulfillmentType === "pickup") {
+      driverCard.style.display = "none";
+    } else {
+      driverCard.style.display = "block";
+      if (isDriverAssigned) {
+        if (driverNameEl) driverNameEl.textContent = driverName;
+        if (driverPhoneEl) driverPhoneEl.textContent = `📞 ${order.deliveryManPhone || "0700 000 005"}`;
+        if (driverStatusEl) {
+          driverStatusEl.textContent = "Assigned & Dispatching";
+          driverStatusEl.style.color = "#0369a1";
+          driverStatusEl.style.background = "#e0f2fe";
+        }
+        if (driverAvatarEl) {
+          const initials = driverName.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase();
+          driverAvatarEl.textContent = initials || "DP";
+        }
+      } else {
+        if (driverNameEl) driverNameEl.textContent = "Assigning Nearest Delivery Man...";
+        if (driverPhoneEl) driverPhoneEl.textContent = "Our automated dispatcher is matching an available courier";
+        if (driverStatusEl) {
+          driverStatusEl.textContent = "Matching Partner...";
+          driverStatusEl.style.color = "#854d0e";
+          driverStatusEl.style.background = "#fef9c3";
+        }
+        if (driverAvatarEl) driverAvatarEl.textContent = "⏳";
+      }
+    }
+  }
+
+  // Ordered Items List
+  const itemsCountEl = $("#confirm-items-count");
+  if (itemsCountEl) itemsCountEl.textContent = String(order.items?.length || 0);
+
+  const itemsListEl = $("#confirm-items-list");
+  if (itemsListEl) {
+    itemsListEl.innerHTML = (order.items || []).map(item => `
+      <div class="confirm-item-row">
+        <span>${item.quantity}x ${escapeHtml(item.name)}</span>
+        <strong>${formatUGX(item.subtotal || (item.price * item.quantity))}</strong>
+      </div>
+    `).join("");
+  }
+
+  const totalValEl = $("#confirm-total-val");
+  if (totalValEl) totalValEl.textContent = formatUGX(order.total || 0);
+
+  // Chat Button Action
+  const chatBtn = $("#order-confirm-chat-btn");
+  if (chatBtn) {
+    if (order.fulfillmentType === "pickup") {
+      chatBtn.style.display = "none";
+    } else {
+      chatBtn.style.display = "inline-flex";
+      chatBtn.onclick = () => {
+        modal.close();
+        openCustomerChatModal(orderNumber);
+      };
+    }
+  }
+
+  // View in Orders Action
+  const viewOrdersBtn = $("#order-confirm-view-orders-btn");
+  if (viewOrdersBtn) {
+    viewOrdersBtn.onclick = () => {
+      modal.close();
+      navigateTo("orders");
+    };
+  }
+
+  // Continue Shopping Action
+  const continueBtn = $("#order-confirm-continue-btn");
+  if (continueBtn) {
+    continueBtn.onclick = () => {
+      modal.close();
+      navigateTo("medicines");
+    };
+  }
+
+  const closeBtn = $("#close-order-confirm-modal");
+  if (closeBtn) {
+    closeBtn.onclick = () => modal.close();
+  }
+
+  if (typeof modal.showModal === "function") {
+    modal.showModal();
+  }
+}
+
+export function openDeliveryDetailsModal(deliveryId) {
+  if (!deliveryId) return;
+  const modal = $("#delivery-details-dialog");
+  if (!modal) return;
+
+  const d = STATE.deliveries.find(item => item.id === deliveryId || item.orderNumber === deliveryId || item.orderId === deliveryId);
+  if (!d) {
+    openNotice("Delivery Not Found", "Delivery run information could not be located.");
+    return;
+  }
+
+  // Viewing marks related notifications as read!
+  // Note: Viewing does NOT mark the order delivered!
+  const orderRef = d.orderNumber || d.orderId || d.id;
+  const notifsToMark = STATE.notifications.filter(n => 
+    !n.read && (n.orderId === orderRef || n.orderId === d.id)
+  );
+  notifsToMark.forEach(n => {
+    n.read = true;
+    try {
+      fetch("http://127.0.0.1:8787/api/notifications/mark-read", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ notificationId: n.id })
+      }).catch(() => {});
+    } catch (_) {}
+  });
+
+  const contentEl = $("#delivery-details-content");
+  if (contentEl) {
+    contentEl.innerHTML = `
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:12px 14px; margin-bottom:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <strong style="font-size:15px; color:#0f172a;">Order #${escapeHtml(orderRef)}</strong>
+          <span class="status-pill status-${(d.status || 'Assigned').toLowerCase().replace(/ /g, '_')}">${escapeHtml(d.status || 'Assigned')}</span>
+        </div>
+        <div style="font-size:12px; color:#64748b;">Delivery Run Ref: ${escapeHtml(d.id)}</div>
+      </div>
+
+      <div style="display:flex; flex-direction:column; gap:10px; font-size:13px;">
+        <div>
+          <span style="color:#64748b; font-size:12px; display:block;">Customer</span>
+          <strong style="font-size:14px; color:#0f172a;">${escapeHtml(d.customerName || 'Customer')}</strong>
+          <div style="color:#0284c7; font-weight:600; margin-top:2px;">📞 ${escapeHtml(d.phone || 'No phone provided')}</div>
+        </div>
+
+        <div>
+          <span style="color:#64748b; font-size:12px; display:block;">Delivery Destination</span>
+          <div style="font-weight:600; color:#0f172a; margin-top:2px;">${escapeHtml(d.specificLocation || d.address || 'Mbarara City')}</div>
+          ${d.deliveryDivision ? `<div style="font-size:12px; color:#64748b; margin-top:2px;">Division: ${escapeHtml(d.deliveryDivision)}${d.deliveryArea ? ` &bull; Area: ${escapeHtml(d.deliveryArea)}` : ''}</div>` : ''}
+          ${d.landmark ? `<div style="font-size:12px; color:#475569; margin-top:2px;">📍 Landmark: Near ${escapeHtml(d.landmark)}</div>` : ''}
+          ${d.deliveryInstructions ? `<div style="font-size:12px; color:#0f766e; background:#f0fdf4; padding:6px 8px; border-radius:6px; margin-top:4px;">Instructions: ${escapeHtml(d.deliveryInstructions)}</div>` : ''}
+        </div>
+
+        <div>
+          <span style="color:#64748b; font-size:12px; display:block;">Items Summary</span>
+          <div style="color:#0f172a; font-weight:500; margin-top:2px;">${escapeHtml(d.itemsSummary || 'Standard pharmacy package')}</div>
+        </div>
+
+        <div>
+          <span style="color:#64748b; font-size:12px; display:block;">Assigned Delivery Staff</span>
+          <strong style="color:#0f172a;">${escapeHtml(d.deliveryStaffName || 'Unassigned')}</strong>
+        </div>
+      </div>
+    `;
+  }
+
+  const chatBtn = $("#btn-delivery-details-chat");
+  if (chatBtn) {
+    chatBtn.onclick = () => {
+      modal.close();
+      const conv = getOrCreateOrderDeliveryChat(orderRef);
+      if (conv) {
+        STATE.activeChatConversationId = conv.conversationId;
+        navigateTo("delivery_person/chat");
+      }
+    };
+  }
+
+  const closeBtn = $("#btn-delivery-details-close");
+  if (closeBtn) closeBtn.onclick = () => modal.close();
+  const closeIcon = $("#close-delivery-details-btn");
+  if (closeIcon) closeIcon.onclick = () => modal.close();
+
+  if (typeof modal.showModal === "function") {
+    modal.showModal();
+  }
+}
+
+export async function syncDeliverySystemWithBackend() {
+  if (typeof fetch !== "function") return;
+  try {
+    const apiHost = "http://127.0.0.1:8787";
+
+    // 1. Sync Notifications
+    const notifsRes = await fetch(`${apiHost}/api/notifications`).catch(() => null);
+    if (notifsRes && notifsRes.ok) {
+      const notifsData = await notifsRes.json().catch(() => null);
+      if (notifsData && Array.isArray(notifsData.notifications)) {
+        if (!Array.isArray(STATE.notifications)) STATE.notifications = [];
+        let updated = false;
+        notifsData.notifications.forEach(serverN => {
+          const existing = STATE.notifications.find(n => n.id === serverN.id);
+          if (!existing) {
+            STATE.notifications.unshift(serverN);
+            updated = true;
+          } else if (existing.read !== serverN.read) {
+            existing.read = serverN.read;
+            updated = true;
+          }
+        });
+        if (updated) {
+          if (typeof updateNotifBadge === "function") updateNotifBadge();
+          if (typeof renderNotificationsView === "function" && STATE.currentRoute === "notifications") {
+            renderNotificationsView();
+          }
+        }
+      }
+    }
+
+    // 2. Sync Assignments & Deliveries
+    const assignsRes = await fetch(`${apiHost}/api/deliveries/assignments`).catch(() => null);
+    if (assignsRes && assignsRes.ok) {
+      const assignsData = await assignsRes.json().catch(() => null);
+      if (assignsData && Array.isArray(assignsData.assignments)) {
+        STATE.deliveryAssignments = assignsData.assignments;
+      }
+      if (assignsData && Array.isArray(assignsData.deliveries)) {
+        if (!Array.isArray(STATE.deliveries)) STATE.deliveries = [];
+        let deliveryUpdated = false;
+        assignsData.deliveries.forEach(serverD => {
+          const idx = STATE.deliveries.findIndex(d => d.id === serverD.id || (serverD.orderNumber && d.orderNumber === serverD.orderNumber));
+          if (idx >= 0) {
+            if (STATE.deliveries[idx].status !== serverD.status) deliveryUpdated = true;
+            STATE.deliveries[idx] = { ...STATE.deliveries[idx], ...serverD };
+          } else {
+            STATE.deliveries.unshift(serverD);
+            deliveryUpdated = true;
+          }
+        });
+        const effRole = typeof getEffectiveRole === "function" ? getEffectiveRole() : "";
+        if (deliveryUpdated && effRole === "delivery_person" && STATE.currentRoute === "delivery_person/dashboard") {
+          const box = $("#role-dashboard-container");
+          if (box && typeof renderRoleDashboard === "function") {
+            renderRoleDashboard("delivery_person");
+          }
+        }
+      }
+    }
+
+    // 3. Sync Conversations
+    const convsRes = await fetch(`${apiHost}/api/conversations`).catch(() => null);
+    if (convsRes && convsRes.ok) {
+      const convsData = await convsRes.json().catch(() => null);
+      if (convsData && Array.isArray(convsData.conversations)) {
+        if (!Array.isArray(STATE.conversations)) STATE.conversations = [];
+        convsData.conversations.forEach(serverC => {
+          const idx = STATE.conversations.findIndex(c => c.conversationId === serverC.conversationId || (serverC.orderId && c.orderId === serverC.orderId));
+          if (idx >= 0) {
+            STATE.conversations[idx] = { ...STATE.conversations[idx], ...serverC };
+          } else {
+            STATE.conversations.unshift(serverC);
+          }
+        });
+        if (typeof updateChatUnreadBadges === "function") updateChatUnreadBadges();
+      }
+    }
+  } catch (_) {}
+}
+
 export function printThermalReceipt(order) {
   if (!order) order = STATE.activeReceiptOrder || (STATE.orders || [])[0];
   if (!order) return;
@@ -11308,6 +12573,7 @@ export function downloadReceipt(order) {
   if (!sheet) return;
 
   const orderRef = order.orderNumber || order.id || "receipt";
+  const isWalkin = order.saleSource === "WALK_IN" || isWalkinOrder(order);
   const sheetHtml = sheet.innerHTML;
 
   const htmlContent = `<!DOCTYPE html>
@@ -11328,10 +12594,14 @@ export function downloadReceipt(order) {
       max-width: 650px;
       margin: 0 auto;
       background: #ffffff;
-      padding: 28px;
+      padding: 24px 28px;
       border-radius: 8px;
       box-shadow: 0 4px 14px rgba(0,0,0,0.08);
       border: 1px solid #e2e8f0;
+    }
+    .receipt-sheet.walkin-receipt-mode {
+      max-width: 580px;
+      padding: 18px 22px;
     }
     .receipt-brand-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-bottom: 8px; }
     .receipt-brand-name { font-size: 20px; font-weight: 800; color: #0f766e; letter-spacing: 0.5px; margin: 0 0 2px; }
@@ -11383,14 +12653,38 @@ export function downloadReceipt(order) {
     .receipt-legal-note { font-size: 10px; color: #94a3b8; margin: 4px 0 0; }
     .text-right { text-align: right; }
     .text-center { text-align: center; }
+
+    /* Walk-in Brief 1-Page Styling */
+    .walkin-receipt-mode .receipt-header { margin-bottom: 6px; }
+    .walkin-receipt-mode .receipt-brand-row { margin-bottom: 2px; align-items: center; }
+    .walkin-receipt-mode .receipt-brand-name { font-size: 18px; margin: 0; }
+    .walkin-receipt-mode .receipt-brand-tagline { display: none; }
+    .walkin-receipt-mode .receipt-logo { width: 40px; height: 40px; }
+    .walkin-receipt-mode .receipt-divider-strong { height: 1.5px; margin: 8px 0 6px 0; }
+    .walkin-receipt-mode .receipt-divider-light { margin: 6px 0 8px 0; }
+    .walkin-receipt-mode .receipt-meta-grid { grid-template-columns: repeat(3, 1fr); gap: 6px 12px; padding: 8px 12px; margin-bottom: 8px; font-size: 11.5px; }
+    .walkin-receipt-mode .receipt-parties-grid { display: block; margin-bottom: 8px; }
+    .walkin-receipt-mode .receipt-card-section { padding: 8px 12px; }
+    .walkin-receipt-mode .receipt-details-list { gap: 3px; font-size: 11.5px; }
+    .walkin-receipt-mode .receipt-details-grid-3 { gap: 6px 14px; font-size: 11.5px; }
+    .walkin-receipt-mode .receipt-items-section { margin-top: 8px; }
+    .walkin-receipt-mode .receipt-items-table { font-size: 11.5px; margin-top: 4px; }
+    .walkin-receipt-mode .receipt-items-table thead th { padding: 6px 8px; font-size: 10.5px; }
+    .walkin-receipt-mode .receipt-items-table tbody td { padding: 5px 8px; }
+    .walkin-receipt-mode .receipt-summary-container { margin-top: 8px; }
+    .walkin-receipt-mode .receipt-summary-box { width: 250px; padding: 8px 12px; }
+    .walkin-receipt-mode .receipt-footer { margin-top: 10px; }
+
     @media print {
+      @page { size: auto; margin: 8mm 10mm; }
       body { background: #ffffff; padding: 0; }
-      .receipt-sheet { border: none; box-shadow: none; padding: 0; }
+      .receipt-sheet { border: none; box-shadow: none; padding: 0; page-break-inside: avoid; break-inside: avoid; }
+      .receipt-sheet * { page-break-inside: avoid; break-inside: avoid; }
     }
   </style>
 </head>
 <body>
-  <div class="receipt-sheet">
+  <div class="receipt-sheet ${isWalkin ? 'walkin-receipt-mode' : ''}">
     ${sheetHtml}
   </div>
 </body>
@@ -11778,14 +13072,21 @@ function bindEventListeners() {
     renderOrdersView();
   });
 
+  $("#orders-filter-channel")?.addEventListener("change", (e) => {
+    STATE.orderChannelFilter = e.target.value;
+    renderOrdersView();
+  });
+
   $("#orders-filter-reset-location")?.addEventListener("click", () => {
     STATE.orderDivisionFilter = "all";
     STATE.orderAreaFilter = "all";
+    STATE.orderChannelFilter = "all";
     if ($("#orders-filter-division")) $("#orders-filter-division").value = "all";
     if ($("#orders-filter-area")) {
       $("#orders-filter-area").innerHTML = `<option value="all">All Areas</option>`;
       $("#orders-filter-area").value = "all";
     }
+    if ($("#orders-filter-channel")) $("#orders-filter-channel").value = "all";
     renderOrdersView();
   });
 
@@ -12055,7 +13356,13 @@ function bindEventListeners() {
     const recBtn = e.target.closest(".view-rec-btn");
     if (recBtn) {
       const order = STATE.orders.find(o => o.id === recBtn.dataset.id);
-      if (order) showReceiptModal(order);
+      if (order) {
+        if (getEffectiveRole() === "customer" && !isWalkinOrder(order)) {
+          showOrderConfirmationModal(order);
+        } else {
+          showReceiptModal(order);
+        }
+      }
     }
 
     const editProdBtn = e.target.closest(".edit-prod-btn");
@@ -12809,6 +14116,8 @@ function bindEventListeners() {
 
   // Scratchpad Calculator Modal & Keypad
   $("#pos-open-calculator-btn")?.addEventListener("click", openPosCalculator);
+  $("#walkin-inline-calc-btn")?.addEventListener("click", openPosCalculator);
+  $("#pos-cash-calc-shortcut")?.addEventListener("click", openPosCalculator);
   $("#close-pos-calculator-modal")?.addEventListener("click", closePosCalculator);
 
   $$(".pos-calc-btn").forEach(btn => {
@@ -12817,6 +14126,27 @@ function bindEventListeners() {
       const val = btn.dataset.val;
       handlePosCalcInput(action, val);
     });
+  });
+
+  // Apply Calculator Result to POS Inputs
+  $("#pos-calc-apply-cash")?.addEventListener("click", () => {
+    const num = parseFloat(posCalcExpression);
+    const cashInput = $("#walkin-cash-received");
+    if (cashInput && !isNaN(num) && num >= 0) {
+      cashInput.value = Math.round(num);
+      calculateWalkinCashChange();
+      closePosCalculator();
+    }
+  });
+
+  $("#pos-calc-apply-discount")?.addEventListener("click", () => {
+    const num = parseFloat(posCalcExpression);
+    const discountInput = $("#walkin-discount-input");
+    if (discountInput && !isNaN(num) && num >= 0) {
+      discountInput.value = Math.round(num);
+      renderWalkinCart();
+      closePosCalculator();
+    }
   });
 
   // Calculator physical keyboard support

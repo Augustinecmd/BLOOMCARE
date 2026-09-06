@@ -83,6 +83,20 @@
     ]
   },
   {
+    "id": "usr-staff-6",
+    "name": "Paul Ssemwogerere",
+    "email": "paul.s@bloomcare.com",
+    "phone": "0700000006",
+    "role": "delivery_person",
+    "status": "active",
+    "createdAt": "2026-02-20T11:00:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "order:dispatch",
+      "order:deliver"
+    ]
+  },
+  {
     "id": "usr-cust-101",
     "name": "Grace Nakato",
     "email": "grace.nakato@example.com",
@@ -110,6 +124,22 @@
       "catalog:browse",
       "cart:checkout"
     ],
-    "updatedAt": "2026-09-05 14:49:15 UTC"
+    "updatedAt": "2026-09-05 17:04:27 UTC"
+  },
+  {
+    "id": "usr-1788628549485",
+    "name": "ARINDA KEVIN",
+    "displayName": "ARINDA KEVIN",
+    "email": "arinda@gmail.com",
+    "phone": "0788898787",
+    "role": "delivery_person",
+    "status": "active",
+    "createdAt": "2026-09-05 17:15:49 UTC",
+    "lastLogin": "Never",
+    "permissions": [
+      "order:dispatch",
+      "order:deliver"
+    ],
+    "updatedAt": "2026-09-05 17:17:21 UTC"
   }
 ]
