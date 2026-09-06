@@ -124,7 +124,8 @@
       "catalog:browse",
       "cart:checkout"
     ],
-    "updatedAt": "2026-09-05 17:04:27 UTC"
+    "updatedAt": "2026-09-06 05:16:05 UTC"
+    "updatedAt": "2026-09-06 05:38:20 UTC"
   },
   {
     "id": "usr-1788628549485",
@@ -141,5 +142,21 @@
       "order:deliver"
     ],
     "updatedAt": "2026-09-05 17:17:21 UTC"
+  },
+  {
+    "id": "usr-cust-demo",
+    "name": "Demo Customer",
+    "displayName": "Demo Customer",
+    "email": "customer@example.com",
+    "phone": "0751234567",
+    "role": "customer",
+    "status": "active",
+    "createdAt": "2026-03-01T10:00:00Z",
+    "lastLogin": "Today",
+    "permissions": [
+      "catalog:browse",
+      "cart:checkout",
+      "prescription:upload"
+    ]
   }
 ]

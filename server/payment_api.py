@@ -507,6 +507,13 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
     with LOCK:
         assignments = read_assignments()
         order_key = str(order_id).strip()
+        if not order_key:
+            return {"status": "ERROR", "message": "orderId cannot be empty"}
+
+        # Format items summary from items list if not provided
+        items_list = order_data.get("items") or []
+        if not order_data.get("itemsSummary") and items_list:
+            order_data["itemsSummary"] = ", ".join(f"{i.get('quantity', 1)}x {i.get('name', 'Item')}" for i in items_list)
 
         # Check if already assigned (idempotent / prevent duplicate assignments)
         existing = assignments.get(order_key)
@@ -547,7 +554,15 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
                 "deliveryLocation": order_data.get("specificLocation") or order_data.get("deliveryAddress", "Mbarara City"),
                 "landmark": order_data.get("landmark", ""),
                 "deliveryFee": order_data.get("deliveryFee", 5000),
-                "itemsSummary": order_data.get("itemsSummary", "")
+                "itemsSummary": order_data.get("itemsSummary", ""),
+                "items": items_list,
+                "assignmentHistory": [
+                    {
+                        "timestamp": now_iso,
+                        "action": "QUEUED_WAITING_FOR_DRIVER",
+                        "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+                    }
+                ]
             }
             assignments[order_key] = rec
             write_assignments(assignments)
@@ -567,6 +582,14 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
         driver_name = driver.get("name") or driver.get("displayName") or "Moses Kato"
         driver_phone = driver.get("phone", "0700000005")
 
+        history = (existing.get("assignmentHistory") if existing else None) or []
+        history.append({
+            "timestamp": now_iso,
+            "action": "ASSIGNED",
+            "deliveryManId": driver_id,
+            "deliveryManName": driver_name
+        })
+
         assignment = {
             "orderId": order_key,
             "orderNumber": order_data.get("orderNumber", order_key),
@@ -582,10 +605,12 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
             "landmark": order_data.get("landmark", ""),
             "deliveryFee": order_data.get("deliveryFee", 5000),
             "itemsSummary": order_data.get("itemsSummary", ""),
+            "items": items_list,
             "status": "ASSIGNED",
             "deliveryStatus": "ASSIGNED",
             "assignedAt": now_iso,
-            "updatedAt": now_iso
+            "updatedAt": now_iso,
+            "assignmentHistory": history
         }
         assignments[order_key] = assignment
         write_assignments(assignments)
@@ -604,6 +629,7 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
             "deliveryArea": order_data.get("deliveryArea", "Kiyanja"),
             "landmark": order_data.get("landmark", ""),
             "itemsSummary": order_data.get("itemsSummary", ""),
+            "items": items_list,
             "deliveryStaffId": driver_id,
             "deliveryStaffName": driver_name,
             "status": "Assigned",
@@ -680,11 +706,21 @@ def reassign_delivery(order_id: str, new_driver_id: str, admin_meta: dict) -> di
         new_driver_name = new_driver.get("name") or new_driver.get("displayName")
         new_driver_phone = new_driver.get("phone", "")
 
+        history = assignments[order_key].get("assignmentHistory") or []
+        history.append({
+            "timestamp": now_iso,
+            "action": "REASSIGNED",
+            "fromDeliveryManId": prev_driver_id,
+            "toDeliveryManId": new_driver_id,
+            "toDeliveryManName": new_driver_name
+        })
+
         assignments[order_key]["deliveryManId"] = new_driver_id
         assignments[order_key]["deliveryManName"] = new_driver_name
         assignments[order_key]["deliveryManPhone"] = new_driver_phone
         assignments[order_key]["status"] = "ASSIGNED"
         assignments[order_key]["updatedAt"] = now_iso
+        assignments[order_key]["assignmentHistory"] = history
         write_assignments(assignments)
 
         # Update delivery record
@@ -1579,6 +1615,9 @@ class PaymentHandler(BaseHTTPRequestHandler):
                 self.send_json(422, {"success": False, "message": "orderId is required"})
                 return
             assignment = auto_assign_delivery(order_id, order_data)
+            if assignment.get("status") == "PAYMENT_NOT_VERIFIED":
+                self.send_json(400, {"success": False, "status": "PAYMENT_NOT_VERIFIED", "message": assignment.get("message")})
+                return
             self.send_json(200, {"success": True, "assignment": assignment})
             return
 

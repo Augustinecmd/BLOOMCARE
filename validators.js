@@ -44,6 +44,24 @@ export function validatePassword(password) {
   };
 }
 
+export const PASSWORD_POLICY = "demo"; // switch to "production" later
+
+export function validateCustomerDemoPassword(password) {
+  const raw = String(password || "").trim();
+  const valid = /^\d{6}$/.test(raw);
+  return {
+    valid,
+    message: valid ? "" : "Password must contain exactly 6 digits."
+  };
+}
+
+export function validateCustomerPassword(password, policy = PASSWORD_POLICY) {
+  if (policy === "demo") {
+    return validateCustomerDemoPassword(password);
+  }
+  return validatePassword(password);
+}
+
 export function validateName(name) {
   const raw = String(name || "").trim();
   const valid = /^[A-Za-zÀ-ÿ' -]{2,60}$/.test(raw);

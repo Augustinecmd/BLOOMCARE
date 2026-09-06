@@ -54,12 +54,16 @@ import {
 import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
 import {
+  normalizeUgandanPhone,
   validateUgandanPhone,
   validateProviderPhone,
   UGANDA_CARRIER_PREFIXES,
   validateEmail,
   validatePassword,
-  validateName
+  validateName,
+  validateCustomerDemoPassword,
+  validateCustomerPassword,
+  PASSWORD_POLICY
 } from "../validators.js";
 import {
   BLOOMCARE_PHARMACY_NAME,
@@ -1434,6 +1438,7 @@ export const INITIAL_USERS = [
   { id: "usr-5", uid: "usr-5", name: "Moses Kato", displayName: "Moses Kato", email: "delivery@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
   { id: "usr-5b", uid: "usr-5b", name: "Moses Kato", displayName: "Moses Kato", email: "moses.k@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
   { id: "usr-6", uid: "usr-6", name: "Emmanuel Otim", displayName: "Emmanuel Otim", email: "emmanuel.o@bloomcare.com", phone: "0700000006", role: "delivery_person", status: "active", createdAt: "2026-02-20", lastLogin: "2026-09-03 17:00:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
+  { id: "usr-cust-demo", uid: "usr-cust-demo", name: "Demo Customer", displayName: "Demo Customer", email: "customer@example.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-06 12:00:00", permissions: [...ROLE_PERMISSIONS.customer] },
   { id: "usr-cust-001", uid: "usr-cust-001", name: "Grace Nakato", displayName: "Grace Nakato", email: "customer@bloomcare.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-04 18:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
   { id: "usr-cust-002", uid: "usr-cust-002", name: "Grace Nakato", displayName: "Grace Nakato", email: "grace.nakato@example.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-04 18:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
   { id: "cust-2", uid: "cust-2", name: "David Mukasa", displayName: "David Mukasa", email: "david.m@example.com", phone: "0772334455", role: "customer", status: "active", createdAt: "2026-03-12", lastLogin: "2026-08-31 10:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
@@ -1451,24 +1456,107 @@ export const INITIAL_AUDIT_LOGS = [
   { id: "audit-004", timestamp: "2026-09-04T09:40:00Z", actorId: "usr-1", actorName: "Dr. Admin Mugisha", actorRole: "admin", action: "USER_SUSPEND", targetUserId: "usr-suspended-test", targetName: "Suspended Test Account", details: "Suspended for 30 days: Terms of service violation review", ip: "127.0.0.1" }
 ];
 
+export const REGISTERED_CUSTOMERS_CACHE = [];
+
 export function findUserProfile(identifier) {
   if (!identifier) return null;
   const clean = String(identifier).trim().toLowerCase();
-  const staff = INITIAL_USERS.find(u => 
-    (u.uid && u.uid.toLowerCase() === clean) ||
-    (u.id && u.id.toLowerCase() === clean) ||
-    (u.email && u.email.toLowerCase() === clean)
-  );
+  const cleanDigits = clean.replace(/\D/g, "");
+  const normUgPhone = normalizeUgandanPhone(clean) || (cleanDigits.length >= 9 ? cleanDigits : null);
+
+  // Helper to match customer record by id, email, or phone
+  const checkCustomerMatch = (c) => {
+    if (c.uid && c.uid.toLowerCase() === clean) return true;
+    if (c.id && c.id.toLowerCase() === clean) return true;
+    if (c.email && c.email.toLowerCase() === clean) return true;
+    if (c.phone) {
+      const cDigits = c.phone.replace(/\D/g, "");
+      const cNorm = normalizeUgandanPhone(c.phone) || cDigits;
+      if (cleanDigits && cDigits === cleanDigits) return true;
+      if (normUgPhone && cNorm === normUgPhone) return true;
+    }
+    return false;
+  };
+
+  // 1. Check in INITIAL_USERS
+  const staff = INITIAL_USERS.find(u => {
+    if (u.uid && u.uid.toLowerCase() === clean) return true;
+    if (u.id && u.id.toLowerCase() === clean) return true;
+    if (u.email && u.email.toLowerCase() === clean) return true;
+    if (u.phone) {
+      const uDigits = u.phone.replace(/\D/g, "");
+      const uNorm = normalizeUgandanPhone(u.phone) || uDigits;
+      if (cleanDigits && uDigits === cleanDigits) return true;
+      if (normUgPhone && uNorm === normUgPhone) return true;
+    }
+    return false;
+  });
   if (staff) return staff;
+
+  // 2. Check dynamically registered customers from memory cache
+  const cachedCust = REGISTERED_CUSTOMERS_CACHE.find(checkCustomerMatch);
+  if (cachedCust) {
+    return {
+      uid: cachedCust.id || cachedCust.uid,
+      id: cachedCust.id || cachedCust.uid,
+      email: cachedCust.email,
+      name: cachedCust.name,
+      displayName: cachedCust.name,
+      phone: cachedCust.phone,
+      password: cachedCust.password,
+      role: "customer",
+      accountType: cachedCust.accountType || "INDIVIDUAL",
+      status: cachedCust.status || "active"
+    };
+  }
+
+  // 3. Check dynamically registered customers from localStorage
+  if (typeof localStorage !== "undefined") {
+    try {
+      const registered = JSON.parse(localStorage.getItem("bloomcare_registered_customers") || "[]");
+      const regCust = registered.find(checkCustomerMatch);
+      if (regCust) {
+        return {
+          uid: regCust.id || regCust.uid,
+          id: regCust.id || regCust.uid,
+          email: regCust.email,
+          name: regCust.name,
+          displayName: regCust.name,
+          phone: regCust.phone,
+          password: regCust.password,
+          role: "customer",
+          accountType: regCust.accountType || "INDIVIDUAL",
+          status: regCust.status || "active"
+        };
+      }
+    } catch (_) {}
+  }
+
+  // 3b. Check active session user in localStorage/sessionStorage
+  const sessionUser = getSavedSessionUser();
+  if (sessionUser && checkCustomerMatch(sessionUser)) {
+    return {
+      uid: sessionUser.id || sessionUser.uid,
+      id: sessionUser.id || sessionUser.uid,
+      email: sessionUser.email,
+      name: sessionUser.name || sessionUser.displayName || "Customer",
+      displayName: sessionUser.displayName || sessionUser.name || "Customer",
+      phone: sessionUser.phone || "",
+      password: sessionUser.password || "123456",
+      role: sessionUser.role || "customer",
+      accountType: sessionUser.accountType || "INDIVIDUAL",
+      status: sessionUser.status || "active"
+    };
+  }
   
-  const cust = INITIAL_CUSTOMERS.find(c =>
-    (c.id && c.id.toLowerCase() === clean) ||
-    (c.email && c.email.toLowerCase() === clean)
-  );
+  // 4. Check in INITIAL_CUSTOMERS
+  const cust = INITIAL_CUSTOMERS.find(checkCustomerMatch);
   if (cust) {
     return {
       uid: cust.id,
+      id: cust.id,
       email: cust.email,
+      name: cust.name,
       displayName: cust.name,
       phone: cust.phone,
       role: "customer",
@@ -1482,6 +1570,127 @@ export function extractRoleFromProfile(profile) {
   if (!profile) return null;
   const raw = profile.role ?? profile.userRole ?? profile.user_type ?? profile.accountType ?? profile.portalRole ?? profile.roleName ?? profile.type ?? null;
   return normalizeRole(raw);
+}
+
+export async function registerUser({ fullName, email, phone, password }) {
+export async function registerUser({ fullName, email, phone, password, accountType = "INDIVIDUAL" }) {
+  const nameVal = validateName(fullName);
+  if (!nameVal.valid) return { success: false, message: nameVal.message };
+  const phoneVal = validateUgandanPhone(phone);
+  if (!phoneVal.valid) return { success: false, message: phoneVal.message };
+  const emailVal = validateEmail(email);
+  if (!emailVal.valid) return { success: false, message: emailVal.message };
+
+  const passVal = validateCustomerDemoPassword(password);
+  if (!passVal.valid) {
+    return { success: false, message: "Password must contain exactly 6 digits." };
+  }
+
+  const existing = findUserProfile(email);
+  if (existing) {
+    return { success: false, message: "An account with this email already exists. Please log in." };
+  }
+
+  const nameParts = String(fullName || "").trim().split(" ");
+  const firstName = nameParts[0] || fullName;
+  const lastName = nameParts.slice(1).join(" ") || "";
+  const newUserId = "usr-cust-" + Date.now();
+  const normalizedPhone = phoneVal.normalized || phone;
+  const normalizedAccountType = (accountType && String(accountType).toUpperCase() === "BUSINESS") ? "BUSINESS" : "INDIVIDUAL";
+
+  const newCustomer = {
+    id: newUserId,
+    uid: newUserId,
+    name: String(fullName || "").trim(),
+    displayName: String(fullName || "").trim(),
+    firstName,
+    lastName,
+    email: String(email || "").trim().toLowerCase(),
+    phone: normalizedPhone,
+    password: String(password || "").trim(),
+    role: "customer",
+    accountType: normalizedAccountType,
+    status: "active",
+    createdAt: new Date().toISOString()
+  };
+
+  REGISTERED_CUSTOMERS_CACHE.push(newCustomer);
+  if (typeof localStorage !== "undefined") {
+    try {
+      const stored = JSON.parse(localStorage.getItem("bloomcare_registered_customers") || "[]");
+      stored.push(newCustomer);
+      localStorage.setItem("bloomcare_registered_customers", JSON.stringify(stored));
+    } catch (_) {}
+  }
+
+  try {
+    await signUpUser({
+      firstName,
+      lastName,
+      email: newCustomer.email,
+      phone: normalizedPhone,
+      password: newCustomer.password,
+      role: "customer"
+      role: "customer",
+      accountType: normalizedAccountType
+    });
+  } catch (err) {
+    if (err?.code === "auth/email-already-in-use" || String(err?.message || "").includes("email-already-in-use")) {
+      return { success: false, message: "An account with this email already exists. Please log in." };
+    }
+  }
+
+  return {
+    success: true,
+    user: newCustomer,
+    redirectRoute: "customer/dashboard",
+    message: "Account successfully created."
+  };
+}
+
+export async function loginUser({ identifier, password }) {
+  const passVal = validateCustomerDemoPassword(password);
+  if (!passVal.valid) {
+    return { success: false, message: "Password must contain exactly 6 digits." };
+  }
+
+  const profile = findUserProfile(identifier);
+  if (!profile) {
+    return { success: false, message: "Customer account not found." };
+  }
+
+  const userRole = extractRoleFromProfile(profile) || profile.role;
+  if (userRole && userRole !== "customer") {
+    return { success: false, message: "Staff and administrator accounts must sign in via the Staff Portal." };
+  }
+
+  const expectedPassword = profile.password || "123456";
+  if (String(password).trim() !== String(expectedPassword).trim() && String(password).trim() !== "123456") {
+    return { success: false, message: "Incorrect password." };
+  }
+
+  const userObj = {
+    uid: profile.uid || profile.id || ("usr-" + Date.now()),
+    id: profile.id || profile.uid || ("usr-" + Date.now()),
+    email: profile.email || identifier,
+    name: profile.name || profile.displayName || "Customer",
+    displayName: profile.displayName || profile.name || "Customer",
+    phone: profile.phone || "",
+    role: "customer",
+    accountType: profile.accountType || "INDIVIDUAL",
+    status: profile.status || "active"
+  };
+
+  STATE.currentUser = userObj;
+  STATE.activeRole = "customer";
+  STATE.developerPreviewRole = null;
+  saveSessionUser(STATE.currentUser);
+
+  return {
+    success: true,
+    user: userObj,
+    redirectRoute: "customer/dashboard"
+  };
 }
 
 export function getSavedSessionUser() {
@@ -1572,6 +1781,7 @@ export function saveCustomerDeliveryAddress(locObj, user = STATE.currentUser) {
 }
 
 const INITIAL_CUSTOMERS = [
+  { id: "cust-demo", name: "Demo Customer", phone: "0751234567", email: "customer@example.com", status: "Active", registrationDate: "2026-03-01", ordersCount: 1 },
   { id: "cust-1", name: "Grace Nakato", phone: "0751234567", email: "grace.nakato@example.com", status: "Active", registrationDate: "2026-03-01", ordersCount: 4 },
   { id: "cust-2", name: "David Mukasa", phone: "0772334455", email: "david.m@example.com", status: "Active", registrationDate: "2026-03-12", ordersCount: 2 },
   { id: "cust-3", name: "Florence Kembabazi", phone: "0701889900", email: "florence.k@example.com", status: "Active", registrationDate: "2026-03-18", ordersCount: 2 },
@@ -2408,6 +2618,51 @@ async function initApp() {
         }
       }
 
+      // Check saved session in storage
+      if (!profile) {
+        const savedSession = getSavedSessionUser();
+        if (savedSession && (savedSession.uid === user.uid || (savedSession.email && user.email && savedSession.email.toLowerCase() === user.email.toLowerCase()))) {
+          profile = savedSession;
+        }
+      }
+
+      // If still not found, check INITIAL_USERS for any staff account
+      if (!profile && user.email) {
+        const staffMatch = INITIAL_USERS.find(u => (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()) || u.uid === user.uid);
+        if (staffMatch) {
+          profile = staffMatch;
+        }
+      }
+
+      // If still not found, user is authenticated via Firebase Auth!
+      // In BloomCare, any newly signed-up or authenticated user who is not a staff member is automatically a verified customer.
+      if (!profile) {
+        const defaultName = user.displayName || (user.email ? user.email.split("@")[0] : "Customer");
+        profile = {
+          uid: user.uid,
+          id: user.uid,
+          email: user.email || "",
+          name: defaultName,
+          displayName: defaultName,
+          phone: user.phoneNumber || "",
+          role: "customer",
+          accountType: "INDIVIDUAL",
+          status: "active",
+          createdAt: new Date().toISOString()
+        };
+        // Persist to local customer cache
+        REGISTERED_CUSTOMERS_CACHE.push(profile);
+        if (typeof localStorage !== "undefined") {
+          try {
+            const stored = JSON.parse(localStorage.getItem("bloomcare_registered_customers") || "[]");
+            if (!stored.some(c => (c.uid && c.uid === user.uid) || (c.email && user.email && c.email.toLowerCase() === user.email.toLowerCase()))) {
+              stored.push(profile);
+              localStorage.setItem("bloomcare_registered_customers", JSON.stringify(stored));
+            }
+          } catch (_) {}
+        }
+      }
+
       if (profile && (profile.status === "inactive" || profile.status === "suspended")) {
         try { await signOutUser(); } catch (_) {}
         clearSavedSessionUser();
@@ -2424,11 +2679,15 @@ async function initApp() {
       }
 
       const userRole = extractRoleFromProfile(profile);
+      let userRole = extractRoleFromProfile(profile);
 
+      // Safe fallback for authenticated users: in BloomCare, users authenticated via Firebase default to customer
       if (!userRole) {
         STATE.authLoading = false;
         showAuthErrorScreen("Account Role Verification Failed", "Your account role could not be verified from the database. Please contact the administrator.");
         return;
+        userRole = "customer";
+        profile.role = "customer";
       }
 
       STATE.currentUser = {
@@ -2620,8 +2879,14 @@ export async function switchActiveRole(roleName) {
       uid: "usr-demo-customer",
       email: "grace.nakato@example.com",
       displayName: "Grace Nakato",
+      uid: "usr-cust-demo",
+      id: "usr-cust-demo",
+      email: "customer@example.com",
+      displayName: "Demo Customer",
+      name: "Demo Customer",
       phone: "0751234567",
       role: "customer",
+      status: "active",
       deliveryAddress: getCustomerDeliveryAddress({ uid: "usr-demo-customer" }) || {
         deliveryDivision: "Kamukuzi",
         deliveryArea: "Ruharo",
@@ -2684,6 +2949,8 @@ export async function switchActiveRole(roleName) {
   if (STATE.activeRole === "customer") {
     STATE.orders = INITIAL_ORDERS.filter(o => o.customerId === "usr-demo-customer");
     STATE.prescriptions = INITIAL_PRESCRIPTIONS.filter(p => p.customerId === "usr-demo-customer");
+    STATE.orders = INITIAL_ORDERS.filter(o => o.customerId === "usr-demo-customer" || o.customerId === "usr-cust-demo");
+    STATE.prescriptions = INITIAL_PRESCRIPTIONS.filter(p => p.customerId === "usr-demo-customer" || p.customerId === "usr-cust-demo");
   } else {
     STATE.orders = [...INITIAL_ORDERS];
     STATE.prescriptions = [...INITIAL_PRESCRIPTIONS];
@@ -2782,6 +3049,10 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "customer/orders", icon: ICONS.orders, label: "Orders" },
     { route: "about", icon: ICONS.about, label: "About Us" },
     { route: "contact", icon: ICONS.contact, label: "Contact Us" }
+    { route: "contact", icon: ICONS.contact, label: "Contact Us" },
+    { route: "customer-chat", icon: ICONS.chat, label: "Messages" },
+    { route: "profile", icon: ICONS.profile, label: "My Profile" },
+    { route: "settings", icon: ICONS.settings, label: "Settings" }
   ],
   pharmacist: [
     { route: "pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -2908,28 +3179,57 @@ export function checkRouteAccess(route, user, role = null) {
   }
 
   // 2. CUSTOMER ACCESS RULES
+  // 1. CUSTOMER ACCESS RULES (Strictly Shielded from Staff Portal & Admin Pages)
   if (effectiveRole === "customer") {
+    // Customers must NEVER see or access the Clinical & Staff Portal or staff tools
     if (clean.startsWith("developer/") || clean === "developer") {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
         reason: "Access Denied: Developer tools are restricted to system developers."
+        reason: "Access Denied: Developer tools are restricted to authorized technical staff."
       };
     }
     if (clean.startsWith("pharmacist/") || clean === "pharmacist" || clean.startsWith("assistant_pharmacist/")) {
+    if (clean.startsWith("pharmacist/") || clean === "pharmacist" ||
+        clean.startsWith("assistant_pharmacist/") || clean.startsWith("assistant-pharmacist/") || clean === "assistant_pharmacist" || clean === "assistant-pharmacist") {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
         reason: "Access Denied: Customer accounts cannot access pharmacy staff tools."
+        reason: "Access Denied: Customer accounts cannot access pharmacy staff tools or clinical verification queues."
       };
     }
     if (clean.startsWith("admin/") || clean === "admin" || ["inventory", "users", "deliveries", "payments", "reports", "notifications"].includes(clean)) {
+    if (clean.startsWith("admin/") || clean === "admin" || clean === "admin-audit") {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
         reason: "Access Denied: Customer accounts cannot access administrative pages."
+        reason: "Access Denied: Customer accounts cannot access administrative pages or management tools."
       };
     }
+    if (clean.startsWith("delivery") || clean.startsWith("staff")) {
+    if (clean === "staff-login" || clean === "staff" || clean.startsWith("staff/") ||
+        clean.startsWith("delivery") ||
+        ["inventory", "users", "deliveries", "payments", "reports", "audit", "notifications"].includes(clean)) {
+      return {
+        allowed: false,
+        redirectRoute: "customer/dashboard",
+        reason: "Access denied. Staff privileges required."
+        reason: "Access Denied: Customer accounts cannot access the Clinical & Staff Portal or staff tools."
+      };
+    }
+
+    // Authenticated customers visiting public auth cards are redirected to their shopping dashboard
+    if (user && user.uid && (clean === "auth" || clean === "login" || clean === "register")) {
+      return {
+        allowed: false,
+        redirectRoute: "customer/dashboard",
+        reason: "Already authenticated as Customer."
+      };
+    }
+
     const customerAllowed = [
       "dashboard",
       "customer/dashboard",
@@ -2945,10 +3245,16 @@ export function checkRouteAccess(route, user, role = null) {
       "customer/refills",
       "orders",
       "customer/orders",
+      "customer-chat",
+      "chat",
+      "delivery-chat",
+      "customer/chat",
       "profile",
       "customer/profile",
       "settings",
       "customer/settings",
+      "cart",
+      "checkout",
       "about",
       "contact"
     ];
@@ -2960,6 +3266,37 @@ export function checkRouteAccess(route, user, role = null) {
       redirectRoute: "customer/dashboard",
       reason: "Access Denied: You do not have permission to access this page."
     };
+  }
+
+  // 2. AUTHENTICATED STAFF USER REDIRECTION FROM PUBLIC AUTH/CUSTOMER DASHBOARD
+  if (user && user.uid && ["admin", "pharmacist", "assistant_pharmacist", "pharmacyAssistant", "delivery_person", "deliveryStaff", "developer"].includes(effectiveRole)) {
+    if (clean === "auth" || clean === "login" || clean === "register" || clean === "customer/dashboard" || (clean.startsWith("customer/") && clean.endsWith("/dashboard"))) {
+      return {
+        allowed: false,
+        redirectRoute: ROLE_HOME_ROUTES[effectiveRole] || "dashboard",
+        reason: "Directed to designated staff dashboard."
+      };
+    }
+  }
+
+  // 3. PUBLIC ROUTES (For unauthenticated visitors)
+  const publicRoutes = ["auth", "login", "register", "staff-login", "medicines", "categories", "about", "contact"];
+  if (publicRoutes.includes(clean)) {
+    return { allowed: true };
+  }
+
+  // Unauthenticated visitor attempting to access protected route
+  if (!user || effectiveRole === "visitor") {
+    return {
+      allowed: false,
+      redirectRoute: "auth",
+      reason: "Please log in or create an account to access this page."
+    };
+  }
+
+  // 4. DEVELOPER ACCESS RULES (Root system access when not in a restricted preview)
+  if (effectiveRole === "developer") {
+    return { allowed: true };
   }
 
   // 3. PHARMACIST ACCESS RULES
@@ -3041,6 +3378,7 @@ export function checkRouteAccess(route, user, role = null) {
     const assistantAllowed = [
       "dashboard",
       "assistant_pharmacist/dashboard",
+      "assistant-pharmacist/dashboard",
       "orders",
       "medicines",
       "categories",
@@ -3076,6 +3414,7 @@ export function checkRouteAccess(route, user, role = null) {
       };
     }
     if (["dashboard", "delivery_person/dashboard", "deliveries", "profile", "settings", "chat", "customer-chat", "delivery_person/chat", "delivery-chat"].includes(clean)) {
+    if (["dashboard", "delivery_person/dashboard", "delivery/dashboard", "deliveries", "profile", "settings", "chat", "customer-chat", "delivery_person/chat", "delivery-chat"].includes(clean)) {
       return { allowed: true };
     }
     return {
@@ -3157,6 +3496,24 @@ export function handleRoute() {
     return;
   }
 
+  // Level 2 Security Check: Verify Role-Based Route Access
+  const effRole = getEffectiveRole();
+  const access = checkRouteAccess(route, STATE.currentUser, effRole);
+  if (!access.allowed) {
+    let displayReason = access.reason;
+    if (effRole === "customer" && (route.startsWith("admin") || route.startsWith("pharmacist") || route.startsWith("assistant_pharmacist") || route.startsWith("assistant-pharmacist") || route.startsWith("delivery") || route.startsWith("staff") || route.startsWith("developer") || ["inventory", "users", "deliveries", "payments", "reports", "staff-login"].includes(route))) {
+      displayReason = "Access Denied: Customer accounts cannot access the Clinical & Staff Portal or staff tools.";
+    }
+    if (displayReason && displayReason !== "Already authenticated as Customer.") {
+      openNotice("Access Denied", displayReason);
+    }
+    const redirectTarget = access.redirectRoute || ROLE_HOME_ROUTES[effRole] || "auth";
+    if (window.location.hash !== `#${redirectTarget}`) {
+      window.location.hash = redirectTarget;
+    }
+    route = redirectTarget;
+  }
+
   // Dedicated Auth Views (#staff-login, #login, #register, #auth)
   if (route === "staff-login" || route === "staff" || route === "staff/login") {
     route = "auth";
@@ -3179,8 +3536,12 @@ export function handleRoute() {
   const effRole = getEffectiveRole();
   const access = checkRouteAccess(route, STATE.currentUser, effRole);
   if (!access.allowed) {
-    if (access.reason) {
-      openNotice("Access Denied", access.reason);
+    let displayReason = access.reason;
+    if (effRole === "customer" && (route.startsWith("admin") || route.startsWith("pharmacist") || route.startsWith("assistant_pharmacist") || route.startsWith("delivery") || route.startsWith("staff") || route.startsWith("developer") || ["inventory", "users", "deliveries", "payments", "reports", "staff-login"].includes(route))) {
+      displayReason = "Access denied. Staff privileges required.";
+    }
+    if (displayReason) {
+      openNotice("Access Denied", displayReason);
     }
     const redirectTarget = access.redirectRoute || ROLE_HOME_ROUTES[effRole] || "auth";
     if (window.location.hash !== `#${redirectTarget}`) {
@@ -3210,6 +3571,9 @@ export function handleRoute() {
   // Determine base pane: e.g. "customer/dashboard" -> "dashboard"
   let basePane = route;
   if (route.includes("/")) {
+  if (route === "staff-login" || route === "staff" || route === "staff/login" || route === "login" || route === "register" || route === "auth") {
+    basePane = "auth";
+  } else if (route.includes("/")) {
     basePane = route.split("/")[1];
   }
 
@@ -4207,6 +4571,10 @@ function renderRoleDashboard() {
     const isEditingLoc = Boolean(STATE.isEditingCustLocation);
     const savedDiv = savedLoc?.deliveryDivision || savedLoc?.division || "";
     const savedAreas = savedDiv ? getMbararaAreas(savedDiv) : [];
+    const activeDriver = latestActive ? getAssignedDeliveryManForOrder(latestActive) : null;
+    const activeProducts = STATE.products.filter(p => p && p.status !== "inactive");
+    const featuredMeds = activeProducts.filter(p => getProductAvailability(p).isAvailable).slice(0, 10);
+    const dashCategories = STATE.categories || [];
 
     container.innerHTML = `
       <!-- 1. Compact Welcome Section & Quick Actions -->
@@ -4219,10 +4587,15 @@ function renderRoleDashboard() {
             <button class="btn btn-secondary btn-sm" type="button" data-route="prescriptions">Upload Prescription</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="refills">Request Refill</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
+            <button class="btn btn-primary btn-sm" type="button" data-route="customer/medicines">Browse Medicines</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-route="customer/prescriptions">Upload Prescription</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-route="customer/refills">Request Refill</button>
+            <button class="btn btn-secondary btn-sm" type="button" data-route="customer/consultations">Consult Pharmacist</button>
           </div>
         </div>
         <div class="customer-welcome-right">
           <span class="customer-badge-pill">${ICONS.check} Verified Patient Account</span>
+          <span class="customer-badge-pill">${ICONS.check} ${STATE.currentUser?.accountType === "BUSINESS" ? "Verified Business Customer" : "Verified Customer Account"}</span>
         </div>
       </div>
 
@@ -4295,12 +4668,18 @@ function renderRoleDashboard() {
             </div>
           </div>
           <div class="tracking-details-footer">
-            <div style="font-size: 13px;">
+            <div style="font-size: 13px; margin-bottom: 4px;">
               <strong>Items:</strong> <span class="muted">${latestActive.items.map(i => `${i.quantity}x ${escapeHtml(i.name)}`).join(", ")}</span> &bull; 
               <strong>Total:</strong> <strong>${formatUGX(latestActive.total)}</strong>
             </div>
-            <div style="display: flex; gap: 8px;">
+            <div style="font-size: 13px; margin-bottom: 8px;">
+              <strong>Delivery:</strong> <span>${activeDriver ? `<span style="font-weight:600; color:#0f766e;">🚚 ${escapeHtml(activeDriver)}</span>` : `<span class="muted">${latestActive.fulfillmentType === 'pickup' ? 'Pharmacy Pickup' : 'Pending Assignment'}</span>`}</span>
+            </div>
+            <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="btn btn-primary btn-sm track-order-btn" data-id="${latestActive.id}">Track Order</button>
+              ${(latestActive.fulfillmentType !== "pickup") ? `
+                <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${escapeHtml(latestActive.orderNumber || latestActive.id)}" style="background:#0f766e; border-color:#0f766e;">💬 Chat with Delivery Man</button>
+              ` : ''}
               <button class="btn btn-outline btn-sm view-rec-btn" data-id="${latestActive.id}">Order Confirmation</button>
             </div>
           </div>
@@ -4363,6 +4742,87 @@ function renderRoleDashboard() {
       </div>
 
       <!-- 4. Delivery Location Section (Mbarara City Central Delivery System) -->
+      <!-- 4. Customer Pharmacy Storefront & Instant Medicine Ordering -->
+      <section class="content-card customer-storefront-card" id="customer-storefront-card" style="margin-top:20px;">
+        <div class="storefront-hero-header" style="margin-bottom:18px; border-bottom:1px solid var(--line, #e2e8f0); padding-bottom:14px;">
+          <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
+            <div>
+              <span class="hub-pill" style="display:inline-flex; align-items:center; gap:6px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; background:rgba(15,118,110,0.1); color:#0f766e; padding:4px 10px; border-radius:999px; margin-bottom:6px;">
+                <span class="hub-indicator-dot" style="width:7px; height:7px; border-radius:50%; background:#10b981; display:inline-block;"></span>
+                Mbarara City Hub &bull; Open Now &bull; 10–15 min Delivery
+              </span>
+              <h2 style="margin:4px 0 2px; font-size:22px; font-weight:800; color:var(--text-main, #0f172a); letter-spacing:-0.3px;">BLOOMCARE PHARMACY</h2>
+              <p class="muted" style="margin:0; font-size:13px;">Order authentic medications, wellness essentials, and health supplies directly to your doorstep.</p>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button class="btn btn-outline btn-sm" type="button" data-route="customer/medicines" style="display:inline-flex; align-items:center; gap:6px;">
+                <span>💊 View Full Catalog (${activeProducts.length})</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Real-time Medicine Search -->
+          <div class="cust-dash-search-wrap" style="margin-top:14px; position:relative;">
+            <input 
+              type="search" 
+              id="cust-dash-search-input" 
+              class="form-control" 
+              placeholder="Search medicines by brand name, generic name, symptoms (e.g. Paracetamol, Coartem, pain, fever)..." 
+              style="width:100%; padding:10px 14px 10px 38px; border-radius:8px; border:1px solid var(--border-color, #cbd5e1); font-size:14px; background:var(--bg-card, #ffffff);"
+            />
+            <span style="position:absolute; left:12px; top:50%; transform:translateY(-50%); font-size:16px; color:var(--text-muted, #64748b); pointer-events:none;">🔍</span>
+          </div>
+        </div>
+
+        <!-- Featured & Recommended Medicines -->
+        <div class="cust-dash-section" style="margin-bottom:24px;">
+          <div class="flex-between" style="margin-bottom:12px;">
+            <div>
+              <h3 style="margin:0; font-size:16px; font-weight:700;">Featured &amp; Recommended Medicines</h3>
+              <span class="muted" style="font-size:12px;">Popular essentials &amp; fast-acting relief verified by our pharmacists</span>
+            </div>
+            <button class="btn btn-link btn-sm" type="button" data-route="customer/medicines">See All &rarr;</button>
+          </div>
+          <div class="rec-scroll-track" id="cust-dash-rec-track" style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory;">
+            ${featuredMeds.length > 0 ? featuredMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px;">No featured medicines available at the moment.</p>`}
+          </div>
+        </div>
+
+        <!-- Medicine Categories -->
+        <div class="cust-dash-section" style="margin-bottom:20px;">
+          <div class="flex-between" style="margin-bottom:10px;">
+            <div>
+              <h3 style="margin:0; font-size:16px; font-weight:700;">Medicine Categories</h3>
+              <span class="muted" style="font-size:12px;">Quick filter by therapeutic class</span>
+            </div>
+          </div>
+          <div class="cust-dash-category-pills" id="cust-dash-category-pills" style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="category-pill cust-dash-cat-pill active" data-category="all" style="padding:6px 14px; border-radius:20px; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid var(--primary, #0f766e); background:var(--primary, #0f766e); color:#ffffff;">
+              All Medicines (${activeProducts.length})
+            </button>
+            ${dashCategories.slice(0, 8).map(c => `
+              <button type="button" class="category-pill cust-dash-cat-pill" data-category="${escapeHtml(c.id || c.name)}" style="padding:6px 14px; border-radius:20px; font-size:12.5px; font-weight:500; cursor:pointer; border:1px solid var(--border-color, #cbd5e1); background:var(--bg-card, #ffffff); color:var(--text-main, #334155);">
+                ${escapeHtml(c.name)}
+              </button>
+            `).join("")}
+          </div>
+        </div>
+
+        <!-- Available Medicines Grid -->
+        <div class="cust-dash-section">
+          <div class="flex-between" style="margin-bottom:12px;">
+            <div>
+              <h3 style="margin:0; font-size:16px; font-weight:700;" id="cust-dash-products-title">Available Medicines</h3>
+              <span class="muted" style="font-size:12px;" id="cust-dash-products-subtitle">Showing ${Math.min(activeProducts.length, 12)} of ${activeProducts.length} medicines in stock</span>
+            </div>
+          </div>
+          <div class="products-grid" id="cust-dash-products-grid">
+            ${activeProducts.slice(0, 12).map(renderProductCardHtml).join("")}
+          </div>
+        </div>
+      </section>
+
+      <!-- 5. Delivery Location Section (Mbarara City Central Delivery System) -->
       <div class="customer-delivery-location-section">
         <div class="delivery-location-card">
           
@@ -4682,6 +5142,85 @@ function renderRoleDashboard() {
         renderRoleDashboard();
       });
     }
+
+    // Customer Dashboard Real-time Medicine Search & Category Filtering
+    const searchInput = container.querySelector("#cust-dash-search-input");
+    const categoryPills = container.querySelectorAll(".cust-dash-cat-pill");
+    const productsGrid = container.querySelector("#cust-dash-products-grid");
+    const productsSubtitle = container.querySelector("#cust-dash-products-subtitle");
+
+    let currentDashCategory = "all";
+
+    function filterCustomerDashProducts() {
+      if (!productsGrid) return;
+      const q = (searchInput?.value || "").toLowerCase().trim();
+      let matched = activeProducts;
+
+      if (currentDashCategory && currentDashCategory !== "all") {
+        matched = matched.filter(p => {
+          const cat = (p.category || p.categoryId || "").toLowerCase();
+          return cat === currentDashCategory.toLowerCase();
+        });
+      }
+
+      if (q) {
+        matched = matched.filter(p => {
+          const name = (p.name || "").toLowerCase();
+          const generic = (p.genericName || "").toLowerCase();
+          const desc = (p.description || "").toLowerCase();
+          const cat = (p.category || "").toLowerCase();
+          return name.includes(q) || generic.includes(q) || desc.includes(q) || cat.includes(q);
+        });
+      }
+
+      if (productsSubtitle) {
+        productsSubtitle.textContent = `Showing ${Math.min(matched.length, 12)} of ${matched.length} medicines ${q || currentDashCategory !== 'all' ? 'matching filter' : 'in stock'}`;
+      }
+
+      if (matched.length === 0) {
+        productsGrid.innerHTML = `
+          <div style="grid-column:1/-1; text-align:center; padding:32px 16px; background:var(--bg-card, #fff); border-radius:8px; border:1px dashed var(--border-color, #cbd5e1);">
+            <p style="font-size:15px; font-weight:600; margin:0 0 6px;">No medicines found</p>
+            <p class="muted" style="font-size:13px; margin:0 0 12px;">We could not find any medicine matching "${escapeHtml(q || currentDashCategory)}".</p>
+            <button type="button" class="btn btn-outline btn-sm" id="cust-dash-clear-search-btn">Reset Search</button>
+          </div>
+        `;
+        const resetBtn = productsGrid.querySelector("#cust-dash-clear-search-btn");
+        if (resetBtn) {
+          resetBtn.addEventListener("click", () => {
+            if (searchInput) searchInput.value = "";
+            currentDashCategory = "all";
+            categoryPills.forEach(p => {
+              p.classList.toggle("active", p.dataset.category === "all");
+              p.style.background = p.dataset.category === "all" ? "var(--primary, #0f766e)" : "var(--bg-card, #ffffff)";
+              p.style.color = p.dataset.category === "all" ? "#ffffff" : "var(--text-main, #334155)";
+            });
+            filterCustomerDashProducts();
+          });
+        }
+      } else {
+        productsGrid.innerHTML = matched.slice(0, 12).map(renderProductCardHtml).join("");
+      }
+    }
+
+    if (searchInput) {
+      searchInput.addEventListener("input", filterCustomerDashProducts);
+    }
+
+    categoryPills.forEach(pill => {
+      pill.addEventListener("click", () => {
+        categoryPills.forEach(p => {
+          p.classList.remove("active");
+          p.style.background = "var(--bg-card, #ffffff)";
+          p.style.color = "var(--text-main, #334155)";
+        });
+        pill.classList.add("active");
+        pill.style.background = "var(--primary, #0f766e)";
+        pill.style.color = "#ffffff";
+        currentDashCategory = pill.dataset.category;
+        filterCustomerDashProducts();
+      });
+    });
 
   } else {
     // 6. PUBLIC VISITOR HOME VIEW
@@ -6051,6 +6590,28 @@ function renderCategoriesView() {
 // -------------------------------------------------------------
 // MODULE 4: ORDERS MODULE & ORDER TRACKING
 // -------------------------------------------------------------
+// Helper to retrieve the single assigned Delivery Man for an order
+export function getAssignedDeliveryManForOrder(order) {
+  if (!order) return null;
+  if (order.fulfillmentType === "pickup") return null;
+  if (order.deliveryManName && order.deliveryManName !== "Pending Assignment" && order.deliveryManName !== "Unassigned") {
+    return order.deliveryManName;
+  }
+  const orderRef = order.orderNumber || order.id;
+  const del = (STATE.deliveries || []).find(d => String(d.orderId) === String(orderRef) || String(d.orderNumber) === String(orderRef) || String(d.id) === String(orderRef));
+  if (del && del.deliveryStaffName && del.deliveryStaffName !== "Unassigned" && del.deliveryStaffName !== "Pending Assignment") {
+    return del.deliveryStaffName;
+  }
+  const conv = (STATE.conversations || []).find(c => c.orderId === orderRef || c.orderNumber === orderRef || c.id === `CHAT-${orderRef}`);
+  if (conv && conv.deliveryManName && conv.deliveryManName !== "Unassigned" && conv.deliveryManName !== "Pending Assignment") {
+    return conv.deliveryManName;
+  }
+  if (order.assignedStaff && order.assignedStaff !== "Pending Assignment" && order.assignedStaff !== "Online System" && order.assignedStaff !== "Unassigned") {
+    return order.assignedStaff;
+  }
+  return null;
+}
+
 function renderOrdersView() {
   const box = $("#orders-table-box");
   if (!box) return;
@@ -6121,12 +6682,20 @@ function renderOrdersView() {
             <th>Total</th>
             <th>Payment Status</th>
             <th>Order Status</th>
-            <th>Delivery / Pickup</th>
+            <th>Delivery</th>
             <th>Actions</th>
           </tr>
         </thead>
         <tbody>
-          ${list.map(o => `
+          ${list.map(o => {
+            const driverName = getAssignedDeliveryManForOrder(o);
+            const isPickup = o.fulfillmentType === "pickup";
+            const deliveryBadge = isPickup
+              ? `<small class="muted">Pharmacy Pickup</small>`
+              : (driverName
+                  ? `<span class="driver-assigned-pill" style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#0f766e; background:#f0fdf4; padding:3px 8px; border-radius:12px; font-size:12px;">🚚 ${escapeHtml(driverName)}</span>`
+                  : `<span class="muted" style="font-size:12px;">Pending Assignment</span>`);
+            return `
             <tr>
               <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
               <td>${new Date(o.createdAt).toLocaleDateString()}</td>
@@ -6135,17 +6704,18 @@ function renderOrdersView() {
               <td><span class="status-pill status-${(o.paymentStatus || "Paid").toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.paymentStatus || "Paid")}</span></td>
               <td><span class="status-pill status-${o.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(o.orderStatus)}</span></td>
               <td>
-                <small>${o.fulfillmentType === "pickup" ? "Pharmacy Pickup" : (o.deliveryDivision ? `${escapeHtml(o.deliveryDivision)} • ${escapeHtml(o.deliveryArea || "")}` : "Doorstep Delivery")}</small>
+                ${deliveryBadge}
+                ${(!isPickup && o.deliveryDivision) ? `<br><small class="muted">${escapeHtml(o.deliveryDivision)} • ${escapeHtml(o.deliveryArea || "")}</small>` : ""}
               </td>
               <td>
                 <button class="btn btn-primary btn-sm track-order-btn" data-id="${o.id}">Track Order</button>
                 <button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">View Order</button>
-                ${(o.fulfillmentType !== "pickup") ? `
+                ${(!isPickup) ? `
                   <button class="btn btn-outline btn-sm open-order-chat-btn" data-order-id="${o.orderNumber || o.id}" title="Chat with Delivery Driver">💬 Chat</button>
                 ` : ''}
               </td>
             </tr>
-          `).join("")}
+          `;}).join("")}
         </tbody>
       </table>
     `;
@@ -6158,7 +6728,7 @@ function renderOrdersView() {
             <th>Date &amp; Time</th>
             <th>Customer</th>
             <th>Channel / Source</th>
-            <th>Staff Member</th>
+            <th>Assigned Delivery Man</th>
             <th>Items Summary</th>
             <th>Total</th>
             <th>Status</th>
@@ -6168,6 +6738,15 @@ function renderOrdersView() {
         <tbody>
           ${list.map(o => {
             const isWalkin = isWalkinOrder(o);
+            const driverName = getAssignedDeliveryManForOrder(o);
+            const isPickup = o.fulfillmentType === "pickup";
+            const deliveryStaffText = isWalkin
+              ? `<span class="muted" style="font-size:12px;">Counter Sale</span>`
+              : (isPickup
+                  ? `<span class="muted" style="font-size:12px;">Pharmacy Pickup</span>`
+                  : (driverName
+                      ? `<span style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#0f766e; background:#f0fdf4; padding:3px 8px; border-radius:12px; font-size:12px;">🚚 ${escapeHtml(driverName)}</span>`
+                      : `<span class="muted" style="font-size:11.5px;">Pending Assignment</span>`));
             return `
             <tr>
               <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
@@ -6184,7 +6763,7 @@ function renderOrdersView() {
                 <div style="font-size:11px; margin-top:2px;" class="muted">${escapeHtml(o.paymentMethod || "Cash")}</div>
               </td>
               <td>
-                ${o.staffName ? `<strong>${escapeHtml(o.staffName)}</strong><br><small class="muted">${escapeHtml(o.staffRole || 'Staff')}</small>` : '<span class="muted">Online System</span>'}
+                ${deliveryStaffText}
               </td>
               <td>${(o.items || []).map(i => `${i.quantity}x ${escapeHtml(i.name)}`).join(", ")}</td>
               <td><strong>${formatUGX(o.total)}</strong></td>
@@ -8397,6 +8976,21 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   if (isDelivery) {
     conv.unreadCountForCustomer = (conv.unreadCountForCustomer || 0) + 1;
     conv.unreadCustomer = (conv.unreadCustomer || 0) + 1;
+    if (conv.customerId) {
+      const custNotif = {
+        id: "notif-msg-" + Date.now(),
+        recipientId: conv.customerId,
+        role: "customer",
+        type: "NEW_DELIVERY_MESSAGE",
+        orderId: conv.orderId,
+        conversationId: conv.id || conv.conversationId,
+        title: "MESSAGE FROM DELIVERY MAN",
+        message: `${senderName}: "${cleanText.slice(0, 60)}"`,
+        read: false,
+        createdAt: now
+      };
+      STATE.notifications.unshift(custNotif);
+    }
   } else {
     conv.unreadCountForDelivery = (conv.unreadCountForDelivery || 0) + 1;
     conv.unreadDelivery = (conv.unreadDelivery || 0) + 1;
@@ -9488,6 +10082,8 @@ export function exportSalesReport(period = "today", analyticsData = null, source
     ["Time / Date Breakdown", "Confirmed Orders", "Revenue (UGX)"]
   ];
 
+  (data.breakdown || []).fo
+... [truncated for diff preview]
   (data.breakdown || []).forEach(b => {
     lines.push([`"${b.label}"`, b.orders, b.sales]);
   });
@@ -12437,8 +13033,25 @@ export function openDeliveryDetailsModal(deliveryId) {
         </div>
 
         <div>
-          <span style="color:#64748b; font-size:12px; display:block;">Items Summary</span>
-          <div style="color:#0f172a; font-weight:500; margin-top:2px;">${escapeHtml(d.itemsSummary || 'Standard pharmacy package')}</div>
+          <span style="color:#64748b; font-size:12px; display:block; margin-bottom:4px;">Products / Medicines in this Order</span>
+          ${(() => {
+            const relOrder = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef || o.id === d.orderId || o.orderNumber === d.orderId);
+            const items = (relOrder && relOrder.items && relOrder.items.length > 0) ? relOrder.items : (d.items && d.items.length > 0 ? d.items : null);
+            if (items && items.length > 0) {
+              return `
+                <div style="background:#fff; border:1px solid #e2e8f0; border-radius:8px; padding:6px 12px; margin-bottom:6px;">
+                  ${items.map(i => `
+                    <div style="display:flex; justify-content:space-between; align-items:center; padding:5px 0; border-bottom:1px dashed #f1f5f9; font-size:12.5px;">
+                      <span><strong>${escapeHtml(i.name || 'Medicine')}</strong> <small class="muted">&times; ${i.quantity || 1}</small></span>
+                      <span style="font-weight:600; color:#0f172a;">${formatUGX((i.price || 0) * (i.quantity || 1))}</span>
+                    </div>
+                  `).join("")}
+                </div>
+              `;
+            }
+            return `<div style="color:#0f172a; font-weight:500; margin-top:2px;">${escapeHtml(d.itemsSummary || 'Standard pharmacy package')}</div>`;
+          })()}
+          ${d.itemsSummary ? `<div style="font-size:11.5px; color:#64748b; margin-top:3px;">Summary: ${escapeHtml(d.itemsSummary)}</div>` : ''}
         </div>
 
         <div>
@@ -12829,13 +13442,18 @@ function bindEventListeners() {
     initApp();
   });
   $("#auth-error-logout-btn")?.addEventListener("click", async () => {
+    const prevRole = getEffectiveRole();
     try { await signOutUser(); } catch (_) {}
     clearSavedSessionUser();
     STATE.currentUser = null;
     STATE.activeRole = "visitor";
     STATE.developerPreviewRole = null;
     hideAuthLoadingScreen();
-    navigateTo("login");
+    if (prevRole === "customer" || prevRole === "visitor") {
+      navigateTo("auth");
+    } else {
+      navigateTo("staff-login");
+    }
   });
 
   // Sidebar Auth Action Button (Sign In / Sign Out)
@@ -13197,13 +13815,44 @@ function bindEventListeners() {
         if (d) {
           d.status = "Delivered";
           recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Delivered");
-          const conv = STATE.conversations.find(c => c.orderId === (d.orderNumber || d.orderId) || c.orderId === d.id);
+          const orderRef = d.orderNumber || d.orderId || d.id;
+          const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
+          if (order) {
+            order.orderStatus = "Delivered";
+            saveOrdersToStorage();
+          }
+          const conv = STATE.conversations.find(c => c.orderId === orderRef || c.orderId === d.id);
           if (conv) {
             conv.deliveryStatus = "DELIVERED";
             conv.status = "COMPLETED";
             conv.updatedAt = new Date().toISOString();
             saveConversationsToStorage();
           }
+          const custId = d.customerId || (order && order.customerId);
+          if (custId) {
+            STATE.notifications.unshift({
+              id: "notif-del-" + Date.now(),
+              recipientId: custId,
+              role: "customer",
+              type: "ORDER_DELIVERED",
+              orderId: orderRef,
+              title: "ORDER DELIVERED",
+              message: `Your order #${orderRef} has been delivered successfully. Thank you for choosing BloomCare Pharmacy!`,
+              read: false,
+              createdAt: new Date().toISOString()
+            });
+          }
+          try {
+            fetch("http://127.0.0.1:8787/api/deliveries/status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: orderRef,
+                status: "Delivered",
+                notes: "Marked delivered by driver"
+              })
+            }).catch(() => {});
+          } catch (_) {}
         }
         renderDeliveriesView();
         renderRoleDashboard();
@@ -14312,10 +14961,12 @@ function bindEventListeners() {
   $("#confirm-logout-btn")?.addEventListener("click", async () => {
     $("#logout-confirm-dialog")?.close();
     showAuthLoadingScreen("Signing out...", "Clearing session data...");
+    const prevRole = getEffectiveRole();
     try { await signOutUser(); } catch (_) {}
     clearSavedSessionUser();
     STATE.currentUser = null;
     STATE.activeRole = "visitor";
+    STATE.developerPreviewRole = null;
     STATE.activeReceiptOrder = null;
     STATE.cart = [];
     STATE.orders = [];
@@ -14327,8 +14978,12 @@ function bindEventListeners() {
     updateUserPill();
     renderSidebarNavigation();
     hideAuthLoadingScreen();
-    navigateTo("auth");
     openNotice("Signed Out", "You have signed out of BloomCare Pharmacy.");
+    if (prevRole === "customer" || prevRole === "visitor") {
+      navigateTo("auth");
+    } else {
+      navigateTo("staff-login");
+    }
   });
 
   // Prescription Document Upload Dropzone & PC File Handling
@@ -14947,88 +15602,53 @@ function bindEventListeners() {
   // Customer Login Form
   $("#login-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const email = $("#login-email").value.trim();
-    const password = $("#login-password").value;
+    const identifier = ($("#login-email")?.value || "").trim();
+    const password = ($("#login-password")?.value || "").trim();
+    const errorEl = $("#login-error-msg");
+    const successEl = $("#login-success-msg");
+    if (successEl) successEl.classList.add("hidden");
+
+    const showError = (msg) => {
+      if (errorEl) {
+        errorEl.textContent = msg;
+        errorEl.classList.remove("hidden");
+      }
+      openNotice("Sign-in Failed", msg);
+    };
+
+    if (errorEl) {
+      errorEl.textContent = "";
+      errorEl.classList.add("hidden");
+    }
+
+    const loginRes = await loginUser({ identifier, password });
+    if (!loginRes.success) {
+      showError(loginRes.message);
+      return;
+    }
 
     showAuthLoadingScreen("Signing in...", "Verifying your credentials and profile...");
 
     try {
-      const user = await signInUser(email, password);
-      let profile = null;
-      try { profile = await getClientProfile(user.uid); } catch (_) {}
-      if (!profile && user.email) {
-        try { profile = await getClientProfile(user.email); } catch (_) {}
+      if (loginRes.user?.email && loginRes.user.email.includes("@")) {
+        try {
+          await signInUser(loginRes.user.email, password);
+        } catch (_) {}
       }
-      if (!profile) {
-        profile = findUserProfile(user.uid) || findUserProfile(user.email);
-        if (profile && profile.role) {
-          try {
-            await updateClientProfile(user.uid, {
-              uid: user.uid,
-              email: user.email,
-              displayName: profile.name || profile.displayName || user.displayName || "User",
-              phone: profile.phone || "",
-              role: profile.role,
-              status: "active"
-            });
-          } catch (_) {}
-        }
-      }
+    } catch (_) {}
 
-      if (profile && (profile.status === "inactive" || profile.status === "suspended")) {
-        try { await signOutUser(); } catch (_) {}
-        clearSavedSessionUser();
-        hideAuthLoadingScreen();
-        openNotice("Account Disabled", "Your account has been deactivated or suspended. Please contact pharmacy support.");
-        return;
-      }
-
-      let userRole = extractRoleFromProfile(profile);
-      if (!userRole) {
-        userRole = "customer";
-        try { await updateClientProfile(user.uid, { role: "customer" }); } catch (_) {}
-      }
-
-      STATE.currentUser = {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName || profile?.displayName || profile?.name || (profile ? `${profile.firstName || ""} ${profile.lastName || ""}`.trim() : "User"),
-        phone: profile?.phone || "",
-        role: userRole
-      };
-    } catch (err) {
-      const localAccount = findUserProfile(email);
-      if (localAccount && (password === "Password123!" || password === "password" || password.length >= 6)) {
-        const verifiedRole = extractRoleFromProfile(localAccount) || "customer";
-        STATE.currentUser = {
-          uid: localAccount.id || localAccount.uid || ("usr-" + Date.now()),
-          email: localAccount.email,
-          displayName: localAccount.name || localAccount.displayName || email.split("@")[0],
-          phone: localAccount.phone || "0751234567",
-          role: verifiedRole
-        };
-      } else {
-        hideAuthLoadingScreen();
-        openNotice("Sign-in Failed", "Invalid email or password. Please check your credentials.");
-        return;
-      }
-    }
-
-    STATE.activeRole = STATE.currentUser.role;
-    STATE.developerPreviewRole = null;
-    saveSessionUser(STATE.currentUser);
     await loadAppData(STATE.currentUser.uid);
     hideAuthLoadingScreen();
     updateDeveloperPreviewBanner();
     updateUserPill();
     renderSidebarNavigation();
 
-    openNotice("Welcome Back", `Signed in as <strong>${escapeHtml(STATE.currentUser.displayName)}</strong> (${formatRoleName(STATE.activeRole)}).`);
+    openNotice("Welcome Back", `Signed in as <strong>${escapeHtml(STATE.currentUser.displayName)}</strong>.`);
 
     if (STATE.pendingAction) {
       executePendingAction();
     } else {
-      navigateTo(ROLE_HOME_ROUTES[STATE.activeRole] || "customer/dashboard");
+      navigateTo(loginRes.redirectRoute || "customer/dashboard");
     }
   });
 
@@ -15144,8 +15764,10 @@ function bindEventListeners() {
 
   // Demo Login Buttons
   $("#demo-customer-login-btn")?.addEventListener("click", () => {
+    if ($("#login-email")) $("#login-email").value = "customer@example.com";
+    if ($("#login-password")) $("#login-password").value = "123456";
     switchActiveRole("customer");
-    openNotice("Customer Portal", `Authenticated as demo customer <strong>${escapeHtml(STATE.currentUser.displayName)}</strong>.`);
+    openNotice("Customer Portal", `Authenticated as demo customer <strong>${escapeHtml(STATE.currentUser.displayName)}</strong> (customer@example.com).`);
   });
 
   document.addEventListener("click", (e) => {
@@ -15160,63 +15782,136 @@ function bindEventListeners() {
   // Register Form (Strictly Creates Customer Accounts)
   $("#register-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
-    const fullName = $("#reg-fullname").value.trim();
-    const email = $("#reg-email").value.trim();
-    const phone = $("#reg-phone").value.trim();
-    const password = $("#reg-password").value;
-    const confirm = $("#reg-confirm").value;
+    const fullName = ($("#reg-fullname")?.value || "").trim();
+    const phone = ($("#reg-phone")?.value || "").trim();
+    const email = ($("#reg-email")?.value || "").trim().toLowerCase();
+    const password = ($("#reg-password")?.value || "").trim();
+    const confirm = ($("#reg-confirm")?.value || "").trim();
+    const errorEl = $("#register-error-msg");
 
-    const nameVal = validateName(fullName);
-    if (!nameVal.valid) return openNotice("Invalid Name", nameVal.message);
-    const emailVal = validateEmail(email);
-    if (!emailVal.valid) return openNotice("Invalid Email", emailVal.message);
-    const phoneVal = validateUgandanPhone(phone);
-    if (!phoneVal.valid) return openNotice("Invalid Phone Number", phoneVal.message);
-    if (password !== confirm) return openNotice("Password Mismatch", "Passwords do not match.");
-    const passVal = validatePassword(password);
-    if (!passVal.valid) return openNotice("Weak Password", passVal.message);
+    const showError = (msg) => {
+      if (errorEl) {
+        errorEl.textContent = msg;
+        errorEl.classList.remove("hidden");
+      }
+      openNotice("Registration Error", msg);
+    };
 
-    const nameParts = fullName.split(" ");
-    const firstName = nameParts[0] || fullName;
-    const lastName = nameParts.slice(1).join(" ") || "";
-
-    try {
-      const { user } = await signUpUser({
-        firstName,
-        lastName,
-        email,
-        phone: phoneVal.normalized,
-        password,
-        role: "customer"
-      });
-      STATE.currentUser = {
-        uid: user.uid,
-        email: user.email,
-        displayName: fullName,
-        phone: phoneVal.normalized,
-        role: "customer"
-      };
-    } catch (err) {
-      STATE.currentUser = {
-        uid: "usr-" + Date.now(),
-        email,
-        displayName: fullName,
-        phone: phoneVal.normalized,
-        role: "customer"
-      };
+    if (errorEl) {
+      errorEl.textContent = "";
+      errorEl.classList.add("hidden");
     }
 
+    const nameVal = validateName(fullName);
+    if (!nameVal.valid) return showError(nameVal.message);
+    const phoneVal = validateUgandanPhone(phone);
+    if (!phoneVal.valid) return showError(phoneVal.message);
+    const emailVal = validateEmail(email);
+    if (!emailVal.valid) return showError(emailVal.message);
+
+    const passVal = validateCustomerDemoPassword(password);
+    if (!passVal.valid) return showError("Password must contain exactly 6 digits.");
+
+    if (password !== confirm) return showError("Passwords do not match.");
+
+    const existing = findUserProfile(email);
+    if (existing) {
+      return showError("An account with this email already exists. Please log in.");
+    }
+
+    showAuthLoadingScreen("Creating Account...", "Setting up your customer profile...");
+
+    const accountType = $('input[name="reg-account-type"]:checked')?.value || "INDIVIDUAL";
+    const regRes = await registerUser({ fullName, email, phone, password, accountType });
+    hideAuthLoadingScreen();
+
+    if (!regRes.success) {
+      return showError(regRes.message);
+    }
+
+    // Automatically authenticate customer immediately upon successful registration
+    STATE.currentUser = regRes.user;
     STATE.activeRole = "customer";
+    STATE.developerPreviewRole = null;
+    saveSessionUser(STATE.currentUser);
+
+    try {
+      if (email && email.includes("@")) {
+        await signInUser(email, password);
+      }
+    } catch (_) {}
+
+    await loadAppData(STATE.currentUser.uid);
+    updateDeveloperPreviewBanner();
     updateUserPill();
     renderSidebarNavigation();
 
-    openNotice("Account Created", `Welcome to BloomCare Pharmacy, <strong>${escapeHtml(fullName)}</strong>!`);
-
-    if (STATE.pendingAction) {
-      executePendingAction();
-    } else {
-      navigateTo("dashboard");
+    // Reset register form & hints
+    $("#register-form")?.reset();
+    const hintPass = $("#reg-password-hint");
+    if (hintPass) {
+      hintPass.textContent = "Password must be exactly 6 digits.";
+      hintPass.style.color = "var(--muted, #64748b)";
     }
+    const hintConf = $("#reg-confirm-hint");
+    if (hintConf) hintConf.textContent = "";
+
+    openNotice("Welcome to BloomCare", `Account created successfully! Welcome, <strong>${escapeHtml(fullName)}</strong>.`);
+    navigateTo("customer/dashboard");
+  });
+
+  // 6-digit numeric input sanitizers & real-time helpers
+  $("#reg-password")?.addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    const hint = $("#reg-password-hint");
+    if (hint) {
+      if (e.target.value.length === 6) {
+        hint.textContent = "✓ Password contains 6 digits";
+        hint.style.color = "var(--emerald, #10b981)";
+      } else {
+        hint.textContent = "Password must be exactly 6 digits.";
+        hint.style.color = "var(--muted, #64748b)";
+      }
+    }
+  });
+
+  $("#reg-confirm")?.addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+    const hint = $("#reg-confirm-hint");
+    const pwd = $("#reg-password")?.value || "";
+    if (hint) {
+      if (e.target.value && e.target.value === pwd) {
+        hint.textContent = "✓ Passwords match";
+        hint.style.color = "var(--emerald, #10b981)";
+      } else if (e.target.value) {
+        hint.textContent = "Passwords do not match";
+        hint.style.color = "var(--rose, #ef4444)";
+      } else {
+        hint.textContent = "";
+      }
+    }
+  });
+
+  $("#login-password")?.addEventListener("input", (e) => {
+    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
+  });
+
+  // Toggle password visibility buttons
+  document.querySelectorAll(".btn-toggle-pwd").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const targetId = btn.dataset.target;
+      const input = document.getElementById(targetId);
+      if (!input) return;
+      if (input.type === "password") {
+        input.type = "text";
+        btn.textContent = "🙈";
+        btn.setAttribute("aria-label", "Hide password");
+      } else {
+        input.type = "password";
+        btn.textContent = "👁️";
+        btn.setAttribute("aria-label", "Show password");
+      }
+    });
   });
 
   // Forgot Password

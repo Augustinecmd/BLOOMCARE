@@ -357,6 +357,43 @@ class TestPharmacyPaymentAPI(unittest.TestCase):
         next_driver = payment_api.find_eligible_delivery_man()
         self.assertIsNotNone(next_driver)
 
+        # 8. Test Scenario C: When no driver is available (overload simulated)
+        original_deliveries = payment_api.read_deliveries()
+        try:
+            active_drivers = [u for u in payment_api.read_users() if u.get("role") in {"delivery_person", "deliveryStaff"} and u.get("status", "active") == "active"]
+            fake_deliveries = dict(original_deliveries)
+            for d in active_drivers:
+                d_id = d.get("id") or d.get("uid")
+                for i in range(5):
+                    k = f"DEL-OVERLOAD-{d_id}-{i}"
+                    fake_deliveries[k] = {
+                        "id": k,
+                        "orderId": k,
+                        "deliveryStaffId": d_id,
+                        "status": "Assigned"
+                    }
+            payment_api.write_deliveries(fake_deliveries)
+
+            overload_order = {
+                "orderNumber": "BC-TEST-OVERLOAD-001",
+                "paymentStatus": "PAID",
+                "customerName": "Test Customer",
+                "deliveryDivision": "Kamukuzi",
+                "deliveryArea": "Kiyanja",
+                "items": [{"name": "Panadol", "quantity": 1, "price": 5000}],
+                "total": 10000
+            }
+            overload_res = payment_api.auto_assign_delivery("BC-TEST-OVERLOAD-001", overload_order)
+            self.assertEqual(overload_res.get("status"), "WAITING_FOR_AVAILABLE_DELIVERY_MAN")
+            self.assertIsNone(overload_res.get("deliveryManId"))
+
+            notifs_overload = payment_api.read_notifications()
+            admin_alert = next((n for n in notifs_overload if n.get("orderId") == "BC-TEST-OVERLOAD-001" and n.get("type") == "DELIVERY_ASSIGNMENT_PENDING"), None)
+            self.assertIsNotNone(admin_alert, "Admin must receive DELIVERY_ASSIGNMENT_PENDING notification")
+            self.assertEqual(admin_alert.get("role"), "admin")
+        finally:
+            payment_api.write_deliveries(original_deliveries)
+
 
 if __name__ == "__main__":
     unittest.main()
