@@ -242,6 +242,12 @@
 
     <!-- Main Viewport Content Panes -->
     <main class="app-content-viewport" id="app-content-viewport">
+      <div class="global-page-navigation" id="global-page-navigation" hidden>
+        <button class="global-back-btn" id="global-back-btn" type="button" aria-label="Go back" title="Go back">
+          <span aria-hidden="true">&larr;</span>
+          <span>Back</span>
+        </button>
+      </div>
       
       <!-- ========================================================== -->
       <!-- MODULE 1: ROLE-BASED DASHBOARDS (#dashboard / #home) -->
@@ -1427,7 +1433,6 @@
       <section class="page-pane hidden" id="view-auth">
         <div class="auth-container-centered">
           <!-- Register Screen (Default First Page for Clients) -->
-          <div class="auth-card" id="register-card">
           <!-- Register Screen (Create Customer Account) -->
           <div class="auth-card hidden" id="register-card">
             <div class="auth-card-head">
@@ -1436,10 +1441,6 @@
             </div>
             <div id="register-error-msg" class="auth-error-msg hidden" role="alert"></div>
             <form id="register-form" class="standard-form">
-              <label>Full Name<input type="text" id="reg-fullname" placeholder="e.g. Grace Nakato" required /></label>
-              <label>Phone Number (MTN / Airtel Uganda)<input type="tel" id="reg-phone" placeholder="0751234567" required /></label>
-              <label>Email Address<input type="email" id="reg-email" placeholder="you@example.com" required /></label>
-              <label>Phone Number (MTN / Airtel Uganda)<input type="tel" id="reg-phone" placeholder="0751234567" required /></label>
               <!-- Account Type Selector (Individual vs Business Customer) -->
               <div class="form-group" style="margin-bottom:12px;">
                 <label style="font-weight:600; font-size:13px; margin-bottom:6px; display:block;">Account Type</label>
@@ -1465,8 +1466,6 @@
                 <input type="email" id="reg-email" placeholder="you@example.com" autocomplete="email" required />
               </label>
               <div class="form-row-2">
-                <label>Password<input type="password" id="reg-password" placeholder="Min 8 characters" required /></label>
-                <label>Confirm Password<input type="password" id="reg-confirm" placeholder="Confirm password" required /></label>
                 <label>Password
                   <div class="password-input-wrapper">
                     <input type="password" id="reg-password" inputmode="numeric" pattern="[0-9]*" maxlength="6" placeholder="6-digit PIN (e.g. 123456)" autocomplete="new-password" required />
@@ -1482,29 +1481,20 @@
                   <small class="field-hint" id="reg-confirm-hint"></small>
                 </label>
               </div>
-              <button class="btn btn-primary btn-block" type="submit">Create Account</button>
               <button class="btn btn-primary btn-block" type="submit" id="create-account-btn">Create Account</button>
             </form>
-            <p class="auth-switch-text">Already have an account? <button class="text-link" id="switch-to-login-btn" type="button">Log In</button></p>
             <p class="auth-switch-text" style="margin-top:14px;">Already have an account? <button class="text-link" id="switch-to-login-btn" type="button">Log In</button></p>
           </div>
 
           <!-- Customer Login Screen -->
-          <div class="auth-card hidden" id="login-card">
           <div class="auth-card" id="login-card">
             <div class="auth-card-head">
               <h2>BloomCare Pharmacy</h2>
-              <p class="muted">Login to your account</p>
               <p class="muted">Customer Login</p>
             </div>
             <div id="login-success-msg" class="auth-success-msg hidden" role="status"></div>
             <div id="login-error-msg" class="auth-error-msg hidden" role="alert"></div>
             <form id="login-form" class="standard-form">
-              <label>Email Address<input type="email" id="login-email" placeholder="you@example.com" required /></label>
-              <label>Password<input type="password" id="login-password" placeholder="Password" required /></label>
-              <div class="form-actions-row">
-                <button class="btn btn-primary" type="submit">Log In</button>
-                <button class="text-link" id="forgot-password-link" type="button">Forgot Password?</button>
               <label>Email / Phone Number
                 <input type="text" id="login-email" placeholder="Email or Phone (e.g. 0751234567)" autocomplete="username" required />
               </label>
@@ -1523,16 +1513,12 @@
               <button class="btn btn-outline btn-block" id="switch-to-register-btn" type="button">Create Customer Account</button>
             </div>
             <div class="auth-divider">or</div>
-            <div class="demo-auth-help-box">
-              <span class="demo-help-tag">One-Click Demo Access</span>
-              <button class="btn btn-outline btn-sm btn-block" id="demo-customer-login-btn" type="button">Log In as Demo Customer (Grace Nakato)</button>
             <div class="demo-customer-box">
               <div class="demo-customer-credentials">
                 <strong>Demo Customer:</strong> customer@example.com &bull; PIN: 123456
               </div>
               <button class="btn btn-accent btn-sm btn-block" id="demo-customer-login-btn" type="button">Log In as Demo Customer</button>
             </div>
-            <p class="auth-switch-text" style="margin-top:12px;">Don't have an account? <button class="text-link" id="switch-to-register-btn" type="button">Create Account</button></p>
             <p class="auth-switch-text" style="margin-top:14px;"><button class="text-link" id="switch-to-staff-login-btn" type="button">Pharmacy Staff &amp; Administrator Portal &rarr;</button></p>
           </div>
 
@@ -1543,8 +1529,6 @@
               <p class="muted">Pharmacy Staff &amp; Administrator Sign In</p>
             </div>
             <form id="staff-login-form" class="standard-form">
-              <label>Staff Email Address<input type="email" id="staff-login-email" placeholder="staff@bloomcare.com" required /></label>
-              <label>Staff Password<input type="password" id="staff-login-password" placeholder="Password" required /></label>
               <label>Staff Email Address<input type="email" id="staff-login-email" placeholder="staff@bloomcare.com" autocomplete="username" required /></label>
               <label>Staff Password<input type="password" id="staff-login-password" placeholder="Password" autocomplete="current-password" required /></label>
               <div class="form-actions-row">
@@ -1961,6 +1945,12 @@
     <label>Order Status
       <select id="manage-order-status" required>
         <option value="Pending">Pending</option>
+        <option value="Prescription Required">Prescription Required</option>
+        <option value="Prescription Submitted">Prescription Submitted</option>
+        <option value="Prescription Under Review">Prescription Under Review</option>
+        <option value="Prescription Approved">Prescription Approved</option>
+        <option value="Prescription Rejected">Prescription Rejected</option>
+        <option value="Ready for Processing">Ready for Processing</option>
         <option value="Awaiting Prescription Review">Awaiting Prescription Review</option>
         <option value="Confirmed">Confirmed</option>
         <option value="Processing">Processing</option>
@@ -2185,6 +2175,12 @@
       </select>
     </label>
     <label>Payment Phone Number<input type="tel" id="chk-phone" placeholder="0772 123 456" required /></label>
+
+    <div id="checkout-rx-notice" class="rx-checkout-notice hidden" role="status">
+      <strong>Prescription required for verification before this medicine can be dispensed.</strong>
+      <span>You may submit the prescription now. Normal medicines in this mixed cart can still be purchased while the Rx item waits for pharmacist verification.</span>
+      <button class="btn btn-outline btn-sm" id="checkout-upload-rx-btn" type="button">Upload Prescription</button>
+    </div>
 
     <div class="checkout-summary-box" style="margin-top: 10px;">
       <div class="cart-line-row total-highlight"><span>Total Payable:</span> <strong id="chk-total-val">UGX 0</strong></div>

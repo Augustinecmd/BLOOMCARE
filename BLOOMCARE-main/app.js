@@ -15,7 +15,6 @@ import {
   getProductById,
   saveProduct,
   updateProductStock,
-  deleteProduct,
   getCategories,
   saveCategory,
   createOrder,
@@ -25,31 +24,31 @@ import {
   updateOrderStatus,
   submitPrescription,
   getPrescriptions,
-  reviewPrescription,
   bookConsultation,
   getConsultations,
   updateConsultationStatus,
-  requestRefill,
   getRefills,
   updateRefillStatus,
   createDelivery,
   getDeliveries,
-  updateDeliveryStatus,
   createPaymentRecord,
   getPayments,
   getInventoryLogs,
-  createNotification,
   getNotifications,
   markNotificationRead,
   requestPasswordReset,
   getSystemSettings,
   updateSystemSettings,
   getOrCreateDeliveryConversation,
-  subscribeToDeliveryConversation,
   subscribeToDeliveryMessages,
   sendDeliveryChatMessage,
   markDeliveryMessagesRead,
-  getDeliveryConversationsForUser
+  getDeliveryConversationsForUser,
+  getDesignatedDeliveryDriver,
+  subscribeCustomerOrders,
+  subscribeDeliveryOrders,
+  subscribeUserNotifications,
+  subscribeOrderById
 } from "./firebase.js";
 import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
@@ -1314,11 +1313,51 @@ export function userHasPermission(user, permission) {
 // 5. Pharmacy Workflow State Transition Logic (State Machine)
 export const ALLOWED_ORDER_TRANSITIONS = {
   "Pending": {
-    allowedNext: ["Awaiting Prescription Review", "Processing", "Cancelled"],
+    allowedNext: ["Prescription Required", "Awaiting Prescription Review", "Processing", "Cancelled"],
     allowedRoles: {
       "Awaiting Prescription Review": ["developer", "admin", "pharmacist", "customer"],
       "Processing": ["developer", "admin", "pharmacist", "assistant_pharmacist"],
       "Cancelled": ["developer", "admin", "pharmacist", "customer"]
+    }
+  },
+  "Prescription Required": {
+    allowedNext: ["Prescription Submitted", "Cancelled"],
+    allowedRoles: {
+      "Prescription Submitted": ["customer", "developer", "admin", "pharmacist"],
+      "Cancelled": ["customer", "developer", "admin", "pharmacist"]
+    }
+  },
+  "Prescription Submitted": {
+    allowedNext: ["Prescription Under Review", "Cancelled"],
+    allowedRoles: {
+      "Prescription Under Review": ["developer", "admin", "pharmacist"],
+      "Cancelled": ["developer", "admin", "pharmacist"]
+    }
+  },
+  "Prescription Under Review": {
+    allowedNext: ["Prescription Approved", "Prescription Rejected", "Cancelled"],
+    allowedRoles: {
+      "Prescription Approved": ["developer", "admin", "pharmacist"],
+      "Prescription Rejected": ["developer", "admin", "pharmacist"],
+      "Cancelled": ["developer", "admin", "pharmacist"]
+    }
+  },
+  "Prescription Approved": {
+    allowedNext: ["Ready for Processing", "Cancelled"],
+    allowedRoles: {
+      "Ready for Processing": ["developer", "admin", "pharmacist"],
+      "Cancelled": ["developer", "admin", "pharmacist"]
+    }
+  },
+  "Prescription Rejected": {
+    allowedNext: ["Cancelled"],
+    allowedRoles: { "Cancelled": ["developer", "admin", "pharmacist"] }
+  },
+  "Ready for Processing": {
+    allowedNext: ["Processing", "Cancelled"],
+    allowedRoles: {
+      "Processing": ["developer", "admin", "pharmacist", "assistant_pharmacist"],
+      "Cancelled": ["developer", "admin", "pharmacist"]
     }
   },
   "Awaiting Prescription Review": {
@@ -1572,7 +1611,6 @@ export function extractRoleFromProfile(profile) {
   return normalizeRole(raw);
 }
 
-export async function registerUser({ fullName, email, phone, password }) {
 export async function registerUser({ fullName, email, phone, password, accountType = "INDIVIDUAL" }) {
   const nameVal = validateName(fullName);
   if (!nameVal.valid) return { success: false, message: nameVal.message };
@@ -1630,7 +1668,6 @@ export async function registerUser({ fullName, email, phone, password, accountTy
       email: newCustomer.email,
       phone: normalizedPhone,
       password: newCustomer.password,
-      role: "customer"
       role: "customer",
       accountType: normalizedAccountType
     });
@@ -1695,8 +1732,8 @@ export async function loginUser({ identifier, password }) {
 
 export function getSavedSessionUser() {
   try {
-    const raw = (typeof localStorage !== "undefined" && localStorage.getItem("bloomcare_user_session")) || 
-                (typeof sessionStorage !== "undefined" && sessionStorage.getItem("bloomcare_session_user"));
+    const raw = (typeof sessionStorage !== "undefined" && sessionStorage.getItem("bloomcare_session_user")) ||
+                (typeof localStorage !== "undefined" && localStorage.getItem("bloomcare_user_session"));
     if (!raw) return null;
     return JSON.parse(raw);
   } catch (_) {
@@ -1708,8 +1745,8 @@ export function saveSessionUser(user) {
   if (!user) return;
   try {
     const serialized = JSON.stringify(user);
-    if (typeof localStorage !== "undefined") localStorage.setItem("bloomcare_user_session", serialized);
     if (typeof sessionStorage !== "undefined") sessionStorage.setItem("bloomcare_session_user", serialized);
+    if (typeof localStorage !== "undefined") localStorage.setItem("bloomcare_user_session", serialized);
   } catch (_) {}
 }
 
@@ -2066,8 +2103,11 @@ export const STATE = {
   authInitialized: false,
   pendingAction: null,
   currentRoute: "",
+  routeHistory: [],
+  handlingBrowserBack: false,
   activeReceiptOrder: null,
   pendingRxFile: null,
+  isPlacingOrder: false,
   products: sortMedicinesList(deduplicateCatalog([...INITIAL_MEDICINES]), "name-asc"),
   categories: [...ESSENTIAL_CATEGORIES],
   cart: [],
@@ -2083,6 +2123,8 @@ export const STATE = {
   conversations: loadConversationsFromStorage(),
   messages: loadMessagesFromStorage(),
   activeChatConversationId: null,
+  activeChatMessagesUnsubscribe: null,
+  activeChatSubscriptionId: null,
   chatFilter: "all",
   chatSearchQuery: "",
   inventoryLogs: [...INITIAL_INVENTORY_LOGS],
@@ -2123,8 +2165,21 @@ export const STATE = {
   orderFilter: "all",
   reportsDateFilter: "month",
   fulfillmentOption: "delivery", // delivery | pickup
-  deliveryFee: 5000
+  deliveryFee: 5000,
+  isPlacingOrder: false,
+  designatedDeliveryDriver: null,
+  deliveryOrdersFilter: "all",
+  activeOrdersUnsubscribe: null,
+  activeNotificationsUnsubscribe: null
 };
+
+export function debounce(fn, delay = 250) {
+  let timer = null;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
 
 export function normalizeRole(role) {
   if (!role) return null;
@@ -2136,6 +2191,7 @@ export function normalizeRole(role) {
   if (r === "pharmacist" || r === "pharm") return "pharmacist";
   if (r === "assistant_pharmacist" || r === "pharmacyassistant" || r === "assistant" || r === "pharmacy_assistant" || r === "asst_pharmacist") return "assistant_pharmacist";
   if (r === "delivery_person" || r === "deliverystaff" || r === "delivery" || r === "delivery_staff" || r === "driver") return "delivery_person";
+  if (r === "delivery_person" || r === "deliverystaff" || r === "delivery" || r === "delivery_staff" || r === "driver" || r === "delivery_man") return "delivery_person";
   if (r === "customer" || r === "client" || r === "patient") return "customer";
   if (r === "visitor" || r === "guest") return "visitor";
 
@@ -2178,6 +2234,133 @@ function openNotice(title, message) {
   $("#notice-title").textContent = title;
   $("#notice-msg").innerHTML = message;
   $("#notice-modal").showModal();
+}
+
+// -------------------------------------------------------------
+// REAL-TIME MULTI-USER / MULTI-TAB SYNCHRONIZATION ENGINE
+// -------------------------------------------------------------
+let appSyncChannel = null;
+
+export function broadcastAppSync(type, payload = {}) {
+  try {
+    if (!appSyncChannel && typeof BroadcastChannel !== "undefined") {
+      appSyncChannel = new BroadcastChannel("bloomcare_realtime_sync");
+    }
+    if (appSyncChannel) {
+      appSyncChannel.postMessage({ type, payload, timestamp: Date.now() });
+    }
+  } catch (_) {}
+}
+
+export function handleAppSyncMessage(event) {
+  const data = event?.data;
+  if (!data || !data.type) return;
+
+  const { type, payload } = data;
+  const effRole = typeof getEffectiveRole === "function" ? getEffectiveRole() : "";
+
+  if (type === "NEW_CHAT_MESSAGE" && payload?.message) {
+    const msg = payload.message;
+    const exists = STATE.messages.some(m => m.id === msg.id || (m.conversationId === msg.conversationId && m.timestamp === msg.timestamp && m.text === msg.text));
+    if (!exists) {
+      STATE.messages.push(msg);
+      saveMessagesToStorage();
+    }
+
+    const conv = STATE.conversations.find(c => c.id === payload.conversationId || c.conversationId === payload.conversationId);
+    if (conv) {
+      conv.lastMessageText = msg.text || msg.message;
+      conv.lastMessageTimestamp = msg.timestamp || new Date().toISOString();
+      if ((msg.senderRole === "customer" || msg.senderRole === "client") && (effRole === "delivery_person" || effRole === "deliveryStaff")) {
+        conv.unreadCountForDelivery = (conv.unreadCountForDelivery || 0) + 1;
+        conv.unreadDelivery = (conv.unreadDelivery || 0) + 1;
+      } else if ((msg.senderRole === "delivery" || msg.senderRole === "delivery_person") && effRole === "customer") {
+        conv.unreadCountForCustomer = (conv.unreadCountForCustomer || 0) + 1;
+        conv.unreadCustomer = (conv.unreadCustomer || 0) + 1;
+      }
+      saveConversationsToStorage();
+    }
+
+    if (typeof updateChatUnreadBadges === "function") updateChatUnreadBadges();
+
+    if (STATE.currentRoute === "delivery_person/chat" || STATE.currentRoute === "customer-chat" || STATE.currentRoute.endsWith("/chat")) {
+      renderDeliveryChatView();
+    }
+    const dialog = $("#customer-order-chat-dialog");
+    if (dialog && dialog.open && dialog.dataset.conversationId === payload.conversationId) {
+      renderCustomerChatStream(payload.conversationId);
+    }
+    if (effRole === "delivery_person" && STATE.currentRoute === "delivery_person/dashboard") {
+      renderRoleDashboard();
+    }
+  } else if (type === "NEW_DELIVERY_ORDER" && payload?.order) {
+    const order = payload.order;
+    if (!STATE.orders.some(o => o.id === order.id || o.orderNumber === order.orderNumber)) {
+      STATE.orders.unshift(order);
+    }
+    if (payload.delivery && !STATE.deliveries.some(d => d.id === payload.delivery.id || d.orderId === order.id)) {
+      STATE.deliveries.unshift(payload.delivery);
+    }
+    if (payload.notification && !STATE.notifications.some(n => n.id === payload.notification.id)) {
+      STATE.notifications.unshift(payload.notification);
+      if (typeof updateNotifBadge === "function") updateNotifBadge();
+    }
+    if (payload.conversation && !STATE.conversations.some(c => c.id === payload.conversation.id)) {
+      STATE.conversations.unshift(payload.conversation);
+      saveConversationsToStorage();
+    }
+    if (effRole === "delivery_person" && STATE.currentRoute === "delivery_person/dashboard") {
+      renderRoleDashboard();
+    } else if (STATE.currentRoute === "deliveries") {
+      renderDeliveriesView();
+    }
+  } else if (type === "DELIVERY_STATUS_UPDATED" && payload?.orderId) {
+    const { orderId, status } = payload;
+    const ord = STATE.orders.find(o => o.id === orderId || o.orderNumber === orderId);
+    if (ord) ord.orderStatus = status;
+    const del = STATE.deliveries.find(d => d.orderId === orderId || d.orderNumber === orderId);
+    if (del) del.status = status;
+    const conv = STATE.conversations.find(c => c.orderId === orderId || c.orderNumber === orderId);
+    if (conv) conv.deliveryStatus = status;
+
+    if (STATE.currentRoute === "delivery_person/dashboard" || STATE.currentRoute === "customer/dashboard" || STATE.currentRoute === "dashboard") {
+      renderRoleDashboard();
+    } else if (STATE.currentRoute === "deliveries") {
+      renderDeliveriesView();
+    } else if (STATE.currentRoute === "orders" || STATE.currentRoute === "customer/orders") {
+      renderOrdersView();
+    }
+    if (typeof updateOrderTrackingModalIfOpen === "function") {
+      updateOrderTrackingModalIfOpen(orderId);
+    }
+  }
+}
+
+export function initAppSyncChannel() {
+  try {
+    if (typeof BroadcastChannel !== "undefined" && !appSyncChannel) {
+      appSyncChannel = new BroadcastChannel("bloomcare_realtime_sync");
+      appSyncChannel.onmessage = handleAppSyncMessage;
+    }
+    if (typeof window !== "undefined") {
+      window.addEventListener("storage", (e) => {
+        if (e.key === "bloomcare_messages_v1") {
+          STATE.messages = loadMessagesFromStorage();
+          if (STATE.currentRoute === "delivery_person/chat" || STATE.currentRoute === "customer-chat" || STATE.currentRoute.endsWith("/chat")) {
+            renderDeliveryChatView();
+          }
+          const dialog = $("#customer-order-chat-dialog");
+          if (dialog && dialog.open && dialog.dataset.conversationId) {
+            renderCustomerChatStream(dialog.dataset.conversationId);
+          }
+          if (typeof updateChatUnreadBadges === "function") updateChatUnreadBadges();
+        } else if (e.key === "bloomcare_conversations_v1") {
+          STATE.conversations = loadConversationsFromStorage();
+          if (typeof updateChatUnreadBadges === "function") updateChatUnreadBadges();
+        }
+      });
+    }
+  } catch (_) {}
 }
 
 // -------------------------------------------------------------
@@ -2367,6 +2550,13 @@ function executePendingAction() {
 // APP INITIALIZATION & FIRESTORE DATA SYNCHRONIZATION
 // -------------------------------------------------------------
 async function loadAppData(userId = null) {
+  if (userId && getEffectiveRole() === "customer") {
+    STATE.orders = [];
+    STATE.prescriptions = [];
+    STATE.consultations = [];
+    STATE.refills = [];
+  }
+
   try {
     const [fetchedProducts, fetchedCategories, fetchedSettings] = await Promise.all([
       getProducts(),
@@ -2422,10 +2612,11 @@ async function loadAppData(userId = null) {
         getRefills(userId, STATE.activeRole)
       ]);
 
-      if (userOrders && userOrders.length > 0) STATE.orders = userOrders;
-      if (userPrescriptions && userPrescriptions.length > 0) STATE.prescriptions = userPrescriptions;
-      if (userConsultations && userConsultations.length > 0) STATE.consultations = userConsultations;
-      if (userRefills && userRefills.length > 0) STATE.refills = userRefills;
+      const isCustomer = getEffectiveRole() === "customer";
+      if (isCustomer || userOrders?.length) STATE.orders = userOrders || [];
+      if (isCustomer || userPrescriptions?.length) STATE.prescriptions = userPrescriptions || [];
+      if (isCustomer || userConsultations?.length) STATE.consultations = userConsultations || [];
+      if (isCustomer || userRefills?.length) STATE.refills = userRefills || [];
     }
   } catch (err) {
     console.warn("[BLOOMCARE DATA FLOW] Using local state with offline safety:", err);
@@ -2548,6 +2739,57 @@ export function syncWhatsAppLinks() {
   }
 }
 
+function setupGlobalDialogNavigation() {
+  document.querySelectorAll("dialog").forEach((dialog) => {
+    const title = dialog.querySelector("h2, h3")?.textContent?.trim() || "dialog";
+    const closeButton = dialog.querySelector(".dialog-close-btn");
+    if (closeButton) {
+      closeButton.type = "button";
+      if (!closeButton.getAttribute("aria-label")) closeButton.setAttribute("aria-label", `Close ${title}`);
+      if (!closeButton.title) closeButton.title = "Close";
+    } else {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "dialog-close-btn global-dialog-close-btn";
+      button.dataset.dialogClose = "true";
+      button.setAttribute("aria-label", `Close ${title}`);
+      button.title = "Close";
+      button.innerHTML = "&times;";
+      dialog.appendChild(button);
+    }
+
+    const form = dialog.querySelector("form");
+    const hasCancel = [...dialog.querySelectorAll("button")].some(button =>
+      button.textContent.trim().toLowerCase() === "cancel" || button.dataset.dialogCancel === "true"
+    );
+    if (form && !hasCancel) {
+      const cancel = document.createElement("button");
+      cancel.type = "button";
+      cancel.className = "btn btn-outline global-dialog-cancel-btn";
+      cancel.dataset.dialogCancel = "true";
+      cancel.textContent = "Cancel";
+      form.insertAdjacentElement("afterend", cancel);
+    }
+
+    dialog.querySelectorAll("input, select, textarea").forEach((field) => {
+      field.addEventListener("input", () => { dialog.dataset.dirty = "true"; }, { once: false });
+      field.addEventListener("change", () => { dialog.dataset.dirty = "true"; }, { once: false });
+    });
+  });
+
+  document.addEventListener("click", (event) => {
+    const closeButton = event.target.closest("[data-dialog-close], .dialog-close-btn");
+    const cancelButton = event.target.closest("[data-dialog-cancel]");
+    const button = closeButton || cancelButton;
+    const dialog = button?.closest("dialog");
+    if (!dialog) return;
+
+    if (cancelButton && dialog.dataset.dirty === "true" && !window.confirm("Discard unsaved changes?")) return;
+    dialog.close();
+    delete dialog.dataset.dirty;
+  });
+}
+
 async function initApp() {
   // Show Loading Screen Immediately
   showAuthLoadingScreen("Loading your BloomCare workspace...", "Verifying your account role and access permissions...");
@@ -2567,8 +2809,10 @@ async function initApp() {
 
   loadCartFromStorage();
   bindEventListeners();
+  setupGlobalDialogNavigation();
 
   // Background Delivery, Notifications & Chat Sync
+  initAppSyncChannel();
   syncDeliverySystemWithBackend();
   setInterval(syncDeliverySystemWithBackend, 4000);
 
@@ -2678,16 +2922,12 @@ async function initApp() {
         return;
       }
 
-      const userRole = extractRoleFromProfile(profile);
       let userRole = extractRoleFromProfile(profile);
 
       // Safe fallback for authenticated users: in BloomCare, users authenticated via Firebase default to customer
       if (!userRole) {
-        STATE.authLoading = false;
-        showAuthErrorScreen("Account Role Verification Failed", "Your account role could not be verified from the database. Please contact the administrator.");
-        return;
         userRole = "customer";
-        profile.role = "customer";
+        if (profile) profile.role = "customer";
       }
 
       STATE.currentUser = {
@@ -2924,8 +3164,11 @@ export async function switchActiveRole(roleName) {
   } else if (normalized === "delivery_person") {
     STATE.currentUser = {
       uid: "usr-staff-4",
+      uid: "usr-5",
+      id: "usr-5",
       email: "moses.k@bloomcare.com",
       displayName: "Moses Kato",
+      name: "Moses Kato",
       phone: "0751445566",
       role: "delivery_person"
     };
@@ -2947,10 +3190,11 @@ export async function switchActiveRole(roleName) {
 
   // Clear previous role data from state to prevent data bleed
   if (STATE.activeRole === "customer") {
-    STATE.orders = INITIAL_ORDERS.filter(o => o.customerId === "usr-demo-customer");
-    STATE.prescriptions = INITIAL_PRESCRIPTIONS.filter(p => p.customerId === "usr-demo-customer");
-    STATE.orders = INITIAL_ORDERS.filter(o => o.customerId === "usr-demo-customer" || o.customerId === "usr-cust-demo");
-    STATE.prescriptions = INITIAL_PRESCRIPTIONS.filter(p => p.customerId === "usr-demo-customer" || p.customerId === "usr-cust-demo");
+    const isDemoCustomer = ["usr-demo-customer", "usr-cust-demo"].includes(STATE.currentUser?.uid);
+    STATE.orders = isDemoCustomer ? INITIAL_ORDERS.filter(o => o.customerId === STATE.currentUser.uid) : [];
+    STATE.prescriptions = isDemoCustomer ? INITIAL_PRESCRIPTIONS.filter(p => p.customerId === STATE.currentUser.uid) : [];
+    STATE.consultations = isDemoCustomer ? INITIAL_CONSULTATIONS.filter(c => c.customerId === STATE.currentUser.uid) : [];
+    STATE.refills = isDemoCustomer ? INITIAL_REFILLS.filter(r => r.customerId === STATE.currentUser.uid) : [];
   } else {
     STATE.orders = [...INITIAL_ORDERS];
     STATE.prescriptions = [...INITIAL_PRESCRIPTIONS];
@@ -2966,13 +3210,26 @@ export async function switchActiveRole(roleName) {
   navigateTo(ROLE_HOME_ROUTES[STATE.activeRole] || "dashboard");
 }
 
+function canCurrentUserSeeNotification(notification) {
+  const user = STATE.currentUser;
+  if (!user || !notification) return false;
+
+  const recipientId = notification.userId || notification.recipientId || notification.recipientUserId;
+  if (recipientId) return String(recipientId) === String(user.uid);
+
+  const role = normalizeRole(getEffectiveRole());
+  if (role === "customer") return false;
+
+  const notificationRole = normalizeRole(notification.role);
+  return !notificationRole || notificationRole === role || role === "admin" || role === "developer";
+}
+
 function updateNotifBadge() {
   if (!STATE.currentUser) {
     $("#top-notif-badge")?.classList.add("hidden");
     return;
   }
-  const effective = getEffectiveRole();
-  const unread = STATE.notifications.filter(n => !n.read && (n.role === effective || !n.role)).length;
+  const unread = STATE.notifications.filter(n => !n.read && canCurrentUserSeeNotification(n)).length;
   const badge = $("#top-notif-badge");
   if (badge) {
     badge.textContent = String(unread);
@@ -2987,8 +3244,7 @@ export function renderNotificationsDropdown() {
   const container = $("#notif-dropdown-list");
   if (!container) return;
 
-  const effective = getEffectiveRole();
-  const list = STATE.notifications.filter(n => !n.role || n.role === effective || effective === "admin" || effective === "developer");
+  const list = STATE.notifications.filter(canCurrentUserSeeNotification);
 
   if (!list || list.length === 0) {
     container.innerHTML = `<div class="notif-empty-state">No notifications right now</div>`;
@@ -3048,7 +3304,6 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "customer/refills", icon: ICONS.refills, label: "Refills" },
     { route: "customer/orders", icon: ICONS.orders, label: "Orders" },
     { route: "about", icon: ICONS.about, label: "About Us" },
-    { route: "contact", icon: ICONS.contact, label: "Contact Us" }
     { route: "contact", icon: ICONS.contact, label: "Contact Us" },
     { route: "customer-chat", icon: ICONS.chat, label: "Messages" },
     { route: "profile", icon: ICONS.profile, label: "My Profile" },
@@ -3186,37 +3441,30 @@ export function checkRouteAccess(route, user, role = null) {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
-        reason: "Access Denied: Developer tools are restricted to system developers."
         reason: "Access Denied: Developer tools are restricted to authorized technical staff."
       };
     }
-    if (clean.startsWith("pharmacist/") || clean === "pharmacist" || clean.startsWith("assistant_pharmacist/")) {
     if (clean.startsWith("pharmacist/") || clean === "pharmacist" ||
         clean.startsWith("assistant_pharmacist/") || clean.startsWith("assistant-pharmacist/") || clean === "assistant_pharmacist" || clean === "assistant-pharmacist") {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
-        reason: "Access Denied: Customer accounts cannot access pharmacy staff tools."
         reason: "Access Denied: Customer accounts cannot access pharmacy staff tools or clinical verification queues."
       };
     }
-    if (clean.startsWith("admin/") || clean === "admin" || ["inventory", "users", "deliveries", "payments", "reports", "notifications"].includes(clean)) {
     if (clean.startsWith("admin/") || clean === "admin" || clean === "admin-audit") {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
-        reason: "Access Denied: Customer accounts cannot access administrative pages."
         reason: "Access Denied: Customer accounts cannot access administrative pages or management tools."
       };
     }
-    if (clean.startsWith("delivery") || clean.startsWith("staff")) {
     if (clean === "staff-login" || clean === "staff" || clean.startsWith("staff/") ||
         clean.startsWith("delivery") ||
         ["inventory", "users", "deliveries", "payments", "reports", "audit", "notifications"].includes(clean)) {
       return {
         allowed: false,
         redirectRoute: "customer/dashboard",
-        reason: "Access denied. Staff privileges required."
         reason: "Access Denied: Customer accounts cannot access the Clinical & Staff Portal or staff tools."
       };
     }
@@ -3280,7 +3528,6 @@ export function checkRouteAccess(route, user, role = null) {
   }
 
   // 3. PUBLIC ROUTES (For unauthenticated visitors)
-  const publicRoutes = ["auth", "login", "register", "staff-login", "medicines", "categories", "about", "contact"];
   if (publicRoutes.includes(clean)) {
     return { allowed: true };
   }
@@ -3413,7 +3660,6 @@ export function checkRouteAccess(route, user, role = null) {
         reason: "Access Denied: Delivery personnel are restricted to assigned delivery runs."
       };
     }
-    if (["dashboard", "delivery_person/dashboard", "deliveries", "profile", "settings", "chat", "customer-chat", "delivery_person/chat", "delivery-chat"].includes(clean)) {
     if (["dashboard", "delivery_person/dashboard", "delivery/dashboard", "deliveries", "profile", "settings", "chat", "customer-chat", "delivery_person/chat", "delivery-chat"].includes(clean)) {
       return { allowed: true };
     }
@@ -3453,6 +3699,11 @@ export function navigateTo(route) {
     route = ROLE_HOME_ROUTES[STATE.activeRole] || "auth";
   }
   const clean = route.replace(/^#\/?/, "").replace(/^\/+|\/+$/g, "");
+  const current = getNormalizedRoute();
+  if (current && current !== clean && !STATE.handlingBrowserBack) {
+    STATE.routeHistory.push(current);
+    if (STATE.routeHistory.length > 30) STATE.routeHistory.shift();
+  }
   if (window.location.hash !== `#${clean}`) {
     window.location.hash = clean;
   }
@@ -3498,7 +3749,7 @@ export function handleRoute() {
 
   // Level 2 Security Check: Verify Role-Based Route Access
   const effRole = getEffectiveRole();
-  const access = checkRouteAccess(route, STATE.currentUser, effRole);
+  let access = checkRouteAccess(route, STATE.currentUser, effRole);
   if (!access.allowed) {
     let displayReason = access.reason;
     if (effRole === "customer" && (route.startsWith("admin") || route.startsWith("pharmacist") || route.startsWith("assistant_pharmacist") || route.startsWith("assistant-pharmacist") || route.startsWith("delivery") || route.startsWith("staff") || route.startsWith("developer") || ["inventory", "users", "deliveries", "payments", "reports", "staff-login"].includes(route))) {
@@ -3533,8 +3784,7 @@ export function handleRoute() {
   }
 
   // Level 2 Security Check: Verify Role-Based Route Access
-  const effRole = getEffectiveRole();
-  const access = checkRouteAccess(route, STATE.currentUser, effRole);
+  access = checkRouteAccess(route, STATE.currentUser, effRole);
   if (!access.allowed) {
     let displayReason = access.reason;
     if (effRole === "customer" && (route.startsWith("admin") || route.startsWith("pharmacist") || route.startsWith("assistant_pharmacist") || route.startsWith("delivery") || route.startsWith("staff") || route.startsWith("developer") || ["inventory", "users", "deliveries", "payments", "reports", "staff-login"].includes(route))) {
@@ -3553,6 +3803,19 @@ export function handleRoute() {
   STATE.currentRoute = route;
   closeMobileDrawer();
 
+  const pageNavigation = $("#global-page-navigation");
+  const backButton = $("#global-back-btn");
+  const homeRoute = ROLE_HOME_ROUTES[effRole] || "auth";
+  if (pageNavigation && backButton) {
+    const canGoBack = STATE.routeHistory.length > 0 && route !== homeRoute && route !== "auth";
+    pageNavigation.hidden = !canGoBack;
+    backButton.onclick = () => {
+      if (!STATE.routeHistory.length) return;
+      STATE.handlingBrowserBack = true;
+      window.history.back();
+    };
+  }
+
   // Highlight Active Nav Button in Sidebar
   $$(".sidebar-nav-menu .nav-item").forEach((btn) => {
     const btnRoute = btn.dataset.route;
@@ -3570,7 +3833,6 @@ export function handleRoute() {
 
   // Determine base pane: e.g. "customer/dashboard" -> "dashboard"
   let basePane = route;
-  if (route.includes("/")) {
   if (route === "staff-login" || route === "staff" || route === "staff/login" || route === "login" || route === "register" || route === "auth") {
     basePane = "auth";
   } else if (route.includes("/")) {
@@ -4547,13 +4809,13 @@ function renderRoleDashboard() {
 
   } else if (role === "customer") {
     // 5. CUSTOMER DASHBOARD (Functional Customer Portal)
-    const myOrders = STATE.currentUser ? STATE.orders.filter(o => o.customerId === STATE.currentUser.uid || o.customerName === STATE.currentUser.displayName || o.customerId === "usr-demo-customer") : [];
+    const myOrders = STATE.currentUser ? STATE.orders.filter(o => o.customerId === STATE.currentUser.uid || (STATE.currentUser.email && o.customerEmail === STATE.currentUser.email)) : [];
     const activeOrders = myOrders.filter(o => o.orderStatus !== "Delivered" && o.orderStatus !== "Cancelled");
-    const myPrescriptions = STATE.currentUser ? STATE.prescriptions.filter(p => p.customerId === STATE.currentUser.uid || p.customerName === STATE.currentUser.displayName || p.customerId === "usr-demo-customer") : [];
+    const myPrescriptions = STATE.currentUser ? STATE.prescriptions.filter(p => p.customerId === STATE.currentUser.uid || (STATE.currentUser.email && p.customerEmail === STATE.currentUser.email)) : [];
     const pendingPrescriptions = myPrescriptions.filter(p => p.status === "Pending" || p.status === "Pending Review" || p.status === "Under Review" || p.status === "Clarification Required");
-    const myConsultations = STATE.currentUser ? STATE.consultations.filter(c => c.customerId === STATE.currentUser.uid || c.customerName === STATE.currentUser.displayName || c.customerId === "usr-demo-customer") : [];
+    const myConsultations = STATE.currentUser ? STATE.consultations.filter(c => c.customerId === STATE.currentUser.uid || (STATE.currentUser.email && c.customerEmail === STATE.currentUser.email)) : [];
     const upcomingConsultations = myConsultations.filter(c => c.status === "Confirmed" || c.status === "Pending");
-    const myRefills = STATE.currentUser ? STATE.refills.filter(r => r.customerId === STATE.currentUser.uid || r.customerName === STATE.currentUser.displayName || r.customerId === "usr-demo-customer") : [];
+    const myRefills = STATE.currentUser ? STATE.refills.filter(r => r.customerId === STATE.currentUser.uid || (STATE.currentUser.email && r.customerEmail === STATE.currentUser.email)) : [];
     const pendingRefills = myRefills.filter(r => r.status === "Pending" || r.status === "Under Review");
 
     const latestActive = activeOrders.length > 0 ? activeOrders[0] : null;
@@ -4587,14 +4849,9 @@ function renderRoleDashboard() {
             <button class="btn btn-secondary btn-sm" type="button" data-route="prescriptions">Upload Prescription</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="refills">Request Refill</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
-            <button class="btn btn-primary btn-sm" type="button" data-route="customer/medicines">Browse Medicines</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-route="customer/prescriptions">Upload Prescription</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-route="customer/refills">Request Refill</button>
-            <button class="btn btn-secondary btn-sm" type="button" data-route="customer/consultations">Consult Pharmacist</button>
           </div>
         </div>
         <div class="customer-welcome-right">
-          <span class="customer-badge-pill">${ICONS.check} Verified Patient Account</span>
           <span class="customer-badge-pill">${ICONS.check} ${STATE.currentUser?.accountType === "BUSINESS" ? "Verified Business Customer" : "Verified Customer Account"}</span>
         </div>
       </div>
@@ -5466,7 +5723,7 @@ export function renderRecommendedProductCardHtml(prod) {
         ${isFav ? "♥" : "♡"}
       </button>
       <div class="product-thumb-container">
-        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
       </div>
       <div class="rec-card-body">
         <h4 class="rec-product-name">${escapeHtml(prod.name)}</h4>
@@ -5477,7 +5734,7 @@ export function renderRecommendedProductCardHtml(prod) {
             ${hasDiscount ? `<span class="rec-original-price" style="text-decoration:line-through; color:var(--text-muted); font-size:11px; margin-left:4px;">${formatUGX(prod.originalPrice)}</span>` : ""}
           </div>
           <button class="circular-plus-btn add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" ${!avail.isAvailable ? "disabled" : ""}>
-            &plus;
+            Add to Cart
           </button>
         </div>
       </div>
@@ -5809,7 +6066,7 @@ export function renderProductCardHtml(prod) {
       ${hasDiscount ? `<span class="discount-ribbon">${discountPct}% OFF</span>` : ""}
       
       <div class="product-thumb-container">
-        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+        <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="product-thumb-img" loading="lazy" decoding="async" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
       </div>
 
       <div class="product-card-body">
@@ -5841,7 +6098,7 @@ export function renderProductCardHtml(prod) {
           <button type="button" class="btn-qty-step btn-qty-plus" data-id="${escapeHtml(prod.id)}" aria-label="Increase quantity" ${!avail.isAvailable || (prod.stockQuantity <= 1) ? "disabled" : ""}>&plus;</button>
         </div>
         <button class="circular-plus-btn add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" ${!avail.isAvailable ? "disabled" : ""}>
-          &plus;
+          Add to Cart
         </button>
       </div>
     </article>
@@ -6782,9 +7039,13 @@ function renderOrdersView() {
 }
 
 // 6-Stage Visual Order Tracking Timeline
-function openOrderTrackingModal(orderId) {
-  const order = STATE.orders.find(o => o.id === orderId);
+export function openOrderTrackingModal(orderId) {
+  const cleanId = String(orderId || "").trim();
+  const order = STATE.orders.find(o => o.id === cleanId || o.orderNumber === cleanId);
   if (!order) return;
+
+  const dialog = $("#order-tracking-dialog");
+  if (dialog) dialog.dataset.orderId = order.orderNumber || order.id;
 
   // Level 2 Security: Verify customer ownership
   if (getEffectiveRole() === "customer" && STATE.currentUser) {
@@ -6902,6 +7163,16 @@ function openOrderTrackingModal(orderId) {
       });
     });
   }
+
+export function updateOrderTrackingModalIfOpen(orderId) {
+  const dialog = $("#order-tracking-dialog");
+  if (!dialog || !dialog.open) return;
+  const cur = String(dialog.dataset.orderId || "").trim();
+  const target = String(orderId || "").trim();
+  if (cur === target || (cur && target && (cur.includes(target) || target.includes(cur)))) {
+    openOrderTrackingModal(cur);
+  }
+}
 
 // -------------------------------------------------------------
 // MODULE 7: PRESCRIPTION VERIFICATION
@@ -7441,7 +7712,7 @@ function renderRefillsView() {
   const medSelect = $("#refill-medicine-select");
   if (medSelect && STATE.currentUser) {
     const pastMedicines = new Set(["Amlodipine 5mg Tablets", "Metformin 500mg Tablets", "Salbutamol Inhaler 100mcg", "Cetirizine 10mg Tablets", "Paracetamol 500mg Tablets"]);
-    STATE.orders.filter(o => o.customerId === STATE.currentUser.uid || o.customerName === STATE.currentUser.displayName || o.customerId === "usr-demo-customer").forEach(o => {
+    STATE.orders.filter(o => o.customerId === STATE.currentUser.uid || (STATE.currentUser.email && o.customerEmail === STATE.currentUser.email)).forEach(o => {
       o.items.forEach(item => pastMedicines.add(item.name));
     });
     medSelect.innerHTML = Array.from(pastMedicines).map(m => `<option value="${escapeHtml(m)}">${escapeHtml(m)}</option>`).join("");
@@ -8743,16 +9014,25 @@ export function canUserAccessConversation(conversation, user = STATE.currentUser
     if (!conversation.deliveryManId && !conversation.deliveryManName) return false;
     if (conversation.deliveryManName === "Unassigned" || conversation.deliveryManName === "Pending Assignment") return false;
     if (userUid && conversation.deliveryManId === userUid) return true;
-    if (userDisplayName && (conversation.deliveryManName || "").toLowerCase().includes(userDisplayName)) return true;
-    if (userEmail && (userEmail === "delivery@bloomcare.com" || userEmail === "moses.k@bloomcare.com") && (conversation.deliveryManName === "Moses Kato" || conversation.deliveryManId === "usr-5")) return true;
+    if (userDisplayName && (conversation.deliveryManName || "").toLowerCase() === userDisplayName) return true;
+    if (userEmail && (conversation.deliveryManEmail || "").toLowerCase() === userEmail) return true;
+    // Designated delivery driver alias set (Moses Kato: usr-5, usr-5b, usr-staff-4, usr-staff-5)
+    const driverAliases = new Set(["usr-5", "usr-5b", "usr-staff-4", "usr-staff-5"]);
+    if (driverAliases.has(userUid) && (driverAliases.has(conversation.deliveryManId) || String(conversation.deliveryManName || "").toLowerCase().includes("moses") || !conversation.deliveryManId)) return true;
+    if (userDisplayName.includes("moses") && (driverAliases.has(conversation.deliveryManId) || String(conversation.deliveryManName || "").toLowerCase().includes("moses") || !conversation.deliveryManId)) return true;
     return false;
   }
 
   // Customer access
   if (role === "customer") {
-    if (userUid && (conversation.customerId === userUid || (userUid === "usr-1" && conversation.customerId === "usr-demo-customer") || (userUid === "usr-demo-customer" && conversation.customerId === "usr-1"))) return true;
+    if (userUid && conversation.customerId === userUid) return true;
     if (userEmail && (conversation.customerEmail || "").toLowerCase() === userEmail) return true;
-    if (userDisplayName && (conversation.customerName || "").toLowerCase().includes(userDisplayName)) return true;
+    if (userDisplayName && (conversation.customerName || "").toLowerCase() === userDisplayName) return true;
+    // Check if customer owns the associated order in state
+    if (userUid && Array.isArray(STATE.orders)) {
+      const owned = STATE.orders.some(o => (o.id === conversation.orderId || o.orderNumber === conversation.orderId) && (o.customerId === userUid || (userEmail && (o.customerEmail || "").toLowerCase() === userEmail)));
+      if (owned) return true;
+    }
     return false;
   }
 
@@ -8792,17 +9072,27 @@ export function getOrCreateOrderDeliveryChat(orderId) {
   const deliveryAddress = (order && order.deliveryAddress && (order.deliveryAddress.address || order.deliveryAddress)) || (delivery && delivery.address) || "Mbarara City";
 
   // Check if driver is assigned
+  let deliveryStaffId = (order && order.deliveryManId) || (delivery && (delivery.deliveryStaffId || delivery.deliveryManId)) || null;
+  let deliveryStaffName = (order && order.deliveryManName) || (delivery && (delivery.deliveryStaffName || delivery.deliveryManName)) || null;
   let rawDriverName = (delivery && delivery.deliveryStaffName) || (order && (order.assignedStaff || order.deliveryAssignedTo));
-  let deliveryStaffName = null;
-  let deliveryStaffId = null;
 
-  if (rawDriverName && rawDriverName !== "Unassigned" && rawDriverName !== "Pending Assignment") {
+  const isExplicitlyUnassigned = !rawDriverName ||
+                                rawDriverName === "Pending Assignment" || 
+                                rawDriverName === "Unassigned" || 
+                                rawDriverName === "Waiting for Available Delivery Man" ||
+                                (order && (order.assignedStaff === "Pending Assignment" || order.assignedStaff === "Unassigned" || order.assignedStaff === "Waiting for Available Delivery Man")) ||
+                                (delivery && (delivery.deliveryStaffName === "Pending Assignment" || delivery.deliveryStaffName === "Unassigned" || delivery.deliveryStaffName === "Waiting for Available Delivery Man"));
+
+  if (isExplicitlyUnassigned) {
+    deliveryStaffId = null;
+    deliveryStaffName = null;
+  } else if (!deliveryStaffId && rawDriverName && rawDriverName !== "Unassigned" && rawDriverName !== "Pending Assignment") {
     deliveryStaffName = rawDriverName;
-    const driverUser = STATE.users.find(u => u.displayName === deliveryStaffName || u.name === deliveryStaffName);
-    deliveryStaffId = driverUser ? driverUser.uid : (delivery ? delivery.deliveryStaffId : "usr-5");
+    const driverUser = (STATE.users || []).find(u => u.displayName === deliveryStaffName || u.name === deliveryStaffName);
+    deliveryStaffId = driverUser ? (driverUser.uid || driverUser.id) : (delivery ? delivery.deliveryStaffId : null);
   } else if (delivery && delivery.deliveryStaffId) {
     deliveryStaffId = delivery.deliveryStaffId;
-    deliveryStaffName = delivery.deliveryStaffName || null;
+    deliveryStaffName = delivery.deliveryStaffName || deliveryStaffName;
   }
 
   const isDelivered = (order && (order.orderStatus === "Delivered" || order.orderStatus === "Completed")) || (delivery && delivery.status === "Delivered");
@@ -8921,7 +9211,7 @@ export function markConversationMessagesAsRead(conversationId, readerRole) {
 
   try {
     if (STATE.currentUser) {
-      markDeliveryMessagesRead(conv.id || conv.conversationId, STATE.currentUser.uid).catch(() => {});
+      markDeliveryMessagesRead(conv.id || conv.conversationId, isDelivery ? "delivery_person" : "customer").catch(() => {});
     }
   } catch (_) {}
 
@@ -8951,6 +9241,7 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   const senderId = user ? user.uid : (isDelivery ? (conv.deliveryManId || "usr-5") : (conv.customerId || "usr-1"));
   const senderName = user ? (user.displayName || user.name) : (isDelivery ? (conv.deliveryManName || "Delivery Driver") : (conv.customerName || "Customer"));
   const senderRole = isDelivery ? "delivery" : "customer";
+  const persistedSenderRole = isDelivery ? "delivery_person" : "customer";
   const recipientRole = isDelivery ? "customer" : "delivery";
 
   const now = new Date().toISOString();
@@ -8994,12 +9285,47 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   } else {
     conv.unreadCountForDelivery = (conv.unreadCountForDelivery || 0) + 1;
     conv.unreadDelivery = (conv.unreadDelivery || 0) + 1;
+  }
+  saveConversationsToStorage();
 
-    // Delivery Man receives notification in real time for new customer message
-    const driverId = conv.deliveryManId || "usr-5";
+  // Send to backend payment/delivery server
+  const apiHost = (typeof window !== "undefined" && window.location.hostname === "localhost")
+    ? "http://localhost:8787"
+    : "http://127.0.0.1:8787";
+
+  fetch(`${apiHost}/api/conversations/messages`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      orderId: conv.orderId,
+      conversationId: conv.id || conv.conversationId,
+      senderId: newMsg.senderId,
+      senderName: newMsg.senderName,
+      senderRole: persistedSenderRole,
+      text: newMsg.text
+    })
+  }).catch(() => {});
+
+  // Real-time broadcast across browser tabs and devices
+  broadcastAppSync("NEW_CHAT_MESSAGE", {
+    conversationId: conv.id || conv.conversationId,
+    message: newMsg,
+    orderId: conv.orderId
+  });
+
+  sendDeliveryChatMessage({
+    conversationId: conv.id || conv.conversationId,
+    orderId: conv.orderId,
+    senderId: newMsg.senderId,
+    senderName: newMsg.senderName,
+    senderRole: persistedSenderRole,
+    message: newMsg.text
+  }).catch(() => {});
+
+  if (!isDelivery && conv.deliveryManId) {
     const notifItem = {
       id: "notif-msg-" + Date.now(),
-      recipientId: driverId,
+      recipientId: conv.deliveryManId,
       role: "delivery_person",
       type: "NEW_CUSTOMER_MESSAGE",
       orderId: conv.orderId,
@@ -9012,35 +9338,6 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
     };
     STATE.notifications.unshift(notifItem);
   }
-  saveConversationsToStorage();
-
-  try {
-    if (typeof window !== "undefined") {
-      sendDeliveryChatMessage(conv.id || conv.conversationId, {
-        orderId: conv.orderId,
-        senderId: newMsg.senderId,
-        senderName: newMsg.senderName,
-        senderRole: newMsg.senderRole,
-        recipientRole: newMsg.recipientRole,
-        text: newMsg.text
-      }).catch(() => {});
-    }
-  } catch (_) {}
-
-  try {
-    fetch("http://127.0.0.1:8787/api/conversations/messages", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        conversationId: conv.id || conv.conversationId,
-        orderId: conv.orderId,
-        senderId: newMsg.senderId,
-        senderRole: newMsg.senderRole,
-        senderName: newMsg.senderName,
-        text: newMsg.text
-      })
-    }).catch(() => {});
-  } catch (_) {}
 
   updateChatUnreadBadges();
   return { success: true, message: newMsg };
@@ -9052,6 +9349,44 @@ export function renderDeliveryChatView() {
 
   const effRole = getEffectiveRole();
   const user = STATE.currentUser;
+  const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff";
+  const isCustomer = effRole === "customer";
+
+  // Contextual page header
+  const pageTitleEl = $("#customer-chat-page-title");
+  const pageDescEl = $("#customer-chat-page-desc");
+  if (pageTitleEl) {
+    pageTitleEl.textContent = isCustomer ? "Delivery Chat & Messages" : "Customer Chat";
+  }
+  if (pageDescEl) {
+    pageDescEl.textContent = isCustomer
+      ? "Direct real-time communication with your assigned delivery driver."
+      : "Real-time in-system messaging with customers for assigned order deliveries.";
+  }
+
+  // Quick replies & input placeholder for Customer vs Delivery Driver
+  const quickRepliesWrap = $("#chat-quick-replies");
+  const chatInput = $("#delivery-chat-input");
+  if (quickRepliesWrap) {
+    if (isCustomer) {
+      quickRepliesWrap.innerHTML = `
+        <button type="button" class="chat-quick-btn" data-text="I am waiting at the gate.">📍 Waiting at gate</button>
+        <button type="button" class="chat-quick-btn" data-text="The building is the blue one next to the main road.">🏠 Blue building</button>
+        <button type="button" class="chat-quick-btn" data-text="Please call me when you reach.">📞 Call on arrival</button>
+      `;
+    } else {
+      quickRepliesWrap.innerHTML = `
+        <button type="button" class="chat-quick-btn" data-text="I'm on my way with your order.">🚗 On my way</button>
+        <button type="button" class="chat-quick-btn" data-text="I have arrived at your delivery address.">📍 Arrived outside</button>
+        <button type="button" class="chat-quick-btn" data-text="Please confirm your house or gate number.">🏠 Confirm house #</button>
+      `;
+    }
+  }
+  if (chatInput) {
+    chatInput.placeholder = isCustomer
+      ? "Type a message to your delivery driver..."
+      : "Type a message to the customer...";
+  }
 
   // Filter conversations accessible by this user
   let convs = STATE.conversations.filter(c => canUserAccessConversation(c, user, effRole));
@@ -9063,7 +9398,7 @@ export function renderDeliveryChatView() {
   } else if (filter === "completed") {
     convs = convs.filter(c => c.status === "COMPLETED" || c.deliveryStatus === "DELIVERED");
   } else if (filter === "unread") {
-    convs = convs.filter(c => (c.unreadCountForDelivery || 0) > 0);
+    convs = convs.filter(c => (isDelivery ? c.unreadCountForDelivery || c.unreadDelivery : c.unreadCountForCustomer || c.unreadCustomer) > 0);
   }
 
   // Search query
@@ -9071,6 +9406,7 @@ export function renderDeliveryChatView() {
   if (query) {
     convs = convs.filter(c => 
       (c.customerName || "").toLowerCase().includes(query) ||
+      (c.deliveryManName || "").toLowerCase().includes(query) ||
       (c.orderRef || "").toLowerCase().includes(query) ||
       (c.customerPhone || "").toLowerCase().includes(query) ||
       (c.deliveryAddress || "").toLowerCase().includes(query) ||
@@ -9096,26 +9432,27 @@ export function renderDeliveryChatView() {
       listEl.innerHTML = `
         <div style="padding: 32px 16px; text-align: center; color: #94a3b8; font-size: 13px;">
           <p style="margin: 0 0 6px 0;">No delivery conversations found.</p>
-          <small class="muted">Assigned deliveries will appear here automatically.</small>
+          <small class="muted">${isCustomer ? 'Active orders will show live driver chat here.' : 'Assigned deliveries will appear here automatically.'}</small>
         </div>
       `;
     } else {
       listEl.innerHTML = convs.map(c => {
         const isSelected = c.id === STATE.activeChatConversationId;
-        const unread = c.unreadCountForDelivery || 0;
+        const unread = isDelivery ? (c.unreadCountForDelivery || c.unreadDelivery || 0) : (c.unreadCountForCustomer || c.unreadCustomer || 0);
         const isCompleted = c.status === "COMPLETED" || c.deliveryStatus === "DELIVERED";
+        const displayName = isDelivery ? (c.customerName || "Customer") : (c.deliveryManName || "Delivery Driver");
         return `
           <div class="chat-conv-item ${isSelected ? 'active' : ''}" data-id="${c.id}" role="listitem" tabindex="0">
             <div class="chat-conv-head">
-              <span class="chat-conv-name">${escapeHtml(c.customerName)}</span>
+              <span class="chat-conv-name">${escapeHtml(displayName)}</span>
               <span class="chat-conv-time">${formatChatTime(c.lastMessageTimestamp || c.updatedAt)}</span>
             </div>
             <div class="chat-conv-sub">
-              <span class="chat-conv-preview">${escapeHtml(c.lastMessageText || "New delivery run")}</span>
+              <span class="chat-conv-preview">${escapeHtml(c.lastMessageText || (isCustomer ? "Order assigned for delivery" : "New delivery run"))}</span>
               ${unread > 0 ? `<span class="chat-unread-badge">${unread}</span>` : ''}
             </div>
             <div class="chat-conv-meta-row">
-              <span class="chat-conv-ref">${escapeHtml(c.orderRef)}</span>
+              <span class="chat-conv-ref">Order #${escapeHtml(c.orderRef || c.orderId || 'N/A')}</span>
               <span class="status-pill status-${(c.deliveryStatus || 'ASSIGNED').toLowerCase()}">${isCompleted ? 'Completed' : escapeHtml((c.deliveryStatus || 'ASSIGNED').replace(/_/g, ' '))}</span>
             </div>
           </div>
@@ -9138,28 +9475,53 @@ export function renderDeliveryChatView() {
   if (emptyEl) emptyEl.classList.add("hidden");
   if (activeBox) activeBox.classList.remove("hidden");
 
-  // Mark messages as read by delivery staff
-  markConversationMessagesAsRead(activeConv.id, "delivery");
+  markConversationMessagesAsRead(activeConv.id, isDelivery ? "delivery_person" : "customer");
+
+  if (STATE.activeChatSubscriptionId !== activeConv.id && STATE.activeChatMessagesUnsubscribe) {
+    STATE.activeChatMessagesUnsubscribe();
+    STATE.activeChatMessagesUnsubscribe = null;
+  }
+  if (STATE.activeChatSubscriptionId !== activeConv.id) {
+    STATE.activeChatSubscriptionId = activeConv.id;
+    STATE.activeChatMessagesUnsubscribe = subscribeToDeliveryMessages(activeConv.id, (messages) => {
+      const normalized = messages.map(message => ({
+        ...message,
+        text: message.text || message.message || "",
+        timestamp: message.timestamp || message.createdAt || new Date().toISOString(),
+        senderRole: message.senderRole === "delivery_person" || message.senderRole === "deliveryStaff" ? "delivery" : message.senderRole
+      }));
+      STATE.messages = STATE.messages.filter(message => message.conversationId !== activeConv.id);
+      STATE.messages.push(...normalized);
+      renderDeliveryChatView();
+    });
+  }
 
   // Render Header
   const headerBar = $("#chat-header-bar");
   if (headerBar) {
     const isCompleted = activeConv.status === "COMPLETED" || activeConv.deliveryStatus === "DELIVERED";
-    const initial = (activeConv.customerName || "C").charAt(0).toUpperCase();
+    const partnerName = isDelivery
+      ? (activeConv.customerName || "Customer")
+      : (activeConv.deliveryManName || "Delivery Driver (Moses Kato)");
+    const partnerPhone = isDelivery
+      ? (activeConv.customerPhone || "")
+      : (activeConv.deliveryManPhone || "0700000005");
+    const initial = partnerName.charAt(0).toUpperCase();
+
     headerBar.innerHTML = `
       <div class="chat-header-left">
         <div class="chat-header-avatar">${initial}</div>
         <div class="chat-header-info">
           <h3>
-            ${escapeHtml(activeConv.customerName)}
+            ${escapeHtml(partnerName)}
             <span class="status-pill status-${(activeConv.deliveryStatus || 'ASSIGNED').toLowerCase()}">${isCompleted ? 'Completed' : escapeHtml((activeConv.deliveryStatus || 'ASSIGNED').replace(/_/g, ' '))}</span>
           </h3>
-          <p>Order: <strong>${escapeHtml(activeConv.orderRef)}</strong> &bull; 📞 ${escapeHtml(activeConv.customerPhone || 'N/A')} &bull; 📍 ${escapeHtml(activeConv.deliveryAddress)}</p>
+          <p>Order: <strong>${escapeHtml(activeConv.orderRef || activeConv.orderId || 'N/A')}</strong> &bull; 📞 ${escapeHtml(partnerPhone || 'N/A')} &bull; 📍 ${escapeHtml(activeConv.deliveryAddress || 'Mbarara City')}</p>
         </div>
       </div>
       <div class="chat-header-right">
-        <button class="btn btn-outline btn-sm quick-call-btn" type="button" data-phone="${escapeHtml(activeConv.customerPhone || '')}">
-          📞 Call Customer
+        <button class="btn btn-outline btn-sm quick-call-btn" type="button" data-phone="${escapeHtml(partnerPhone)}">
+          📞 Call ${isDelivery ? "Customer" : "Delivery Driver"}
         </button>
       </div>
     `;
@@ -9184,27 +9546,31 @@ export function renderDeliveryChatView() {
   // Render Messages Stream
   const stream = $("#chat-messages-stream");
   if (stream) {
-    const convMsgs = STATE.messages.filter(m => m.conversationId === activeConv.id);
+    const convMsgs = STATE.messages.filter(m => m.conversationId === activeConv.id || m.conversationId === activeConv.conversationId || (activeConv.orderId && m.orderId === activeConv.orderId));
     if (convMsgs.length === 0) {
       stream.innerHTML = `
         <div style="text-align: center; color: #94a3b8; font-size: 13px; margin: auto;">
           <p>No messages yet.</p>
-          <small>Use the input box below or quick action buttons to message the customer.</small>
+          <small>${isCustomer ? 'Send a message to your assigned delivery driver.' : 'Use the input box below or quick action buttons to message the customer.'}</small>
         </div>
       `;
     } else {
       stream.innerHTML = convMsgs.map(m => {
-        const isDelivery = m.senderRole === "delivery";
+        const isMsgFromDelivery = m.senderRole === "delivery" || m.senderRole === "delivery_person" || m.senderRole === "deliverystaff";
+        const isOutgoing = isDelivery ? isMsgFromDelivery : !isMsgFromDelivery;
+        const senderLabel = isOutgoing
+          ? (isDelivery ? "You (Delivery)" : "You (Customer)")
+          : (isDelivery ? escapeHtml(m.senderName || activeConv.customerName || "Customer") : escapeHtml(m.senderName || activeConv.deliveryManName || "Delivery Driver"));
         const timeStr = formatChatTime(m.timestamp);
         return `
-          <div class="chat-message-row ${isDelivery ? 'outgoing' : 'incoming'}">
-            <span class="chat-bubble-sender">${isDelivery ? 'You (Delivery)' : escapeHtml(m.senderName || 'Customer')}</span>
+          <div class="chat-message-row ${isOutgoing ? 'outgoing' : 'incoming'}">
+            <span class="chat-bubble-sender">${senderLabel}</span>
             <div class="chat-bubble">
-              ${escapeHtml(m.text)}
+              ${escapeHtml(m.text || m.message || "")}
             </div>
             <div class="chat-bubble-meta">
               <span>${timeStr}</span>
-              ${isDelivery ? `<span class="chat-tick-receipt" title="${m.read ? 'Read by customer' : 'Sent'}">${m.read ? '✓✓' : '✓'}</span>` : ''}
+              ${isOutgoing ? `<span class="chat-tick-receipt" title="${m.read ? 'Read' : 'Sent'}">${m.read ? '✓✓' : '✓'}</span>` : ''}
             </div>
           </div>
         `;
@@ -10082,8 +10448,6 @@ export function exportSalesReport(period = "today", analyticsData = null, source
     ["Time / Date Breakdown", "Confirmed Orders", "Revenue (UGX)"]
   ];
 
-  (data.breakdown || []).fo
-... [truncated for diff preview]
   (data.breakdown || []).forEach(b => {
     lines.push([`"${b.label}"`, b.orders, b.sales]);
   });
@@ -10632,8 +10996,7 @@ function renderNotificationsView() {
   const box = $("#notifications-list-box");
   if (!box) return;
 
-  const role = STATE.activeRole;
-  const list = STATE.notifications.filter(n => !n.role || n.role === role || role === "admin");
+  const list = STATE.notifications.filter(canCurrentUserSeeNotification);
 
   if (list.length === 0) {
     box.innerHTML = `<p class="muted" style="padding:20px 0; text-align:center;">You have no notifications.</p>`;
@@ -10820,11 +11183,6 @@ function addToCart(productId, quantity = 1) {
 
   saveCartToStorage();
   updateCartBadge();
-  if (prod.requiresPrescription) {
-    openNotice("Prescription Item Added", `<strong>${escapeHtml(prod.name)}</strong> (${quantity}x) added to cart.<br><br><span style="color:#dc2626; font-weight:600;">⚠️ Prescription Required:</span> This medicine requires a verified doctor's prescription before dispensing. Please upload your prescription via the <a href="#prescriptions" style="color:var(--brand-primary); text-decoration:underline;">Prescriptions Desk</a> or our clinical team will review your order.`);
-  } else {
-    openNotice("Product Added", `<strong>${escapeHtml(prod.name)}</strong> (${quantity}x) added to cart.`);
-  }
   return true;
 }
 
@@ -10898,7 +11256,6 @@ function renderCartDialogContents() {
         <img src="${escapeHtml(img)}" alt="${escapeHtml(item.name)}" class="cart-item-thumb" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
         <div class="cart-item-details">
           <strong class="cart-item-name">${escapeHtml(item.name)}</strong>
-          ${(item.requiresPrescription || item.product?.requiresPrescription) ? '<span class="rx-pill rx-req" style="font-size:9px; padding:1px 5px; display:inline-block; margin:2px 0;">Rx Required</span>' : ''}
           <div class="cart-item-unit-price">${formatUGX(itemPrice)} each</div>
         </div>
         <div class="cart-qty-control-group">
@@ -10946,6 +11303,8 @@ function openCheckoutDialog() {
   const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * i.quantity), 0);
   const fee = STATE.fulfillmentOption === "pickup" ? 0 : STATE.deliveryFee;
   const total = subtotal + fee;
+  const checkoutHasRx = STATE.cart.some(item => Boolean(item.requiresPrescription || item.product?.requiresPrescription));
+  $("#checkout-rx-notice")?.classList.toggle("hidden", !checkoutHasRx);
   $("#chk-total-val").textContent = formatUGX(total);
 
   if (STATE.currentUser) {
@@ -11061,10 +11420,20 @@ export function generateOrderReference() {
 
 async function handleCheckoutOrder(e) {
   e.preventDefault();
+  if (STATE.isPlacingOrder) return;
   const authed = requireAuth(null, null, "Please create an account or log in before completing your order.");
   if (!authed) return;
 
-  // 1. Validate Cart
+  const submitBtn = $("#checkout-form button[type='submit']");
+  const originalBtnText = submitBtn ? submitBtn.textContent : "";
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.textContent = "Placing Order...";
+  }
+  STATE.isPlacingOrder = true;
+
+  try {
+    // 1. Validate Cart
   if (!STATE.cart || STATE.cart.length === 0) {
     return openNotice("Cart Empty", "Your shopping cart is currently empty. Please add items to your cart before placing an order.");
   }
@@ -11206,6 +11575,8 @@ async function handleCheckoutOrder(e) {
     paymentStatus: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
     paymentReference: paymentMethod === "Cash on Delivery" ? "COD-" + orderRef : "TXN-" + Date.now().toString().slice(-6),
     orderStatus: initialStatus,
+    prescriptionStatus: hasRx ? "Required" : "Not Required",
+    rxVerified: false,
     assignedStaff: "Pending Assignment",
     createdAt: new Date().toISOString()
   };
@@ -11233,6 +11604,9 @@ async function handleCheckoutOrder(e) {
 
   // Create Delivery Record if Delivery fulfillment was chosen
   let newDelivery = null;
+  let deliveryAssignment = null;
+  let notifItem = null;
+  let conv = null;
   if (fulfillmentType === "delivery") {
     newDelivery = {
       id: "DEL-" + Date.now().toString().slice(-3),
@@ -11257,18 +11631,19 @@ async function handleCheckoutOrder(e) {
     // =========================================================
     // AUTOMATED BACKEND DELIVERY ASSIGNMENT
     // =========================================================
-    let deliveryAssignment = null;
     try {
       const assignRes = await fetch("http://127.0.0.1:8787/api/deliveries/auto-assign", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           orderId: orderRef,
+          deliveryAddress: formattedAddress,
           orderData: {
             orderNumber: orderRef,
             customerId: newOrder.customerId,
             customerName: name,
             customerPhone: phoneVal.normalized,
+            deliveryAddress: formattedAddress,
             deliveryArea: newOrder.deliveryArea,
             deliveryDivision: newOrder.deliveryDivision,
             specificLocation,
@@ -11339,7 +11714,7 @@ async function handleCheckoutOrder(e) {
       newDelivery.status = "Assigned";
 
       // Dispatch real-time notification to the Delivery Man (even if customer has not sent a message)
-      const notifItem = {
+      notifItem = {
         id: "notif-del-" + Date.now(),
         recipientId: deliveryAssignment.deliveryManId,
         role: "delivery_person",
@@ -11384,7 +11759,7 @@ async function handleCheckoutOrder(e) {
 
   // Initialize delivery chat conversation immediately upon order placement!
   try {
-    const conv = getOrCreateOrderDeliveryChat(orderRef);
+    conv = getOrCreateOrderDeliveryChat(orderRef);
     if (conv && newOrder.deliveryManId) {
       conv.deliveryManId = newOrder.deliveryManId;
       conv.deliveryManName = newOrder.deliveryManName;
@@ -11395,6 +11770,15 @@ async function handleCheckoutOrder(e) {
     console.error("Failed to initialize delivery chat:", err);
   }
 
+  // Broadcast new order to delivery man tabs / windows in real-time
+  broadcastAppSync("NEW_DELIVERY_ORDER", {
+    order: newOrder,
+    delivery: newDelivery,
+    assignment: deliveryAssignment,
+    conversation: conv,
+    notification: notifItem
+  });
+
   // ONLINE CUSTOMER ORDERS RECEIVE ORDER CONFIRMATION (NOT COUNTER RECEIPT!)
   showOrderConfirmationModal(newOrder);
   renderOrdersView();
@@ -11403,6 +11787,14 @@ async function handleCheckoutOrder(e) {
   if (hasRx) {
     openNotice("Prescription Verification Note", `Order <strong>${orderRef}</strong> contains prescription medications and has been marked <strong>Awaiting Prescription Review</strong> on your order confirmation.`);
   }
+} finally {
+  STATE.isPlacingOrder = false;
+  const submitBtn = $("#checkout-form button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Confirm & Place Order";
+  }
+}
 }
 
 // =============================================================
@@ -13096,7 +13488,7 @@ export async function syncDeliverySystemWithBackend() {
       if (notifsData && Array.isArray(notifsData.notifications)) {
         if (!Array.isArray(STATE.notifications)) STATE.notifications = [];
         let updated = false;
-        notifsData.notifications.forEach(serverN => {
+        notifsData.notifications.filter(canCurrentUserSeeNotification).forEach(serverN => {
           const existing = STATE.notifications.find(n => n.id === serverN.id);
           if (!existing) {
             STATE.notifications.unshift(serverN);
@@ -13145,20 +13537,65 @@ export async function syncDeliverySystemWithBackend() {
       }
     }
 
-    // 3. Sync Conversations
-    const convsRes = await fetch(`${apiHost}/api/conversations`).catch(() => null);
+    // 3. Sync Conversations & Messages
+    const currentUser = STATE.currentUser;
+    const currentRole = typeof getEffectiveRole === "function" ? getEffectiveRole() : "";
+    const conversationQuery = currentUser?.uid
+      ? `?userId=${encodeURIComponent(currentUser.uid)}&role=${encodeURIComponent(currentRole)}`
+      : "";
+    const convsRes = await fetch(`${apiHost}/api/conversations${conversationQuery}`).catch(() => null);
     if (convsRes && convsRes.ok) {
       const convsData = await convsRes.json().catch(() => null);
       if (convsData && Array.isArray(convsData.conversations)) {
         if (!Array.isArray(STATE.conversations)) STATE.conversations = [];
+        if (!Array.isArray(STATE.messages)) STATE.messages = [];
+        let messagesUpdated = false;
+
         convsData.conversations.forEach(serverC => {
-          const idx = STATE.conversations.findIndex(c => c.conversationId === serverC.conversationId || (serverC.orderId && c.orderId === serverC.orderId));
+          const convId = serverC.id || serverC.conversationId || `CHAT-${serverC.orderId}`;
+          const idx = STATE.conversations.findIndex(c => c.conversationId === convId || c.id === convId || (serverC.orderId && c.orderId === serverC.orderId));
           if (idx >= 0) {
-            STATE.conversations[idx] = { ...STATE.conversations[idx], ...serverC };
+            STATE.conversations[idx] = { ...STATE.conversations[idx], ...serverC, id: convId, conversationId: convId };
           } else {
-            STATE.conversations.unshift(serverC);
+            STATE.conversations.unshift({ ...serverC, id: convId, conversationId: convId });
+          }
+
+          // Extract server messages into STATE.messages
+          if (Array.isArray(serverC.messages)) {
+            serverC.messages.forEach(sm => {
+              const msgId = sm.id || sm.messageId;
+              const exists = STATE.messages.some(m => m.id === msgId || (m.conversationId === convId && m.timestamp === sm.timestamp && m.text === (sm.text || sm.message)));
+              if (!exists) {
+                const isMsgFromDelivery = sm.senderRole === "delivery" || sm.senderRole === "delivery_person" || sm.senderRole === "deliverystaff";
+                STATE.messages.push({
+                  id: msgId || `msg-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  conversationId: convId,
+                  orderId: serverC.orderId,
+                  senderId: sm.senderId,
+                  senderName: sm.senderName,
+                  senderRole: isMsgFromDelivery ? "delivery" : "customer",
+                  recipientRole: isMsgFromDelivery ? "customer" : "delivery",
+                  text: sm.text || sm.message || "",
+                  timestamp: sm.timestamp || sm.createdAt || new Date().toISOString(),
+                  read: Boolean(sm.read)
+                });
+                messagesUpdated = true;
+              }
+            });
           }
         });
+
+        if (messagesUpdated) {
+          saveMessagesToStorage();
+          saveConversationsToStorage();
+          if (STATE.currentRoute === "delivery_person/chat" || STATE.currentRoute === "customer-chat" || STATE.currentRoute.endsWith("/chat")) {
+            renderDeliveryChatView();
+          }
+          const dialog = $("#customer-order-chat-dialog");
+          if (dialog && dialog.open && dialog.dataset.conversationId) {
+            renderCustomerChatStream(dialog.dataset.conversationId);
+          }
+        }
         if (typeof updateChatUnreadBadges === "function") updateChatUnreadBadges();
       }
     }
@@ -13741,6 +14178,10 @@ function bindEventListeners() {
   $("#go-checkout-btn")?.addEventListener("click", openCheckoutDialog);
   $("#close-checkout-modal")?.addEventListener("click", () => $("#checkout-dialog")?.close());
   $("#checkout-form")?.addEventListener("submit", handleCheckoutOrder);
+  $("#checkout-upload-rx-btn")?.addEventListener("click", () => {
+    $("#checkout-dialog")?.close();
+    navigateTo("prescriptions");
+  });
 
   // Order Tracking Actions
   $("#close-tracking-modal")?.addEventListener("click", () => $("#order-tracking-dialog")?.close());
@@ -13887,8 +14328,8 @@ function bindEventListeners() {
     if (driverChatBtn && driverChatBtn.dataset.orderId) {
       const conv = getOrCreateOrderDeliveryChat(driverChatBtn.dataset.orderId);
       if (conv) {
-        STATE.activeChatConversationId = conv.id;
-        handleRoute("delivery_person/chat");
+        STATE.activeChatConversationId = conv.id || conv.conversationId;
+        navigateTo("delivery_person/chat");
       }
       return;
     }
@@ -15991,8 +16432,15 @@ function bindEventListeners() {
     openNotice("Notifications Cleared", "All notifications marked as read.");
   });
 
-  // Hash Routing
-  window.addEventListener("hashchange", handleHashRoute);
+  // Hash Routing: browser Back updates the in-app route stack without creating a loop.
+  window.addEventListener("hashchange", () => {
+    const nextRoute = getNormalizedRoute();
+    if (STATE.currentRoute && nextRoute !== STATE.currentRoute && STATE.routeHistory.length) {
+      STATE.routeHistory.pop();
+    }
+    STATE.handlingBrowserBack = false;
+    handleHashRoute();
+  });
 }
 
 function openStockAdjustModal(prodId = null) {

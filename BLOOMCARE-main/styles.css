@@ -1,34 +1,34 @@
 /* ==============================================================
    BLOOMCARE PHARMACY - SYSTEM DESIGN & VECTOR SVG STYLES
-   Brand Colors: Medical Green (#087d44) & Clinical Blue (#07508c)
+  Brand Colors: Medical Teal (#00897B) & Pharmacy Green (#2E7D32)
    Zero Emojis - Professional Healthcare Standard
    ============================================================== */
 
 :root {
-  --primary: #087d44;
-  --primary-dark: #005a2f;
-  --primary-light: #e6f7ef;
-  --secondary: #07508c;
-  --secondary-light: #eaf3fb;
+  --primary: #00897B;
+  --primary-dark: #00695C;
+  --primary-light: #E0F2F1;
+  --secondary: #2E7D32;
+  --secondary-light: #E8F5E9;
   --danger: #d32f2f;
-  --danger-light: #fde8e8;
-  --warning: #f57c00;
-  --warning-light: #fff3e0;
+  --danger-light: #FFEBEE;
+  --warning: #F9A825;
+  --warning-light: #FFF8E1;
   --success: #2e7d32;
-  --success-light: #e8f5e9;
+  --success-light: #E8F5E9;
   
-  --ink: #142622;
-  --ink-light: #3d524d;
-  --muted: #6b827e;
-  --line: #dbe8e3;
-  --bg-page: #f4f8f6;
-  --bg-card: #ffffff;
+  --ink: #263238;
+  --ink-light: #455A64;
+  --muted: #607D8B;
+  --line: #E0E7E5;
+  --bg-page: #F7FAF9;
+  --bg-card: #FFFFFF;
   
-  --shadow-sm: 0 2px 6px rgba(10, 45, 35, 0.05);
-  --shadow-md: 0 6px 18px rgba(10, 45, 35, 0.08);
-  --radius-sm: 6px;
-  --radius-md: 10px;
-  --radius-lg: 14px;
+  --shadow-sm: 0 2px 8px rgba(38, 50, 56, 0.06);
+  --shadow-md: 0 8px 22px rgba(38, 50, 56, 0.10);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
   --radius-full: 9999px;
 
   --sidebar-width: 250px;
@@ -49,6 +49,9 @@ body {
   line-height: 1.5;
   font-size: 14.5px;
   min-height: 100vh;
+  overflow-x: hidden;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
 }
 
 .app-layout-sidebar-root {
@@ -57,6 +60,7 @@ body {
   min-height: 100vh;
   width: 100%;
   position: relative;
+  overflow-x: hidden;
 }
 
 img {
@@ -89,6 +93,43 @@ a {
 .table-responsive {
   width: 100%;
   overflow-x: auto;
+}
+
+.global-page-navigation {
+  width: 100%;
+  padding: 12px 24px 0;
+}
+
+.global-page-navigation[hidden] {
+  display: none;
+}
+
+.global-back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 36px;
+  padding: 7px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--bg-card);
+  color: var(--ink-light);
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+}
+
+.global-back-btn:hover,
+.global-back-btn:focus-visible {
+  color: var(--primary-dark);
+  border-color: var(--primary);
+  outline: 3px solid rgba(8, 125, 68, 0.16);
+  outline-offset: 1px;
+}
+
+.global-back-btn span:first-child {
+  font-size: 20px;
+  line-height: 1;
 }
 
 /* SVG Vector Icons System */
@@ -314,6 +355,8 @@ a {
 
 .top-site-info-inner {
   max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
   margin: 0 auto;
   display: flex;
   justify-content: center;
@@ -324,8 +367,11 @@ a {
 }
 
 .top-site-license-text {
+  min-width: 0;
+  max-width: 100%;
   font-weight: 500;
   color: #1b3d36;
+  overflow-wrap: anywhere;
 }
 
 .top-site-info-divider {
@@ -335,8 +381,11 @@ a {
 }
 
 .top-site-staff-text {
+  min-width: 0;
+  max-width: 100%;
   color: #1b3d36;
   font-weight: 500;
+  overflow-wrap: anywhere;
 }
 
 .top-staff-portal-link {
@@ -575,7 +624,10 @@ a {
    3. VIEWPORT CONTENT & ROLE DASHBOARDS
    ============================================================== */
 .app-content-viewport {
-  padding: 28px;
+  width: 100%;
+  max-width: 1680px;
+  margin: 0 auto;
+  padding: 24px 28px 36px;
   flex: 1;
 }
 
@@ -804,15 +856,15 @@ a {
    ============================================================== */
 .products-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
 }
 
 .product-card {
   background: #ffffff;
   border: 1px solid #e2e8f0;
   border-radius: 14px;
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -838,15 +890,15 @@ a {
 
 .product-thumb-container {
   width: 100%;
-  height: 190px;
+  height: 112px;
   background: #ffffff;
   border: 1px solid #f1f5f9;
   border-radius: 12px;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 12px;
-  margin-bottom: 12px;
+  padding: 9px;
+  margin-bottom: 10px;
   overflow: hidden;
   position: relative;
   box-shadow: inset 0 0 0 1px rgba(241, 245, 249, 0.6);
@@ -860,7 +912,7 @@ a {
 
 .product-thumb-img {
   max-width: 100%;
-  max-height: 166px;
+  max-height: 96px;
   width: auto;
   height: auto;
   object-fit: contain;
@@ -903,7 +955,7 @@ a {
 }
 
 .product-title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
   color: #0f172a;
   line-height: 1.35;
@@ -928,7 +980,7 @@ a {
 }
 
 .product-price {
-  font-size: 17px;
+  font-size: 16px;
   font-weight: 800;
   color: #087d44;
   margin-bottom: 6px;
@@ -1034,9 +1086,31 @@ a {
   font-weight: 700;
   white-space: nowrap;
   padding: 0 10px;
+  width: auto;
+  min-width: 96px;
+  border-radius: 8px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+}
+
+.rx-checkout-notice {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 12px;
+  margin: 10px 0;
+  border: 1px solid #fda4af;
+  border-left: 4px solid #e11d48;
+  border-radius: 8px;
+  background: #fff1f2;
+  color: #881337;
+  font-size: 12.5px;
+  line-height: 1.4;
+}
+
+.rx-checkout-notice.hidden {
+  display: none;
 }
 
 /* Medicine Details Monograph Modal */
@@ -1833,6 +1907,7 @@ a {
 
 /* Dialogs */
 dialog {
+  position: relative;
   border: none;
   border-radius: var(--radius-md);
   padding: 20px;
@@ -1857,6 +1932,29 @@ dialog::backdrop {
   font-size: 20px;
   color: var(--muted);
   cursor: pointer;
+}
+.global-dialog-close-btn {
+  position: absolute;
+  top: 10px;
+  right: 12px;
+  z-index: 2;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 25px;
+}
+.dialog-close-btn:hover,
+.dialog-close-btn:focus-visible {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+  outline: 3px solid rgba(8, 125, 68, 0.16);
+  outline-offset: 1px;
+}
+.global-dialog-cancel-btn {
+  margin-top: 12px;
 }
 
 .cart-dialog-body { max-height: 320px; overflow-y: auto; margin: 12px 0; padding-right: 4px; }
@@ -2621,6 +2719,336 @@ dialog::backdrop {
   .no-print,
   .dialog-close-btn {
     display: none !important;
+  }
+}
+
+/* ============================================================== 
+   BLOOMCARE PHARMACY DESIGN SYSTEM OVERRIDES
+   Shared visual language for every role and module.
+   ============================================================== */
+:where(.app-left-sidebar, .app-main-viewport-container, dialog, .card, .panel, .kpi-card, .product-card, .service-card, .table-card) {
+  color: var(--ink);
+}
+
+.app-left-sidebar,
+.sidebar-bottom-panel,
+.app-main-viewport-container,
+.app-top-header,
+.top-site-info-bar,
+.main-top-announcement {
+  background: var(--bg-card);
+}
+
+.app-left-sidebar {
+  border-right-color: var(--line);
+  box-shadow: 2px 0 14px rgba(38, 50, 56, 0.06);
+}
+
+.sidebar-brand-box,
+.sidebar-role-box,
+.sidebar-bottom-panel {
+  border-color: var(--line);
+}
+
+.sidebar-role-box,
+.sidebar-bottom-panel,
+.nav-item:hover,
+.sidebar-bottom-btn:hover {
+  background: var(--bg-page);
+}
+
+.nav-item,
+.sidebar-bottom-btn {
+  color: var(--ink-light);
+}
+
+.nav-item:hover,
+.nav-item.active-nav,
+.sidebar-bottom-btn:hover {
+  color: var(--primary-dark);
+}
+
+.nav-item.active-nav {
+  background: var(--primary-light);
+  border-left-color: var(--primary);
+  box-shadow: 0 2px 8px rgba(0, 137, 123, 0.10);
+}
+
+.brand-name,
+.service-link,
+.page-title,
+.pane-header-box h2,
+.section-title {
+  color: var(--primary-dark);
+}
+
+.brand-subtitle,
+.top-brand-text {
+  color: var(--secondary);
+}
+
+.btn,
+button.btn,
+.add-cart-btn,
+.circular-plus-btn {
+  border-radius: var(--radius-sm);
+  font-weight: 700;
+  transition: background-color 0.16s ease, border-color 0.16s ease, color 0.16s ease, box-shadow 0.16s ease, transform 0.16s ease;
+}
+
+.btn-primary,
+.add-cart-btn,
+.circular-plus-btn {
+  background: var(--primary);
+  border-color: var(--primary);
+  color: #ffffff;
+}
+
+.btn-primary:hover,
+.add-cart-btn:hover:not(:disabled),
+.circular-plus-btn:hover:not(:disabled) {
+  background: var(--primary-dark);
+  border-color: var(--primary-dark);
+  box-shadow: 0 4px 12px rgba(0, 137, 123, 0.20);
+}
+
+.btn-secondary,
+.btn-outline {
+  background: #ffffff;
+  border-color: var(--primary);
+  color: var(--primary-dark);
+}
+
+.btn-secondary:hover,
+.btn-outline:hover {
+  background: var(--primary-light);
+  border-color: var(--primary-dark);
+  color: var(--primary-dark);
+}
+
+.btn-danger,
+.danger-btn {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #ffffff;
+}
+
+.btn-success,
+.success-btn {
+  background: var(--success);
+  border-color: var(--success);
+  color: #ffffff;
+}
+
+input,
+select,
+textarea,
+.form-control,
+.form-select {
+  background: #ffffff;
+  border-color: var(--line);
+  color: var(--ink);
+  border-radius: var(--radius-sm);
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.form-control:focus,
+.form-select:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(0, 137, 123, 0.14);
+  outline: none;
+}
+
+.product-card,
+.kpi-card,
+.service-card,
+.panel,
+.card,
+.table-card,
+.customer-welcome-card,
+.order-card,
+.pharmacy-info-card {
+  background: #ffffff;
+  border-color: var(--line);
+  box-shadow: var(--shadow-sm);
+}
+
+.product-card:hover,
+.kpi-card:hover,
+.service-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-md);
+}
+
+.product-title,
+.product-card h3,
+.product-card h4,
+.kpi-value,
+.cart-item-name,
+.modal-prod-title {
+  color: var(--ink);
+}
+
+.product-price,
+.product-card .product-price,
+.rec-current-price,
+.modal-price-val,
+.total-highlight {
+  color: var(--primary-dark);
+}
+
+.product-thumb-container,
+.recommended-card .product-thumb-container,
+.recommended-prod-card .product-thumb-container {
+  background: var(--bg-page);
+  border-color: var(--line);
+}
+
+.stock-pill.in-stock,
+.stock-status-label.in-stock,
+.status-delivered,
+.status-completed,
+.status-approved,
+.status-ready_for_pickup,
+.status-ready_for_processing {
+  background: var(--success-light);
+  border-color: #A5D6A7;
+  color: var(--success);
+}
+
+.stock-pill.low-stock,
+.status-pending,
+.status-awaiting_prescription_review,
+.status-prescription_required,
+.status-prescription_submitted,
+.status-prescription_under_review {
+  background: var(--warning-light);
+  border-color: #FFE082;
+  color: #8D6E00;
+}
+
+.stock-pill.out-of-stock,
+.status-cancelled,
+.status-rejected,
+.status-prescription_rejected,
+.auth-error-msg {
+  background: var(--danger-light);
+  border-color: #EF9A9A;
+  color: #B71C1C;
+}
+
+.status-processing,
+.status-out_for_delivery,
+.status-in_transit,
+.status-confirmed {
+  background: var(--primary-light);
+  border-color: #80CBC4;
+  color: var(--primary-dark);
+}
+
+.rx-pill.rx-req {
+  background: var(--danger-light);
+  border-color: #EF9A9A;
+  color: #B71C1C;
+}
+
+.rx-pill.otc-ok,
+.auth-success-msg {
+  background: var(--success-light);
+  border-color: #A5D6A7;
+  color: var(--success);
+}
+
+.standard-table th {
+  background: var(--primary-light);
+  color: var(--ink);
+}
+
+.standard-table td {
+  border-bottom-color: var(--line);
+}
+
+dialog,
+.modal-content,
+.dialog-panel {
+  background: #ffffff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 18px 48px rgba(38, 50, 56, 0.18);
+}
+
+.dialog-header {
+  border-bottom-color: var(--line);
+}
+
+.dialog-close-btn {
+  color: var(--muted);
+}
+
+.dialog-close-btn:hover,
+.dialog-close-btn:focus-visible {
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+.top-site-info-bar {
+  color: var(--ink-light);
+  border-bottom-color: var(--line);
+}
+
+.main-top-announcement {
+  background: var(--secondary);
+  color: #ffffff;
+}
+
+.app-top-header {
+  border-bottom-color: var(--line);
+  box-shadow: 0 2px 10px rgba(38, 50, 56, 0.05);
+}
+
+.pharmacy-status-pill,
+.customer-badge-pill,
+.role-badge {
+  background: var(--secondary-light);
+  color: var(--secondary);
+  border-color: #A5D6A7;
+}
+
+.cart-btn:hover,
+.user-profile-pill:hover,
+.icon-round-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary-dark);
+  background: var(--primary-light);
+}
+
+.floating-prescription-btn {
+  background: var(--primary);
+}
+
+.floating-prescription-btn:hover {
+  background: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+  .app-content-viewport {
+    padding: 18px 14px 28px;
+  }
+
+  .global-page-navigation {
+    padding: 10px 14px 0;
+  }
+
+  .btn,
+  button.btn,
+  .add-cart-btn {
+    min-height: 38px;
+  }
+
+  .standard-table {
+    min-width: 680px;
   }
 }
 
@@ -6099,8 +6527,8 @@ dialog::backdrop {
 /* Responsive Media Queries for Marketplace & Medicine Packshots */
 @media (max-width: 1024px) {
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: 16px;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
   }
 }
 
@@ -6116,27 +6544,27 @@ dialog::backdrop {
 
 @media (max-width: 640px) {
   .products-grid {
-    grid-template-columns: repeat(auto-fill, minmax(155px, 1fr));
-    gap: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
   }
   .product-card {
     padding: 12px;
     border-radius: 12px;
   }
   .product-thumb-container {
-    height: 145px;
-    padding: 8px;
-    margin-bottom: 8px;
+    height: 88px;
+    padding: 6px;
+    margin-bottom: 7px;
   }
   .product-thumb-img {
-    max-height: 125px;
+    max-height: 76px;
   }
   .product-title {
-    font-size: 13.5px;
-    min-height: 36px;
+    font-size: 12.5px;
+    min-height: 34px;
   }
   .product-price {
-    font-size: 15px;
+    font-size: 14px;
   }
   .product-card-foot {
     flex-direction: column;
@@ -10247,7 +10675,7 @@ dialog::backdrop {
 .recommended-card .product-thumb-container,
 .recommended-prod-card .product-thumb-container {
   width: 100%;
-  height: 110px;
+  height: 86px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -10259,7 +10687,7 @@ dialog::backdrop {
 
 .recommended-card .product-thumb-img {
   max-width: 90%;
-  max-height: 90%;
+  max-height: 76px;
   object-fit: contain;
 }
 
@@ -10338,6 +10766,16 @@ dialog::backdrop {
 .circular-plus-btn:hover {
   transform: scale(1.08);
   background: #d97706;
+}
+
+.add-cart-btn.circular-plus-btn {
+  width: auto;
+  min-width: 96px;
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font-size: 12px;
+  white-space: nowrap;
 }
 
 .circular-plus-btn:active {
