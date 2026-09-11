@@ -1,0 +1,60 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isManagementStaff() {
+      return isSignedIn() && (
+        request.auth.token.role == 'admin' ||
+        request.auth.token.role == 'developer' ||
+        request.auth.token.role == 'pharmacist' ||
+        request.auth.token.role == 'assistant_pharmacist'
+      );
+    }
+
+    function isStaff() {
+      return isManagementStaff() || (
+        isSignedIn() && (
+          request.auth.token.role == 'delivery_person' ||
+          request.auth.token.role == 'deliveryStaff'
+        )
+      );
+    }
+
+    function isValidImage() {
+      return request.resource.contentType.matches('image/.*') &&
+             request.resource.size <= 10 * 1024 * 1024;
+    }
+
+    function isValidDocument() {
+      return (request.resource.contentType.matches('image/.*') || 
+              request.resource.contentType == 'application/pdf') &&
+             request.resource.size <= 15 * 1024 * 1024;
+    }
+
+    // 1. Product images: public read, management staff write only
+    match /products/{allPaths=**} {
+      allow read: if true;
+      allow write: if isManagementStaff() && isValidImage();
+    }
+
+    // 2. Profile images: public read, owner or staff write
+    match /profiles/{userId}/{allPaths=**} {
+      allow read: if true;
+      allow write: if isSignedIn() && (request.auth.uid == userId || isStaff()) && isValidImage();
+    }
+
+    // 3. Prescriptions: authenticated owner and management staff only
+    match /prescriptions/{userId}/{allPaths=**} {
+      allow read: if isSignedIn() && (request.auth.uid == userId || isManagementStaff());
+      allow write: if isSignedIn() && (request.auth.uid == userId || isManagementStaff()) && isValidDocument();
+    }
+
+    // 4. Default: deny all other paths
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

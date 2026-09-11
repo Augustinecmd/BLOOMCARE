@@ -1,4 +1,4 @@
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import {
     getAuth,
     createUserWithEmailAndPassword,
@@ -27,22 +27,130 @@ import {
     onSnapshot,
     serverTimestamp
 } from "firebase/firestore";
+import {
+    getStorage,
+    ref as storageRef,
+    uploadBytes,
+    getDownloadURL,
+    deleteObject
+} from "firebase/storage";
 
-// Your web app's Firebase configuration
+// Ensure environment variables are loaded in Node test/CLI environments
+if (typeof window === "undefined" && typeof process !== "undefined" && typeof process.loadEnvFile === "function") {
+    try {
+        process.loadEnvFile("BLOOMCARE-main/.env");
+    } catch (_) {
+        try {
+            process.loadEnvFile(".env");
+        } catch (_) {}
+    }
+}
+
+// Retrieve Vite environment variables (with process.env fallback for Node test runners)
+const env = (typeof import.meta !== "undefined" && import.meta.env) ? import.meta.env : {};
+const procEnv = (typeof process !== "undefined" && process.env) ? process.env : {};
+
 const firebaseConfig = {
-    apiKey: "AIzaSyDQrBYQdEYy7rDdIQTGd5i6gONKG-DACMM",
-    authDomain: "bloomcare-ee449.firebaseapp.com",
-    projectId: "bloomcare-ee449",
-    storageBucket: "bloomcare-ee449.firebasestorage.app",
-    messagingSenderId: "265627798177",
-    appId: "1:265627798177:web:4158341a929ae11bfefee0",
-    measurementId: "G-PRMLMH2X75"
+    apiKey: env.VITE_FIREBASE_API_KEY || procEnv.VITE_FIREBASE_API_KEY,
+    authDomain: env.VITE_FIREBASE_AUTH_DOMAIN || procEnv.VITE_FIREBASE_AUTH_DOMAIN,
+    projectId: env.VITE_FIREBASE_PROJECT_ID || procEnv.VITE_FIREBASE_PROJECT_ID,
+    storageBucket: env.VITE_FIREBASE_STORAGE_BUCKET || procEnv.VITE_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: env.VITE_FIREBASE_MESSAGING_SENDER_ID || procEnv.VITE_FIREBASE_MESSAGING_SENDER_ID,
+    appId: env.VITE_FIREBASE_APP_ID || procEnv.VITE_FIREBASE_APP_ID,
+    measurementId: env.VITE_FIREBASE_MEASUREMENT_ID || procEnv.VITE_FIREBASE_MEASUREMENT_ID
 };
 
-// Initialize Firebase App, Auth, and Firestore
-const app = initializeApp(firebaseConfig);
+// Validate required Firebase configuration properties in production/runtime
+const requiredFirebaseConfig = [
+    { key: "VITE_FIREBASE_API_KEY", value: firebaseConfig.apiKey },
+    { key: "VITE_FIREBASE_AUTH_DOMAIN", value: firebaseConfig.authDomain },
+    { key: "VITE_FIREBASE_PROJECT_ID", value: firebaseConfig.projectId },
+    { key: "VITE_FIREBASE_STORAGE_BUCKET", value: firebaseConfig.storageBucket },
+    { key: "VITE_FIREBASE_MESSAGING_SENDER_ID", value: firebaseConfig.messagingSenderId },
+    { key: "VITE_FIREBASE_APP_ID", value: firebaseConfig.appId }
+];
+
+const missingFirebaseVars = requiredFirebaseConfig
+    .filter(item => !item.value || String(item.value).trim() === "")
+    .map(item => item.key);
+
+if (missingFirebaseVars.length > 0) {
+    const errorDetails = `[BloomCare Configuration Error] Missing required Firebase environment variables:\n` +
+        missingFirebaseVars.map(v => `  - ${v}`).join("\n") +
+        `\nPlease configure these variables in your deployment environment (e.g. Vercel Project Settings) or .env file before running the application.`;
+    
+    console.error(errorDetails);
+
+    if (typeof document !== "undefined") {
+        const showBanner = () => {
+            if (document.getElementById("bloomcare-firebase-error-banner")) return;
+            const banner = document.createElement("div");
+            banner.id = "bloomcare-firebase-error-banner";
+            banner.setAttribute("role", "alert");
+            banner.style.cssText = "position:fixed;top:0;left:0;right:0;z-index:999999;background:#b91c1c;color:#ffffff;padding:14px 20px;font-family:system-ui,-apple-system,sans-serif;font-size:14px;text-align:center;box-shadow:0 4px 12px rgba(0,0,0,0.3);line-height:1.5;";
+            banner.innerHTML = `<strong>BloomCare Configuration Error:</strong> Missing required Firebase environment variables: <code>${missingFirebaseVars.join(", ")}</code>. Please configure them in your environment settings.`;
+            document.body ? document.body.prepend(banner) : document.addEventListener("DOMContentLoaded", () => document.body.prepend(banner));
+        };
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", showBanner);
+        } else {
+            showBanner();
+        }
+    }
+
+    throw new Error(errorDetails);
+}
+
+// Ensure target project ID matches BloomCare ecosystem
+if (firebaseConfig.projectId && firebaseConfig.projectId !== "bloomcare-ee449") {
+    console.warn(`[BloomCare Firebase] Warning: Active project ID "${firebaseConfig.projectId}" does not match target "bloomcare-ee449".`);
+}
+
+// Single initialized Firebase instance across App, Auth, Firestore, and Storage
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 export const auth = getAuth(app);
 export const db = getFirestore(app);
+export const storage = getStorage(app);
+
+// -------------------------------------------------------------
+// FIREBASE STORAGE HELPERS
+// -------------------------------------------------------------
+export async function uploadProductImage(file, productId = "prod") {
+    if (!file) throw new Error("No file provided for upload");
+    const safeName = (file.name || "image.jpg").replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `products/${productId}-${Date.now()}-${safeName}`;
+    const fileRef = storageRef(storage, path);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+}
+
+export async function uploadProfileImage(file, userId = "user") {
+    if (!file) throw new Error("No file provided for upload");
+    const safeName = (file.name || "avatar.jpg").replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `profiles/${userId}-${Date.now()}-${safeName}`;
+    const fileRef = storageRef(storage, path);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+}
+
+export async function uploadPrescriptionFile(file, customerId = "cust") {
+    if (!file) throw new Error("No file provided for upload");
+    const safeName = (file.name || "prescription.pdf").replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `prescriptions/${customerId}-${Date.now()}-${safeName}`;
+    const fileRef = storageRef(storage, path);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+}
+
+export async function uploadStorageFile(folder, file, id = "file") {
+    if (!file) throw new Error("No file provided for upload");
+    const safeName = (file.name || "upload").replace(/[^a-zA-Z0-9._-]/g, "_");
+    const path = `${folder}/${id}-${Date.now()}-${safeName}`;
+    const fileRef = storageRef(storage, path);
+    await uploadBytes(fileRef, file);
+    return await getDownloadURL(fileRef);
+}
+
 export const authPersistenceReady = (typeof window !== "undefined" && typeof window.indexedDB !== "undefined")
     ? setPersistence(auth, browserLocalPersistence).catch((error) => {
         console.warn("[BloomCare Auth] Session persistence could not be configured:", error);
@@ -318,18 +426,23 @@ export async function saveCategory(categoryData) {
 // 4. ORDERS & CHECKOUT
 // -------------------------------------------------------------
 export async function createOrder(orderData) {
-    const orderNumber = "BC-ORD-" + new Date().getFullYear() + "-" + Math.floor(100000 + Math.random() * 900000);
+    if (!orderData) throw new Error("Order data must be provided");
+    const orderId = orderData.id || orderData.orderNumber || ("BC-" + Date.now());
+    const orderNumber = orderData.orderNumber || orderData.id || ("BC-ORD-" + new Date().getFullYear() + "-" + Math.floor(100000 + Math.random() * 900000));
+    const customerId = orderData.customerId || (auth && auth.currentUser ? auth.currentUser.uid : "cust-guest");
     const data = {
+        ...orderData,
+        id: orderId,
         orderNumber,
-        customerId: orderData.customerId || "cust-guest",
+        customerId,
         customerName: orderData.customerName || "Customer",
         customerPhone: orderData.customerPhone || "",
         customerEmail: orderData.customerEmail || "",
         deliveryAddress: orderData.deliveryAddress || "Mbarara City, Uganda",
         deliveryNotes: orderData.deliveryNotes || "",
-        items: orderData.items || [],
+        items: Array.isArray(orderData.items) ? orderData.items : [],
         subtotal: Number(orderData.subtotal) || 0,
-        deliveryFee: Number(orderData.deliveryFee) || 5000,
+        deliveryFee: Number(orderData.deliveryFee) || 0,
         total: Number(orderData.total) || 0,
         paymentMethod: orderData.paymentMethod || "MTN MoMo",
         paymentStatus: orderData.paymentStatus || "Pending",
@@ -338,31 +451,71 @@ export async function createOrder(orderData) {
         prescriptionId: orderData.prescriptionId || null,
         prescriptionStatus: orderData.prescriptionStatus || "Not Required",
         rxVerified: Boolean(orderData.rxVerified),
-        deliveryStaffId: null,
-        assignedStaff: "Pending Assignment",
-        createdAt: new Date().toISOString(),
+        deliveryStaffId: orderData.deliveryStaffId || orderData.deliveryManId || null,
+        deliveryManId: orderData.deliveryManId || orderData.deliveryStaffId || null,
+        deliveryManName: orderData.deliveryManName || orderData.assignedStaff || null,
+        deliveryManPhone: orderData.deliveryManPhone || null,
+        assignedStaff: orderData.assignedStaff || orderData.deliveryManName || "Pending Assignment",
+        createdAt: orderData.createdAt || new Date().toISOString(),
         updatedAt: new Date().toISOString()
     };
-    const docRef = await addDoc(collection(db, "orders"), data);
-    return { id: docRef.id, ...data };
+    try {
+        await setDoc(doc(db, "orders", orderId), data, { merge: true });
+        console.log(`[BloomCare Firestore] Order #${orderNumber} (${orderId}) successfully stored in 'orders' collection.`);
+        return { id: orderId, ...data };
+    } catch (err) {
+        console.error(`[BloomCare Firestore] Error writing order #${orderNumber} (${orderId}) to 'orders' collection:`, err);
+        throw err;
+    }
+}
+
+export async function updateOrderDeliveryAssignment(orderId, { deliveryManId, deliveryStaffId, deliveryManName, deliveryManPhone, orderStatus = "Assigned", assignedStaff = null }) {
+    const driverId = deliveryManId || deliveryStaffId;
+    const driverName = deliveryManName || assignedStaff || "Moses Kato";
+    const updatePayload = {
+        deliveryManId: driverId,
+        deliveryStaffId: driverId,
+        deliveryManName: driverName,
+        assignedStaff: driverName,
+        orderStatus: orderStatus || "Assigned",
+        updatedAt: new Date().toISOString()
+    };
+    if (deliveryManPhone) updatePayload.deliveryManPhone = deliveryManPhone;
+    await updateDoc(doc(db, "orders", orderId), updatePayload);
+    return updatePayload;
 }
 
 export async function getOrders(userId = null, role = "customer") {
     try {
         const ordersCol = collection(db, "orders");
         let q;
-        if (role === "customer" && userId) {
+        const normRole = String(role || "").toLowerCase();
+        if (normRole === "customer" && userId) {
             q = query(ordersCol, where("customerId", "==", userId));
-        } else if (role === "deliveryStaff" && userId) {
-            q = query(ordersCol, where("deliveryStaffId", "==", userId));
+        } else if ((normRole === "delivery_person" || normRole === "deliverystaff" || normRole === "delivery") && userId) {
+            q = query(ordersCol, where("deliveryManId", "==", userId));
         } else {
             q = query(ordersCol);
         }
         const snap = await getDocs(q);
-        return snap.docs
+        const results = snap.docs
             .map(d => ({ id: d.id, ...d.data() }))
             .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+        if ((normRole === "delivery_person" || normRole === "deliverystaff" || normRole === "delivery") && userId && results.length === 0) {
+            try {
+                const q2 = query(ordersCol, where("deliveryStaffId", "==", userId));
+                const snap2 = await getDocs(q2);
+                if (!snap2.empty) {
+                    return snap2.docs
+                        .map(d => ({ id: d.id, ...d.data() }))
+                        .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+                }
+            } catch (_) {}
+        }
+        return results;
     } catch (e) {
+        console.warn("[BloomCare Firestore] getOrders query deferred or error:", e?.message || e);
         return [];
     }
 }
@@ -420,6 +573,22 @@ export async function updateOrderStatus(orderId, status, assignedStaff = null) {
     };
     if (assignedStaff) updatePayload.assignedStaff = assignedStaff;
     await updateDoc(doc(db, "orders", orderId), updatePayload);
+}
+
+export async function updateOrderAssignment(orderId, assignment) {
+    if (!orderId || !assignment?.deliveryManId) {
+        throw new Error("A Firebase delivery person UID is required for order assignment");
+    }
+    const payload = {
+        deliveryManId: assignment.deliveryManId,
+        deliveryManName: assignment.deliveryManName || null,
+        deliveryManPhone: assignment.deliveryManPhone || "",
+        assignedStaff: assignment.deliveryManName || "Pending Assignment",
+        orderStatus: assignment.orderStatus || "Assigned",
+        updatedAt: new Date().toISOString()
+    };
+    await updateDoc(doc(db, "orders", orderId), payload);
+    return payload;
 }
 
 // -------------------------------------------------------------
@@ -595,7 +764,7 @@ export async function createDelivery(deliveryData) {
     const data = {
         orderId: deliveryData.orderId,
         orderNumber: deliveryData.orderNumber,
-        deliveryStaffId: deliveryData.deliveryStaffId || null,
+        deliveryManId: deliveryData.deliveryManId || deliveryData.deliveryStaffId || null,
         deliveryStaffName: deliveryData.deliveryStaffName || "Unassigned",
         customerName: deliveryData.customerName,
         phone: deliveryData.phone,
@@ -614,7 +783,7 @@ export async function getDeliveries(staffId = null, role = "admin") {
         const delivCol = collection(db, "deliveries");
         let q;
         if (role === "deliveryStaff" && staffId) {
-            q = query(delivCol, where("deliveryStaffId", "==", staffId));
+            q = query(delivCol, where("deliveryManId", "==", staffId));
         } else {
             q = query(delivCol);
         }
@@ -675,25 +844,26 @@ export async function getInventoryLogs() {
 }
 
 export async function createNotification(notif) {
-    await addDoc(collection(db, "notifications"), {
-        userId: notif.userId || null,
+    const notificationId = notif.id || `order-${notif.orderId || "general"}-${notif.type || "info"}`;
+    await setDoc(doc(db, "notifications", notificationId), {
+        userId: notif.userId || notif.recipientId || null,
+        recipientId: notif.recipientId || notif.userId || null,
         role: notif.role || "customer",
         title: notif.title,
         message: notif.message,
         type: notif.type || "info",
         read: false,
-        createdAt: new Date().toISOString()
-    });
+        orderId: notif.orderId || null,
+        conversationId: notif.conversationId || null,
+        createdAt: notif.createdAt || new Date().toISOString()
+    }, { merge: true });
 }
 
 export async function getNotifications(userId = null, role = "customer") {
     try {
         if (!userId) return [];
         const notificationsRef = collection(db, "notifications");
-        const queries = [getDocs(query(notificationsRef, where("userId", "==", userId)))];
-        if (role !== "customer") {
-            queries.push(getDocs(query(notificationsRef, where("role", "==", role))));
-        }
+        const queries = [getDocs(query(notificationsRef, where("recipientId", "==", userId)))];
         const snapshots = await Promise.all(queries);
         const byId = new Map();
         snapshots.flatMap(snap => snap.docs).forEach(d => byId.set(d.id, { id: d.id, ...d.data() }));
@@ -718,7 +888,17 @@ export async function getOrCreateDeliveryConversation(convData) {
         const convRef = doc(db, "conversations", conversationId);
         const snap = await getDoc(convRef);
         if (snap.exists()) {
-            return { id: snap.id, ...snap.data() };
+            const existing = snap.data();
+            const updates = {
+                ...(convData.customerId ? { customerId: convData.customerId } : {}),
+                ...(convData.deliveryManId ? { deliveryManId: convData.deliveryManId } : {}),
+                ...(convData.deliveryManName ? { deliveryManName: convData.deliveryManName } : {}),
+                ...(convData.deliveryManPhone ? { deliveryManPhone: convData.deliveryManPhone } : {}),
+                ...(convData.deliveryStatus ? { deliveryStatus: convData.deliveryStatus } : {}),
+                updatedAt: new Date().toISOString()
+            };
+            if (Object.keys(updates).length > 1) await setDoc(convRef, updates, { merge: true });
+            return { id: snap.id, ...existing, ...updates };
         }
         const record = {
             conversationId,
@@ -870,15 +1050,26 @@ export async function markDeliveryMessagesRead(conversationId, userRole) {
 export async function getDeliveryConversationsForUser(userId, role) {
     try {
         let q;
-        if (role === "delivery_person" || role === "deliveryStaff") {
+        const normRole = String(role || "").toLowerCase();
+        if (normRole === "delivery_person" || normRole === "deliverystaff" || normRole === "delivery") {
             q = query(collection(db, "conversations"), where("deliveryManId", "==", userId));
-        } else if (role === "customer") {
+        } else if (normRole === "customer") {
             q = query(collection(db, "conversations"), where("customerId", "==", userId));
         } else {
             q = query(collection(db, "conversations"), limit(50));
         }
         const snap = await getDocs(q);
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        const list = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if ((normRole === "delivery_person" || normRole === "deliverystaff" || normRole === "delivery") && userId && list.length === 0) {
+            try {
+                const q2 = query(collection(db, "conversations"), where("deliveryStaffId", "==", userId));
+                const snap2 = await getDocs(q2);
+                if (!snap2.empty) {
+                    return snap2.docs.map(d => ({ id: d.id, ...d.data() }));
+                }
+            } catch (_) {}
+        }
+        return list;
     } catch (err) {
         console.warn("[BloomCare Chat] getConversations error:", err?.message || err);
         return [];
@@ -901,11 +1092,11 @@ export async function getDesignatedDeliveryDriver() {
         }
     } catch (e) {}
     return {
-        id: "usr-staff-5",
-        uid: "usr-staff-5",
+        id: "eM6qgrSVjTeTUo62Sa556sKkXpG3",
+        uid: "eM6qgrSVjTeTUo62Sa556sKkXpG3",
         name: "Moses Kato",
         displayName: "Moses Kato",
-        email: "moses.k@bloomcare.com",
+        email: "delivery@bloomcare.com",
         phone: "0700000005",
         role: "delivery_person"
     };

@@ -19,6 +19,7 @@ import {
   saveCategory,
   createOrder,
   getOrders,
+  updateOrderAssignment,
   isPaidOrder,
   getPaidOrdersForPeriod,
   updateOrderStatus,
@@ -35,6 +36,7 @@ import {
   getPayments,
   getInventoryLogs,
   getNotifications,
+  createNotification,
   markNotificationRead,
   requestPasswordReset,
   getSystemSettings,
@@ -1662,7 +1664,7 @@ export async function registerUser({ fullName, email, phone, password, accountTy
   }
 
   try {
-    await signUpUser({
+    const signupRes = await signUpUser({
       firstName,
       lastName,
       email: newCustomer.email,
@@ -1671,6 +1673,10 @@ export async function registerUser({ fullName, email, phone, password, accountTy
       role: "customer",
       accountType: normalizedAccountType
     });
+    if (signupRes && signupRes.user && signupRes.user.uid) {
+      newCustomer.uid = signupRes.user.uid;
+      newCustomer.id = signupRes.user.uid;
+    }
   } catch (err) {
     if (err?.code === "auth/email-already-in-use" || String(err?.message || "").includes("email-already-in-use")) {
       return { success: false, message: "An account with this email already exists. Please log in." };
@@ -2243,11 +2249,13 @@ let appSyncChannel = null;
 
 export function broadcastAppSync(type, payload = {}) {
   try {
-    if (!appSyncChannel && typeof BroadcastChannel !== "undefined") {
-      appSyncChannel = new BroadcastChannel("bloomcare_realtime_sync");
-    }
-    if (appSyncChannel) {
-      appSyncChannel.postMessage({ type, payload, timestamp: Date.now() });
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined") {
+      if (!appSyncChannel) {
+        appSyncChannel = new BroadcastChannel("bloomcare_realtime_sync");
+      }
+      if (appSyncChannel) {
+        appSyncChannel.postMessage({ type, payload, timestamp: Date.now() });
+      }
     }
   } catch (_) {}
 }
@@ -2338,7 +2346,7 @@ export function handleAppSyncMessage(event) {
 
 export function initAppSyncChannel() {
   try {
-    if (typeof BroadcastChannel !== "undefined" && !appSyncChannel) {
+    if (typeof window !== "undefined" && typeof BroadcastChannel !== "undefined" && !appSyncChannel) {
       appSyncChannel = new BroadcastChannel("bloomcare_realtime_sync");
       appSyncChannel.onmessage = handleAppSyncMessage;
     }
@@ -3380,6 +3388,7 @@ export function renderSidebarNavigation() {
 export function checkRouteAccess(route, user, role = null) {
   const clean = String(route || "").replace(/^#\/?/, "").replace(/^\/+|\/+$/g, "").trim();
   const effectiveRole = normalizeRole(role || (user ? user.role : "visitor") || "visitor");
+  const publicRoutes = ["auth", "login", "register", "staff-login", "medicines", "categories", "about", "contact"];
 
   // Delivery Person restriction: Strictly remove About Us and Contact Us from Delivery Man interface
   if ((effectiveRole === "delivery_person" || effectiveRole === "deliveryStaff") && (clean === "about" || clean === "contact")) {
@@ -3390,10 +3399,15 @@ export function checkRouteAccess(route, user, role = null) {
       reason: "Access Denied: About Us and Contact Us are not available for Delivery Staff."
     };
   }
+  // Universal public browsing routes (accessible to everyone, including visitors and logged-in users)
+  const universalBrowseRoutes = ["medicines", "categories", "about", "contact"];
+  if (universalBrowseRoutes.includes(clean)) {
+    return { allowed: true };
+  }
 
-  // Public routes (accessible to everyone, including visitors)
-  const publicRoutes = ["auth", "login", "register", "staff-login", "medicines", "categories", "about", "contact"];
-  if (publicRoutes.includes(clean)) {
+  // Public authentication routes (accessible to unauthenticated visitors; logged-in users will be redirected)
+  const visitorAuthRoutes = ["auth", "login", "register", "staff-login"];
+  if ((!user || effectiveRole === "visitor") && visitorAuthRoutes.includes(clean)) {
     return { allowed: true };
   }
 
@@ -4509,12 +4523,8 @@ function renderRoleDashboard() {
 
   } else if (role === "delivery_person" || role === "deliveryStaff") {
     // 4. DELIVERY STAFF DASHBOARD
-    const myDeliveries = STATE.deliveries.filter(d => 
-      !STATE.currentUser || 
-      d.deliveryStaffId === STATE.currentUser.uid || 
-      d.deliveryStaffId === STATE.currentUser.id || 
-      d.deliveryStaffName === STATE.currentUser.displayName ||
-      d.deliveryStaffName === STATE.currentUser.name
+    const myDeliveries = STATE.deliveries.filter(d =>
+      !STATE.currentUser || d.deliveryManId === STATE.currentUser.uid
     );
     const assigned = myDeliveries.filter(d => d.status !== "Delivered");
     const outForDelivery = myDeliveries.filter(d => d.status === "Out for Delivery");
@@ -9014,13 +9024,7 @@ export function canUserAccessConversation(conversation, user = STATE.currentUser
     if (!conversation.deliveryManId && !conversation.deliveryManName) return false;
     if (conversation.deliveryManName === "Unassigned" || conversation.deliveryManName === "Pending Assignment") return false;
     if (userUid && conversation.deliveryManId === userUid) return true;
-    if (userDisplayName && (conversation.deliveryManName || "").toLowerCase() === userDisplayName) return true;
-    if (userEmail && (conversation.deliveryManEmail || "").toLowerCase() === userEmail) return true;
-    // Designated delivery driver alias set (Moses Kato: usr-5, usr-5b, usr-staff-4, usr-staff-5)
-    const driverAliases = new Set(["usr-5", "usr-5b", "usr-staff-4", "usr-staff-5"]);
-    if (driverAliases.has(userUid) && (driverAliases.has(conversation.deliveryManId) || String(conversation.deliveryManName || "").toLowerCase().includes("moses") || !conversation.deliveryManId)) return true;
-    if (userDisplayName.includes("moses") && (driverAliases.has(conversation.deliveryManId) || String(conversation.deliveryManName || "").toLowerCase().includes("moses") || !conversation.deliveryManId)) return true;
-    return false;
+    return Boolean(userUid && conversation.deliveryManId === userUid);
   }
 
   // Customer access
@@ -9238,7 +9242,10 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   const user = senderOverride || STATE.currentUser;
   const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff" || (user && (user.role === "delivery_person" || user.role === "deliveryStaff"));
 
-  const senderId = user ? user.uid : (isDelivery ? (conv.deliveryManId || "usr-5") : (conv.customerId || "usr-1"));
+  const senderId = user?.uid;
+  if (!senderId) {
+    return { success: false, error: "You must be signed in to send a message." };
+  }
   const senderName = user ? (user.displayName || user.name) : (isDelivery ? (conv.deliveryManName || "Delivery Driver") : (conv.customerName || "Customer"));
   const senderRole = isDelivery ? "delivery" : "customer";
   const persistedSenderRole = isDelivery ? "delivery_person" : "customer";
@@ -11541,7 +11548,7 @@ async function handleCheckoutOrder(e) {
   const newOrder = {
     id: orderRef,
     orderNumber: orderRef,
-    customerId: STATE.currentUser?.uid || "cust-" + Date.now(),
+    customerId: (auth && auth.currentUser && auth.currentUser.uid) ? auth.currentUser.uid : (STATE.currentUser?.uid || "cust-" + Date.now()),
     customerName: name,
     customerPhone: phoneVal.normalized,
     customerEmail: email,
@@ -11581,7 +11588,12 @@ async function handleCheckoutOrder(e) {
     createdAt: new Date().toISOString()
   };
 
-  try { await createOrder(newOrder); } catch (_) {}
+  try {
+    await createOrder(newOrder);
+    console.log(`[BloomCare Order] Order #${orderRef} successfully recorded in Cloud Firestore.`);
+  } catch (err) {
+    console.warn(`[BloomCare Order] Cloud Firestore sync deferred for #${orderRef}:`, err?.message || err);
+  }
 
   // Deduct inventory stock
   for (const item of newOrder.items) {
@@ -11621,7 +11633,7 @@ async function handleCheckoutOrder(e) {
       landmark: specificLocation,
       deliveryInstructions: instructions,
       itemsSummary: newOrder.items.map(i => `${i.quantity}x ${i.name}`).join(", "),
-      deliveryStaffId: null,
+      deliveryManId: null,
       deliveryStaffName: "Unassigned",
       status: "Pending Assignment",
       createdAt: new Date().toISOString().slice(0, 10)
@@ -11674,7 +11686,7 @@ async function handleCheckoutOrder(e) {
         (STATE.deliveries || []).forEach(d => {
           const s = String(d.status || "").toLowerCase();
           if (s !== "delivered" && s !== "failed" && s !== "cancelled") {
-            const sid = d.deliveryStaffId || d.deliveryManId;
+            const sid = d.deliveryManId;
             if (counts[sid] !== undefined) counts[sid]++;
           }
         });
@@ -11704,19 +11716,35 @@ async function handleCheckoutOrder(e) {
     }
 
     if (deliveryAssignment && deliveryAssignment.deliveryManId) {
-      newOrder.assignedStaff = deliveryAssignment.deliveryManName;
-      newOrder.deliveryManId = deliveryAssignment.deliveryManId;
-      newOrder.deliveryManName = deliveryAssignment.deliveryManName;
-      newOrder.deliveryManPhone = deliveryAssignment.deliveryManPhone;
+      const assignedDriver = (STATE.users || []).find(user =>
+        user.uid === deliveryAssignment.deliveryManId ||
+        user.id === deliveryAssignment.deliveryManId ||
+        user.email === deliveryAssignment.deliveryManEmail ||
+        user.email === deliveryAssignment.email ||
+        user.displayName === deliveryAssignment.deliveryManName ||
+        user.name === deliveryAssignment.deliveryManName
+      );
+      const deliveryManId = assignedDriver?.uid || assignedDriver?.id;
+      if (!deliveryManId) {
+        console.error("[BloomCare Assignment] Refusing assignment without a Firebase Auth UID:", deliveryAssignment);
+        deliveryAssignment = null;
+      } else {
+      const deliveryManName = assignedDriver.displayName || assignedDriver.name || deliveryAssignment.deliveryManName;
+      const deliveryManPhone = assignedDriver.phone || deliveryAssignment.deliveryManPhone || "";
+      newOrder.assignedStaff = deliveryManName;
+      newOrder.deliveryManId = deliveryManId;
+      newOrder.deliveryManName = deliveryManName;
+      newOrder.deliveryManPhone = deliveryManPhone;
       newOrder.orderStatus = "Assigned";
-      newDelivery.deliveryStaffId = deliveryAssignment.deliveryManId;
-      newDelivery.deliveryStaffName = deliveryAssignment.deliveryManName;
+      newDelivery.deliveryManId = deliveryManId;
+      newDelivery.deliveryStaffName = deliveryManName;
       newDelivery.status = "Assigned";
 
       // Dispatch real-time notification to the Delivery Man (even if customer has not sent a message)
       notifItem = {
         id: "notif-del-" + Date.now(),
-        recipientId: deliveryAssignment.deliveryManId,
+        id: `order-${orderRef}-NEW_DELIVERY_ASSIGNED`,
+        recipientId: deliveryManId,
         role: "delivery_person",
         type: "NEW_DELIVERY_ASSIGNED",
         orderId: orderRef,
@@ -11731,6 +11759,24 @@ async function handleCheckoutOrder(e) {
         createdAt: new Date().toISOString()
       };
       STATE.notifications.unshift(notifItem);
+      try {
+        await updateOrderAssignment(orderRef, {
+          deliveryManId,
+          deliveryManName,
+          deliveryManPhone,
+          orderStatus: "Assigned"
+        });
+        await createNotification(notifItem);
+        console.log(`[BloomCare Assignment] Order ${orderRef} persisted for delivery UID ${deliveryManId}.`);
+      } catch (err) {
+        console.error(`[BloomCare Assignment] Failed to persist order ${orderRef} assignment:`, err);
+      }
+      try {
+        await createDelivery(newDelivery);
+      } catch (err) {
+        console.error(`[BloomCare Delivery] Failed to persist delivery for order ${orderRef}:`, err);
+      }
+      }
     } else if (deliveryAssignment && deliveryAssignment.status === "WAITING_FOR_AVAILABLE_DELIVERY_MAN") {
       newOrder.assignedStaff = "Waiting for Available Delivery Man";
       newOrder.orderStatus = "Waiting for Available Delivery Man";
@@ -12797,7 +12843,7 @@ export async function completeWalkinSale() {
 
   // Save order directly to central STATE.orders
   STATE.orders.unshift(newSaleOrder);
-  try { saveOrder(newSaleOrder); } catch (_) {}
+  try { await createOrder(newSaleOrder); } catch (err) { console.warn("[BloomCare POS] Firestore walk-in order sync deferred:", err?.message || err); }
   try { saveCartToStorage(); } catch (_) {}
 
   // Update counter stats strip
@@ -14971,7 +15017,7 @@ function bindEventListeners() {
   // Order Status Modal (Staff Only with Lifecycle Workflow Gates)
   $("#close-order-status-modal")?.addEventListener("click", () => $("#order-status-dialog")?.close());
   $("#cancel-order-status-btn")?.addEventListener("click", () => $("#order-status-dialog")?.close());
-  $("#order-status-form")?.addEventListener("submit", (e) => {
+  $("#order-status-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const effRole = getEffectiveRole();
     if (effRole === "customer" || effRole === "visitor") {
@@ -14984,6 +15030,14 @@ function bindEventListeners() {
 
     const order = STATE.orders.find(o => o.id === orderId);
     if (order) {
+      const driverUser = STATE.users.find(user =>
+        user.uid === driver || user.id === driver || user.displayName === driver || user.name === driver || user.email === driver
+      );
+      const deliveryManId = driverUser?.uid || driverUser?.id || null;
+      if (driver && driver !== "Unassigned" && driver !== "Pending Assignment" && !deliveryManId) {
+        openNotice("Assignment Failed", "Select a delivery person with a valid Firebase account.");
+        return;
+      }
       const currentStatus = order.orderStatus || "Pending";
       if (currentStatus !== status) {
         const transitionCheck = canTransitionOrderStatus(currentStatus, status, getEffectiveRole());
@@ -14994,14 +15048,32 @@ function bindEventListeners() {
       }
       order.orderStatus = status;
       order.assignedStaff = driver;
-      try { updateOrderStatus(orderId, status, driver); } catch (_) {}
+      if (deliveryManId) {
+        order.deliveryManId = deliveryManId;
+        order.deliveryManName = driverUser.displayName || driverUser.name || driver;
+        order.deliveryManPhone = driverUser.phone || "";
+      }
+      try {
+        await updateOrderStatus(orderId, status, driver);
+        if (deliveryManId) {
+          await updateOrderAssignment(orderId, {
+            deliveryManId,
+            deliveryManName: order.deliveryManName,
+            deliveryManPhone: order.deliveryManPhone,
+            orderStatus: status
+          });
+        }
+      } catch (err) {
+        console.error(`[BloomCare Assignment] Failed to persist order ${orderId}:`, err);
+        openNotice("Order Update Failed", "Firestore rejected this update. See the console for the actual error.");
+        return;
+      }
       recordStaffAudit("UPDATE_ORDER_STATUS", "orders", orderId, `Status updated to ${status}, Driver: ${driver}`);
       const conv = STATE.conversations.find(c => c.orderId === (order.orderNumber || order.id) || c.orderId === order.id || c.id === `CHAT-${order.orderNumber || order.id}`);
       if (conv) {
         if (driver && driver !== "Unassigned" && driver !== "Pending Assignment") {
           conv.deliveryManName = driver;
-          const driverUser = STATE.users.find(u => u.displayName === driver || u.name === driver || u.email === driver);
-          conv.deliveryManId = driverUser ? driverUser.uid : "usr-5";
+          conv.deliveryManId = deliveryManId;
           if (conv.deliveryStatus === "PENDING" || !conv.deliveryStatus) {
             conv.deliveryStatus = "ASSIGNED";
           }
@@ -15017,8 +15089,24 @@ function bindEventListeners() {
       const del = STATE.deliveries.find(d => d.orderId === (order.orderNumber || order.id) || d.orderNumber === (order.orderNumber || order.id));
       if (del && driver && driver !== "Unassigned" && driver !== "Pending Assignment") {
         del.deliveryStaffName = driver;
-        const driverUser = STATE.users.find(u => u.displayName === driver || u.name === driver || u.email === driver);
-        if (driverUser) del.deliveryStaffId = driverUser.uid;
+        del.deliveryManId = deliveryManId;
+      }
+      if (deliveryManId) {
+        try {
+          await createNotification({
+            id: `order-${order.orderNumber || order.id}-NEW_DELIVERY_ASSIGNED`,
+            recipientId: deliveryManId,
+            role: "delivery_person",
+            type: "NEW_DELIVERY_ASSIGNED",
+            orderId: order.orderNumber || order.id,
+            conversationId: conv?.id || `CHAT-${order.orderNumber || order.id}`,
+            title: "NEW DELIVERY ASSIGNED",
+            message: `Order #${order.orderNumber || order.id} assigned to you.`,
+            read: false
+          });
+        } catch (err) {
+          console.error(`[BloomCare Notification] Failed for order ${orderId}:`, err);
+        }
       }
     }
     $("#order-status-dialog").close();
@@ -16073,7 +16161,12 @@ function bindEventListeners() {
     try {
       if (loginRes.user?.email && loginRes.user.email.includes("@")) {
         try {
-          await signInUser(loginRes.user.email, password);
+          const fbUser = await signInUser(loginRes.user.email, password);
+          if (fbUser && fbUser.uid) {
+            STATE.currentUser.uid = fbUser.uid;
+            STATE.currentUser.id = fbUser.uid;
+            saveSessionUser(STATE.currentUser);
+          }
         } catch (_) {}
       }
     } catch (_) {}

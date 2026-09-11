@@ -8,7 +8,8 @@
         "dev:web": "npm --prefix BLOOMCARE-main run dev",
         "dev:api": "python server/payment_api.py",
         "start": "npm --prefix BLOOMCARE-main start",
-        "build": "npm --prefix BLOOMCARE-main run build",
+        "build": "npm --prefix BLOOMCARE-main run build && node -e \"import fs from 'node:fs'; fs.cpSync('BLOOMCARE-main/dist', 'dist', {recursive: true, force: true});\"",
+        "postinstall": "npm --prefix BLOOMCARE-main install",
         "verify:firebase": "node scripts/verify-firebase-config.mjs",
         "demo": "node scripts/demo.mjs",
         "test": "node scripts/verify-firebase-config.mjs && node --test --test-concurrency=1 tests/*.test.mjs && python -m unittest tests.test_payment_api"

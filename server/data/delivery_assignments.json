@@ -23,8 +23,8 @@
     ],
     "status": "Delivered",
     "deliveryStatus": "Delivered",
-    "assignedAt": "2026-09-06T06:42:03.195761+00:00",
-    "updatedAt": "2026-09-06T06:42:03.364740+00:00",
+    "assignedAt": "2026-09-07T12:34:16.845098+00:00",
+    "updatedAt": "2026-09-07T12:34:16.999909+00:00",
     "assignmentHistory": [
       {
         "timestamp": "2026-09-06T06:29:49.049287+00:00",
@@ -34,6 +34,72 @@
       },
       {
         "timestamp": "2026-09-06T06:42:03.195761+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T04:52:53.001703+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T04:53:23.534086+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-1788628549485",
+        "deliveryManName": "ARINDA KEVIN"
+      },
+      {
+        "timestamp": "2026-09-07T04:56:45.784351+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-1788628549485",
+        "deliveryManName": "ARINDA KEVIN"
+      },
+      {
+        "timestamp": "2026-09-07T05:19:34.193571+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T05:19:57.497022+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T05:53:49.391519+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T09:46:31.383335+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T10:13:23.534430+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T10:34:29.432481+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T12:21:11.595516+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-07T12:34:16.845098+00:00",
         "action": "ASSIGNED",
         "deliveryManId": "usr-staff-5",
         "deliveryManName": "Moses Kato"
@@ -180,39 +246,6 @@
     "assignedAt": "2026-09-06T05:15:08.574526+00:00",
     "updatedAt": "2026-09-06T05:15:08.776261+00:00"
   },
-  "BC-TEST-OVERLOAD-001": {
-    "orderId": "BC-TEST-OVERLOAD-001",
-    "orderNumber": "BC-TEST-OVERLOAD-001",
-    "customerId": null,
-    "customerName": "Test Customer",
-    "customerPhone": "",
-    "deliveryManId": null,
-    "deliveryManName": null,
-    "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
-    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
-    "assignedAt": "2026-09-06T06:42:03.509970+00:00",
-    "updatedAt": "2026-09-06T06:42:03.509970+00:00",
-    "deliveryArea": "Kiyanja",
-    "deliveryDivision": "Kamukuzi",
-    "deliveryLocation": "Mbarara City",
-    "landmark": "",
-    "deliveryFee": 5000,
-    "itemsSummary": "1x Panadol",
-    "items": [
-      {
-        "name": "Panadol",
-        "quantity": 1,
-        "price": 5000
-      }
-    ],
-    "assignmentHistory": [
-      {
-        "timestamp": "2026-09-06T06:42:03.509970+00:00",
-        "action": "QUEUED_WAITING_FOR_DRIVER",
-        "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
-      }
-    ]
-  },
   "BC-20260906-66010": {
     "orderId": "BC-20260906-66010",
     "orderNumber": "BC-20260906-66010",
@@ -332,5 +365,177 @@
     "deliveryStatus": "ASSIGNED",
     "assignedAt": "2026-09-06T05:53:46.540850+00:00",
     "updatedAt": "2026-09-06T05:53:46.540850+00:00"
+  },
+  "BC-20260906-30944": {
+    "orderId": "BC-20260906-30944",
+    "orderNumber": "BC-20260906-30944",
+    "customerId": "IQSaY6x6CoSkxr0byGCQ5eQ8vLf2",
+    "customerName": "MARA MARA",
+    "customerPhone": "0752764277",
+    "deliveryManId": "usr-staff-5",
+    "deliveryManName": "Moses Kato",
+    "deliveryManPhone": "0700000005",
+    "deliveryArea": "Kisenyi",
+    "deliveryDivision": "Kamukuzi",
+    "deliveryLocation": "n and b",
+    "landmark": "n and b",
+    "deliveryFee": 5000,
+    "itemsSummary": "1x Diclofenac 50mg Tablets",
+    "items": [],
+    "status": "ASSIGNED",
+    "deliveryStatus": "ASSIGNED",
+    "assignedAt": "2026-09-06T09:47:05.207633+00:00",
+    "updatedAt": "2026-09-06T09:47:05.207633+00:00",
+    "assignmentHistory": [
+      {
+        "timestamp": "2026-09-06T09:47:05.207633+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      }
+    ]
+  },
+  "BC-20260906-32217": {
+    "orderId": "BC-20260906-32217",
+    "orderNumber": "BC-20260906-32217",
+    "customerId": "6ubpckpmvaQtmcpW9bNAvolRFdp1",
+    "customerName": "PETRO TINKA",
+    "customerPhone": "0760889898",
+    "deliveryManId": "usr-staff-6",
+    "deliveryManName": "Paul Ssemwogerere",
+    "deliveryManPhone": "0700000006",
+    "deliveryArea": "Alliance",
+    "deliveryDivision": "Kakoba",
+    "deliveryLocation": "ROUNDA ABOUT",
+    "landmark": "ROUNDA ABOUT",
+    "deliveryFee": 5000,
+    "itemsSummary": "1x Ibuprofen 400mg Tablets",
+    "items": [],
+    "status": "ASSIGNED",
+    "deliveryStatus": "ASSIGNED",
+    "assignedAt": "2026-09-06T10:08:42.168947+00:00",
+    "updatedAt": "2026-09-06T10:08:42.168947+00:00",
+    "assignmentHistory": [
+      {
+        "timestamp": "2026-09-06T10:08:42.168947+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-6",
+        "deliveryManName": "Paul Ssemwogerere"
+      }
+    ]
+  },
+  "BC-20260906-11166": {
+    "orderId": "BC-20260906-11166",
+    "orderNumber": "BC-20260906-11166",
+    "customerId": "6ubpckpmvaQtmcpW9bNAvolRFdp1",
+    "customerName": "PETRO TINKA",
+    "customerPhone": "0760889898",
+    "deliveryManId": null,
+    "deliveryManName": null,
+    "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "assignedAt": "2026-09-06T10:08:43.405051+00:00",
+    "updatedAt": "2026-09-06T10:08:43.405051+00:00",
+    "deliveryArea": "Alliance",
+    "deliveryDivision": "Kakoba",
+    "deliveryLocation": "ROUNDA ABOUT",
+    "landmark": "ROUNDA ABOUT",
+    "deliveryFee": 5000,
+    "itemsSummary": "1x Ibuprofen 400mg Tablets",
+    "items": [],
+    "assignmentHistory": [
+      {
+        "timestamp": "2026-09-06T10:08:43.405051+00:00",
+        "action": "QUEUED_WAITING_FOR_DRIVER",
+        "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+      }
+    ]
+  },
+  "BC-20260906-34069": {
+    "orderId": "BC-20260906-34069",
+    "orderNumber": "BC-20260906-34069",
+    "customerId": "nfWPKulHmgRfo4ag7eMUDxFC1T32",
+    "customerName": "Grace Nakato",
+    "customerPhone": "0751234567",
+    "deliveryManId": null,
+    "deliveryManName": null,
+    "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "assignedAt": "2026-09-06T16:52:56.685873+00:00",
+    "updatedAt": "2026-09-06T16:52:56.685873+00:00",
+    "deliveryArea": "Nyakayojo Central",
+    "deliveryDivision": "Nyakayojo",
+    "deliveryLocation": "hkk",
+    "landmark": "hkk",
+    "deliveryFee": 5000,
+    "itemsSummary": "1x Aceclofenac + Paracetamol Tablets",
+    "items": [],
+    "assignmentHistory": [
+      {
+        "timestamp": "2026-09-06T16:52:56.685873+00:00",
+        "action": "QUEUED_WAITING_FOR_DRIVER",
+        "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+      }
+    ]
+  },
+  "BC-20260907-92475": {
+    "orderId": "BC-20260907-92475",
+    "orderNumber": "BC-20260907-92475",
+    "customerId": "KF3UPhQQyzcfJeHT1IBIsZ1QUhA3",
+    "customerName": "BENITA KISA",
+    "customerPhone": "0786548573",
+    "deliveryManId": null,
+    "deliveryManName": null,
+    "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "assignedAt": "2026-09-07T04:17:17.679364+00:00",
+    "updatedAt": "2026-09-07T04:17:17.679364+00:00",
+    "deliveryArea": "Alliance",
+    "deliveryDivision": "Kakoba",
+    "deliveryLocation": "near total",
+    "landmark": "near total",
+    "deliveryFee": 5000,
+    "itemsSummary": "1x Betadine 1% Medicated Gargle & Mouthwash 120ml, 1x Antiperspirant Cooling Foot Spray 150ml",
+    "items": [],
+    "assignmentHistory": [
+      {
+        "timestamp": "2026-09-07T04:17:17.679364+00:00",
+        "action": "QUEUED_WAITING_FOR_DRIVER",
+        "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+      }
+    ]
+  },
+  "BC-TEST-OVERLOAD-001": {
+    "orderId": "BC-TEST-OVERLOAD-001",
+    "orderNumber": "BC-TEST-OVERLOAD-001",
+    "customerId": null,
+    "customerName": "Test Customer",
+    "customerPhone": "",
+    "deliveryManId": null,
+    "deliveryManName": null,
+    "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "assignedAt": "2026-09-07T12:34:17.136284+00:00",
+    "updatedAt": "2026-09-07T12:34:17.136284+00:00",
+    "deliveryArea": "Kiyanja",
+    "deliveryDivision": "Kamukuzi",
+    "deliveryLocation": "Mbarara City",
+    "landmark": "",
+    "deliveryFee": 5000,
+    "itemsSummary": "1x Panadol",
+    "items": [
+      {
+        "name": "Panadol",
+        "quantity": 1,
+        "price": 5000
+      }
+    ],
+    "assignmentHistory": [
+      {
+        "timestamp": "2026-09-07T12:34:17.136284+00:00",
+        "action": "QUEUED_WAITING_FOR_DRIVER",
+        "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+      }
+    ]
   }
 }

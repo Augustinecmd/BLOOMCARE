@@ -9,6 +9,13 @@ const firebaseConfig = {
     storageBucket: "bloomcare-72986.firebasestorage.app",
     messagingSenderId: "694672196906",
     appId: "1:694672196906:web:643cad455b369248b7ca53"
+    apiKey: "AIzaSyDQrBYQdEYy7rDdIQTGd5i6gONKG-DACMM",
+    authDomain: "bloomcare-ee449.firebaseapp.com",
+    projectId: "bloomcare-ee449",
+    storageBucket: "bloomcare-ee449.firebasestorage.app",
+    messagingSenderId: "265627798177",
+    appId: "1:265627798177:web:4158341a929ae11bfefee0",
+    measurementId: "G-PRMLMH2X75"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -17,6 +24,7 @@ const db = getFirestore(app);
 
 async function seedDatabase() {
     console.log("Seeding Firestore tables/collections for bloomcare-72986...");
+    console.log("Seeding Firestore tables/collections for bloomcare-ee449...");
 
     const email = "demo@bloomcare.com";
     const password = "Password123!";

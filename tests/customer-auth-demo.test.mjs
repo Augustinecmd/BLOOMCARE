@@ -220,5 +220,10 @@ test("REQUIREMENT 12 FLOW: Complete registration, login, and staff route protect
     const access = checkRouteAccess(custRoute, login.user, "customer");
     assert.equal(access.allowed, true, `Customer SHOULD be allowed to access ${custRoute}`);
   }
+
+  setImmediate(() => {
+    process.exit(0);
+  });
 });
+
 

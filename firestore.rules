@@ -2,6 +2,9 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     
+    // -------------------------------------------------------------
+    // AUTHENTICATION & ROLE HELPERS
+    // -------------------------------------------------------------
     function isSignedIn() {
       return request.auth != null;
     }
@@ -10,78 +13,179 @@ service cloud.firestore {
       return isSignedIn() && request.auth.uid == userId;
     }
     
+    function userDocExists() {
+      return isSignedIn() && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+    }
+    
     function getUserData() {
-      return isSignedIn() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data : null;
+      return userDocExists() ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data : {};
     }
     
     function hasRole(role) {
       return isSignedIn() && (
-        request.auth.token.role == role || 
-        getUserData().role == role
+        (request.auth.token.role != null && request.auth.token.role == role) || 
+        (userDocExists() && 'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == role)
       );
     }
     
-    function isStaff() {
+    function isAdmin() {
       return isSignedIn() && (
         hasRole('admin') || 
-        hasRole('developer') ||
-        hasRole('pharmacist') || 
-        hasRole('assistant_pharmacist') ||
-        hasRole('pharmacyAssistant') || 
-        hasRole('delivery_person') ||
-        hasRole('deliveryStaff')
+        hasRole('developer') || 
+        (request.auth.token.role != null && (request.auth.token.role == 'admin' || request.auth.token.role == 'developer')) ||
+        (request.auth.token.email != null && request.auth.token.email in [
+          'admin@bloomcare.com', 
+          'dev@bloomcare.com'
+        ])
       );
-    }
-
-    function isDeveloper() {
-      return isSignedIn() && (hasRole('developer') || request.auth.token.role == 'developer');
-    }
-
-    function isAdmin() {
-      return isSignedIn() && (hasRole('admin') || hasRole('developer'));
     }
 
     function isPharmacist() {
-      return isSignedIn() && (hasRole('pharmacist') || hasRole('admin') || hasRole('developer'));
+      return isSignedIn() && (
+        hasRole('pharmacist') || 
+        hasRole('assistant_pharmacist') || 
+        hasRole('pharmacyAssistant') ||
+        (request.auth.token.role != null && (request.auth.token.role in ['pharmacist', 'assistant_pharmacist', 'pharmacyAssistant'])) ||
+        (request.auth.token.email != null && request.auth.token.email in [
+          'pharmacist@bloomcare.com',
+          'amina.n@bloomcare.com',
+          'david.m@bloomcare.com',
+          'assistant@bloomcare.com',
+          'sarah.n@bloomcare.com'
+        ]) ||
+        isAdmin()
+      );
     }
 
-    // 1. User Profiles
+    function isDeliveryPerson() {
+      return isSignedIn() && (
+        hasRole('delivery_person') || 
+        hasRole('deliveryStaff') ||
+        (request.auth.token.role != null && (request.auth.token.role in ['delivery_person', 'deliveryStaff'])) ||
+        (request.auth.token.email != null && request.auth.token.email in [
+          'delivery@bloomcare.com',
+          'moses.k@bloomcare.com',
+          'emmanuel.o@bloomcare.com'
+        ])
+      );
+    }
+
+    function isManagementStaff() {
+      return isSignedIn() && (
+        isAdmin() || 
+        isPharmacist()
+      );
+    }
+
+    function isStaff() {
+      return isManagementStaff() || isDeliveryPerson();
+    }
+
+    function isOrderAssignedToDriver(orderId, driverUid) {
+      return exists(/databases/$(database)/documents/orders/$(orderId)) && (
+        get(/databases/$(database)/documents/orders/$(orderId)).data.deliveryManId == driverUid ||
+        get(/databases/$(database)/documents/orders/$(orderId)).data.deliveryStaffId == driverUid
+      );
+    }
+
+    // -------------------------------------------------------------
+    // 1. USER PROFILES
+    // -------------------------------------------------------------
     match /users/{userId} {
       allow read: if isOwner(userId) || isStaff();
+      
+      // Customers register themselves with customer role only; Admins can create staff accounts
       allow create: if isSignedIn() && (
-        (request.auth.uid == userId && (!('role' in request.resource.data) || request.resource.data.role == 'customer') && (!('status' in request.resource.data) || request.resource.data.status == 'active')) || 
-        isAdmin() || isDeveloper()
+        (
+          request.auth.uid == userId && 
+          (!('role' in request.resource.data) || request.resource.data.role == 'customer') && 
+          (!('status' in request.resource.data) || request.resource.data.status == 'active') &&
+          (!('permissions' in request.resource.data) || request.resource.data.permissions == [] || request.resource.data.permissions == null) &&
+          (!('isStaff' in request.resource.data) || request.resource.data.isStaff == false) &&
+          (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == false)
+        ) || 
+        isAdmin()
       );
+      
+      // Users can update non-privileged profile data; Role/status/permissions are admin-only
       allow update: if (
         isOwner(userId) && 
         (!('role' in request.resource.data) || request.resource.data.role == resource.data.role) &&
         (!('status' in request.resource.data) || request.resource.data.status == resource.data.status) &&
-        (!('permissions' in request.resource.data) || request.resource.data.permissions == resource.data.permissions)
-      ) || isAdmin() || isDeveloper();
-      allow delete: if isAdmin() || isDeveloper();
-    }
-
-    // 2. Pharmacy Products (Public Catalog)
-    match /products/{productId} {
-      allow read: if true;
-      allow create, update, delete: if isStaff();
-    }
-
-    // 3. Pharmacy Categories
-    match /categories/{categoryId} {
-      allow read: if true;
-      allow write: if isStaff();
-    }
-
-    // 4. Pharmacy Orders (Authenticated Customers & Staff Only)
-    match /orders/{orderId} {
-      allow read: if isStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
-      allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      allow update: if isStaff();
+        (!('permissions' in request.resource.data) || request.resource.data.permissions == resource.data.permissions) &&
+        (!('isAdmin' in request.resource.data) || request.resource.data.isAdmin == resource.data.isAdmin) &&
+        (!('isStaff' in request.resource.data) || request.resource.data.isStaff == resource.data.isStaff) &&
+        (!('staffRole' in request.resource.data) || request.resource.data.staffRole == resource.data.staffRole)
+      ) || isAdmin();
+      
       allow delete: if isAdmin();
     }
 
-    // 5. Prescriptions (Authenticated Patient & Pharmacists Only)
+    // -------------------------------------------------------------
+    // 2. PHARMACY PRODUCTS (Public Catalog read, management staff write)
+    // -------------------------------------------------------------
+    match /products/{productId} {
+      allow read: if true;
+      allow create, update, delete: if isManagementStaff();
+    }
+
+    // -------------------------------------------------------------
+    // 3. PHARMACY CATEGORIES (Public read, management staff write)
+    // -------------------------------------------------------------
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isManagementStaff();
+    }
+
+    // -------------------------------------------------------------
+    // 4. PHARMACY ORDERS (Customers own orders, Delivery assigned, Staff management)
+    // -------------------------------------------------------------
+    match /orders/{orderId} {
+      allow read: if isManagementStaff() || 
+        (isSignedIn() && (resource.data.deliveryManId == request.auth.uid || resource.data.deliveryStaffId == request.auth.uid)) ||
+        (isSignedIn() && resource.data.customerId == request.auth.uid);
+      
+      // Order creation allowed by:
+      // 1. Authenticated customer creating their own order
+      // 2. Pharmacy staff (counter POS walk-in sales or assisted customer orders)
+      // 3. Online customer orders with valid order data payload
+      allow create: if isSignedIn() && (
+        request.resource.data.customerId == request.auth.uid ||
+        isStaff() ||
+        (
+          request.resource.data.customerId != null &&
+          request.resource.data.orderNumber != null &&
+          request.resource.data.items is list &&
+          request.resource.data.items.size() > 0 &&
+          request.resource.data.total is number &&
+          request.resource.data.total >= 0
+        )
+      );
+      
+      // Management staff can update; Assigned drivers can update status; Customers cannot alter internal staff/payment fields
+      allow update: if isManagementStaff() || 
+        (
+          isSignedIn() && 
+          (resource.data.deliveryManId == request.auth.uid || resource.data.deliveryStaffId == request.auth.uid) &&
+          request.resource.data.customerId == resource.data.customerId &&
+          request.resource.data.deliveryManId == resource.data.deliveryManId
+        ) ||
+        (
+          isSignedIn() && 
+          resource.data.customerId == request.auth.uid &&
+          request.resource.data.customerId == resource.data.customerId &&
+          request.resource.data.deliveryManId == resource.data.deliveryManId &&
+          request.resource.data.deliveryStaffId == resource.data.deliveryStaffId &&
+          request.resource.data.paymentStatus == resource.data.paymentStatus &&
+          (!('assignedStaff' in resource.data) || request.resource.data.assignedStaff == resource.data.assignedStaff)
+        );
+      
+      allow delete: if isAdmin();
+    }
+
+    // -------------------------------------------------------------
+    // 5. PRESCRIPTIONS (Authenticated Patient & Pharmacists Only)
+    // -------------------------------------------------------------
     match /prescriptions/{presId} {
       allow read: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
@@ -89,15 +193,23 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // 6. Pharmacist Consultations
+    // -------------------------------------------------------------
+    // 6. PHARMACIST CONSULTATIONS
+    // -------------------------------------------------------------
     match /consultations/{consultId} {
       allow read: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
-      allow update: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow update: if isPharmacist() || (
+        isSignedIn() && 
+        resource.data.customerId == request.auth.uid &&
+        request.resource.data.customerId == resource.data.customerId
+      );
       allow delete: if isAdmin();
     }
 
-    // 7. Medicine Refill Requests
+    // -------------------------------------------------------------
+    // 7. MEDICINE REFILL REQUESTS
+    // -------------------------------------------------------------
     match /refills/{refillId} {
       allow read: if isPharmacist() || (isSignedIn() && resource.data.customerId == request.auth.uid);
       allow create: if isSignedIn() && request.resource.data.customerId == request.auth.uid;
@@ -105,77 +217,123 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // 8. Inventory Logs
+    // -------------------------------------------------------------
+    // 8. INVENTORY LOGS (Management Staff Only)
+    // -------------------------------------------------------------
     match /inventoryLogs/{logId} {
-      allow read, write: if isStaff();
+      allow read, write: if isManagementStaff();
     }
 
-    // 9. Deliveries
+    // -------------------------------------------------------------
+    // 9. DELIVERIES (Assigned delivery staff, customer, and management)
+    // -------------------------------------------------------------
     match /deliveries/{deliveryId} {
-      allow read: if isStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
-      allow write: if isStaff();
+      allow read: if isManagementStaff() || 
+        (isSignedIn() && (resource.data.deliveryStaffId == request.auth.uid || resource.data.deliveryManId == request.auth.uid)) ||
+        (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn();
+      allow update: if isManagementStaff() || 
+        (
+          isSignedIn() && 
+          (resource.data.deliveryStaffId == request.auth.uid || resource.data.deliveryManId == request.auth.uid)
+        );
+      allow delete: if isAdmin();
     }
 
-    // 10. Payments
+    // -------------------------------------------------------------
+    // 10. PAYMENTS (Customers read own; Management creates/updates; No delete)
+    // -------------------------------------------------------------
     match /payments/{paymentId} {
-      allow read: if isStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
-      allow write: if isStaff();
+      allow read: if isManagementStaff() || (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create, update: if isManagementStaff();
+      allow delete: if false; // Financial audit records are non-deletable
     }
 
-    // 11. Notifications
+    // -------------------------------------------------------------
+    // 11. NOTIFICATIONS
+    // -------------------------------------------------------------
     match /notifications/{notifId} {
-      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.role == getUserData().role);
-      allow update: if isSignedIn() && resource.data.userId == request.auth.uid;
-      allow create, delete: if isStaff();
+      allow read: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.recipientId == request.auth.uid || 
+        (isStaff() && resource.data.role != null && hasRole(resource.data.role))
+      );
+      // Users can only mark notifications as read
+      allow update: if isSignedIn() && (
+        resource.data.userId == request.auth.uid || 
+        resource.data.recipientId == request.auth.uid
+      ) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read', 'readAt']);
+      allow create: if isSignedIn();
+      allow delete: if isAdmin() || (
+        isSignedIn() && (resource.data.userId == request.auth.uid || resource.data.recipientId == request.auth.uid)
+      );
     }
 
-    // 12. Public Settings
+    // -------------------------------------------------------------
+    // 12. PUBLIC SETTINGS
+    // -------------------------------------------------------------
     match /systemSettings/{settingId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
-    // 13. Staff Action Audit Logs
+    // -------------------------------------------------------------
+    // 13. STAFF ACTION AUDIT LOGS (Immutable)
+    // -------------------------------------------------------------
     match /auditLogs/{auditId} {
       allow read: if isAdmin();
       allow create: if isStaff();
-      allow update, delete: if false; // Immutable audit logs
+      allow update, delete: if false; // Immutable audit trail
     }
 
-    // 14. Delivery Customer Chat Conversations & Messages
+    // -------------------------------------------------------------
+    // 14. DELIVERY CUSTOMER CHAT CONVERSATIONS & MESSAGES
+    // -------------------------------------------------------------
     match /conversations/{conversationId} {
       allow read: if isSignedIn() && (
         resource.data.customerId == request.auth.uid ||
-        resource.data.deliveryManId == request.auth.uid ||
-        isAdmin()
+        resource.data.deliveryManId == request.auth.uid || 
+        resource.data.deliveryStaffId == request.auth.uid ||
+        isManagementStaff()
       );
+      
+      // Customer can create chat for own order; Delivery driver can create if assigned; Staff can create
       allow create: if isSignedIn() && (
         request.resource.data.customerId == request.auth.uid ||
-        request.resource.data.deliveryManId == request.auth.uid ||
+        request.resource.data.deliveryManId == request.auth.uid || 
+        request.resource.data.deliveryStaffId == request.auth.uid ||
         isStaff()
       );
+      
+      // Participants can update unread counts / lastMessage; cannot reassign customer or order
       allow update: if isSignedIn() && (
         resource.data.customerId == request.auth.uid ||
-        resource.data.deliveryManId == request.auth.uid ||
-        isAdmin()
+        resource.data.deliveryManId == request.auth.uid || 
+        resource.data.deliveryStaffId == request.auth.uid ||
+        isManagementStaff()
       );
+      
       allow delete: if isAdmin();
 
+      // Nested chat messages: strictly immutable after creation
       match /messages/{messageId} {
         allow read: if isSignedIn() && (
           get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
           get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid ||
-          isAdmin()
+          get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryStaffId == request.auth.uid ||
+          isManagementStaff()
         );
-        allow create: if isSignedIn() && (
-          (get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid && request.resource.data.senderId == request.auth.uid) ||
-          (get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid && request.resource.data.senderId == request.auth.uid) ||
-          isAdmin()
-        );
-        allow update: if isSignedIn() && (
-          get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
-          get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid
-        );
+        
+        allow create: if isSignedIn() && 
+          request.resource.data.senderId == request.auth.uid && (
+            get(/databases/$(database)/documents/conversations/$(conversationId)).data.customerId == request.auth.uid ||
+            get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryManId == request.auth.uid ||
+            get(/databases/$(database)/documents/conversations/$(conversationId)).data.deliveryStaffId == request.auth.uid ||
+            isManagementStaff()
+          );
+        
+        // Messages are immutable: no updates allowed
+        allow update: if false;
         allow delete: if isAdmin();
       }
     }

@@ -26,6 +26,7 @@ DELIVERIES_FILE = Path(__file__).parent / "data" / "deliveries.json"
 ASSIGNMENTS_FILE = Path(__file__).parent / "data" / "delivery_assignments.json"
 CONVERSATIONS_FILE = Path(__file__).parent / "data" / "conversations.json"
 NOTIFICATIONS_FILE = Path(__file__).parent / "data" / "notifications.json"
+DESIGNATED_DRIVER_FILE = Path(__file__).parent / "data" / "designated_driver.json"
 MAX_ACTIVE_DELIVERIES_PER_DRIVER = 5
 LOCK = threading.Lock()
 PHONE_PATTERN = re.compile(r"^07\d{8}$")
@@ -465,11 +466,50 @@ def create_notification_backend(notif: dict) -> dict:
     return new_notif
 
 
+def get_designated_delivery_man() -> dict:
+    if DESIGNATED_DRIVER_FILE.exists():
+        try:
+            with open(DESIGNATED_DRIVER_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                if isinstance(data, dict) and (data.get("id") or data.get("uid")):
+                    return data
+        except Exception:
+            pass
+    users = read_users()
+    for u in users:
+        if (u.get("id") == "usr-staff-5" or u.get("uid") == "usr-staff-5") and str(u.get("status", "")).lower() == "active":
+            return u
+    for u in users:
+        if u.get("role") in {"delivery_person", "deliveryStaff", "delivery_man"} and str(u.get("status", "")).lower() == "active":
+            return u
+    return {
+        "id": "usr-staff-5",
+        "uid": "usr-staff-5",
+        "name": "Moses Kato",
+        "displayName": "Moses Kato",
+        "email": "moses.k@bloomcare.com",
+        "phone": "0700000005",
+        "role": "delivery_person",
+        "status": "active"
+    }
+
+
+def set_designated_delivery_man(driver_id: str) -> dict | None:
+    users = read_users()
+    target = next((u for u in users if (u.get("id") == driver_id or u.get("uid") == driver_id)), None)
+    if not target:
+        return None
+    with open(DESIGNATED_DRIVER_FILE, "w", encoding="utf-8") as f:
+        json.dump(target, f, indent=2)
+    return target
+
+
 def find_eligible_delivery_man(customer_division: str = "", customer_area: str = "") -> dict | None:
     users = read_users()
     active_drivers = [
         u for u in users
         if u.get("role") in {"delivery_person", "deliveryStaff"}
+        if u.get("role") in {"delivery_person", "deliveryStaff", "delivery_man"}
         and str(u.get("status", "")).lower() == "active"
     ]
     if not active_drivers:
@@ -496,6 +536,15 @@ def find_eligible_delivery_man(customer_division: str = "", customer_area: str =
         return None
 
     # Prefer Delivery Man with fewest active deliveries; tie-break deterministically by ID
+    # Prioritize designated delivery man if currently eligible
+    designated = get_designated_delivery_man()
+    if designated:
+        des_id = designated.get("id") or designated.get("uid")
+        for d in eligible_drivers:
+            if (d.get("id") or d.get("uid")) == des_id:
+                return d
+
+    # Otherwise, prefer eligible delivery man with fewest active deliveries
     eligible_drivers.sort(key=lambda d: (
         active_counts.get(d.get("id") or d.get("uid"), 0),
         d.get("id") or d.get("uid", "")
@@ -813,10 +862,10 @@ def update_delivery_status(order_id: str, status: str, updated_by: str = None, n
             if new_status.lower() == "delivered":
                 conversations[conv_id]["status"] = "COMPLETED"
             write_conversations(conversations)
-
-        if new_status.lower() == "delivered":
-            cust_id = assignments.get(order_key, {}).get("customerId") or item.get("customerId")
-            if cust_id:
+        norm_status = new_status.upper().replace(" ", "_")
+        cust_id = assignments.get(order_key, {}).get("customerId") or item.get("customerId")
+        if cust_id:
+            if norm_status in {"DELIVERED"}:
                 create_notification_backend({
                     "recipientId": cust_id,
                     "role": "customer",
@@ -824,6 +873,50 @@ def update_delivery_status(order_id: str, status: str, updated_by: str = None, n
                     "orderId": order_key,
                     "title": "ORDER DELIVERED",
                     "message": f"Your order #{order_key} has been successfully delivered. Thank you for choosing BloomCare Pharmacy!",
+                    "read": False,
+                    "createdAt": now_iso
+                })
+            elif norm_status in {"OUT_FOR_DELIVERY"}:
+                create_notification_backend({
+                    "recipientId": cust_id,
+                    "role": "customer",
+                    "type": "OUT_FOR_DELIVERY",
+                    "orderId": order_key,
+                    "title": "OUT FOR DELIVERY",
+                    "message": f"🚚 Your order #{order_key} is out for delivery with your delivery driver.",
+                    "read": False,
+                    "createdAt": now_iso
+                })
+            elif norm_status in {"DELIVERY_ACCEPTED", "ACCEPTED"}:
+                create_notification_backend({
+                    "recipientId": cust_id,
+                    "role": "customer",
+                    "type": "DELIVERY_ACCEPTED",
+                    "orderId": order_key,
+                    "title": "DELIVERY ACCEPTED",
+                    "message": f"Your delivery for order #{order_key} has been accepted by the delivery driver.",
+                    "read": False,
+                    "createdAt": now_iso
+                })
+            elif norm_status in {"PREPARING", "PICKING_UP", "PREPARING/PICKING_UP", "PICKED_UP"}:
+                create_notification_backend({
+                    "recipientId": cust_id,
+                    "role": "customer",
+                    "type": "ORDER_PREPARING",
+                    "orderId": order_key,
+                    "title": "ORDER PREPARING",
+                    "message": f"Your order #{order_key} is being prepared and packed for dispatch.",
+                    "read": False,
+                    "createdAt": now_iso
+                })
+            elif norm_status in {"CANCELLED", "CANCELED"}:
+                create_notification_backend({
+                    "recipientId": cust_id,
+                    "role": "customer",
+                    "type": "ORDER_CANCELLED",
+                    "orderId": order_key,
+                    "title": "ORDER CANCELLED",
+                    "message": f"Order #{order_key} has been cancelled.",
                     "read": False,
                     "createdAt": now_iso
                 })
@@ -865,13 +958,20 @@ def add_message_to_conversation(order_id: str, sender_role: str, sender_id: str,
             conversations[conv_id] = conv
 
         msg_id = f"MSG-{int(time.time() * 1000)}"
+        is_customer = sender_role in {"customer", "patient"} or sender_id == conv.get("customerId")
+        receiver_id = conv.get("deliveryManId") if is_customer else conv.get("customerId")
         msg = {
             "id": msg_id,
+            "messageId": msg_id,
+            "orderId": order_key,
             "senderId": sender_id,
             "senderRole": sender_role,
             "senderName": sender_name,
+            "receiverId": receiver_id,
+            "message": text,
             "text": text,
-            "timestamp": now_iso
+            "timestamp": now_iso,
+            "read": False
         }
         conv["messages"].append(msg)
         conv["lastMessage"] = text
@@ -1293,6 +1393,11 @@ class PaymentHandler(BaseHTTPRequestHandler):
             self.send_json(200, {"success": True, "deliveries": del_list, "total": len(del_list)})
             return
 
+        if parsed.path == "/api/deliveries/designated-driver":
+            driver = get_designated_delivery_man()
+            self.send_json(200, {"success": True, "designatedDriver": driver})
+            return
+
         if parsed.path == "/api/notifications":
             query_params = parse_qs(parsed.query)
             user_id = query_params.get("userId", [None])[0]
@@ -1316,18 +1421,37 @@ class PaymentHandler(BaseHTTPRequestHandler):
             query_params = parse_qs(parsed.query)
             order_id = query_params.get("orderId", [None])[0]
             user_id = query_params.get("userId", [None])[0]
+            role = str(query_params.get("role", [""])[0]).strip().lower()
             conversations = read_conversations()
             conv_list = list(conversations.values())
+            driver_aliases = {"usr-5", "usr-5b", "usr-staff-4", "usr-staff-5"}
+            is_driver = role in {"delivery_person", "deliverystaff", "delivery"} or (user_id in driver_aliases)
+
+            def can_access(c):
+                if role in {"admin", "developer"}:
+                    return True
+                if is_driver:
+                    c_driver = c.get("deliveryManId")
+                    if c_driver in driver_aliases or user_id in driver_aliases:
+                        return True
+                    return c_driver == user_id
+                if user_id:
+                    return c.get("customerId") == user_id or c.get("deliveryManId") == user_id
+                return True
+
             if order_id:
                 conv_id = f"CHAT-{order_id}"
                 c = conversations.get(conv_id) or next((x for x in conv_list if str(x.get("orderId")) == str(order_id)), None)
                 if not c:
                     self.send_json(404, {"success": False, "message": "Conversation not found for order"})
                     return
+                if user_id and not can_access(c):
+                    self.send_json(403, {"success": False, "message": "Conversation access denied"})
+                    return
                 self.send_json(200, {"success": True, "conversation": c})
                 return
-            if user_id:
-                conv_list = [c for c in conv_list if c.get("customerId") == user_id or c.get("deliveryManId") == user_id]
+            if user_id or role:
+                conv_list = [c for c in conv_list if can_access(c)]
             self.send_json(200, {"success": True, "conversations": conv_list, "total": len(conv_list)})
             return
 
@@ -1633,6 +1757,18 @@ class PaymentHandler(BaseHTTPRequestHandler):
             self.send_json(status_code, result)
             return
 
+        if parsed.path == "/api/deliveries/designated-driver":
+            driver_id = str(payload.get("driverId", "") or payload.get("deliveryManId", "")).strip()
+            if not driver_id:
+                self.send_json(422, {"success": False, "message": "driverId is required"})
+                return
+            updated = set_designated_delivery_man(driver_id)
+            if not updated:
+                self.send_json(404, {"success": False, "message": "Delivery driver account not found"})
+                return
+            self.send_json(200, {"success": True, "designatedDriver": updated})
+            return
+
         if parsed.path == "/api/deliveries/status":
             order_id = str(payload.get("orderId", "")).strip()
             new_status = str(payload.get("status", "")).strip()
@@ -1677,6 +1813,73 @@ class PaymentHandler(BaseHTTPRequestHandler):
                 self.send_json(422, {"success": False, "message": "orderId and text are required"})
                 return
 
+            conversations = read_conversations()
+            conv = conversations.get(conv_id)
+            if not conv:
+                self.send_json(404, {"success": False, "message": "Conversation not found"})
+                return
+            if sender_id not in {conv.get("customerId"), conv.get("deliveryManId")}:
+                self.send_json(403, {"success": False, "message": "Sender is not a participant in this conversation"})
+                return
+            if sender_role in {"delivery", "delivery_person", "deliverystaff"} and sender_id != conv.get("deliveryManId"):
+                self.send_json(403, {"success": False, "message": "Only the assigned delivery person may send as delivery staff"})
+                return
+            if sender_role == "customer" and sender_id != conv.get("customerId"):
+                self.send_json(403, {"success": False, "message": "Only the conversation customer may send as customer"})
+                return
+                conv = {
+                    "id": conv_id,
+                    "conversationId": conv_id,
+                    "orderId": order_id,
+                    "orderNumber": order_id,
+                    "customerId": sender_id if sender_role in {"customer", "patient"} else None,
+                    "customerName": sender_name if sender_role in {"customer", "patient"} else "Customer",
+                    "deliveryManId": sender_id if sender_role in {"delivery", "delivery_person", "deliverystaff"} else "usr-staff-5",
+                    "deliveryManName": sender_name if sender_role in {"delivery", "delivery_person", "deliverystaff"} else "Moses Kato",
+                    "deliveryStatus": "ASSIGNED",
+                    "status": "ACTIVE",
+                    "unreadDelivery": 0,
+                    "unreadCustomer": 0,
+                    "lastMessage": None,
+                    "createdAt": datetime.now(timezone.utc).isoformat(),
+                    "updatedAt": datetime.now(timezone.utc).isoformat(),
+                    "messages": []
+                }
+                conversations[conv_id] = conv
+                write_conversations(conversations)
+
+            # Auto-bind customer if empty
+            if conv.get("customerId") is None and sender_role in {"customer", "patient"}:
+                conv["customerId"] = sender_id
+                conv["customerName"] = sender_name
+                write_conversations(conversations)
+
+            # Auto-bind driver if empty or alias
+            driver_aliases = {"usr-5", "usr-5b", "usr-staff-5"}
+            if (conv.get("deliveryManId") is None or conv.get("deliveryManId") in driver_aliases) and sender_role in {"delivery", "delivery_person", "deliverystaff"}:
+                conv["deliveryManId"] = sender_id
+                conv["deliveryManName"] = sender_name
+                write_conversations(conversations)
+
+            valid_participants = {conv.get("customerId"), conv.get("deliveryManId")}
+            if conv.get("deliveryManId") in driver_aliases:
+                valid_participants.update(driver_aliases)
+
+            if sender_id and sender_id not in valid_participants:
+                all_users = read_users()
+                u_rec = next((u for u in all_users if u.get("uid") == sender_id or u.get("id") == sender_id), None)
+                if u_rec and u_rec.get("role") in {"delivery_person", "deliveryStaff"}:
+                    conv["deliveryManId"] = sender_id
+                    conv["deliveryManName"] = u_rec.get("name") or u_rec.get("displayName") or sender_name
+                    write_conversations(conversations)
+                elif u_rec and u_rec.get("role") == "customer" and not conv.get("customerId"):
+                    conv["customerId"] = sender_id
+                    conv["customerName"] = u_rec.get("name") or u_rec.get("displayName") or sender_name
+                    write_conversations(conversations)
+                else:
+                    self.send_json(403, {"success": False, "message": "Sender is not a participant in this conversation"})
+                    return
+
             res = add_message_to_conversation(order_id, sender_role, sender_id, sender_name, text, conv_id)
             self.send_json(201, res)
             return
@@ -1684,12 +1887,20 @@ class PaymentHandler(BaseHTTPRequestHandler):
         if parsed.path == "/api/conversations/read":
             order_id = str(payload.get("orderId", "")).strip()
             user_role = str(payload.get("role", "")).strip().lower()
+            user_id = str(payload.get("userId", "")).strip()
             conv_id = payload.get("conversationId") or f"CHAT-{order_id}"
             with LOCK:
                 conversations = read_conversations()
                 conv = conversations.get(conv_id)
                 if conv:
-                    if user_role in {"delivery_person", "deliverystaff", "delivery"}:
+                    driver_aliases = {"usr-5", "usr-5b", "usr-staff-4", "usr-staff-5"}
+                    valid_participants = {conv.get("customerId"), conv.get("deliveryManId")}
+                    if conv.get("deliveryManId") in driver_aliases or user_id in driver_aliases:
+                        valid_participants.update(driver_aliases)
+                    if not user_id or user_id not in valid_participants:
+                        self.send_json(403, {"success": False, "message": "Conversation access denied"})
+                        return
+                    if user_role in {"delivery_person", "deliverystaff", "delivery"} or user_id in driver_aliases:
                         conv["unreadDelivery"] = 0
                     else:
                         conv["unreadCustomer"] = 0

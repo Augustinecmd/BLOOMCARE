@@ -1,4 +1,4 @@
-import { readFileSync } from "node:fs";
+import { readFileSync, existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -14,7 +14,27 @@ const appProject = readJson("BLOOMCARE-main/.firebaserc")?.projects?.default;
 const deployment = readJson("firebase.json");
 const appDeployment = readJson("BLOOMCARE-main/firebase.json");
 const firebaseSource = readFileSync(resolve(root, "BLOOMCARE-main/firebase.js"), "utf8");
-const sourceProject = firebaseSource.match(/projectId:\s*["']([^"']+)["']/)?.[1];
+
+// Support both direct literal and Vite environment configuration
+let sourceProject = firebaseSource.match(/projectId:\s*["']([^"']+)["']/)?.[1];
+if (!sourceProject) {
+  const envCandidates = [
+    resolve(root, "BLOOMCARE-main/.env"),
+    resolve(root, ".env")
+  ];
+  for (const p of envCandidates) {
+    if (existsSync(p)) {
+      const match = readFileSync(p, "utf8").match(/VITE_FIREBASE_PROJECT_ID\s*=\s*["']?([^"'\r\n\s]+)["']?/);
+      if (match?.[1]) {
+        sourceProject = match[1];
+        break;
+      }
+    }
+  }
+  if (!sourceProject && process.env.VITE_FIREBASE_PROJECT_ID) {
+    sourceProject = process.env.VITE_FIREBASE_PROJECT_ID;
+  }
+}
 
 if (!rootProject || rootProject !== appProject || rootProject !== sourceProject) {
   fail("the root deploy target, app deploy target, and browser client must use the same Firebase project.");

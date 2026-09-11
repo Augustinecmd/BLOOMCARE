@@ -11,11 +11,11 @@
     "deliveryManName": "Moses Kato",
     "deliveryStatus": "Delivered",
     "status": "COMPLETED",
-    "unreadDelivery": 7,
+    "unreadDelivery": 18,
     "unreadCustomer": 0,
     "lastMessage": "Please call when you reach the gate.",
     "createdAt": "2026-09-05T17:01:54.860704+00:00",
-    "updatedAt": "2026-09-06T06:42:03.300508+00:00",
+    "updatedAt": "2026-09-07T12:34:16.939514+00:00",
     "messages": [
       {
         "id": "MSG-1788627714909",
@@ -72,6 +72,149 @@
         "senderName": "Joan Atuhaire",
         "text": "Please call when you reach the gate.",
         "timestamp": "2026-09-06T06:42:03.300508+00:00"
+      },
+      {
+        "id": "MSG-1788756773034",
+        "messageId": "MSG-1788756773034",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T04:52:53.034607+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788756803598",
+        "messageId": "MSG-1788756803598",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-1788628549485",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T04:53:23.598724+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788757005820",
+        "messageId": "MSG-1788757005820",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-1788628549485",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T04:56:45.820163+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788758374232",
+        "messageId": "MSG-1788758374232",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T05:19:34.232051+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788758397532",
+        "messageId": "MSG-1788758397532",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T05:19:57.532763+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788760429428",
+        "messageId": "MSG-1788760429428",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T05:53:49.428299+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788774391417",
+        "messageId": "MSG-1788774391417",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T09:46:31.417196+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788776003575",
+        "messageId": "MSG-1788776003575",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T10:13:23.575787+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788777269465",
+        "messageId": "MSG-1788777269465",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T10:34:29.465789+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788783671678",
+        "messageId": "MSG-1788783671678",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T12:21:11.678545+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1788784456939",
+        "messageId": "MSG-1788784456939",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-07T12:34:16.939514+00:00",
+        "read": false
       }
     ]
   },
@@ -87,11 +230,11 @@
     "deliveryManName": "Moses Kato",
     "deliveryStatus": "ASSIGNED",
     "status": "ACTIVE",
-    "unreadDelivery": 3,
+    "unreadDelivery": 4,
     "unreadCustomer": 0,
     "lastMessage": "Hello, following up on my delivery confirmation.",
     "createdAt": "2026-09-05T17:04:10.278220+00:00",
-    "updatedAt": "2026-09-06T05:38:13.175846+00:00",
+    "updatedAt": "2026-09-06T17:30:41.055091+00:00",
     "messages": [
       {
         "id": "MSG-1788627850278",
@@ -116,6 +259,14 @@
         "senderName": "Sarah Namubiru",
         "text": "Hello, following up on my delivery confirmation.",
         "timestamp": "2026-09-06T05:38:13.175846+00:00"
+      },
+      {
+        "id": "MSG-1788715841055",
+        "senderId": "usr-1",
+        "senderRole": "customer",
+        "senderName": "Sarah Namubiru",
+        "text": "Hello, following up on my delivery confirmation.",
+        "timestamp": "2026-09-06T17:30:41.055091+00:00"
       }
     ]
   },
@@ -622,5 +773,183 @@
         "timestamp": "2026-09-06T05:53:58.949453+00:00"
       }
     ]
+  },
+  "CHAT-BC-20260906-30944": {
+    "id": "CHAT-BC-20260906-30944",
+    "conversationId": "CHAT-BC-20260906-30944",
+    "orderId": "BC-20260906-30944",
+    "orderNumber": "BC-20260906-30944",
+    "customerId": "IQSaY6x6CoSkxr0byGCQ5eQ8vLf2",
+    "customerName": "MARA MARA",
+    "customerPhone": "0752764277",
+    "deliveryManId": "usr-staff-5",
+    "deliveryManName": "Moses Kato",
+    "deliveryStatus": "ASSIGNED",
+    "status": "ACTIVE",
+    "unreadDelivery": 1,
+    "unreadCustomer": 0,
+    "lastMessage": "hlo",
+    "createdAt": "2026-09-06T09:47:05.207633+00:00",
+    "updatedAt": "2026-09-06T09:47:24.054359+00:00",
+    "messages": [
+      {
+        "id": "MSG-1788688044054",
+        "senderId": "IQSaY6x6CoSkxr0byGCQ5eQ8vLf2",
+        "senderRole": "customer",
+        "senderName": "MARA MARA",
+        "text": "hlo",
+        "timestamp": "2026-09-06T09:47:24.054359+00:00"
+      }
+    ]
+  },
+  "CHAT-BC-20260906-32217": {
+    "id": "CHAT-BC-20260906-32217",
+    "conversationId": "CHAT-BC-20260906-32217",
+    "orderId": "BC-20260906-32217",
+    "orderNumber": "BC-20260906-32217",
+    "customerId": "6ubpckpmvaQtmcpW9bNAvolRFdp1",
+    "customerName": "PETRO TINKA",
+    "customerPhone": "0760889898",
+    "deliveryManId": "usr-staff-6",
+    "deliveryManName": "Paul Ssemwogerere",
+    "deliveryStatus": "ASSIGNED",
+    "status": "ACTIVE",
+    "unreadDelivery": 0,
+    "unreadCustomer": 0,
+    "lastMessage": null,
+    "createdAt": "2026-09-06T10:08:42.168947+00:00",
+    "updatedAt": "2026-09-06T10:08:42.168947+00:00",
+    "messages": []
+  },
+  "CHAT-BC-20260906-11166": {
+    "id": "CHAT-BC-20260906-11166",
+    "conversationId": "CHAT-BC-20260906-11166",
+    "orderId": "BC-20260906-11166",
+    "orderNumber": "BC-20260906-11166",
+    "customerId": "6ubpckpmvaQtmcpW9bNAvolRFdp1",
+    "customerName": "PETRO TINKA",
+    "customerPhone": "0760889898",
+    "deliveryManId": null,
+    "deliveryManName": null,
+    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "status": "ACTIVE",
+    "unreadDelivery": 1,
+    "unreadCustomer": 0,
+    "lastMessage": "HLO",
+    "createdAt": "2026-09-06T10:09:44.495571+00:00",
+    "updatedAt": "2026-09-06T10:09:44.495571+00:00",
+    "messages": [
+      {
+        "id": "MSG-1788689384496",
+        "senderId": "6ubpckpmvaQtmcpW9bNAvolRFdp1",
+        "senderRole": "customer",
+        "senderName": "PETRO TINKA",
+        "text": "HLO",
+        "timestamp": "2026-09-06T10:09:44.495571+00:00"
+      }
+    ]
+  },
+  "CHAT-BC-20260906-34069": {
+    "id": "CHAT-BC-20260906-34069",
+    "conversationId": "CHAT-BC-20260906-34069",
+    "orderId": "BC-20260906-34069",
+    "orderNumber": "BC-20260906-34069",
+    "customerId": "nfWPKulHmgRfo4ag7eMUDxFC1T32",
+    "customerName": "Grace Nakato",
+    "customerPhone": "0751234567",
+    "deliveryManId": null,
+    "deliveryManName": null,
+    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+    "status": "ACTIVE",
+    "unreadDelivery": 1,
+    "unreadCustomer": 0,
+    "lastMessage": "hlo",
+    "createdAt": "2026-09-06T16:53:10.377369+00:00",
+    "updatedAt": "2026-09-06T16:53:10.377369+00:00",
+    "messages": [
+      {
+        "id": "MSG-1788713590378",
+        "senderId": "nfWPKulHmgRfo4ag7eMUDxFC1T32",
+        "senderRole": "customer",
+        "senderName": "Grace Nakato",
+        "text": "hlo",
+        "timestamp": "2026-09-06T16:53:10.377369+00:00"
+      }
+    ]
+  },
+  "CHAT-BC-PRE-1788715840929": {
+    "id": "CHAT-BC-PRE-1788715840929",
+    "conversationId": "CHAT-BC-PRE-1788715840929",
+    "orderId": "BC-PRE-1788715840929",
+    "orderNumber": "BC-PRE-1788715840929",
+    "customerId": "usr-test-customer",
+    "customerName": "Alice Nambi",
+    "customerPhone": "",
+    "deliveryManId": "usr-staff-5",
+    "deliveryManName": "Moses Kato",
+    "deliveryStatus": "ASSIGNED",
+    "status": "ACTIVE",
+    "unreadDelivery": 1,
+    "unreadCustomer": 0,
+    "lastMessage": "Please call when you reach the blue gate.",
+    "createdAt": "2026-09-06T17:30:41.105922+00:00",
+    "updatedAt": "2026-09-06T17:30:41.105922+00:00",
+    "messages": [
+      {
+        "id": "MSG-1788715841107",
+        "senderId": "usr-test-customer",
+        "senderRole": "customer",
+        "senderName": "Alice Nambi",
+        "text": "Please call when you reach the blue gate.",
+        "timestamp": "2026-09-06T17:30:41.105922+00:00"
+      }
+    ]
+  },
+  "CHAT-BC-SYNC-1788715840935": {
+    "id": "CHAT-BC-SYNC-1788715840935",
+    "conversationId": "CHAT-BC-SYNC-1788715840935",
+    "orderId": "BC-SYNC-1788715840935",
+    "orderNumber": "BC-SYNC-1788715840935",
+    "customerId": "usr-cust-99",
+    "customerName": "James Kato",
+    "customerPhone": "",
+    "deliveryManId": "usr-staff-5",
+    "deliveryManName": "Moses Kato",
+    "deliveryStatus": "ASSIGNED",
+    "status": "ACTIVE",
+    "unreadDelivery": 1,
+    "unreadCustomer": 0,
+    "lastMessage": "I will be waiting outside.",
+    "createdAt": "2026-09-06T17:30:41.165067+00:00",
+    "updatedAt": "2026-09-06T17:30:41.165067+00:00",
+    "messages": [
+      {
+        "id": "MSG-1788715841166",
+        "senderId": "usr-cust-99",
+        "senderRole": "customer",
+        "senderName": "James Kato",
+        "text": "I will be waiting outside.",
+        "timestamp": "2026-09-06T17:30:41.165067+00:00"
+      }
+    ]
+  },
+  "CHAT-BC-TEST-OVERLOAD-001": {
+    "id": "CHAT-BC-TEST-OVERLOAD-001",
+    "conversationId": "CHAT-BC-TEST-OVERLOAD-001",
+    "orderId": "BC-TEST-OVERLOAD-001",
+    "orderNumber": "BC-TEST-OVERLOAD-001",
+    "customerId": null,
+    "customerName": "Test Customer",
+    "customerPhone": "",
+    "deliveryManId": "usr-staff-5",
+    "deliveryManName": "Moses Kato",
+    "deliveryStatus": "ASSIGNED",
+    "status": "ACTIVE",
+    "unreadDelivery": 0,
+    "unreadCustomer": 0,
+    "lastMessage": null,
+    "createdAt": "2026-09-07T04:52:53.112910+00:00",
+    "updatedAt": "2026-09-07T04:52:53.112910+00:00",
+    "messages": []
   }
 }
