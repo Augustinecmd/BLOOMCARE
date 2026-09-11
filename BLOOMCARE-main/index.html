@@ -253,6 +253,8 @@
       <!-- MODULE 1: ROLE-BASED DASHBOARDS (#dashboard / #home) -->
       <!-- ========================================================== -->
       <section class="page-pane" id="view-dashboard">
+        <!-- Premium BloomCare Pharmacy Welcome Hero (Shared for ALL Authenticated Roles) -->
+        <div id="bloomcare-dashboard-hero"></div>
         <div id="role-dashboard-container"></div>
       </section>
 
@@ -2522,16 +2524,10 @@
           </div>
         </div>
 
-        <!-- Customer Details (Compact) -->
-        <div class="pos-customer-section">
-          <div class="pos-section-subhead flex-between">
-            <span class="pos-subhead-title">CUSTOMER INFO</span>
-            <span class="muted" style="font-size:11px;">Optional</span>
-          </div>
-          <div class="pos-customer-fields">
-            <input type="text" id="walkin-cust-name" class="pos-input-sm" placeholder="Customer Name (Default: Walk-in)" value="Walk-in Customer" />
-            <input type="tel" id="walkin-cust-phone" class="pos-input-sm" placeholder="Phone (e.g. 0772 123 456)" />
-          </div>
+        <!-- Customer Details (Preserved for compatibility, hidden to prioritize live calculator) -->
+        <div class="pos-customer-section hidden" style="display:none;" aria-hidden="true">
+          <input type="text" id="walkin-cust-name" value="Walk-in Customer" />
+          <input type="tel" id="walkin-cust-phone" />
         </div>
 
         <!-- Automatic Sales Calculation & Large Total Display -->
@@ -2825,6 +2821,25 @@
   <div class="dialog-body" style="padding:14px 0; max-height:400px; overflow-y:auto;">
     <div id="walkin-recent-sales-list">
       <!-- Dynamically populated recent counter sales -->
+    </div>
+  </div>
+</dialog>
+
+<!-- Auxiliary Dialog 4: BloomCare Customer Hero Lightbox Modal -->
+<dialog id="bloomcare-hero-lightbox" class="bloomcare-lightbox-dialog">
+  <div class="bloomcare-lightbox-content">
+    <button class="bloomcare-lightbox-close" id="close-hero-lightbox" type="button" aria-label="Close image preview">&times;</button>
+    <div class="bloomcare-lightbox-image-wrap">
+      <img src="bloomcare-customer-hero.png" alt="BloomCare Pharmacy - Care Beyond Medicine" class="bloomcare-lightbox-img" />
+    </div>
+    <div class="bloomcare-lightbox-caption">
+      <div class="bloomcare-lightbox-title">BloomCare Pharmacy</div>
+      <div class="bloomcare-lightbox-tagline">"Your Health, Our Priority" • Care That Goes Beyond Medicine</div>
+      <div class="bloomcare-lightbox-pills">
+        <span>✓ Quality Medicines</span>
+        <span>✓ Trusted Healthcare</span>
+        <span>✓ Better Community</span>
+      </div>
     </div>
   </div>
 </dialog>

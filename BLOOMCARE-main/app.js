@@ -4005,10 +4005,165 @@ export const handleHashRoute = handleRoute;
 
 // -------------------------------------------------------------
 // MODULE 1: ROLE-BASED DASHBOARDS
+// MODULE 1: ROLE-BASED DASHBOARDS & PREMIUM WELCOME HERO
 // -------------------------------------------------------------
+export function openBloomCareHeroLightbox() {
+  const dlg = $("#bloomcare-hero-lightbox");
+  if (!dlg) return;
+  if (typeof dlg.showModal === "function") {
+    try {
+      dlg.showModal();
+    } catch (_) {
+      dlg.setAttribute("open", "");
+    }
+  } else {
+    dlg.setAttribute("open", "");
+  }
+}
+
+export function closeBloomCareHeroLightbox() {
+  const dlg = $("#bloomcare-hero-lightbox");
+  if (!dlg) return;
+  if (typeof dlg.close === "function") {
+    try {
+      dlg.close();
+    } catch (_) {
+      dlg.removeAttribute("open");
+    }
+  } else {
+    dlg.removeAttribute("open");
+  }
+}
+
+export function renderBloomCareDashboardHero() {
+  const heroContainer = $("#bloomcare-dashboard-hero");
+  if (!heroContainer) return;
+
+  const currentU = STATE.currentUser;
+  const effRole = getEffectiveRole();
+  let userName = currentU?.displayName || currentU?.name || "";
+  if (!userName) {
+    if (effRole === "admin") userName = "Dr. Admin Mugisha";
+    else if (effRole === "pharmacist") userName = "Dr. Sarah Nakato";
+    else if (effRole === "assistant_pharmacist" || effRole === "pharmacyAssistant") userName = "David Okello";
+    else if (effRole === "delivery_person" || effRole === "deliveryStaff") userName = "Robert Mukasa";
+    else if (effRole === "developer") userName = "Lead Engineer";
+    else if (effRole === "customer") userName = "Valued Customer";
+    else userName = "Healthcare Partner";
+  }
+
+  heroContainer.innerHTML = `
+    <div class="bloomcare-hero-card">
+      <div class="bloomcare-hero-glow-1" aria-hidden="true"></div>
+      <div class="bloomcare-hero-glow-2" aria-hidden="true"></div>
+
+      <div class="bloomcare-hero-layout">
+        <!-- LEFT COLUMN: WELCOME & BRAND STORY -->
+        <div class="bloomcare-hero-content">
+          <div class="bloomcare-hero-badge-row">
+            <span class="bloomcare-hero-badge">
+              <svg class="bloomcare-leaf-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+              </svg>
+              <span>BLOOMCARE PHARMACY</span>
+            </span>
+          </div>
+
+          <div class="bloomcare-hero-welcome-msg">
+            Welcome back, <strong class="bloomcare-user-highlight">${escapeHtml(userName)}</strong>
+          </div>
+
+          <h1 class="bloomcare-hero-headline">
+            Care That Goes<br />
+            <span class="bloomcare-hero-gradient-text">Beyond Medicine.</span>
+          </h1>
+
+          <p class="bloomcare-hero-support-text">
+            Quality medicines, trusted healthcare and a healthier community — all in one place.
+          </p>
+
+          <div class="bloomcare-hero-features">
+            <div class="bloomcare-feature-chip">
+              <span class="bloomcare-feature-check">✓</span>
+              <span>Quality Medicines</span>
+            </div>
+            <div class="bloomcare-feature-chip">
+              <span class="bloomcare-feature-check">✓</span>
+              <span>Trusted Healthcare</span>
+            </div>
+            <div class="bloomcare-feature-chip">
+              <span class="bloomcare-feature-check">✓</span>
+              <span>Better Community</span>
+            </div>
+          </div>
+
+          <div class="bloomcare-hero-actions">
+            <button class="btn btn-primary bloomcare-hero-cta-btn" id="btn-hero-explore" type="button">
+              <span>Explore BloomCare</span>
+              <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="5" y1="12" x2="19" y2="12"></line>
+                <polyline points="12 5 19 12 12 19"></polyline>
+              </svg>
+            </button>
+            <span class="bloomcare-hero-tagline">"Your Health, Our Priority"</span>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: OFFICIAL CUSTOMER PHOTO -->
+        <div class="bloomcare-hero-media">
+          <div class="bloomcare-hero-img-container" id="bloomcare-hero-img-container" title="Click to view full image" role="button" tabindex="0" aria-label="View BloomCare customer image in full size">
+            <div class="bloomcare-hero-img-glow" aria-hidden="true"></div>
+            <img src="bloomcare-customer-hero.png" alt="BloomCare Pharmacy Customer with branded bag and pharmacist" class="bloomcare-customer-hero-img" loading="eager" />
+            <div class="bloomcare-hero-zoom-badge">
+              <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                <line x1="11" y1="8" x2="11" y2="14"></line>
+                <line x1="8" y1="11" x2="14" y2="11"></line>
+              </svg>
+              <span>Click to expand</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+
+  // Attach interactive click listeners
+  const imgContainer = $("#bloomcare-hero-img-container");
+  if (imgContainer) {
+    imgContainer.addEventListener("click", openBloomCareHeroLightbox);
+    imgContainer.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openBloomCareHeroLightbox();
+      }
+    });
+  }
+
+  const exploreBtn = $("#btn-hero-explore");
+  if (exploreBtn) {
+    exploreBtn.addEventListener("click", () => {
+      if (effRole === "customer") {
+        navigateTo("medicines");
+      } else {
+        const roleDash = $("#role-dashboard-container");
+        if (roleDash) {
+          roleDash.scrollIntoView({ behavior: "smooth", block: "start" });
+        } else {
+          navigateTo("medicines");
+        }
+      }
+    });
+  }
+}
+
 function renderRoleDashboard() {
   const container = $("#role-dashboard-container");
   if (!container) return;
+
+  renderBloomCareDashboardHero();
 
   const role = getEffectiveRole();
   const todayStr = new Date().toISOString().slice(0, 10);
@@ -12337,16 +12492,18 @@ export function renderWalkinCart() {
       return `
         <div class="pos-cart-item-row" data-id="${p.id}">
           <div class="pos-cart-item-info">
-            <div class="pos-cart-item-name">
+            <div class="pos-cart-item-name" title="${escapeHtml(p.name)}">
               <strong>${escapeHtml(p.name)}</strong>
               ${p.requiresPrescription ? '<span class="pos-rx-tag">Rx</span>' : ''}
             </div>
-            <div class="pos-cart-item-unitprice">${formatUGX(item.unitPrice)} &times; ${item.quantity} = <strong>${formatUGX(lineTotal)}</strong></div>
           </div>
           <div class="pos-cart-item-qty-stepper">
             <button type="button" class="pos-stepper-btn pos-stepper-minus" data-id="${p.id}" aria-label="Decrease quantity" ${item.quantity <= 1 ? "disabled" : ""}>&minus;</button>
             <input type="number" class="pos-stepper-input" data-id="${p.id}" value="${item.quantity}" min="1" max="${stock}" />
             <button type="button" class="pos-stepper-btn pos-stepper-plus" data-id="${p.id}" ${isMax ? "disabled" : ""} aria-label="Increase quantity">+</button>
+          </div>
+          <div class="pos-cart-item-unit">
+            ${formatUGX(item.unitPrice)}
           </div>
           <div class="pos-cart-item-total">
             ${formatUGX(lineTotal)}
@@ -15645,6 +15802,14 @@ function bindEventListeners() {
   // Recent Sales Viewer
   $("#pos-toggle-recent-sales-btn")?.addEventListener("click", openRecentSalesModal);
   $("#close-recent-sales-modal")?.addEventListener("click", closeRecentSalesModal);
+
+  // BloomCare Customer Hero Lightbox
+  $("#close-hero-lightbox")?.addEventListener("click", closeBloomCareHeroLightbox);
+  $("#bloomcare-hero-lightbox")?.addEventListener("click", (e) => {
+    if (e.target.id === "bloomcare-hero-lightbox") {
+      closeBloomCareHeroLightbox();
+    }
+  });
 
   $$(".pos-chip-btn").forEach(chip => {
     chip.addEventListener("click", () => {
