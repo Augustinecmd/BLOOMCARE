@@ -124,39 +124,6 @@
       "catalog:browse",
       "cart:checkout"
     ],
-    "updatedAt": "2026-09-06 05:16:05 UTC"
-    "updatedAt": "2026-09-06 05:38:20 UTC"
-  },
-  {
-    "id": "usr-1788628549485",
-    "name": "ARINDA KEVIN",
-    "displayName": "ARINDA KEVIN",
-    "email": "arinda@gmail.com",
-    "phone": "0788898787",
-    "role": "delivery_person",
-    "status": "active",
-    "createdAt": "2026-09-05 17:15:49 UTC",
-    "lastLogin": "Never",
-    "permissions": [
-      "order:dispatch",
-      "order:deliver"
-    ],
-    "updatedAt": "2026-09-05 17:17:21 UTC"
-  },
-  {
-    "id": "usr-cust-demo",
-    "name": "Demo Customer",
-    "displayName": "Demo Customer",
-    "email": "customer@example.com",
-    "phone": "0751234567",
-    "role": "customer",
-    "status": "active",
-    "createdAt": "2026-03-01T10:00:00Z",
-    "lastLogin": "Today",
-    "permissions": [
-      "catalog:browse",
-      "cart:checkout",
-      "prescription:upload"
-    ]
+    "updatedAt": "2026-09-11 10:39:53 UTC"
   }
 ]

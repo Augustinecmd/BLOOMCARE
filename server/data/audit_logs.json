@@ -1,5 +1,185 @@
 [
   {
+    "id": "AUDIT-1789123193873",
+    "timestamp": "2026-09-11 10:39:53 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789123193842",
+    "timestamp": "2026-09-11 10:39:53 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_ACTIVATED",
+    "affectedUser": "Florence Kembabazi",
+    "affectedUserId": "usr-cust-202",
+    "description": "Status changed from suspended to active"
+  },
+  {
+    "id": "AUDIT-1789123193804",
+    "timestamp": "2026-09-11 10:39:53 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPENDED",
+    "affectedUser": "Florence Kembabazi",
+    "affectedUserId": "usr-cust-202",
+    "description": "Status changed from active to suspended. Reason: Test suspension from unit test (7)"
+  },
+  {
+    "id": "AUDIT-1789123171100",
+    "timestamp": "2026-09-11 10:39:31 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPEND",
+    "affectedUser": "System",
+    "affectedUserId": "",
+    "description": ""
+  },
+  {
+    "id": "AUDIT-1789122713872",
+    "timestamp": "2026-09-11 10:31:53 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789122713822",
+    "timestamp": "2026-09-11 10:31:53 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_ACTIVATED",
+    "affectedUser": "Florence Kembabazi",
+    "affectedUserId": "usr-cust-202",
+    "description": "Status changed from suspended to active"
+  },
+  {
+    "id": "AUDIT-1789122713764",
+    "timestamp": "2026-09-11 10:31:53 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPENDED",
+    "affectedUser": "Florence Kembabazi",
+    "affectedUserId": "usr-cust-202",
+    "description": "Status changed from active to suspended. Reason: Test suspension from unit test (7)"
+  },
+  {
+    "id": "AUDIT-1789122687532",
+    "timestamp": "2026-09-11 10:31:27 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPEND",
+    "affectedUser": "System",
+    "affectedUserId": "",
+    "description": ""
+  },
+  {
+    "id": "AUDIT-1789122152011",
+    "timestamp": "2026-09-11 10:22:32 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789122151982",
+    "timestamp": "2026-09-11 10:22:31 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_ACTIVATED",
+    "affectedUser": "Florence Kembabazi",
+    "affectedUserId": "usr-cust-202",
+    "description": "Status changed from suspended to active"
+  },
+  {
+    "id": "AUDIT-1789122151945",
+    "timestamp": "2026-09-11 10:22:31 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPENDED",
+    "affectedUser": "Florence Kembabazi",
+    "affectedUserId": "usr-cust-202",
+    "description": "Status changed from active to suspended. Reason: Test suspension from unit test (7)"
+  },
+  {
+    "id": "AUDIT-1789122129874",
+    "timestamp": "2026-09-11 10:22:09 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPEND",
+    "affectedUser": "System",
+    "affectedUserId": "",
+    "description": ""
+  },
+  {
+    "id": "AUDIT-1789120357391",
+    "timestamp": "2026-09-11 09:52:37 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789119421321",
+    "timestamp": "2026-09-11 09:37:01 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789119066864",
+    "timestamp": "2026-09-11 09:31:06 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789118892587",
+    "timestamp": "2026-09-11 09:28:12 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789118375494",
+    "timestamp": "2026-09-11 09:19:35 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789118318596",
+    "timestamp": "2026-09-11 09:18:38 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
     "id": "AUDIT-1788784456468",
     "timestamp": "2026-09-07 12:34:16 UTC",
     "admin": "Dr. Admin Mugisha",

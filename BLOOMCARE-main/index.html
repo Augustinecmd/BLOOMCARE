@@ -2510,6 +2510,13 @@
 
         <!-- Selected Items List (Top Priority Display) -->
         <div class="pos-cart-section">
+          <div class="pos-cart-table-head" id="walkin-cart-table-head">
+            <span class="pos-th-prod">PRODUCT</span>
+            <span class="pos-th-qty">QUANTITY</span>
+            <span class="pos-th-unit">UNIT PRICE</span>
+            <span class="pos-th-total">TOTAL</span>
+            <span class="pos-th-act"></span>
+          </div>
           <div class="pos-cart-list" id="walkin-cart-list">
             <!-- Dynamically populated cart items with line totals -->
           </div>
@@ -2581,9 +2588,15 @@
 
           <!-- Cash Calculator Section -->
           <div class="pos-pay-content-box" id="walkin-cash-box">
+            <!-- Live Calculation Summary Breakdown -->
+            <div class="pos-amount-due-row" id="walkin-amount-due-box">
+              <span class="pos-due-label">AMOUNT DUE</span>
+              <strong class="pos-due-val" id="walkin-amount-due-val">UGX 0</strong>
+            </div>
+
             <div class="pos-cash-input-row">
               <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-                <label for="walkin-cash-received" class="pos-received-label" style="margin:0;">AMOUNT RECEIVED</label>
+                <label for="walkin-cash-received" class="pos-received-label" style="margin:0;">CASH RECEIVED</label>
                 <button type="button" class="pos-cash-calc-shortcut" id="pos-cash-calc-shortcut" title="Open Calculator to calculate cash">
                   🧮 Calculator
                 </button>
@@ -2607,15 +2620,15 @@
 
             <!-- Automatic Change Calculation Displays -->
             <div class="pos-change-display" id="walkin-change-display">
-              <span class="pos-change-label">CHANGE TO RETURN</span>
+              <span class="pos-change-label">CHANGE</span>
               <strong class="pos-change-val" id="walkin-change-val">UGX 0</strong>
             </div>
             <div class="pos-remaining-display hidden" id="walkin-remaining-display">
-              <span class="pos-remaining-label">Amount remaining:</span>
+              <span class="pos-remaining-label">BALANCE DUE</span>
               <strong class="pos-remaining-val" id="walkin-remaining-val">UGX 0</strong>
             </div>
             <div class="pos-insufficient-cash-alert hidden" id="walkin-insufficient-cash-alert">
-              Insufficient cash received. Please enter at least the total amount due.
+              Insufficient payment. Please enter enough cash.
             </div>
           </div>
 
@@ -2665,7 +2678,7 @@
   </div>
 </dialog>
 
-<!-- Auxiliary Dialog 2: Built-in Pharmacist Scratchpad Calculator -->
+<!-- Auxiliary Dialog 2: Built-in Pharmacist Scratchpad & Receipt Payment Calculator -->
 <dialog id="pos-calculator-dialog" class="form-modal-dialog pos-calc-modal-dialog">
   <div class="dialog-header pos-calc-dialog-header">
     <div class="pos-calc-title-box">
@@ -2691,56 +2704,111 @@
         </svg>
       </div>
       <div class="pos-calc-title-text">
-        <h3 style="margin:0; font-size:15px; line-height:1.25; font-weight:700; color:#ffffff;">Pharmacist Scratchpad<br/>Calculator</h3>
+        <h3 style="margin:0; font-size:15px; line-height:1.25; font-weight:700; color:#ffffff;">Pharmacist POS<br/>Payment Calculator</h3>
       </div>
     </div>
     <button class="dialog-close-btn" id="close-pos-calculator-modal" type="button" aria-label="Close calculator">&times;</button>
   </div>
-  <div class="pos-calc-body">
-    <div class="pos-calc-screen-wrap">
-      <div class="pos-calc-sub" id="pos-calc-sub">0</div>
-      <div class="pos-calc-main" id="pos-calc-screen">0</div>
+  <div class="pos-calc-dialog-layout">
+    <!-- CONNECTED RECEIPT PAYMENT PANEL -->
+    <div class="pos-calc-receipt-panel" id="pos-calc-receipt-panel">
+      <div class="pos-calc-receipt-header">
+        <span class="pos-calc-panel-title">PAYMENT CALCULATOR</span>
+        <span class="pos-calc-cart-badge" id="pos-calc-cart-badge">0 items</span>
+      </div>
+      <div class="pos-calc-receipt-body">
+        <div class="pos-calc-line-row">
+          <span class="pos-calc-line-label">Subtotal</span>
+          <strong class="pos-calc-line-val" id="pos-calc-subtotal-val">UGX 0</strong>
+        </div>
+        <div class="pos-calc-line-row">
+          <span class="pos-calc-line-label">Discount</span>
+          <span class="pos-calc-line-val pos-calc-discount-text" id="pos-calc-discount-val">- UGX 0</span>
+        </div>
+        <div class="pos-calc-divider"></div>
+        <div class="pos-calc-line-row pos-calc-due-row">
+          <span class="pos-calc-due-label">TOTAL DUE</span>
+          <strong class="pos-calc-due-val" id="pos-calc-total-val">UGX 0</strong>
+        </div>
+
+        <div class="pos-calc-cash-row">
+          <label for="pos-calc-cash-input" class="pos-calc-cash-label">Cash Received</label>
+          <div class="pos-calc-cash-input-wrap">
+            <span class="pos-currency-prefix">UGX</span>
+            <input type="number" id="pos-calc-cash-input" class="pos-calc-cash-input" min="0" placeholder="0" />
+          </div>
+        </div>
+
+        <div class="pos-calc-divider"></div>
+
+        <!-- Live Change / Balance Result Display -->
+        <div class="pos-calc-result-box">
+          <div class="pos-calc-change-row" id="pos-calc-change-row">
+            <span class="pos-calc-result-label">CHANGE</span>
+            <strong class="pos-calc-result-val pos-calc-change-green" id="pos-calc-change-val">UGX 0</strong>
+          </div>
+          <div class="pos-calc-balance-row hidden" id="pos-calc-balance-row">
+            <span class="pos-calc-result-label">BALANCE DUE</span>
+            <strong class="pos-calc-result-val pos-calc-balance-amber" id="pos-calc-balance-val">UGX 0</strong>
+          </div>
+          <div class="pos-calc-insufficient-msg hidden" id="pos-calc-insufficient-msg">
+            Insufficient payment. Please enter enough cash.
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-primary btn-block pos-calc-complete-btn" id="pos-calc-complete-btn" disabled>
+          COMPLETE SALE
+        </button>
+      </div>
     </div>
-    <div class="pos-calc-keypad">
-      <button type="button" class="pos-calc-btn pos-calc-action" data-action="clear">C</button>
-      <button type="button" class="pos-calc-btn pos-calc-action pos-calc-backspace-btn" data-action="backspace" aria-label="Backspace">
-        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
-          <line x1="18" y1="9" x2="12" y2="15"/>
-          <line x1="12" y1="9" x2="18" y2="15"/>
-        </svg>
-      </button>
-      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="/">÷</button>
-      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="*">×</button>
 
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="7">7</button>
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="8">8</button>
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="9">9</button>
-      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="-">−</button>
+    <!-- TOUCH NUMERIC KEYPAD & SCRATCHPAD -->
+    <div class="pos-calc-body">
+      <div class="pos-calc-screen-wrap">
+        <div class="pos-calc-sub" id="pos-calc-sub">0</div>
+        <div class="pos-calc-main" id="pos-calc-screen">0</div>
+      </div>
+      <div class="pos-calc-keypad">
+        <button type="button" class="pos-calc-btn pos-calc-action" data-action="clear">C</button>
+        <button type="button" class="pos-calc-btn pos-calc-action pos-calc-backspace-btn" data-action="backspace" aria-label="Backspace">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/>
+            <line x1="18" y1="9" x2="12" y2="15"/>
+            <line x1="12" y1="9" x2="18" y2="15"/>
+          </svg>
+        </button>
+        <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="/">÷</button>
+        <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="*">×</button>
 
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="4">4</button>
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="5">5</button>
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="6">6</button>
-      <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="+">+</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="7">7</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="8">8</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="9">9</button>
+        <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="-">−</button>
 
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="1">1</button>
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="2">2</button>
-      <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="3">3</button>
-      <button type="button" class="pos-calc-btn pos-calc-equals" data-action="equals">=</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="4">4</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="5">5</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="6">6</button>
+        <button type="button" class="pos-calc-btn pos-calc-op" data-action="op" data-val="+">+</button>
 
-      <button type="button" class="pos-calc-btn pos-calc-num pos-calc-zero" data-action="num" data-val="0">0</button>
-      <button type="button" class="pos-calc-btn pos-calc-num pos-calc-dot" data-action="num" data-val=".">.</button>
-    </div>
-    <div class="pos-calc-apply-bar">
-      <button type="button" class="pos-calc-apply-btn" id="pos-calc-apply-cash" title="Use result as Amount Received">
-        ↵ Apply to Cash Received
-      </button>
-      <button type="button" class="pos-calc-apply-btn" id="pos-calc-apply-discount" title="Use result as Discount">
-        ↵ Apply to Discount
-      </button>
-    </div>
-    <div class="pos-calc-footer-note">
-      Supports desktop keyboard (0–9, +, -, *, /, Enter, Backspace, Esc)
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="1">1</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="2">2</button>
+        <button type="button" class="pos-calc-btn pos-calc-num" data-action="num" data-val="3">3</button>
+        <button type="button" class="pos-calc-btn pos-calc-equals" data-action="equals">=</button>
+
+        <button type="button" class="pos-calc-btn pos-calc-num pos-calc-zero" data-action="num" data-val="0">0</button>
+        <button type="button" class="pos-calc-btn pos-calc-num pos-calc-dot" data-action="num" data-val=".">.</button>
+      </div>
+      <div class="pos-calc-apply-bar">
+        <button type="button" class="pos-calc-apply-btn" id="pos-calc-apply-cash" title="Use result as Amount Received">
+          ↵ Apply to Cash Received
+        </button>
+        <button type="button" class="pos-calc-apply-btn" id="pos-calc-apply-discount" title="Use result as Discount">
+          ↵ Apply to Discount
+        </button>
+      </div>
+      <div class="pos-calc-footer-note">
+        Supports desktop keyboard (0–9, +, -, *, /, Enter, Backspace, Esc)
+      </div>
     </div>
   </div>
 </dialog>

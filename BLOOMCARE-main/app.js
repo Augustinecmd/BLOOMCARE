@@ -1476,8 +1476,8 @@ export const INITIAL_USERS = [
   { id: "usr-3", uid: "usr-3", name: "Pharm. David Mukasa", displayName: "Pharm. David Mukasa", email: "david.m@bloomcare.com", phone: "0700000003", role: "pharmacist", status: "active", createdAt: "2026-01-15", lastLogin: "2026-09-03 16:10:00", permissions: [...ROLE_PERMISSIONS.pharmacist] },
   { id: "usr-4", uid: "usr-4", name: "Sarah Namusoke", displayName: "Sarah Namusoke", email: "assistant@bloomcare.com", phone: "0700000004", role: "assistant_pharmacist", status: "active", createdAt: "2026-02-01", lastLogin: "2026-09-04 09:30:00", permissions: [...ROLE_PERMISSIONS.assistant_pharmacist] },
   { id: "usr-4b", uid: "usr-4b", name: "Sarah Namusoke", displayName: "Sarah Namusoke", email: "sarah.n@bloomcare.com", phone: "0700000004", role: "assistant_pharmacist", status: "active", createdAt: "2026-02-01", lastLogin: "2026-09-04 09:30:00", permissions: [...ROLE_PERMISSIONS.assistant_pharmacist] },
-  { id: "usr-5", uid: "usr-5", name: "Moses Kato", displayName: "Moses Kato", email: "delivery@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
-  { id: "usr-5b", uid: "usr-5b", name: "Moses Kato", displayName: "Moses Kato", email: "moses.k@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
+  { id: "usr-5", uid: "eM6qgrSVjTeTUo62Sa556sKkXpG3", name: "Moses Kato", displayName: "Moses Kato", email: "delivery@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
+  { id: "usr-5b", uid: "eM6qgrSVjTeTUo62Sa556sKkXpG3", name: "Moses Kato", displayName: "Moses Kato", email: "moses.k@bloomcare.com", phone: "0700000005", role: "delivery_person", status: "active", createdAt: "2026-02-10", lastLogin: "2026-09-04 13:45:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
   { id: "usr-6", uid: "usr-6", name: "Emmanuel Otim", displayName: "Emmanuel Otim", email: "emmanuel.o@bloomcare.com", phone: "0700000006", role: "delivery_person", status: "active", createdAt: "2026-02-20", lastLogin: "2026-09-03 17:00:00", permissions: [...ROLE_PERMISSIONS.delivery_person] },
   { id: "usr-cust-demo", uid: "usr-cust-demo", name: "Demo Customer", displayName: "Demo Customer", email: "customer@example.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-06 12:00:00", permissions: [...ROLE_PERMISSIONS.customer] },
   { id: "usr-cust-001", uid: "usr-cust-001", name: "Grace Nakato", displayName: "Grace Nakato", email: "customer@bloomcare.com", phone: "0751234567", role: "customer", status: "active", createdAt: "2026-03-01", lastLogin: "2026-09-04 18:15:00", permissions: [...ROLE_PERMISSIONS.customer] },
@@ -1518,6 +1518,12 @@ export function findUserProfile(identifier) {
     }
     return false;
   };
+
+  // 1. Check Moses Kato aliases
+  if (clean === "usr-staff-5" || clean === "usr-5" || clean === "usr-5b") {
+    const moses = INITIAL_USERS.find(u => u.email === "delivery@bloomcare.com");
+    if (moses) return moses;
+  }
 
   // 1. Check in INITIAL_USERS
   const staff = INITIAL_USERS.find(u => {
@@ -1834,12 +1840,12 @@ const INITIAL_CUSTOMERS = [
 ];
 
 const INITIAL_DELIVERIES = [
-  { id: "DEL-101", orderId: "BC-ORD-0041", orderNumber: "BC-ORD-0041", customerName: "Grace Nakato", phone: "0751234567", address: "Kiyanja, Kamukuzi, Mbarara City (Plot 14, Kiyanja Road)", deliveryDivision: "Kamukuzi", deliveryArea: "Kiyanja", specificLocation: "Plot 14, Kiyanja Road", landmark: "Near Kiyanja Market", deliveryInstructions: "Blue gate opposite shop", itemsSummary: "2x Paracetamol, 1x Vitamin C", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-28" },
-  { id: "DEL-102", orderId: "BC-ORD-0042", orderNumber: "BC-ORD-0042", customerName: "David Mukasa", phone: "0772334455", address: "Nyamityobora, Kakoba, Mbarara City (Buremba Road)", deliveryDivision: "Kakoba", deliveryArea: "Nyamityobora", specificLocation: "Buremba Road", landmark: "Near Nyamityobora Mosque", deliveryInstructions: "Call upon arrival", itemsSummary: "1x Emergency First Aid Kit", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Out for Delivery", createdAt: "2026-08-31" },
-  { id: "DEL-103", orderId: "BC-ORD-0044", orderNumber: "BC-ORD-0044", customerName: "Florence Kembabazi", phone: "0701889900", address: "Rwebikoona, Nyamitanga, Mbarara City (Plot 8 Rwebikoona Road)", deliveryDivision: "Nyamitanga", deliveryArea: "Rwebikoona", specificLocation: "Plot 8 Rwebikoona Road", landmark: "Rwebikoona Market", deliveryInstructions: "Leave with front desk", itemsSummary: "2x Salbutamol Inhaler, 1x Cetirizine", deliveryStaffId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Picked Up", createdAt: "2026-09-01" },
-  { id: "DEL-104", orderId: "BC-ORD-0045", orderNumber: "BC-ORD-0045", customerName: "Joseph Okello", phone: "0782112233", address: "Makenke, Kakiika, Mbarara City (Makenke Trading Centre)", deliveryDivision: "Kakiika", deliveryArea: "Makenke", specificLocation: "Makenke Trading Centre", landmark: "Opposite Makenke Barracks", deliveryInstructions: "Ring bell at black gate", itemsSummary: "1x Omron M2 Blood Pressure Monitor", deliveryStaffId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Out for Delivery", createdAt: "2026-09-01" },
-  { id: "DEL-105", orderId: "BC-ORD-0047", orderNumber: "BC-ORD-0047", customerName: "Dr. Brian Tumusiime", phone: "0755443322", address: "Katojo, Nyakayojo, Mbarara City (Katojo Trading Centre)", deliveryDivision: "Nyakayojo", deliveryArea: "Katojo", specificLocation: "Katojo Trading Centre", landmark: "Katojo Clinic", deliveryInstructions: "Deliver directly to consultation room", itemsSummary: "1x Pure Marine Collagen Powder", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-27" },
-  { id: "DEL-106", orderId: "BC-ORD-0046", orderNumber: "BC-ORD-0046", customerName: "Aisha Nabawanuka", phone: "0702667788", address: "Biharwe Central, Biharwe, Mbarara City (Near 1520 AD Eclipse Monument)", deliveryDivision: "Biharwe", deliveryArea: "Biharwe Central", specificLocation: "Near Eclipse Monument", landmark: "1520 AD Eclipse Monument", deliveryInstructions: "Call 0702667788 on approach", itemsSummary: "1x Pregnacare, 1x Folic Acid", deliveryStaffId: "usr-5", deliveryStaffName: "Moses Kato", status: "Pending Dispatch", createdAt: "2026-09-01" }
+  { id: "DEL-101", orderId: "BC-ORD-0041", orderNumber: "BC-ORD-0041", customerName: "Grace Nakato", phone: "0751234567", address: "Kiyanja, Kamukuzi, Mbarara City (Plot 14, Kiyanja Road)", deliveryDivision: "Kamukuzi", deliveryArea: "Kiyanja", specificLocation: "Plot 14, Kiyanja Road", landmark: "Near Kiyanja Market", deliveryInstructions: "Blue gate opposite shop", itemsSummary: "2x Paracetamol, 1x Vitamin C", deliveryStaffId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryManId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-28" },
+  { id: "DEL-102", orderId: "BC-ORD-0042", orderNumber: "BC-ORD-0042", customerName: "David Mukasa", phone: "0772334455", address: "Nyamityobora, Kakoba, Mbarara City (Buremba Road)", deliveryDivision: "Kakoba", deliveryArea: "Nyamityobora", specificLocation: "Buremba Road", landmark: "Near Nyamityobora Mosque", deliveryInstructions: "Call upon arrival", itemsSummary: "1x Emergency First Aid Kit", deliveryStaffId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryManId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryStaffName: "Moses Kato", status: "Out for Delivery", createdAt: "2026-08-31" },
+  { id: "DEL-103", orderId: "BC-ORD-0044", orderNumber: "BC-ORD-0044", customerName: "Florence Kembabazi", phone: "0701889900", address: "Rwebikoona, Nyamitanga, Mbarara City (Plot 8 Rwebikoona Road)", deliveryDivision: "Nyamitanga", deliveryArea: "Rwebikoona", specificLocation: "Plot 8 Rwebikoona Road", landmark: "Rwebikoona Market", deliveryInstructions: "Leave with front desk", itemsSummary: "2x Salbutamol Inhaler, 1x Cetirizine", deliveryStaffId: "usr-6", deliveryManId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Picked Up", createdAt: "2026-09-01" },
+  { id: "DEL-104", orderId: "BC-ORD-0045", orderNumber: "BC-ORD-0045", customerName: "Joseph Okello", phone: "0782112233", address: "Makenke, Kakiika, Mbarara City (Makenke Trading Centre)", deliveryDivision: "Kakiika", deliveryArea: "Makenke", specificLocation: "Makenke Trading Centre", landmark: "Opposite Makenke Barracks", deliveryInstructions: "Ring bell at black gate", itemsSummary: "1x Omron M2 Blood Pressure Monitor", deliveryStaffId: "usr-6", deliveryManId: "usr-6", deliveryStaffName: "Emmanuel Otim", status: "Out for Delivery", createdAt: "2026-09-01" },
+  { id: "DEL-105", orderId: "BC-ORD-0047", orderNumber: "BC-ORD-0047", customerName: "Dr. Brian Tumusiime", phone: "0755443322", address: "Katojo, Nyakayojo, Mbarara City (Katojo Trading Centre)", deliveryDivision: "Nyakayojo", deliveryArea: "Katojo", specificLocation: "Katojo Trading Centre", landmark: "Katojo Clinic", deliveryInstructions: "Deliver directly to consultation room", itemsSummary: "1x Pure Marine Collagen Powder", deliveryStaffId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryManId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryStaffName: "Moses Kato", status: "Delivered", createdAt: "2026-08-27" },
+  { id: "DEL-106", orderId: "BC-ORD-0046", orderNumber: "BC-ORD-0046", customerName: "Aisha Nabawanuka", phone: "0702667788", address: "Biharwe Central, Biharwe, Mbarara City (Near 1520 AD Eclipse Monument)", deliveryDivision: "Biharwe", deliveryArea: "Biharwe Central", specificLocation: "Near Eclipse Monument", landmark: "1520 AD Eclipse Monument", deliveryInstructions: "Call 0702667788 on approach", itemsSummary: "1x Pregnacare, 1x Folic Acid", deliveryStaffId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryManId: "eM6qgrSVjTeTUo62Sa556sKkXpG3", deliveryStaffName: "Moses Kato", status: "Pending Dispatch", createdAt: "2026-09-01" }
 ];
 
 const INITIAL_PAYMENTS = [
@@ -1884,7 +1890,8 @@ export const INITIAL_CONVERSATIONS = [
     customerName: "David Mukasa",
     customerPhone: "0772334455",
     customerEmail: "david.m@example.com",
-    deliveryManId: "usr-5",
+    deliveryManId: "eM6qgrSVjTeTUo62Sa556sKkXpG3",
+    deliveryStaffId: "eM6qgrSVjTeTUo62Sa556sKkXpG3",
     deliveryManName: "Moses Kato",
     deliveryAddress: "Ntinda, Kimera Road, Kampala",
     deliveryStatus: "Out for Delivery",
@@ -2226,7 +2233,7 @@ export function getEffectiveRole() {
 }
 
 export function formatUGX(amount) {
-  const num = Number(amount || 0);
+  const num = Math.round(Number(amount || 0));
   return `UGX ${num.toLocaleString()}`;
 }
 
@@ -2613,18 +2620,86 @@ async function loadAppData(userId = null) {
     }
 
     if (userId) {
-      const [userOrders, userPrescriptions, userConsultations, userRefills] = await Promise.all([
-        getOrders(userId, STATE.activeRole),
-        getPrescriptions(userId, STATE.activeRole),
-        getConsultations(userId, STATE.activeRole),
-        getRefills(userId, STATE.activeRole)
+      const effRole = getEffectiveRole();
+      const [
+        userOrders,
+        userPrescriptions,
+        userConsultations,
+        userRefills,
+        userDeliveries,
+        userConversations,
+        userNotifications
+      ] = await Promise.all([
+        getOrders(userId, effRole),
+        getPrescriptions(userId, effRole),
+        getConsultations(userId, effRole),
+        getRefills(userId, effRole),
+        getDeliveries(userId, effRole),
+        getDeliveryConversationsForUser(userId, effRole),
+        getNotifications(userId, effRole)
       ]);
 
-      const isCustomer = getEffectiveRole() === "customer";
-      if (isCustomer || userOrders?.length) STATE.orders = userOrders || [];
+      const isCustomer = effRole === "customer";
+      const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff";
+      if (isCustomer || isDelivery || userOrders?.length) STATE.orders = userOrders || [];
       if (isCustomer || userPrescriptions?.length) STATE.prescriptions = userPrescriptions || [];
       if (isCustomer || userConsultations?.length) STATE.consultations = userConsultations || [];
       if (isCustomer || userRefills?.length) STATE.refills = userRefills || [];
+
+      if (userDeliveries && userDeliveries.length > 0) {
+        userDeliveries.forEach(ud => {
+          const idx = STATE.deliveries.findIndex(d => d.id === ud.id || d.orderId === ud.orderId || d.orderNumber === ud.orderNumber);
+          if (idx >= 0) STATE.deliveries[idx] = { ...STATE.deliveries[idx], ...ud };
+          else STATE.deliveries.unshift(ud);
+        });
+      }
+
+      if (userConversations && userConversations.length > 0) {
+        userConversations.forEach(uc => {
+          const convId = uc.id || uc.conversationId || `CHAT-${uc.orderId || uc.orderNumber}`;
+          const idx = STATE.conversations.findIndex(c => c.id === convId || c.conversationId === convId || c.orderId === uc.orderId);
+          if (idx >= 0) STATE.conversations[idx] = { ...STATE.conversations[idx], ...uc, id: convId, conversationId: convId };
+          else STATE.conversations.unshift({ ...uc, id: convId, conversationId: convId });
+        });
+        saveConversationsToStorage();
+      }
+
+      if (userNotifications && userNotifications.length > 0) {
+        userNotifications.forEach(un => {
+          if (!STATE.notifications.some(n => n.id === un.id)) {
+            STATE.notifications.unshift(un);
+          }
+        });
+      }
+
+      if (isDelivery && Array.isArray(STATE.orders)) {
+        STATE.orders.forEach(ord => {
+          if (ord.fulfillmentType === "delivery" || ord.deliveryAddress) {
+            const hasDel = STATE.deliveries.some(d => d.orderId === ord.id || d.orderNumber === (ord.orderNumber || ord.id));
+            if (!hasDel) {
+              STATE.deliveries.unshift({
+                id: "DEL-" + (ord.orderNumber || ord.id),
+                orderId: ord.id,
+                orderNumber: ord.orderNumber || ord.id,
+                customerName: ord.customerName,
+                phone: ord.customerPhone,
+                address: ord.deliveryAddress,
+                deliveryDivision: ord.deliveryDivision || "",
+                deliveryArea: ord.deliveryArea || "",
+                specificLocation: ord.specificLocation || ord.deliveryAddress,
+                landmark: ord.landmark || ord.specificLocation || "",
+                deliveryInstructions: ord.deliveryInstructions || ord.deliveryNotes || "",
+                itemsSummary: Array.isArray(ord.items) ? ord.items.map(i => `${i.quantity}x ${i.name}`).join(", ") : "",
+                deliveryManId: ord.deliveryManId || userId,
+                deliveryStaffId: ord.deliveryStaffId || ord.deliveryManId || userId,
+                deliveryStaffName: ord.deliveryManName || ord.assignedStaff || "Moses Kato",
+                status: ord.orderStatus === "Delivered" ? "Delivered" : (ord.orderStatus === "Out for Delivery" ? "Out for Delivery" : "Assigned"),
+                createdAt: (ord.createdAt || new Date().toISOString()).slice(0, 10)
+              });
+            }
+          }
+        });
+      }
     }
   } catch (err) {
     console.warn("[BLOOMCARE DATA FLOW] Using local state with offline safety:", err);
@@ -4523,8 +4598,15 @@ function renderRoleDashboard() {
 
   } else if (role === "delivery_person" || role === "deliveryStaff") {
     // 4. DELIVERY STAFF DASHBOARD
+    const driverUid = STATE.currentUser?.uid;
+    const isMoses = driverUid === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || driverUid === "usr-5" || driverUid === "usr-staff-5";
     const myDeliveries = STATE.deliveries.filter(d =>
-      !STATE.currentUser || d.deliveryManId === STATE.currentUser.uid
+      !STATE.currentUser || 
+      d.deliveryManId === driverUid || 
+      d.deliveryStaffId === driverUid ||
+      (isMoses && (d.deliveryManId === "usr-5" || d.deliveryStaffId === "usr-5" || d.deliveryManId === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || d.deliveryStaffId === "eM6qgrSVjTeTUo62Sa556sKkXpG3")) ||
+      d.deliveryStaffName === STATE.currentUser?.displayName ||
+      d.deliveryStaffName === STATE.currentUser?.name
     );
     const assigned = myDeliveries.filter(d => d.status !== "Delivered");
     const outForDelivery = myDeliveries.filter(d => d.status === "Out for Delivery");
@@ -4536,8 +4618,13 @@ function renderRoleDashboard() {
 
     // Driver notifications
     const myUserId = STATE.currentUser?.uid || STATE.currentUser?.id;
+    const isMosesUser = myUserId === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || myUserId === "usr-5" || myUserId === "usr-staff-5";
     const myNotifs = STATE.notifications.filter(n => 
-      !n.recipientId || n.recipientId === myUserId || n.role === "delivery_person" || n.role === "deliveryStaff"
+      !n.recipientId || 
+      n.recipientId === myUserId || 
+      (isMosesUser && (n.recipientId === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || n.recipientId === "usr-5" || n.recipientId === "usr-staff-5")) ||
+      n.role === "delivery_person" || 
+      n.role === "deliveryStaff"
     );
     const unreadNotifs = myNotifs.filter(n => !n.read);
 
@@ -8947,7 +9034,15 @@ function renderDeliveriesView() {
 
   let list = STATE.deliveries;
   if (isDriver && STATE.currentUser) {
-    list = list.filter(d => d.deliveryStaffId === STATE.currentUser.uid || d.deliveryStaffName === STATE.currentUser.displayName);
+    const driverUid = STATE.currentUser.uid;
+    const isMoses = driverUid === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || driverUid === "usr-5" || driverUid === "usr-staff-5";
+    list = list.filter(d => 
+      d.deliveryStaffId === driverUid || 
+      d.deliveryManId === driverUid || 
+      (isMoses && (d.deliveryStaffId === "usr-5" || d.deliveryManId === "usr-5" || d.deliveryStaffId === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || d.deliveryManId === "eM6qgrSVjTeTUo62Sa556sKkXpG3")) ||
+      d.deliveryStaffName === STATE.currentUser.displayName || 
+      d.deliveryStaffName === STATE.currentUser.name
+    );
   }
 
   box.innerHTML = `
@@ -9023,8 +9118,13 @@ export function canUserAccessConversation(conversation, user = STATE.currentUser
     // Unassigned delivery chats cannot be accessed by delivery drivers until assigned
     if (!conversation.deliveryManId && !conversation.deliveryManName) return false;
     if (conversation.deliveryManName === "Unassigned" || conversation.deliveryManName === "Pending Assignment") return false;
-    if (userUid && conversation.deliveryManId === userUid) return true;
-    return Boolean(userUid && conversation.deliveryManId === userUid);
+    if (userUid && (
+      conversation.deliveryManId === userUid ||
+      conversation.deliveryStaffId === userUid ||
+      ((userUid === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || userUid === "usr-5" || userUid === "usr-staff-5") &&
+       (conversation.deliveryManId === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || conversation.deliveryManId === "usr-5" || conversation.deliveryManId === "usr-staff-5" || conversation.deliveryStaffId === "eM6qgrSVjTeTUo62Sa556sKkXpG3" || conversation.deliveryStaffId === "usr-5"))
+    )) return true;
+    return false;
   }
 
   // Customer access
@@ -9242,7 +9342,7 @@ export function sendChatMessage(conversationId, text, senderOverride = null) {
   const user = senderOverride || STATE.currentUser;
   const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff" || (user && (user.role === "delivery_person" || user.role === "deliveryStaff"));
 
-  const senderId = user?.uid;
+  const senderId = user?.uid || user?.id || (isDelivery ? (conv.deliveryManId || "eM6qgrSVjTeTUo62Sa556sKkXpG3") : (conv.customerId || "usr-cust-001"));
   if (!senderId) {
     return { success: false, error: "You must be signed in to send a message." };
   }
@@ -11545,6 +11645,123 @@ async function handleCheckoutOrder(e) {
   const hasRx = STATE.cart.some(item => Boolean(item.requiresPrescription || item.product?.requiresPrescription));
   const initialStatus = hasRx ? "Awaiting Prescription Review" : (fulfillmentType === "pickup" ? "Processing" : "Confirmed");
 
+  // Prepare Delivery Assignment & Fulfillment before writing order to Firestore
+  let newDelivery = null;
+  let deliveryAssignment = null;
+  let notifItem = null;
+  let conv = null;
+
+  let assignedDriverName = "Pending Assignment";
+  let assignedDriverId = null;
+  let assignedDriverPhone = "";
+  let orderInitialStatus = initialStatus;
+
+  if (fulfillmentType === "delivery") {
+    // 1. Attempt Automated Backend Delivery Assignment
+    try {
+      const assignRes = await fetch("http://127.0.0.1:8787/api/deliveries/auto-assign", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          orderId: orderRef,
+          deliveryAddress: formattedAddress,
+          orderData: {
+            orderNumber: orderRef,
+            customerId: (auth && auth.currentUser && auth.currentUser.uid) ? auth.currentUser.uid : (STATE.currentUser?.uid || "cust-" + Date.now()),
+            customerName: name,
+            customerPhone: phoneVal.normalized,
+            deliveryAddress: formattedAddress,
+            deliveryArea: deliveryArea === "Other" && customArea ? customArea : deliveryArea,
+            deliveryDivision,
+            specificLocation,
+            landmark: specificLocation,
+            deliveryFee: fee,
+            itemsSummary: STATE.cart.map(i => `${i.quantity}x ${i.name || i.product?.name}`).join(", "),
+            paymentStatus: "PAID"
+          }
+        })
+      });
+      if (assignRes.ok) {
+        const assignData = await assignRes.json();
+        if (assignData.success && assignData.assignment) {
+          deliveryAssignment = assignData.assignment;
+        }
+      }
+    } catch (_) {}
+
+    // 2. Deterministic Fallback
+    if (!deliveryAssignment) {
+      const drivers = (STATE.users || []).filter(u => 
+        (u.role === "delivery_person" || u.role === "deliveryStaff") && 
+        (String(u.status || "").toLowerCase() === "active" || !u.status)
+      );
+      if (drivers.length > 0) {
+        const counts = {};
+        drivers.forEach(d => { counts[d.uid || d.id] = 0; });
+        (STATE.deliveries || []).forEach(d => {
+          const s = String(d.status || "").toLowerCase();
+          if (s !== "delivered" && s !== "failed" && s !== "cancelled") {
+            const sid = d.deliveryManId || d.deliveryStaffId;
+            if (counts[sid] !== undefined) counts[sid]++;
+          }
+        });
+        const belowLimit = drivers.filter(d => (counts[d.uid || d.id] || 0) < 5);
+        if (belowLimit.length > 0) {
+          belowLimit.sort((a, b) => {
+            const ca = counts[a.uid || a.id] || 0;
+            const cb = counts[b.uid || b.id] || 0;
+            if (ca !== cb) return ca - cb;
+            return String(a.uid || a.id || "").localeCompare(String(b.uid || b.id || ""));
+          });
+          const sel = belowLimit[0];
+          deliveryAssignment = {
+            orderId: orderRef,
+            deliveryManId: sel.uid || sel.id,
+            deliveryManName: sel.displayName || sel.name,
+            deliveryManPhone: sel.phone || "0700000005",
+            status: "ASSIGNED"
+          };
+        } else {
+          deliveryAssignment = {
+            orderId: orderRef,
+            status: "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
+          };
+        }
+      } else {
+        try {
+          const designated = await getDesignatedDeliveryDriver();
+          if (designated) {
+            deliveryAssignment = {
+              orderId: orderRef,
+              deliveryManId: designated.uid || designated.id,
+              deliveryManName: designated.displayName || designated.name,
+              deliveryManPhone: designated.phone || "0700000005",
+              status: "ASSIGNED"
+            };
+          }
+        } catch (_) {}
+      }
+    }
+
+    if (deliveryAssignment && deliveryAssignment.deliveryManId) {
+      const assignedDriver = (STATE.users || []).find(user =>
+        user.uid === deliveryAssignment.deliveryManId ||
+        user.id === deliveryAssignment.deliveryManId ||
+        user.email === deliveryAssignment.deliveryManEmail ||
+        user.email === deliveryAssignment.email ||
+        user.displayName === deliveryAssignment.deliveryManName ||
+        user.name === deliveryAssignment.deliveryManName
+      );
+      assignedDriverId = assignedDriver?.uid || deliveryAssignment.deliveryManId;
+      assignedDriverName = assignedDriver?.displayName || assignedDriver?.name || deliveryAssignment.deliveryManName || "Moses Kato";
+      assignedDriverPhone = assignedDriver?.phone || deliveryAssignment.deliveryManPhone || "0700000005";
+      orderInitialStatus = initialStatus === "Awaiting Prescription Review" ? "Awaiting Prescription Review" : "Assigned";
+    } else if (deliveryAssignment && deliveryAssignment.status === "WAITING_FOR_AVAILABLE_DELIVERY_MAN") {
+      assignedDriverName = "Waiting for Available Delivery Man";
+      orderInitialStatus = "Waiting for Available Delivery Man";
+    }
+  }
+
   const newOrder = {
     id: orderRef,
     orderNumber: orderRef,
@@ -11581,10 +11798,14 @@ async function handleCheckoutOrder(e) {
     paymentPhone: phoneVal.normalized,
     paymentStatus: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
     paymentReference: paymentMethod === "Cash on Delivery" ? "COD-" + orderRef : "TXN-" + Date.now().toString().slice(-6),
-    orderStatus: initialStatus,
+    orderStatus: orderInitialStatus,
     prescriptionStatus: hasRx ? "Required" : "Not Required",
     rxVerified: false,
-    assignedStaff: "Pending Assignment",
+    assignedStaff: assignedDriverName,
+    deliveryManId: assignedDriverId,
+    deliveryStaffId: assignedDriverId,
+    deliveryManName: assignedDriverId ? assignedDriverName : null,
+    deliveryManPhone: assignedDriverPhone,
     createdAt: new Date().toISOString()
   };
 
@@ -11614,11 +11835,6 @@ async function handleCheckoutOrder(e) {
     }
   }
 
-  // Create Delivery Record if Delivery fulfillment was chosen
-  let newDelivery = null;
-  let deliveryAssignment = null;
-  let notifItem = null;
-  let conv = null;
   if (fulfillmentType === "delivery") {
     newDelivery = {
       id: "DEL-" + Date.now().toString().slice(-3),
@@ -11633,118 +11849,19 @@ async function handleCheckoutOrder(e) {
       landmark: specificLocation,
       deliveryInstructions: instructions,
       itemsSummary: newOrder.items.map(i => `${i.quantity}x ${i.name}`).join(", "),
-      deliveryManId: null,
-      deliveryStaffName: "Unassigned",
-      status: "Pending Assignment",
+      deliveryManId: assignedDriverId,
+      deliveryStaffId: assignedDriverId,
+      deliveryStaffName: assignedDriverName,
+      status: assignedDriverId ? "Assigned" : "Pending Assignment",
       createdAt: new Date().toISOString().slice(0, 10)
     };
     STATE.deliveries.unshift(newDelivery);
 
-    // =========================================================
-    // AUTOMATED BACKEND DELIVERY ASSIGNMENT
-    // =========================================================
-    try {
-      const assignRes = await fetch("http://127.0.0.1:8787/api/deliveries/auto-assign", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          orderId: orderRef,
-          deliveryAddress: formattedAddress,
-          orderData: {
-            orderNumber: orderRef,
-            customerId: newOrder.customerId,
-            customerName: name,
-            customerPhone: phoneVal.normalized,
-            deliveryAddress: formattedAddress,
-            deliveryArea: newOrder.deliveryArea,
-            deliveryDivision: newOrder.deliveryDivision,
-            specificLocation,
-            landmark: specificLocation,
-            deliveryFee: fee,
-            itemsSummary: newOrder.items.map(i => `${i.quantity}x ${i.name}`).join(", "),
-            paymentStatus: "PAID"
-          }
-        })
-      });
-      if (assignRes.ok) {
-        const assignData = await assignRes.json();
-        if (assignData.success && assignData.assignment) {
-          deliveryAssignment = assignData.assignment;
-        }
-      }
-    } catch (_) {}
-
-    // Deterministic fallback for test environments / offline mode
-    if (!deliveryAssignment) {
-      const drivers = (STATE.users || []).filter(u => 
-        (u.role === "delivery_person" || u.role === "deliveryStaff") && 
-        (String(u.status || "").toLowerCase() === "active" || !u.status)
-      );
-      if (drivers.length > 0) {
-        const counts = {};
-        drivers.forEach(d => { counts[d.uid || d.id] = 0; });
-        (STATE.deliveries || []).forEach(d => {
-          const s = String(d.status || "").toLowerCase();
-          if (s !== "delivered" && s !== "failed" && s !== "cancelled") {
-            const sid = d.deliveryManId;
-            if (counts[sid] !== undefined) counts[sid]++;
-          }
-        });
-        const belowLimit = drivers.filter(d => (counts[d.uid || d.id] || 0) < 5);
-        if (belowLimit.length > 0) {
-          belowLimit.sort((a, b) => {
-            const ca = counts[a.uid || a.id] || 0;
-            const cb = counts[b.uid || b.id] || 0;
-            if (ca !== cb) return ca - cb;
-            return String(a.uid || a.id || "").localeCompare(String(b.uid || b.id || ""));
-          });
-          const sel = belowLimit[0];
-          deliveryAssignment = {
-            orderId: orderRef,
-            deliveryManId: sel.uid || sel.id,
-            deliveryManName: sel.displayName || sel.name,
-            deliveryManPhone: sel.phone || "0700000005",
-            status: "ASSIGNED"
-          };
-        } else {
-          deliveryAssignment = {
-            orderId: orderRef,
-            status: "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
-          };
-        }
-      }
-    }
-
-    if (deliveryAssignment && deliveryAssignment.deliveryManId) {
-      const assignedDriver = (STATE.users || []).find(user =>
-        user.uid === deliveryAssignment.deliveryManId ||
-        user.id === deliveryAssignment.deliveryManId ||
-        user.email === deliveryAssignment.deliveryManEmail ||
-        user.email === deliveryAssignment.email ||
-        user.displayName === deliveryAssignment.deliveryManName ||
-        user.name === deliveryAssignment.deliveryManName
-      );
-      const deliveryManId = assignedDriver?.uid || assignedDriver?.id;
-      if (!deliveryManId) {
-        console.error("[BloomCare Assignment] Refusing assignment without a Firebase Auth UID:", deliveryAssignment);
-        deliveryAssignment = null;
-      } else {
-      const deliveryManName = assignedDriver.displayName || assignedDriver.name || deliveryAssignment.deliveryManName;
-      const deliveryManPhone = assignedDriver.phone || deliveryAssignment.deliveryManPhone || "";
-      newOrder.assignedStaff = deliveryManName;
-      newOrder.deliveryManId = deliveryManId;
-      newOrder.deliveryManName = deliveryManName;
-      newOrder.deliveryManPhone = deliveryManPhone;
-      newOrder.orderStatus = "Assigned";
-      newDelivery.deliveryManId = deliveryManId;
-      newDelivery.deliveryStaffName = deliveryManName;
-      newDelivery.status = "Assigned";
-
-      // Dispatch real-time notification to the Delivery Man (even if customer has not sent a message)
+    if (assignedDriverId) {
       notifItem = {
-        id: "notif-del-" + Date.now(),
         id: `order-${orderRef}-NEW_DELIVERY_ASSIGNED`,
-        recipientId: deliveryManId,
+        recipientId: assignedDriverId,
+        userId: assignedDriverId,
         role: "delivery_person",
         type: "NEW_DELIVERY_ASSIGNED",
         orderId: orderRef,
@@ -11760,28 +11877,15 @@ async function handleCheckoutOrder(e) {
       };
       STATE.notifications.unshift(notifItem);
       try {
-        await updateOrderAssignment(orderRef, {
-          deliveryManId,
-          deliveryManName,
-          deliveryManPhone,
-          orderStatus: "Assigned"
-        });
         await createNotification(notifItem);
-        console.log(`[BloomCare Assignment] Order ${orderRef} persisted for delivery UID ${deliveryManId}.`);
       } catch (err) {
-        console.error(`[BloomCare Assignment] Failed to persist order ${orderRef} assignment:`, err);
+        console.warn(`[BloomCare Assignment] Failed to persist notification for order ${orderRef}:`, err);
       }
       try {
         await createDelivery(newDelivery);
       } catch (err) {
-        console.error(`[BloomCare Delivery] Failed to persist delivery for order ${orderRef}:`, err);
+        console.warn(`[BloomCare Delivery] Failed to persist delivery for order ${orderRef}:`, err);
       }
-      }
-    } else if (deliveryAssignment && deliveryAssignment.status === "WAITING_FOR_AVAILABLE_DELIVERY_MAN") {
-      newOrder.assignedStaff = "Waiting for Available Delivery Man";
-      newOrder.orderStatus = "Waiting for Available Delivery Man";
-      newDelivery.deliveryStaffName = "Waiting for Available Delivery Man";
-      newDelivery.status = "Waiting for Available Delivery Man";
     }
   }
 
@@ -11808,10 +11912,24 @@ async function handleCheckoutOrder(e) {
     conv = getOrCreateOrderDeliveryChat(orderRef);
     if (conv && newOrder.deliveryManId) {
       conv.deliveryManId = newOrder.deliveryManId;
+      conv.deliveryStaffId = newOrder.deliveryManId;
       conv.deliveryManName = newOrder.deliveryManName;
       conv.deliveryStatus = "ASSIGNED";
       saveConversationsToStorage();
     }
+    await getOrCreateDeliveryConversation({
+      orderId: orderRef,
+      orderRef: orderRef,
+      orderNumber: orderRef,
+      customerId: newOrder.customerId,
+      customerName: newOrder.customerName,
+      customerPhone: newOrder.customerPhone,
+      deliveryManId: newOrder.deliveryManId,
+      deliveryStaffId: newOrder.deliveryManId,
+      deliveryManName: newOrder.deliveryManName,
+      deliveryAddress: formattedAddress,
+      deliveryStatus: "ASSIGNED"
+    });
   } catch (err) {
     console.error("Failed to initialize delivery chat:", err);
   }
@@ -12123,15 +12241,13 @@ export function updateWalkinCartItemQty(productId, newQty) {
   const itemIndex = activeWalkinCart.findIndex(i => i.productId === productId);
   if (itemIndex < 0) return;
 
-  if (newQty <= 0) {
-    activeWalkinCart.splice(itemIndex, 1);
+  // Quantity must never drop below 1. Item removal is handled via removeWalkinCartItem.
+  const safeQty = Math.max(1, parseInt(newQty, 10) || 1);
+  if (safeQty > stock) {
+    activeWalkinCart[itemIndex].quantity = stock;
+    showToast(`Only ${stock} units are currently available for ${prod.name}.`, "warning");
   } else {
-    if (newQty > stock) {
-      activeWalkinCart[itemIndex].quantity = stock;
-      showToast(`Only ${stock} units are currently available for ${prod.name}.`, "warning");
-    } else {
-      activeWalkinCart[itemIndex].quantity = newQty;
-    }
+    activeWalkinCart[itemIndex].quantity = safeQty;
   }
 
   renderWalkinCart();
@@ -12148,6 +12264,51 @@ export function removeWalkinCartItem(productId) {
   renderWalkinSearchResults(query, activeCat);
 }
 
+// Single source of truth for walk-in sale financial calculations
+export function getWalkinSaleFinancials() {
+  const subtotal = activeWalkinCart.reduce((sum, item) => sum + (item.unitPrice * item.quantity), 0);
+  const rawDiscountInput = parseFloat($("#walkin-discount-input")?.value || 0) || 0;
+  let discountAmount = 0;
+  let isDiscountExcessive = false;
+
+  if (activeWalkinDiscountMode === "pct") {
+    if (rawDiscountInput > 100 || rawDiscountInput < 0) isDiscountExcessive = true;
+    const clampedPct = Math.min(100, Math.max(0, rawDiscountInput));
+    discountAmount = Math.round(subtotal * (clampedPct / 100));
+  } else {
+    if (rawDiscountInput > subtotal || rawDiscountInput < 0) isDiscountExcessive = true;
+    discountAmount = Math.max(0, rawDiscountInput);
+  }
+
+  if (discountAmount > subtotal) {
+    isDiscountExcessive = true;
+  }
+
+  const discount = Math.min(Math.max(0, discountAmount), subtotal);
+  const total = Math.max(0, subtotal - discount);
+
+  const cashInput = $("#walkin-cash-received");
+  const calcCashInput = $("#pos-calc-cash-input");
+  const rawCash = (cashInput && cashInput.value !== "") ? cashInput.value : (calcCashInput ? calcCashInput.value : 0);
+  const cashReceived = Math.max(0, parseFloat(rawCash || 0) || 0);
+
+  const change = Math.max(0, cashReceived - total);
+  const balance = Math.max(0, total - cashReceived);
+
+  return {
+    subtotal,
+    rawDiscountInput,
+    discountAmount,
+    discount,
+    isDiscountExcessive,
+    totalDue: total,
+    total,
+    cashReceived,
+    change,
+    balance
+  };
+}
+
 export function renderWalkinCart() {
   const listEl = $("#walkin-cart-list");
   const countEl = $("#walkin-cart-count");
@@ -12155,6 +12316,8 @@ export function renderWalkinCart() {
 
   const totalItemCount = activeWalkinCart.reduce((sum, i) => sum + i.quantity, 0);
   if (countEl) countEl.textContent = `${totalItemCount} ${totalItemCount === 1 ? "item" : "items"}`;
+  const calcBadge = $("#pos-calc-cart-badge");
+  if (calcBadge) calcBadge.textContent = `${totalItemCount} ${totalItemCount === 1 ? "item" : "items"}`;
 
   if (activeWalkinCart.length === 0) {
     listEl.innerHTML = `
@@ -12181,7 +12344,7 @@ export function renderWalkinCart() {
             <div class="pos-cart-item-unitprice">${formatUGX(item.unitPrice)} &times; ${item.quantity} = <strong>${formatUGX(lineTotal)}</strong></div>
           </div>
           <div class="pos-cart-item-qty-stepper">
-            <button type="button" class="pos-stepper-btn pos-stepper-minus" data-id="${p.id}" aria-label="Decrease quantity">&minus;</button>
+            <button type="button" class="pos-stepper-btn pos-stepper-minus" data-id="${p.id}" aria-label="Decrease quantity" ${item.quantity <= 1 ? "disabled" : ""}>&minus;</button>
             <input type="number" class="pos-stepper-input" data-id="${p.id}" value="${item.quantity}" min="1" max="${stock}" />
             <button type="button" class="pos-stepper-btn pos-stepper-plus" data-id="${p.id}" ${isMax ? "disabled" : ""} aria-label="Increase quantity">+</button>
           </div>
@@ -12198,7 +12361,7 @@ export function renderWalkinCart() {
       btn.addEventListener("click", () => {
         const id = btn.dataset.id;
         const item = activeWalkinCart.find(i => i.productId === id);
-        if (item) updateWalkinCartItemQty(id, item.quantity - 1);
+        if (item) updateWalkinCartItemQty(id, Math.max(1, item.quantity - 1));
       });
     });
 
@@ -12214,7 +12377,7 @@ export function renderWalkinCart() {
       input.addEventListener("change", () => {
         const id = input.dataset.id;
         const val = parseInt(input.value, 10) || 1;
-        updateWalkinCartItemQty(id, val);
+        updateWalkinCartItemQty(id, Math.max(1, val));
       });
     });
 
@@ -12258,6 +12421,8 @@ export function renderWalkinCart() {
   const total = Math.max(0, subtotal - discount);
 
   if ($("#walkin-subtotal-val")) $("#walkin-subtotal-val").textContent = formatUGX(subtotal);
+  if ($("#pos-calc-subtotal-val")) $("#pos-calc-subtotal-val").textContent = formatUGX(subtotal);
+
   if ($("#walkin-discount-val")) {
     if (activeWalkinDiscountMode === "pct" && rawDiscountInput > 0) {
       $("#walkin-discount-val").textContent = `- ${formatUGX(discount)} (${rawDiscountInput}%)`;
@@ -12265,7 +12430,17 @@ export function renderWalkinCart() {
       $("#walkin-discount-val").textContent = "- " + formatUGX(discount);
     }
   }
+  if ($("#pos-calc-discount-val")) {
+    if (activeWalkinDiscountMode === "pct" && rawDiscountInput > 0) {
+      $("#pos-calc-discount-val").textContent = `- ${formatUGX(discount)} (${rawDiscountInput}%)`;
+    } else {
+      $("#pos-calc-discount-val").textContent = "- " + formatUGX(discount);
+    }
+  }
+
   if ($("#walkin-total-val")) $("#walkin-total-val").textContent = formatUGX(total);
+  if ($("#walkin-amount-due-val")) $("#walkin-amount-due-val").textContent = formatUGX(total);
+  if ($("#pos-calc-total-val")) $("#pos-calc-total-val").textContent = formatUGX(total);
 
   updateWalkinQuickCashChips(total);
   calculateWalkinCashChange(total);
@@ -12299,12 +12474,14 @@ export function updateWalkinQuickCashChips(total = 0) {
     chip.addEventListener("click", () => {
       const amt = chip.dataset.amt;
       const cashInput = $("#walkin-cash-received");
+      const calcCash = $("#pos-calc-cash-input");
       if (!cashInput) return;
       if (amt === "exact") {
         cashInput.value = String(total);
       } else {
         cashInput.value = String(amt);
       }
+      if (calcCash) calcCash.value = cashInput.value;
       calculateWalkinCashChange(total);
     });
   });
@@ -12321,19 +12498,32 @@ export function calculateWalkinCashChange(total = null) {
     total = Math.max(0, subtotal - discount);
   }
 
+  // Keep AMOUNT DUE displays synchronized with current total
+  if ($("#walkin-amount-due-val")) $("#walkin-amount-due-val").textContent = formatUGX(total);
+  if ($("#pos-calc-total-val")) $("#pos-calc-total-val").textContent = formatUGX(total);
+
   const completeBtn = $("#walkin-complete-btn");
+  const calcCompleteBtn = $("#pos-calc-complete-btn");
   const hasRx = activeWalkinCart.some(i => i.product.requiresPrescription);
   const rxVerified = $("#walkin-rx-verified")?.checked;
   const isRxAllowed = !hasRx || rxVerified;
 
   if (activeWalkinPaymentMethod === "Cash") {
     const cashInput = $("#walkin-cash-received");
-    const receivedVal = parseFloat(cashInput?.value || 0) || 0;
+    const calcCash = $("#pos-calc-cash-input");
+    const receivedVal = parseFloat((cashInput && cashInput.value !== "") ? cashInput.value : (calcCash?.value || 0)) || 0;
     const changeDisplay = $("#walkin-change-display");
     const changeValEl = $("#walkin-change-val");
     const remainingDisplay = $("#walkin-remaining-display");
     const remainingValEl = $("#walkin-remaining-val");
     const alertEl = $("#walkin-insufficient-cash-alert");
+
+    // Connected calculator elements
+    const calcChangeRow = $("#pos-calc-change-row");
+    const calcChangeVal = $("#pos-calc-change-val");
+    const calcBalanceRow = $("#pos-calc-balance-row");
+    const calcBalanceVal = $("#pos-calc-balance-val");
+    const calcAlertEl = $("#pos-calc-insufficient-msg");
 
     const change = receivedVal - total;
 
@@ -12346,7 +12536,15 @@ export function calculateWalkinCashChange(total = null) {
         changeDisplay?.classList.remove("hidden");
         remainingDisplay?.classList.add("hidden");
         alertEl?.classList.add("hidden");
-        if (completeBtn) completeBtn.disabled = !isRxAllowed;
+
+        if (calcChangeVal) calcChangeVal.textContent = formatUGX(change);
+        calcChangeRow?.classList.remove("hidden");
+        calcBalanceRow?.classList.add("hidden");
+        calcAlertEl?.classList.add("hidden");
+
+        const canComplete = isRxAllowed;
+        if (completeBtn) completeBtn.disabled = !canComplete;
+        if (calcCompleteBtn) calcCompleteBtn.disabled = !canComplete;
       } else {
         const remaining = total - receivedVal;
         if (changeValEl) {
@@ -12358,16 +12556,35 @@ export function calculateWalkinCashChange(total = null) {
           remainingValEl.textContent = formatUGX(remaining);
         }
         remainingDisplay?.classList.remove("hidden");
-        if (receivedVal > 0) alertEl?.classList.remove("hidden");
-        else alertEl?.classList.add("hidden");
+
+        if (calcBalanceVal) calcBalanceVal.textContent = formatUGX(remaining);
+        calcChangeRow?.classList.add("hidden");
+        calcBalanceRow?.classList.remove("hidden");
+
+        if (receivedVal > 0) {
+          alertEl?.classList.remove("hidden");
+          calcAlertEl?.classList.remove("hidden");
+        } else {
+          alertEl?.classList.add("hidden");
+          calcAlertEl?.classList.add("hidden");
+        }
+
         if (completeBtn) completeBtn.disabled = true;
+        if (calcCompleteBtn) calcCompleteBtn.disabled = true;
       }
     } else {
       if (changeValEl) changeValEl.textContent = "UGX 0";
       changeDisplay?.classList.remove("hidden");
       remainingDisplay?.classList.add("hidden");
       alertEl?.classList.add("hidden");
+
+      if (calcChangeVal) calcChangeVal.textContent = "UGX 0";
+      calcChangeRow?.classList.remove("hidden");
+      calcBalanceRow?.classList.add("hidden");
+      calcAlertEl?.classList.add("hidden");
+
       if (completeBtn) completeBtn.disabled = true;
+      if (calcCompleteBtn) calcCompleteBtn.disabled = true;
     }
   } else if (activeWalkinPaymentMethod === "MTN Mobile Money" || activeWalkinPaymentMethod === "Airtel Money") {
     const phoneInput = $("#walkin-momo-phone");
@@ -12380,14 +12597,14 @@ export function calculateWalkinCashChange(total = null) {
       isPrefixValid = ["070", "074", "075"].some(p => phone.startsWith(p));
     }
 
-    if (completeBtn) {
-      completeBtn.disabled = !(activeWalkinCart.length > 0 && total > 0 && isValidPhone && isPrefixValid && isRxAllowed);
-    }
+    const canComplete = activeWalkinCart.length > 0 && total > 0 && isValidPhone && isPrefixValid && isRxAllowed;
+    if (completeBtn) completeBtn.disabled = !canComplete;
+    if (calcCompleteBtn) calcCompleteBtn.disabled = !canComplete;
   } else {
     // Card / POS
-    if (completeBtn) {
-      completeBtn.disabled = !(activeWalkinCart.length > 0 && total > 0 && isRxAllowed);
-    }
+    const canComplete = activeWalkinCart.length > 0 && total > 0 && isRxAllowed;
+    if (completeBtn) completeBtn.disabled = !canComplete;
+    if (calcCompleteBtn) calcCompleteBtn.disabled = !canComplete;
   }
 }
 
@@ -12404,6 +12621,27 @@ export function openPosCalculator() {
   posCalcExpression = "0";
   posCalcPrevious = "";
   updatePosCalcDisplay();
+
+  const fin = getWalkinSaleFinancials();
+  if ($("#pos-calc-subtotal-val")) $("#pos-calc-subtotal-val").textContent = formatUGX(fin.subtotal);
+  if ($("#pos-calc-discount-val")) {
+    if (activeWalkinDiscountMode === "pct" && fin.rawDiscountInput > 0) {
+      $("#pos-calc-discount-val").textContent = `- ${formatUGX(fin.discount)} (${fin.rawDiscountInput}%)`;
+    } else {
+      $("#pos-calc-discount-val").textContent = "- " + formatUGX(fin.discount);
+    }
+  }
+  if ($("#pos-calc-total-val")) $("#pos-calc-total-val").textContent = formatUGX(fin.totalDue);
+  const countEl = $("#pos-calc-cart-badge");
+  const totalCount = activeWalkinCart.reduce((sum, i) => sum + i.quantity, 0);
+  if (countEl) countEl.textContent = `${totalCount} ${totalCount === 1 ? "item" : "items"}`;
+
+  const mainCash = $("#walkin-cash-received")?.value || "";
+  const calcCash = $("#pos-calc-cash-input");
+  if (calcCash) calcCash.value = mainCash;
+
+  calculateWalkinCashChange(fin.totalDue);
+
   const dlg = $("#pos-calculator-dialog");
   if (dlg) {
     if (typeof dlg.showModal === "function") dlg.showModal();
@@ -12559,6 +12797,10 @@ export async function completeWalkinSale() {
     : Math.max(0, rawDiscountInput);
   const discount = Math.min(Math.max(0, discountAmount), subtotal);
   const total = Math.max(0, subtotal - discount);
+  if (total <= 0) {
+    showToast("Cannot complete sale with zero or negative total amount.", "error");
+    return;
+  }
 
   // Prescription clinical review safety gate
   const hasRx = activeWalkinCart.some(i => i.product.requiresPrescription);
@@ -12605,9 +12847,13 @@ export async function completeWalkinSale() {
   const origBtnText = completeBtn ? completeBtn.textContent : "COMPLETE SALE";
 
   if (activeWalkinPaymentMethod === "Cash") {
-    amountReceived = parseFloat($("#walkin-cash-received")?.value || 0) || 0;
+    const cashVal = ($("#walkin-cash-received")?.value !== undefined && $("#walkin-cash-received")?.value !== "") 
+      ? $("#walkin-cash-received").value 
+      : ($("#pos-calc-cash-input")?.value || 0);
+    amountReceived = parseFloat(cashVal || 0) || 0;
     if (amountReceived < total) {
-      showToast(`Insufficient cash received. Received: ${formatUGX(amountReceived)}, Total: ${formatUGX(total)}.`, "error");
+      showToast("Insufficient payment. Please enter enough cash.", "error");
+      console.warn("Insufficient cash received. Received:", amountReceived, "Total:", total);
       return;
     }
     changeGiven = amountReceived - total;
@@ -12849,8 +13095,13 @@ export async function completeWalkinSale() {
   // Update counter stats strip
   updateWalkinStatsStrip();
 
-  // Close POS dialog
+  // Close POS dialogs & reset sale state
   closeWalkinSaleModal();
+  closePosCalculator();
+  activeWalkinCart = [];
+  if ($("#walkin-discount-input")) $("#walkin-discount-input").value = "0";
+  if ($("#walkin-cash-received")) $("#walkin-cash-received").value = "";
+  if ($("#pos-calc-cash-input")) $("#pos-calc-cash-input").value = "";
 
   // Open receipt modal
   showReceiptModal(newSaleOrder);
@@ -15244,8 +15495,30 @@ function bindEventListeners() {
     });
   });
 
-  $("#walkin-cash-received")?.addEventListener("input", () => {
+  const syncMainCashToCalc = () => {
+    const val = $("#walkin-cash-received")?.value || "";
+    const calcInput = $("#pos-calc-cash-input");
+    if (calcInput && calcInput.value !== val) {
+      calcInput.value = val;
+    }
     calculateWalkinCashChange();
+  };
+  $("#walkin-cash-received")?.addEventListener("input", syncMainCashToCalc);
+  $("#walkin-cash-received")?.addEventListener("keyup", syncMainCashToCalc);
+
+  const syncCalcCashToMain = () => {
+    const val = $("#pos-calc-cash-input")?.value || "";
+    const mainInput = $("#walkin-cash-received");
+    if (mainInput && mainInput.value !== val) {
+      mainInput.value = val;
+    }
+    calculateWalkinCashChange();
+  };
+  $("#pos-calc-cash-input")?.addEventListener("input", syncCalcCashToMain);
+  $("#pos-calc-cash-input")?.addEventListener("keyup", syncCalcCashToMain);
+
+  $("#pos-calc-complete-btn")?.addEventListener("click", () => {
+    completeWalkinSale();
   });
 
   $("#walkin-discount-input")?.addEventListener("input", () => {
@@ -15280,6 +15553,16 @@ function bindEventListeners() {
 
   $("#walkin-confirm-clear-btn")?.addEventListener("click", () => {
     activeWalkinCart = [];
+    const discountInput = $("#walkin-discount-input");
+    if (discountInput) discountInput.value = "0";
+    const cashInput = $("#walkin-cash-received");
+    if (cashInput) cashInput.value = "";
+    const calcCashInput = $("#pos-calc-cash-input");
+    if (calcCashInput) calcCashInput.value = "";
+    posCalcExpression = "0";
+    posCalcPrevious = "";
+    updatePosCalcDisplay();
+
     const dlg = $("#walkin-clear-confirm-dialog");
     if (dlg) {
       if (typeof dlg.close === "function") dlg.close();
@@ -15310,8 +15593,11 @@ function bindEventListeners() {
   $("#pos-calc-apply-cash")?.addEventListener("click", () => {
     const num = parseFloat(posCalcExpression);
     const cashInput = $("#walkin-cash-received");
-    if (cashInput && !isNaN(num) && num >= 0) {
-      cashInput.value = Math.round(num);
+    const calcCash = $("#pos-calc-cash-input");
+    if (!isNaN(num) && num >= 0) {
+      const rounded = Math.round(num);
+      if (cashInput) cashInput.value = rounded;
+      if (calcCash) calcCash.value = rounded;
       calculateWalkinCashChange();
       closePosCalculator();
     }
