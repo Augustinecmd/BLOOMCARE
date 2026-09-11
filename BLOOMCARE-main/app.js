@@ -11560,6 +11560,26 @@ function openCheckoutDialog() {
   const modal = $("#checkout-dialog");
   if (!modal) return;
 
+  STATE.isPlacingOrder = false;
+  const submitBtn = $("#checkout-form button[type='submit']");
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.textContent = "Place Order & Generate Reference";
+  }
+
+  // Ensure fulfillment option UI is properly synchronized
+  const fulfillSelect = $("#chk-fulfillment-option");
+  if (fulfillSelect) {
+    fulfillSelect.value = STATE.fulfillmentOption || "delivery";
+  }
+  if (STATE.fulfillmentOption === "pickup") {
+    $("#chk-delivery-fields")?.classList.add("hidden");
+    $("#chk-pickup-fields")?.classList.remove("hidden");
+  } else {
+    $("#chk-delivery-fields")?.classList.remove("hidden");
+    $("#chk-pickup-fields")?.classList.add("hidden");
+  }
+
   if (STATE.cart.length === 0) return openNotice("Cart Empty", "Please add items to cart before checkout.");
 
   const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * i.quantity), 0);
@@ -12111,7 +12131,7 @@ async function handleCheckoutOrder(e) {
   const submitBtn = $("#checkout-form button[type='submit']");
   if (submitBtn) {
     submitBtn.disabled = false;
-    submitBtn.textContent = "Confirm & Place Order";
+    submitBtn.textContent = originalBtnText || "Place Order & Generate Reference";
   }
 }
 }
@@ -14613,12 +14633,6 @@ function bindEventListeners() {
     } else {
       $("#chk-delivery-fields")?.classList.remove("hidden");
       $("#chk-pickup-fields")?.classList.add("hidden");
-      const isUsingSaved = $("#chk-location-inputs-wrap")?.classList.contains("hidden");
-      if (!isUsingSaved) {
-        $("#chk-delivery-division")?.setAttribute("required", "true");
-        $("#chk-delivery-area")?.setAttribute("required", "true");
-        $("#chk-delivery-specific")?.setAttribute("required", "true");
-      }
     }
     const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * i.quantity), 0);
     const fee = val === "pickup" ? 0 : STATE.deliveryFee;

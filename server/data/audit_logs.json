@@ -1,5 +1,25 @@
 [
   {
+    "id": "AUDIT-1789142578626",
+    "timestamp": "2026-09-11 16:02:58 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
+    "id": "AUDIT-1789142082173",
+    "timestamp": "2026-09-11 15:54:42 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "TEST_ACTION",
+    "affectedUser": "Grace Nakato",
+    "affectedUserId": "usr-cust-101",
+    "description": "Automated unit test audit entry"
+  },
+  {
     "id": "AUDIT-1789126999888",
     "timestamp": "2026-09-11 11:43:19 UTC",
     "admin": "Dr. Admin Mugisha",

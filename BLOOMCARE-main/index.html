@@ -494,9 +494,14 @@
       <!-- MODULE 4: ORDERS MODULE (#orders) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-orders">
-        <div class="page-header-block">
-          <h1 class="page-title" id="orders-page-title">Orders</h1>
-          <p class="page-desc" id="orders-page-desc">Track and manage customer orders.</p>
+        <div class="page-header-block flex-between" style="flex-wrap:wrap; gap:10px;">
+          <div>
+            <h1 class="page-title" id="orders-page-title">Orders</h1>
+            <p class="page-desc" id="orders-page-desc">Track and manage customer orders.</p>
+          </div>
+          <button class="btn btn-primary btn-sm" id="btn-orders-place-order" type="button" data-route="medicines" style="display:inline-flex; align-items:center; gap:6px;">
+            <span>+ Place New Order</span>
+          </button>
         </div>
 
         <div class="content-card">
@@ -2085,7 +2090,7 @@
     <h2>Complete Checkout &amp; Payment</h2>
     <button class="dialog-close-btn" id="close-checkout-modal">&times;</button>
   </div>
-  <form id="checkout-form" class="checkout-form-body">
+  <form id="checkout-form" class="checkout-form-body" novalidate>
     <h4 style="margin-top:4px;">1. Customer Information</h4>
     <div class="form-row-2">
       <label>Full Name<input type="text" id="chk-name" required /></label>
@@ -2121,7 +2126,7 @@
 
         <div class="form-row-2">
           <label>Mbarara City Division
-            <select id="chk-delivery-division" required>
+            <select id="chk-delivery-division">
               <option value="">-- Select Division --</option>
               <option value="Kamukuzi">Kamukuzi</option>
               <option value="Kakoba">Kakoba</option>
@@ -2132,7 +2137,7 @@
             </select>
           </label>
           <label>Area / Neighborhood
-            <select id="chk-delivery-area" required disabled>
+            <select id="chk-delivery-area" disabled>
               <option value="">-- First Select Division --</option>
             </select>
           </label>
@@ -2145,7 +2150,7 @@
         </div>
 
         <label>Specific Location &amp; Landmark
-          <input type="text" id="chk-delivery-specific" placeholder="e.g. Near Kiyanja Market, Plot 4, Blue gate, Opposite School" required />
+          <input type="text" id="chk-delivery-specific" placeholder="e.g. Near Kiyanja Market, Plot 4, Blue gate, Opposite School" />
         </label>
 
         <label>Additional Delivery Instructions (Optional)
