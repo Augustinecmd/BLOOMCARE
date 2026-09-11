@@ -3070,6 +3070,7 @@
 </dialog>
 
 <!-- 10A. Online Order Confirmation Dialog (Clean Screen, No Counter Receipt Required) -->
+<!-- 10A. Online Order Confirmation Dialog (Complete Payment + Delivery Experience) -->
 <dialog id="order-confirmation-dialog" class="order-confirm-dialog" aria-labelledby="order-confirm-modal-title">
   <div class="order-confirm-header">
     <div class="order-confirm-header-main">
@@ -3079,6 +3080,8 @@
       <div>
         <h2 id="order-confirm-modal-title" class="order-confirm-title">Order Confirmed!</h2>
         <p class="order-confirm-subtitle">Your online order has been placed and payment confirmed.</p>
+        <h2 id="order-confirm-modal-title" class="order-confirm-title">✓ ORDER CREATED SUCCESSFULLY</h2>
+        <p class="order-confirm-subtitle" id="order-confirm-modal-sub">Thank you for ordering from BloomCare Pharmacy.</p>
       </div>
     </div>
     <button class="dialog-close-btn" id="close-order-confirm-modal" type="button" aria-label="Close confirmation">&times;</button>
@@ -3090,19 +3093,33 @@
       <div class="order-confirm-row-grid">
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Order Number</span>
+          <span class="confirm-cell-label">Order Reference</span>
           <strong class="confirm-cell-value order-ref-text" id="confirm-order-number">BC-20260905-00000</strong>
         </div>
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Order Status</span>
           <span class="confirm-status-pill" id="confirm-order-status">Confirmed</span>
+          <span class="confirm-cell-label">Delivery Status</span>
+          <span class="confirm-status-pill" id="confirm-order-status">Order Placed</span>
         </div>
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Payment Status</span>
           <span class="confirm-payment-badge" id="confirm-payment-status">PAID ✓</span>
+          <span class="confirm-payment-badge" id="confirm-payment-status">🟠 Payment Pending</span>
         </div>
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Delivery Fee</span>
           <strong class="confirm-cell-value" id="confirm-delivery-fee">UGX 5,000</strong>
+        </div>
+      </div>
+      <!-- Large Prominent Total Payable & Payment Status Message -->
+      <div style="margin-top:12px; padding-top:10px; border-top:1px dashed #cbd5e1; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div>
+          <span style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.5px;">Total Payable</span>
+          <div style="font-size:22px; font-weight:800; color:#0f766e;" id="confirm-total-payable-highlight">UGX 0</div>
+        </div>
+        <div id="confirm-payment-note-box" style="font-size:12px; line-height:1.4; color:var(--text-main); text-align:right;">
+          <span id="confirm-payment-note" style="color:#b45309; font-weight:600;">🟠 Awaiting mobile money confirmation</span>
         </div>
       </div>
     </div>
@@ -3115,12 +3132,32 @@
       </div>
       <div class="confirm-delivery-details">
         <div class="confirm-info-row">
+          <span class="info-label">Fulfillment:</span>
+          <strong class="info-val" id="confirm-fulfillment-method">Doorstep Delivery — Mbarara City</strong>
+        </div>
+        <div class="confirm-info-row">
           <span class="info-label">Delivery Location:</span>
           <strong class="info-val" id="confirm-delivery-location">Booma, Kamukuzi, Mbarara City</strong>
+        </div>
+        <div class="confirm-info-row" id="confirm-division-row" style="display:none;">
+          <span class="info-label">Division:</span>
+          <span class="info-val" id="confirm-delivery-division">Kamukuzi</span>
+        </div>
+        <div class="confirm-info-row" id="confirm-area-row" style="display:none;">
+          <span class="info-label">Area / Neighborhood:</span>
+          <span class="info-val" id="confirm-delivery-area">Booma</span>
+        </div>
+        <div class="confirm-info-row" id="confirm-specific-row" style="display:none;">
+          <span class="info-label">Specific Location:</span>
+          <span class="info-val" id="confirm-delivery-specific">Plot 14, Kiyanja Road</span>
         </div>
         <div class="confirm-info-row" id="confirm-landmark-row">
           <span class="info-label">Landmark / Note:</span>
           <span class="info-val" id="confirm-landmark-text">Near Regional Hospital</span>
+        </div>
+        <div class="confirm-info-row" id="confirm-instructions-row" style="display:none;">
+          <span class="info-label">Instructions:</span>
+          <span class="info-val" id="confirm-delivery-instructions">Call upon arrival</span>
         </div>
         <div class="confirm-info-row">
           <span class="info-label">Estimated Delivery:</span>
@@ -3130,18 +3167,25 @@
     </div>
 
     <!-- Assigned Delivery Man Card -->
+    <!-- Assigned Delivery Man Card (Rendered Only When Courier Assigned) -->
     <div class="order-confirm-card order-confirm-driver-card" id="confirm-driver-card">
       <div class="confirm-section-header">
         <span class="confirm-section-icon">🛵</span>
         <h3 class="confirm-section-title">Assigned Delivery Man</h3>
+        <h3 class="confirm-section-title">Delivery Courier</h3>
       </div>
       <div class="confirm-driver-box">
+      <div class="confirm-driver-box" id="confirm-driver-assigned-content">
         <div class="driver-avatar-circle" id="confirm-driver-avatar">MK</div>
         <div class="driver-info-wrap">
           <strong class="driver-name-text" id="confirm-driver-name">Moses Kato</strong>
           <span class="driver-phone-text" id="confirm-driver-phone">📞 0700 000 005</span>
           <span class="driver-status-badge" id="confirm-driver-status">Assigned &amp; Dispatching</span>
+          <span class="driver-status-badge" id="confirm-driver-status">🟢 Assigned</span>
         </div>
+      </div>
+      <div id="confirm-driver-unassigned-notice" class="hidden" style="padding:10px 0; font-size:12.5px; color:var(--muted); text-align:center;">
+        🛵 Matching available delivery courier in Mbarara City...
       </div>
     </div>
 
@@ -3156,6 +3200,7 @@
       </div>
       <div class="confirm-total-row">
         <span>Total Paid:</span>
+        <span>Total Payable:</span>
         <strong id="confirm-total-val">UGX 0</strong>
       </div>
     </div>
@@ -3165,13 +3210,142 @@
   <div class="order-confirm-actions">
     <button class="btn btn-primary btn-lg order-confirm-chat-action" id="order-confirm-chat-btn" type="button">
       <span class="btn-icon">💬</span> Chat with Delivery Man
+    <!-- Prominent Primary Payment Action -->
+    <button class="btn btn-primary btn-block" id="order-confirm-pay-btn" type="button" style="padding:12px; font-size:15px; font-weight:700;">
+      <span>💳 CONTINUE PAYMENT</span>
     </button>
     <button class="btn btn-outline" id="order-confirm-view-orders-btn" type="button">
       View in My Orders
+    <button class="btn btn-outline btn-sm hidden" id="order-confirm-check-pay-btn" type="button">
+      <span>🔄 CHECK PAYMENT STATUS</span>
     </button>
     <button class="btn btn-secondary" id="order-confirm-continue-btn" type="button">
       Continue Shopping
+    <button class="btn btn-warning btn-sm hidden" id="order-confirm-retry-pay-btn" type="button">
+      <span>⚠️ RETRY PAYMENT</span>
     </button>
+
+    <!-- Courier Contact Actions (Shown Only When Courier Assigned) -->
+    <div id="confirm-driver-actions-row" class="driver-contact-actions-row" style="display:flex; gap:8px; width:100%; flex-wrap:wrap; margin-top:4px;">
+      <button class="btn btn-primary btn-sm order-confirm-chat-action" id="order-confirm-chat-btn" type="button" style="flex:1; min-width:140px;">
+        <span class="btn-icon">💬</span> Chat with Delivery Person
+      </button>
+      <a class="btn btn-whatsapp btn-sm" id="order-confirm-whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:#25D366; color:#ffffff; font-weight:600; text-decoration:none; padding:8px 14px; border-radius:var(--radius-xs); border:none;">
+        <span>💬 Chat on WhatsApp</span>
+      </a>
+      <a class="btn btn-call btn-sm" id="order-confirm-call-btn" href="#" style="display:inline-flex; align-items:center; gap:6px; background:#0284c7; color:#ffffff; font-weight:600; text-decoration:none; padding:8px 14px; border-radius:var(--radius-xs); border:none;">
+        <span>📞 Call Delivery Person</span>
+      </a>
+    </div>
+
+    <!-- Navigation & Secondary Actions -->
+    <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap; margin-top:4px;">
+      <button class="btn btn-outline btn-sm" id="order-confirm-track-btn" type="button" style="flex:1;">
+        📍 TRACK ORDER
+      </button>
+      <button class="btn btn-outline btn-sm" id="order-confirm-view-orders-btn" type="button" style="flex:1;">
+        View in My Orders
+      </button>
+      <button class="btn btn-secondary btn-sm" id="order-confirm-continue-btn" type="button" style="flex:1;">
+        Continue Shopping
+      </button>
+    </div>
+  </div>
+</dialog>
+
+<!-- 10A2. Dedicated Customer Order Payment Modal (MTN MoMo, Airtel Money, COD) -->
+<dialog id="order-payment-dialog" class="consult-pay-dialog">
+  <div class="dialog-header">
+    <div class="consult-pay-title-group">
+      <h2 id="order-pay-modal-title" style="margin:0; font-size:17px; color:var(--text-main);">Complete Order Payment</h2>
+      <p class="consult-modal-subtitle" id="order-pay-modal-sub" style="margin:2px 0 0; font-size:12px; color:var(--muted);">Secure Mobile Money &amp; Doorstep Payment</p>
+    </div>
+    <button class="dialog-close-btn" id="close-order-pay-modal" type="button" aria-label="Close payment modal">&times;</button>
+  </div>
+
+  <div class="consult-pay-content" style="padding:16px 20px;">
+    <!-- Order Summary Card -->
+    <div class="consult-summary-card" style="margin-bottom:14px;">
+      <div class="consult-summary-header" style="display:flex; justify-content:space-between; align-items:center;">
+        <div>
+          <span style="font-size:11px; font-weight:700; color:var(--muted); text-transform:uppercase;">Order Reference</span>
+          <h4 id="order-pay-summary-ref" style="margin:2px 0 0; font-size:15px; color:var(--text-main);">BC-20260905-00000</h4>
+        </div>
+        <div class="consult-fee-badge-box" style="text-align:right;">
+          <span class="consult-fee-label" style="font-size:11px; color:var(--muted);">Total Payable</span>
+          <div class="consult-fee-amount" id="order-pay-total-val" style="font-size:18px; font-weight:800; color:#0f766e;">UGX 0</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Provider Selection (MTN MoMo vs Airtel Money) -->
+    <div id="order-pay-method-block" class="pay-method-selection-block" style="margin-bottom:14px;">
+      <label class="pay-section-label" style="display:block; font-weight:600; font-size:13px; margin-bottom:8px;">Select Mobile Money Provider</label>
+      <div class="pay-method-tabs" role="tablist" style="display:flex; gap:10px;">
+        <button type="button" class="pay-method-card active-method" id="order-pay-select-mtn" data-provider="MTN MoMo" style="flex:1; padding:10px; border:2px solid #0f766e; border-radius:8px; background:#f0fdf4; cursor:pointer; text-align:left;">
+          <div class="pay-method-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:#eab308; font-size:13px;">MTN MoMo</strong>
+            <span style="font-size:11px; font-weight:700; background:#fef9c3; color:#854d0e; padding:2px 6px; border-radius:4px;">*165#</span>
+          </div>
+          <p style="margin:4px 0 0; font-size:11.5px; color:var(--muted);">MTN Mobile Money Approval</p>
+        </button>
+        <button type="button" class="pay-method-card" id="order-pay-select-airtel" data-provider="Airtel Money" style="flex:1; padding:10px; border:1px solid var(--border-color); border-radius:8px; background:var(--bg-card); cursor:pointer; text-align:left;">
+          <div class="pay-method-card-header" style="display:flex; justify-content:space-between; align-items:center;">
+            <strong style="color:#ef4444; font-size:13px;">Airtel Money</strong>
+            <span style="font-size:11px; font-weight:700; background:#fee2e2; color:#991b1b; padding:2px 6px; border-radius:4px;">*185#</span>
+          </div>
+          <p style="margin:4px 0 0; font-size:11.5px; color:var(--muted);">Airtel Money Approval</p>
+        </button>
+      </div>
+    </div>
+
+    <!-- Phone Number Input Form -->
+    <div id="order-pay-phone-block" style="margin-bottom:14px;">
+      <label for="order-pay-phone-input" style="display:block; font-size:13px; font-weight:600; margin-bottom:4px;">Registered Mobile Money Phone Number</label>
+      <input type="tel" id="order-pay-phone-input" class="form-control" placeholder="0772 123 456" style="width:100%; padding:9px 12px; border:1px solid var(--border-color); border-radius:var(--radius-xs); font-size:14px;" />
+      <small id="order-pay-phone-help" class="muted" style="display:block; margin-top:4px; font-size:11.5px;">Enter a valid 10-digit Ugandan phone number (076, 077, 078 for MTN | 070, 074, 075 for Airtel)</small>
+    </div>
+
+    <!-- COD Instructions (Shown for Cash on Delivery) -->
+    <div id="order-pay-cod-block" class="hidden" style="background:#f0fdf4; border:1px solid #bbf7d0; border-radius:var(--radius-sm); padding:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+        <span style="font-size:16px;">💵</span>
+        <strong style="color:#166534; font-size:13.5px;">Cash on Doorstep Delivery</strong>
+      </div>
+      <p style="margin:0; font-size:12px; color:#14532d; line-height:1.4;">
+        Please prepare the exact cash amount for your courier upon doorstep arrival. Your order remains marked <strong>Payment Pending</strong> until verified by your courier.
+      </p>
+    </div>
+
+    <!-- Awaiting Confirmation / Polling Banner -->
+    <div id="order-pay-status-card" class="hidden" style="background:#fefce8; border:1px solid #fef08a; border-radius:var(--radius-sm); padding:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span id="order-pay-status-spinner" style="font-size:20px;">⏳</span>
+        <div>
+          <strong id="order-pay-status-title" style="font-size:13.5px; color:#854d0e;">Payment awaiting confirmation...</strong>
+          <p id="order-pay-status-desc" style="margin:2px 0 0; font-size:12px; color:#713f12; line-height:1.4;">Approval prompt dispatched to your phone. Please approve with your mobile money PIN.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Success Confirmation Box -->
+    <div id="order-pay-success-card" class="hidden" style="background:#f0fdf4; border:1px solid #86efac; border-radius:var(--radius-sm); padding:12px; margin-bottom:14px;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <span style="font-size:22px; color:#16a34a;">✓</span>
+        <div>
+          <strong style="font-size:14px; color:#15803d;">Payment Confirmed!</strong>
+          <p id="order-pay-success-desc" style="margin:2px 0 0; font-size:12px; color:#166534;">Your payment was verified successfully. Transaction Reference: <strong id="order-pay-txn-id"></strong></p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Action Buttons -->
+    <div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end;">
+      <button type="button" class="btn btn-outline" id="order-pay-cancel-btn">Cancel</button>
+      <button type="button" class="btn btn-primary" id="order-pay-submit-btn">Authorize &amp; Pay</button>
+      <button type="button" class="btn btn-outline hidden" id="order-pay-check-status-btn">Check Payment Status</button>
+      <button type="button" class="btn btn-warning hidden" id="order-pay-retry-btn">Try Payment Again</button>
+    </div>
   </div>
 </dialog>
 

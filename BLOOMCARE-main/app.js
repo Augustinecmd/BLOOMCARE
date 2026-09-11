@@ -2331,18 +2331,65 @@ export function handleAppSyncMessage(event) {
     }
   } else if (type === "DELIVERY_STATUS_UPDATED" && payload?.orderId) {
     const { orderId, status } = payload;
+  } else if ((type === "DELIVERY_STATUS_UPDATED" || type === "ORDER_DELIVERY_STATUS_CHANGED") && (payload?.orderId || payload?.orderNumber)) {
+    const orderId = payload.orderId || payload.orderNumber;
+    const status = payload.status || payload.deliveryStatus;
     const ord = STATE.orders.find(o => o.id === orderId || o.orderNumber === orderId);
     if (ord) ord.orderStatus = status;
     const del = STATE.deliveries.find(d => d.orderId === orderId || d.orderNumber === orderId);
     if (del) del.status = status;
+    if (ord) {
+      if (status) ord.orderStatus = status;
+      if (payload.deliveryStatus) ord.deliveryStatus = payload.deliveryStatus;
+      if (payload.deliveryManName) ord.deliveryManName = payload.deliveryManName;
+      if (payload.deliveryManPhone) ord.deliveryManPhone = payload.deliveryManPhone;
+      if (payload.deliveryManId) ord.deliveryManId = payload.deliveryManId;
+    }
+    const del = STATE.deliveries.find(d => d.orderId === orderId || d.orderNumber === orderId || d.id === payload.deliveryId);
+    if (del) {
+      if (status) del.status = status;
+      if (payload.deliveryManName) del.deliveryStaffName = payload.deliveryManName;
+      if (payload.deliveryManId) del.deliveryManId = payload.deliveryManId;
+    }
     const conv = STATE.conversations.find(c => c.orderId === orderId || c.orderNumber === orderId);
     if (conv) conv.deliveryStatus = status;
+    if (conv) {
+      if (payload.deliveryStatus) conv.deliveryStatus = payload.deliveryStatus;
+      if (payload.deliveryManName) conv.deliveryManName = payload.deliveryManName;
+      if (payload.deliveryManId) conv.deliveryManId = payload.deliveryManId;
+    }
 
+    if (STATE.activeConfirmationOrder && (STATE.activeConfirmationOrder.id === orderId || STATE.activeConfirmationOrder.orderNumber === orderId)) {
+      if (ord && typeof showOrderConfirmationModal === "function") showOrderConfirmationModal(ord);
+    }
     if (STATE.currentRoute === "delivery_person/dashboard" || STATE.currentRoute === "customer/dashboard" || STATE.currentRoute === "dashboard") {
       renderRoleDashboard();
     } else if (STATE.currentRoute === "deliveries") {
       renderDeliveriesView();
     } else if (STATE.currentRoute === "orders" || STATE.currentRoute === "customer/orders") {
+      renderOrdersView();
+    }
+    if (typeof updateOrderTrackingModalIfOpen === "function") {
+      updateOrderTrackingModalIfOpen(orderId);
+    }
+  } else if (type === "ORDER_PAYMENT_CONFIRMED" && (payload?.orderId || payload?.orderNumber)) {
+    const orderId = payload.orderId || payload.orderNumber;
+    const ord = STATE.orders.find(o => o.id === orderId || o.orderNumber === orderId);
+    if (ord) {
+      ord.paymentStatus = "PAID";
+      if (payload.transactionId) ord.paymentReference = payload.transactionId;
+      if (payload.deliveryAssignment?.deliveryManId) {
+        ord.deliveryManId = payload.deliveryAssignment.deliveryManId;
+        ord.deliveryManName = payload.deliveryAssignment.deliveryManName;
+        ord.deliveryManPhone = payload.deliveryAssignment.deliveryManPhone;
+        ord.deliveryStatus = "ASSIGNED";
+        ord.orderStatus = "Assigned";
+      }
+    }
+    if (STATE.activeConfirmationOrder && (STATE.activeConfirmationOrder.id === orderId || STATE.activeConfirmationOrder.orderNumber === orderId)) {
+      if (ord && typeof showOrderConfirmationModal === "function") showOrderConfirmationModal(ord);
+    }
+    if (STATE.currentRoute === "orders" || STATE.currentRoute === "customer/orders") {
       renderOrdersView();
     }
     if (typeof updateOrderTrackingModalIfOpen === "function") {
@@ -7316,6 +7363,12 @@ export function openOrderTrackingModal(orderId) {
     { key: "Ready", label: "Ready" },
     { key: isPickup ? "Ready for Pickup" : "Out for Delivery", label: isPickup ? "Ready for Pickup" : "Out for Delivery" },
     { key: "Delivered", label: isPickup ? "Collected" : "Completed" }
+    { key: "Placed", label: "Order Placed" },
+    { key: "Payment", label: isPickup ? "Payment Confirmed" : "Payment Confirmed" },
+    { key: "Preparing", label: "Order Being Prepared" },
+    { key: "Assigned", label: isPickup ? "Ready for Pickup" : "Delivery Assigned" },
+    { key: "Out", label: isPickup ? "At Dispensary" : "Out for Delivery" },
+    { key: "Delivered", label: isPickup ? "Collected" : "Delivered" }
   ];
 
     // Map order status to stage index
@@ -7331,28 +7384,85 @@ export function openOrderTrackingModal(orderId) {
       "Completed": 5
     };
     const currentRank = statusRank[order.orderStatus] ?? 0;
+  const isPaid = (order.paymentStatus || "").toUpperCase() === "PAID" || (order.paymentStatus || "").toUpperCase() === "SUCCESSFUL";
+  const stLower = (order.deliveryStatus || order.orderStatus || "").toLowerCase();
+  const isDelivered = stLower.includes("delivered") || stLower.includes("completed");
+  const isOut = stLower.includes("out") || stLower.includes("transit");
+  const isAssigned = Boolean((order.deliveryManId && order.deliveryManName && order.deliveryManName !== "Unassigned" && order.deliveryManName !== "Pending Assignment") || stLower.includes("assigned"));
+  const isPreparing = stLower.includes("processing") || stLower.includes("prepar") || stLower.includes("ready");
 
     const driverName = order.assignedStaff || "Unassigned";
     const hasAssignedDriver = !isPickup && driverName && driverName !== "Unassigned" && driverName !== "Pending Assignment";
     const canChat = hasAssignedDriver && order.orderStatus !== "Cancelled";
+  let currentRank = 0;
+  if (isDelivered) currentRank = 5;
+  else if (isOut) currentRank = 4;
+  else if (isAssigned) currentRank = 3;
+  else if (isPreparing) currentRank = 2;
+  else if (isPaid) currentRank = 1;
+  else currentRank = 0;
 
     $("#tracking-modal-content").innerHTML = `
       <div style="background:var(--bg-page); padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
         <div class="flex-between">
           <strong>Order Reference: ${escapeHtml(order.orderNumber || order.id)}</strong>
           <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, "_")}">${escapeHtml(order.orderStatus)}</span>
+  const driverName = order.deliveryManName || order.assignedStaff || "Unassigned";
+  const hasAssignedDriver = !isPickup && driverName && driverName !== "Unassigned" && driverName !== "Pending Assignment" && driverName !== "Waiting for Available Delivery Man";
+  const driverPhone = order.deliveryManPhone || "0700000005";
+  const cleanPhone = driverPhone.replace(/\D/g, "");
+  const waPhone = cleanPhone.startsWith("0") ? "256" + cleanPhone.slice(1) : cleanPhone;
+  const waText = encodeURIComponent(`Hello, I am tracking my BloomCare Pharmacy order ${order.orderNumber || order.id}.`);
+
+  $("#tracking-modal-content").innerHTML = `
+    <div style="background:var(--bg-page); padding:12px; border-radius:var(--radius-sm); margin-bottom:14px;">
+      <div class="flex-between">
+        <strong>Order Reference: ${escapeHtml(order.orderNumber || order.id)}</strong>
+        <div style="display:flex; gap:6px; align-items:center;">
+          <span class="status-pill status-${(order.paymentStatus || 'pending').toLowerCase().replace(/ /g, '_')}">${isPaid ? 'PAID ✓' : 'Payment Pending'}</span>
+          <span class="status-pill status-${(order.deliveryStatus || order.orderStatus || 'confirmed').toLowerCase().replace(/ /g, '_')}">${escapeHtml(order.deliveryStatus || order.orderStatus)}</span>
         </div>
         <div style="font-size:12.5px; margin-top:4px; color:var(--muted);">
           ${isPickup ? "Fulfillment: Pharmacy Pickup (Near Mbarara Regional Referral Hospital, Opp. Rubis Station)" : `Fulfillment: Doorstep Delivery to ${escapeHtml(order.deliveryAddress)}`}
+      </div>
+      <div style="font-size:12.5px; margin-top:6px; color:var(--muted);">
+        ${isPickup ? "Fulfillment: Pharmacy Pickup (Near Mbarara Regional Referral Hospital, Opp. Rubis Station)" : `Fulfillment: Doorstep Delivery to ${escapeHtml(order.deliveryAddress)}`}
+      </div>
+      ${!isPickup && (order.deliveryDivision || order.deliveryArea) ? `
+        <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+          <span style="font-size:11px; font-weight:700; color:var(--text-main);">Delivery Zone:</span>
+          ${order.deliveryDivision ? `<span class="delivery-division-tag">🏛 ${escapeHtml(order.deliveryDivision)}</span>` : ""}
+          ${order.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(order.deliveryArea)}</span>` : ""}
         </div>
         ${!isPickup && (order.deliveryDivision || order.deliveryArea) ? `
           <div style="margin-top:6px; display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
             <span style="font-size:11px; font-weight:700; color:var(--text-main);">Delivery Zone:</span>
             ${order.deliveryDivision ? `<span class="delivery-division-tag">🏛 ${escapeHtml(order.deliveryDivision)}</span>` : ""}
             ${order.deliveryArea ? `<span class="delivery-area-tag">📍 ${escapeHtml(order.deliveryArea)}</span>` : ""}
+      ` : ""}
+    </div>
+
+    <!-- 6-Stage Timeline -->
+    <div class="tracking-timeline">
+      ${stages.map((st, idx) => {
+        let stepClass = "";
+        let stepContent = idx + 1;
+        if (idx < currentRank) {
+          stepClass = "step-completed";
+          stepContent = "&#10003;";
+        } else if (idx === currentRank) {
+          stepClass = "step-active";
+        }
+        return `
+          <div class="timeline-step ${stepClass}">
+            <div class="step-circle">${stepContent}</div>
+            <span class="step-label">${st.label}</span>
           </div>
         ` : ""}
       </div>
+        `;
+      }).join("")}
+    </div>
 
       <!-- 6-Stage Timeline -->
       <div class="tracking-timeline">
@@ -7369,6 +7479,13 @@ export function openOrderTrackingModal(orderId) {
             <div class="timeline-step ${stepClass}">
               <div class="step-circle">${stepContent}</div>
               <span class="step-label">${st.label}</span>
+    ${!isPickup ? `
+      <div class="content-card" style="margin-top:14px; padding:14px; border-left:4px solid var(--primary, #00796b);">
+        <div class="flex-between" style="flex-wrap:wrap; gap:10px;">
+          <div>
+            <span class="muted" style="font-size:11.5px; text-transform:uppercase; letter-spacing:0.5px; font-weight:700;">Delivery Courier</span>
+            <div style="font-size:14px; font-weight:600; margin-top:3px;">
+              Courier: <strong>${escapeHtml(hasAssignedDriver ? driverName : "Assigning Nearest Courier...")}</strong>
             </div>
           `;
         }).join("")}
@@ -7385,14 +7502,33 @@ export function openOrderTrackingModal(orderId) {
               <div style="font-size:12.5px; margin-top:2px;">
                 Status: <span class="status-pill status-${order.orderStatus.toLowerCase().replace(/ /g, '_')}">${escapeHtml(order.orderStatus)}</span>
               </div>
+            ${hasAssignedDriver ? `<div style="font-size:12.5px; color:#64748b; margin-top:2px;">📞 ${escapeHtml(driverPhone)}</div>` : ""}
+            <div style="font-size:12px; margin-top:2px;">
+              Delivery Status: <span class="status-pill status-${(order.deliveryStatus || order.orderStatus || 'pending').toLowerCase().replace(/ /g, '_')}">${escapeHtml(order.deliveryStatus || order.orderStatus)}</span>
             </div>
             <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.orderNumber || order.id}" type="button" style="display:inline-flex; align-items:center; gap:6px;">
               ${ICONS.chat}
               <span>Chat with Delivery Man</span>
             </button>
           </div>
+          ${hasAssignedDriver ? `
+            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+              <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.orderNumber || order.id}" type="button" style="display:inline-flex; align-items:center; gap:5px;">
+                ${ICONS.chat}
+                <span>💬 Chat</span>
+              </button>
+              <a class="btn btn-whatsapp btn-sm" href="https://wa.me/${waPhone}?text=${waText}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:5px; background:#25D366; color:#ffffff; font-weight:600; text-decoration:none; padding:6px 12px; border-radius:var(--radius-xs); border:none; font-size:12px;">
+                <span>💬 WhatsApp</span>
+              </a>
+              <a class="btn btn-call btn-sm" href="tel:${driverPhone}" style="display:inline-flex; align-items:center; gap:5px; background:#0284c7; color:#ffffff; font-weight:600; text-decoration:none; padding:6px 12px; border-radius:var(--radius-xs); border:none; font-size:12px;">
+                <span>📞 Call</span>
+              </a>
+            </div>
+          ` : `<span class="muted" style="font-size:12px; align-self:center;">Matching available courier partner...</span>`}
         </div>
       ` : ''}
+      </div>
+    ` : ''}
 
       <div class="content-card" style="margin-top:14px; padding:12px;">
         <h4>Order Items</h4>
@@ -7403,18 +7539,35 @@ export function openOrderTrackingModal(orderId) {
           <strong>Total Payable:</strong>
           <strong style="color:var(--primary-dark);">${formatUGX(order.total)}</strong>
         </div>
+    <div class="content-card" style="margin-top:14px; padding:12px;">
+      <h4>Order Items</h4>
+      <ul style="list-style:none; padding-left:0; font-size:13px; margin-top:6px;">
+        ${order.items.map(i => `<li style="display:flex; justify-content:space-between; margin-bottom:4px;"><span>${i.quantity}x ${escapeHtml(i.name)}</span><strong>${formatUGX(i.price * i.quantity)}</strong></li>`).join("")}
+      </ul>
+      <div class="flex-between" style="border-top:1px solid var(--line); padding-top:8px; margin-top:8px;">
+        <strong>Total Payable:</strong>
+        <strong style="color:var(--primary-dark); font-size:16px;">${formatUGX(order.total)}</strong>
       </div>
     `;
+    </div>
+  `;
 
     $("#order-tracking-dialog").showModal();
+  $("#order-tracking-dialog").showModal();
 
     $("#tracking-modal-content")?.querySelectorAll(".open-order-chat-btn").forEach(btn => {
       btn.addEventListener("click", () => {
         $("#order-tracking-dialog")?.close();
         openCustomerChatModal(btn.dataset.orderId);
       });
+  $("#tracking-modal-content")?.querySelectorAll(".open-order-chat-btn").forEach(btn => {
+    btn.addEventListener("click", () => {
+      $("#order-tracking-dialog")?.close();
+      openCustomerChatModal(btn.dataset.orderId);
     });
   }
+  });
+}
 
 export function updateOrderTrackingModalIfOpen(orderId) {
   const dialog = $("#order-tracking-dialog");
@@ -9942,6 +10095,7 @@ export function renderCustomerChatStream(conversationId) {
   setTimeout(() => { stream.scrollTop = stream.scrollHeight; }, 10);
 }
 
+... [truncated for diff preview]
 // -------------------------------------------------------------
 // MODULE 14: PAYMENTS MODULE
 // -------------------------------------------------------------
@@ -11971,9 +12125,10 @@ async function handleCheckoutOrder(e) {
     total,
     paymentMethod,
     paymentPhone: phoneVal.normalized,
-    paymentStatus: paymentMethod === "Cash on Delivery" ? "Pending" : "Paid",
-    paymentReference: paymentMethod === "Cash on Delivery" ? "COD-" + orderRef : "TXN-" + Date.now().toString().slice(-6),
+    paymentStatus: "PENDING",
+    paymentReference: paymentMethod === "Cash on Delivery" ? "COD-" + orderRef : "BC-PAY-" + orderRef,
     orderStatus: orderInitialStatus,
+    deliveryStatus: assignedDriverId ? "ASSIGNED" : (fulfillmentType === "pickup" ? "READY_FOR_PICKUP" : "ORDER_PLACED"),
     prescriptionStatus: hasRx ? "Required" : "Not Required",
     rxVerified: false,
     assignedStaff: assignedDriverName,
@@ -12028,6 +12183,7 @@ async function handleCheckoutOrder(e) {
       deliveryStaffId: assignedDriverId,
       deliveryStaffName: assignedDriverName,
       status: assignedDriverId ? "Assigned" : "Pending Assignment",
+      deliveryStatus: assignedDriverId ? "ASSIGNED" : "ORDER_PLACED",
       createdAt: new Date().toISOString().slice(0, 10)
     };
     STATE.deliveries.unshift(newDelivery);
@@ -13692,24 +13848,63 @@ export function showOrderConfirmationModal(order) {
   const orderNumberEl = $("#confirm-order-number");
   if (orderNumberEl) orderNumberEl.textContent = orderNumber;
 
+  const isPaid = (order.paymentStatus || "").toUpperCase() === "PAID" || (order.paymentStatus || "").toUpperCase() === "SUCCESSFUL";
+  const isFailed = (order.paymentStatus || "").toUpperCase() === "FAILED";
+
   const statusEl = $("#confirm-order-status");
   if (statusEl) {
-    const st = order.orderStatus || "Confirmed";
+    const st = order.deliveryStatus || order.orderStatus || "Order Placed";
     statusEl.textContent = st;
     statusEl.className = `confirm-status-pill status-${st.toLowerCase().replace(/ /g, "_")}`;
   }
 
   const payStatusEl = $("#confirm-payment-status");
   if (payStatusEl) {
-    const isPending = (order.paymentStatus || "").toUpperCase() === "PENDING";
-    payStatusEl.textContent = isPending ? "PENDING" : "PAID ✓";
-    payStatusEl.style.background = isPending ? "#fef3c7" : "#dcfce7";
-    payStatusEl.style.color = isPending ? "#b45309" : "#15803d";
-    payStatusEl.style.borderColor = isPending ? "#fde68a" : "#86efac";
+    if (isPaid) {
+      payStatusEl.textContent = "🟢 Payment Confirmed";
+      payStatusEl.className = "confirm-payment-badge status-paid";
+      payStatusEl.style.background = "#dcfce7";
+      payStatusEl.style.color = "#15803d";
+      payStatusEl.style.borderColor = "#86efac";
+    } else if (isFailed) {
+      payStatusEl.textContent = "🔴 Payment Failed";
+      payStatusEl.className = "confirm-payment-badge status-failed";
+      payStatusEl.style.background = "#fee2e2";
+      payStatusEl.style.color = "#b91c1c";
+      payStatusEl.style.borderColor = "#fca5a5";
+    } else {
+      payStatusEl.textContent = "🟠 Payment Pending";
+      payStatusEl.className = "confirm-payment-badge status-pending";
+      payStatusEl.style.background = "#fef3c7";
+      payStatusEl.style.color = "#b45309";
+      payStatusEl.style.borderColor = "#fde68a";
+    }
   }
 
   const feeEl = $("#confirm-delivery-fee");
-  if (feeEl) feeEl.textContent = formatUGX(order.deliveryFee ?? 5000);
+  if (feeEl) feeEl.textContent = formatUGX(order.deliveryFee ?? (order.fulfillmentType === "pickup" ? 0 : 5000));
+
+  const totalHighlightEl = $("#confirm-total-payable-highlight");
+  if (totalHighlightEl) totalHighlightEl.textContent = formatUGX(order.total || 0);
+
+  const noteEl = $("#confirm-payment-note");
+  if (noteEl) {
+    if (isPaid) {
+      noteEl.innerHTML = `<span style="color:#15803d; font-weight:700;">🟢 Payment verified via ${escapeHtml(order.paymentMethod || 'Mobile Money')}.</span> Ref: <strong>${escapeHtml(order.paymentReference || '')}</strong>`;
+    } else if (isFailed) {
+      noteEl.innerHTML = `<span style="color:#b91c1c; font-weight:700;">🔴 Payment could not be confirmed.</span> Please retry using the button below.`;
+    } else if (order.paymentMethod === "Cash on Delivery") {
+      noteEl.innerHTML = `<span style="color:#14532d; font-weight:600;">💵 Payment will be collected upon doorstep delivery.</span> Please prepare exact cash.`;
+    } else {
+      noteEl.innerHTML = `<span style="color:#b45309; font-weight:600;">🟠 Please complete payment using your mobile money phone.</span>`;
+    }
+  }
+
+  const isPickup = order.fulfillmentType === "pickup";
+  const fulfillEl = $("#confirm-fulfillment-method");
+  if (fulfillEl) {
+    fulfillEl.textContent = isPickup ? "Pharmacy Pickup — Main Dispensary" : "Doorstep Delivery — Mbarara City";
+  }
 
   const locEl = $("#confirm-delivery-location");
   if (locEl) {
@@ -13718,17 +13913,50 @@ export function showOrderConfirmationModal(order) {
       locStr = `${order.deliveryArea ? order.deliveryArea + ", " : ""}${order.deliveryDivision || ""}, Mbarara City`;
       if (order.specificLocation) locStr += ` (${order.specificLocation})`;
     }
-    if (order.fulfillmentType === "pickup") {
+    if (isPickup) {
       locStr = "Pharmacy Pickup — BloomCare Main Dispensary, Booma, Kamukuzi, Mbarara City";
     }
     locEl.textContent = locStr || "Mbarara City";
+  }
+
+  const divRow = $("#confirm-division-row");
+  const divEl = $("#confirm-delivery-division");
+  if (divRow && divEl) {
+    if (!isPickup && order.deliveryDivision) {
+      divRow.style.display = "flex";
+      divEl.textContent = order.deliveryDivision;
+    } else {
+      divRow.style.display = "none";
+    }
+  }
+
+  const areaRow = $("#confirm-area-row");
+  const areaEl = $("#confirm-delivery-area");
+  if (areaRow && areaEl) {
+    if (!isPickup && order.deliveryArea) {
+      areaRow.style.display = "flex";
+      areaEl.textContent = order.deliveryArea;
+    } else {
+      areaRow.style.display = "none";
+    }
+  }
+
+  const specRow = $("#confirm-specific-row");
+  const specEl = $("#confirm-delivery-specific");
+  if (specRow && specEl) {
+    if (!isPickup && order.specificLocation) {
+      specRow.style.display = "flex";
+      specEl.textContent = order.specificLocation;
+    } else {
+      specRow.style.display = "none";
+    }
   }
 
   const landmarkRow = $("#confirm-landmark-row");
   const landmarkText = $("#confirm-landmark-text");
   const note = order.landmark || order.specificLocation || order.deliveryNotes || order.deliveryInstructions;
   if (landmarkRow && landmarkText) {
-    if (note && order.fulfillmentType !== "pickup") {
+    if (note && !isPickup) {
       landmarkRow.style.display = "flex";
       landmarkText.textContent = note;
     } else {
@@ -13736,9 +13964,21 @@ export function showOrderConfirmationModal(order) {
     }
   }
 
+  const instRow = $("#confirm-instructions-row");
+  const instEl = $("#confirm-delivery-instructions");
+  const instructions = order.deliveryInstructions || order.deliveryNotes;
+  if (instRow && instEl) {
+    if (instructions && !isPickup) {
+      instRow.style.display = "flex";
+      instEl.textContent = instructions;
+    } else {
+      instRow.style.display = "none";
+    }
+  }
+
   const etaEl = $("#confirm-delivery-eta");
   if (etaEl) {
-    if (order.fulfillmentType === "pickup") {
+    if (isPickup) {
       etaEl.textContent = "Ready for Pickup today during dispensary hours (8am - 8pm)";
     } else {
       etaEl.textContent = "⏱ Estimated arrival in 30 – 45 minutes";
@@ -13751,20 +13991,32 @@ export function showOrderConfirmationModal(order) {
   const driverPhoneEl = $("#confirm-driver-phone");
   const driverStatusEl = $("#confirm-driver-status");
   const driverAvatarEl = $("#confirm-driver-avatar");
+  const driverAssignedContent = $("#confirm-driver-assigned-content");
+  const driverUnassignedNotice = $("#confirm-driver-unassigned-notice");
+  const driverActionsRow = $("#confirm-driver-actions-row");
 
   const driverName = order.deliveryManName || order.assignedStaff;
-  const isDriverAssigned = driverName && driverName !== "Pending Assignment" && driverName !== "Unassigned" && driverName !== "Waiting for Available Delivery Man";
+  const isDriverAssigned = Boolean(driverName && driverName !== "Pending Assignment" && driverName !== "Unassigned" && driverName !== "Waiting for Available Delivery Man");
 
   if (driverCard) {
-    if (order.fulfillmentType === "pickup") {
+    if (isPickup) {
       driverCard.style.display = "none";
     } else {
       driverCard.style.display = "block";
       if (isDriverAssigned) {
+        if (driverAssignedContent) {
+          driverAssignedContent.classList.remove("hidden");
+          driverAssignedContent.style.display = "flex";
+        }
+        if (driverUnassignedNotice) {
+          driverUnassignedNotice.classList.add("hidden");
+          driverUnassignedNotice.style.display = "none";
+        }
         if (driverNameEl) driverNameEl.textContent = driverName;
-        if (driverPhoneEl) driverPhoneEl.textContent = `📞 ${order.deliveryManPhone || "0700 000 005"}`;
+        const phoneStr = order.deliveryManPhone || "0700 000 005";
+        if (driverPhoneEl) driverPhoneEl.textContent = `📞 ${phoneStr}`;
         if (driverStatusEl) {
-          driverStatusEl.textContent = "Assigned & Dispatching";
+          driverStatusEl.textContent = "🟢 Assigned";
           driverStatusEl.style.color = "#0369a1";
           driverStatusEl.style.background = "#e0f2fe";
         }
@@ -13773,15 +14025,47 @@ export function showOrderConfirmationModal(order) {
           driverAvatarEl.textContent = initials || "DP";
         }
       } else {
-        if (driverNameEl) driverNameEl.textContent = "Assigning Nearest Delivery Man...";
-        if (driverPhoneEl) driverPhoneEl.textContent = "Our automated dispatcher is matching an available courier";
-        if (driverStatusEl) {
-          driverStatusEl.textContent = "Matching Partner...";
-          driverStatusEl.style.color = "#854d0e";
-          driverStatusEl.style.background = "#fef9c3";
+        if (driverAssignedContent) {
+          driverAssignedContent.classList.add("hidden");
+          driverAssignedContent.style.display = "none";
         }
-        if (driverAvatarEl) driverAvatarEl.textContent = "⏳";
+        if (driverUnassignedNotice) {
+          driverUnassignedNotice.classList.remove("hidden");
+          driverUnassignedNotice.style.display = "block";
+        }
       }
+    }
+  }
+
+  // Courier Actions (Chat, WhatsApp, Call)
+  if (driverActionsRow) {
+    if (!isPickup && isDriverAssigned) {
+      driverActionsRow.style.display = "flex";
+      const cleanPhone = (order.deliveryManPhone || "0700000005").replace(/\D/g, "");
+      const waPhone = cleanPhone.startsWith("0") ? "256" + cleanPhone.slice(1) : cleanPhone;
+      const waText = encodeURIComponent(`Hello, I am contacting you regarding my BloomCare Pharmacy order ${orderNumber}.`);
+
+      const waBtn = $("#order-confirm-whatsapp-btn");
+      if (waBtn) {
+        waBtn.href = `https://wa.me/${waPhone}?text=${waText}`;
+        waBtn.target = "_blank";
+        waBtn.rel = "noopener noreferrer";
+      }
+
+      const callBtn = $("#order-confirm-call-btn");
+      if (callBtn) {
+        callBtn.href = `tel:${order.deliveryManPhone || "0700000005"}`;
+      }
+
+      const chatBtn = $("#order-confirm-chat-btn");
+      if (chatBtn) {
+        chatBtn.onclick = () => {
+          modal.close();
+          openCustomerChatModal(orderNumber);
+        };
+      }
+    } else {
+      driverActionsRow.style.display = "none";
     }
   }
 
@@ -13802,21 +14086,89 @@ export function showOrderConfirmationModal(order) {
   const totalValEl = $("#confirm-total-val");
   if (totalValEl) totalValEl.textContent = formatUGX(order.total || 0);
 
-  // Chat Button Action
-  const chatBtn = $("#order-confirm-chat-btn");
-  if (chatBtn) {
-    if (order.fulfillmentType === "pickup") {
-      chatBtn.style.display = "none";
+  // Primary Action Buttons
+  const payBtn = $("#order-confirm-pay-btn");
+  if (payBtn) {
+    if (isPaid) {
+      payBtn.style.display = "none";
     } else {
-      chatBtn.style.display = "inline-flex";
-      chatBtn.onclick = () => {
-        modal.close();
-        openCustomerChatModal(orderNumber);
+      payBtn.style.display = "block";
+      payBtn.innerHTML = order.paymentMethod === "Cash on Delivery"
+        ? `<span>💵 VIEW CASH PAYMENT DETAILS</span>`
+        : `<span>💳 CONTINUE PAYMENT</span>`;
+      payBtn.onclick = () => {
+        openOrderPaymentFlow(order);
       };
     }
   }
 
-  // View in Orders Action
+  const checkPayBtn = $("#order-confirm-check-pay-btn");
+  if (checkPayBtn) {
+    if (isPaid || order.paymentMethod === "Cash on Delivery") {
+      checkPayBtn.classList.add("hidden");
+      checkPayBtn.style.display = "none";
+    } else {
+      checkPayBtn.classList.remove("hidden");
+      checkPayBtn.style.display = "inline-flex";
+      checkPayBtn.onclick = async () => {
+        checkPayBtn.disabled = true;
+        checkPayBtn.textContent = "Checking...";
+        try {
+          const res = await fetch("http://127.0.0.1:8787/api/payments/verify", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ reference: orderNumber })
+          });
+          const data = await res.json();
+          if (data.success && data.payment?.status === "SUCCESSFUL") {
+            order.paymentStatus = "PAID";
+            order.paymentReference = data.payment.transactionId || data.payment.receiptNumber;
+            if (data.deliveryAssignment?.deliveryManId) {
+              order.deliveryManId = data.deliveryAssignment.deliveryManId;
+              order.deliveryManName = data.deliveryAssignment.deliveryManName;
+              order.deliveryManPhone = data.deliveryAssignment.deliveryManPhone;
+              order.deliveryStatus = "ASSIGNED";
+              order.orderStatus = "Assigned";
+            }
+            saveOrdersToStorage();
+            showOrderConfirmationModal(order);
+            openNotice("Payment Confirmed", `Payment for order ${orderNumber} has been verified successfully!`);
+          } else {
+            openNotice("Payment Pending", `Payment for ${orderNumber} is still pending. Please approve with your mobile money PIN on your phone.`);
+          }
+        } catch (_) {
+          openNotice("Connection Note", "Could not reach payment verification service. Please verify your connection.");
+        } finally {
+          checkPayBtn.disabled = false;
+          checkPayBtn.innerHTML = `<span>🔄 CHECK PAYMENT STATUS</span>`;
+        }
+      };
+    }
+  }
+
+  const retryPayBtn = $("#order-confirm-retry-pay-btn");
+  if (retryPayBtn) {
+    if (isFailed) {
+      retryPayBtn.classList.remove("hidden");
+      retryPayBtn.style.display = "inline-flex";
+      retryPayBtn.onclick = () => {
+        openOrderPaymentFlow(order);
+      };
+    } else {
+      retryPayBtn.classList.add("hidden");
+      retryPayBtn.style.display = "none";
+    }
+  }
+
+  // Navigation Buttons
+  const trackBtn = $("#order-confirm-track-btn");
+  if (trackBtn) {
+    trackBtn.onclick = () => {
+      modal.close();
+      openOrderTrackingModal(orderNumber);
+    };
+  }
+
   const viewOrdersBtn = $("#order-confirm-view-orders-btn");
   if (viewOrdersBtn) {
     viewOrdersBtn.onclick = () => {
@@ -13825,7 +14177,6 @@ export function showOrderConfirmationModal(order) {
     };
   }
 
-  // Continue Shopping Action
   const continueBtn = $("#order-confirm-continue-btn");
   if (continueBtn) {
     continueBtn.onclick = () => {
@@ -13841,6 +14192,359 @@ export function showOrderConfirmationModal(order) {
 
   if (typeof modal.showModal === "function") {
     modal.showModal();
+  }
+}
+
+export function openOrderPaymentFlow(order) {
+  if (!order) return;
+  const payModal = $("#order-payment-dialog");
+  if (!payModal) return;
+
+  const orderNumber = order.orderNumber || order.id || "BC-ORDER";
+  const refEl = $("#order-pay-summary-ref");
+  if (refEl) refEl.textContent = orderNumber;
+
+  const totalEl = $("#order-pay-total-val");
+  if (totalEl) totalEl.textContent = formatUGX(order.total || 0);
+
+  const phoneInput = $("#order-pay-phone-input");
+  const phoneHelp = $("#order-pay-phone-help");
+  const submitBtn = $("#order-pay-submit-btn");
+  const statusCard = $("#order-pay-status-card");
+  const statusTitle = $("#order-pay-status-title");
+  const statusDesc = $("#order-pay-status-desc");
+  const successCard = $("#order-pay-success-card");
+  const txnEl = $("#order-pay-txn-id");
+  const retryBtn = $("#order-pay-retry-btn");
+  const checkStatusBtn = $("#order-pay-check-status-btn");
+  const methodBlock = $("#order-pay-method-block");
+  const phoneBlock = $("#order-pay-phone-block");
+  const codBlock = $("#order-pay-cod-block");
+  const mtnTab = $("#order-pay-select-mtn");
+  const airtelTab = $("#order-pay-select-airtel");
+
+  // Reset UI elements
+  if (statusCard) {
+    statusCard.classList.add("hidden");
+    statusCard.style.display = "none";
+  }
+  if (successCard) {
+    successCard.classList.add("hidden");
+    successCard.style.display = "none";
+  }
+  if (retryBtn) {
+    retryBtn.classList.add("hidden");
+    retryBtn.style.display = "none";
+  }
+  if (checkStatusBtn) {
+    checkStatusBtn.classList.add("hidden");
+    checkStatusBtn.style.display = "none";
+  }
+  if (submitBtn) {
+    submitBtn.classList.remove("hidden");
+    submitBtn.style.display = "inline-flex";
+    submitBtn.disabled = false;
+  }
+
+  let selectedProvider = "MTN MoMo";
+  const initialPhone = order.paymentPhone || order.customerPhone || STATE.currentUser?.phone || "";
+  const normPhone = initialPhone.replace(/\D/g, "").slice(-9);
+
+  if (normPhone.startsWith("70") || normPhone.startsWith("74") || normPhone.startsWith("75") || order.paymentMethod === "Airtel Money") {
+    selectedProvider = "Airtel Money";
+  }
+
+  function updateProviderUI() {
+    if (selectedProvider === "MTN MoMo") {
+      if (mtnTab) {
+        mtnTab.style.borderColor = "#0f766e";
+        mtnTab.style.background = "#f0fdf4";
+      }
+      if (airtelTab) {
+        airtelTab.style.borderColor = "var(--border-color, #cbd5e1)";
+        airtelTab.style.background = "var(--bg-card, #ffffff)";
+      }
+      if (phoneHelp) phoneHelp.textContent = "Enter MTN mobile number (076, 077, 078) to approve with *165#";
+      if (phoneInput && !phoneInput.value) phoneInput.placeholder = "0772 123 456";
+    } else {
+      if (airtelTab) {
+        airtelTab.style.borderColor = "#0f766e";
+        airtelTab.style.background = "#f0fdf4";
+      }
+      if (mtnTab) {
+        mtnTab.style.borderColor = "var(--border-color, #cbd5e1)";
+        mtnTab.style.background = "var(--bg-card, #ffffff)";
+      }
+      if (phoneHelp) phoneHelp.textContent = "Enter Airtel mobile number (070, 074, 075) to approve with *185#";
+      if (phoneInput && !phoneInput.value) phoneInput.placeholder = "0702 123 456";
+    }
+  }
+
+  if (mtnTab) {
+    mtnTab.onclick = () => {
+      selectedProvider = "MTN MoMo";
+      updateProviderUI();
+    };
+  }
+  if (airtelTab) {
+    airtelTab.onclick = () => {
+      selectedProvider = "Airtel Money";
+      updateProviderUI();
+    };
+  }
+
+  if (order.paymentMethod === "Cash on Delivery") {
+    if (codBlock) {
+      codBlock.classList.remove("hidden");
+      codBlock.style.display = "block";
+    }
+    if (methodBlock) {
+      methodBlock.classList.add("hidden");
+      methodBlock.style.display = "none";
+    }
+    if (phoneBlock) {
+      phoneBlock.classList.add("hidden");
+      phoneBlock.style.display = "none";
+    }
+    if (submitBtn) {
+      submitBtn.textContent = "Confirm Cash on Delivery";
+      submitBtn.onclick = () => {
+        payModal.close();
+        showOrderConfirmationModal(order);
+      };
+    }
+  } else {
+    if (codBlock) {
+      codBlock.classList.add("hidden");
+      codBlock.style.display = "none";
+    }
+    if (methodBlock) {
+      methodBlock.classList.remove("hidden");
+      methodBlock.style.display = "block";
+    }
+    if (phoneBlock) {
+      phoneBlock.classList.remove("hidden");
+      phoneBlock.style.display = "block";
+    }
+    if (phoneInput) {
+      phoneInput.value = initialPhone ? (initialPhone.startsWith("0") ? initialPhone : "0" + initialPhone) : "";
+    }
+    updateProviderUI();
+
+    let pollTimer = null;
+    let pollAttempts = 0;
+
+    async function checkVerification(quiet = false) {
+      try {
+        const vRes = await fetch("http://127.0.0.1:8787/api/payments/verify", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ reference: orderNumber })
+        });
+        const vData = await vRes.json();
+        if (vData.success && vData.payment?.status === "SUCCESSFUL") {
+          if (pollTimer) clearInterval(pollTimer);
+          order.paymentStatus = "PAID";
+          order.paymentReference = vData.payment.transactionId || vData.payment.receiptNumber;
+          if (vData.deliveryAssignment?.deliveryManId) {
+            order.deliveryManId = vData.deliveryAssignment.deliveryManId;
+            order.deliveryManName = vData.deliveryAssignment.deliveryManName;
+            order.deliveryManPhone = vData.deliveryAssignment.deliveryManPhone;
+            order.deliveryStatus = "ASSIGNED";
+            order.orderStatus = "Assigned";
+          }
+          saveOrdersToStorage();
+
+          const existingPay = STATE.payments.find(p => p.orderId === orderNumber);
+          if (existingPay) {
+            existingPay.status = "PAID";
+            existingPay.transactionReference = order.paymentReference;
+          }
+
+          if (statusCard) {
+            statusCard.classList.add("hidden");
+            statusCard.style.display = "none";
+          }
+          if (successCard) {
+            successCard.classList.remove("hidden");
+            successCard.style.display = "flex";
+            if (txnEl) txnEl.textContent = order.paymentReference;
+          }
+          if (submitBtn) submitBtn.style.display = "none";
+          if (checkStatusBtn) checkStatusBtn.style.display = "none";
+          if (retryBtn) retryBtn.style.display = "none";
+
+          broadcastAppSync("ORDER_PAYMENT_CONFIRMED", {
+            orderId: orderNumber,
+            paymentStatus: "PAID",
+            transactionId: order.paymentReference,
+            deliveryAssignment: vData.deliveryAssignment
+          });
+
+          showOrderConfirmationModal(order);
+          renderOrdersView();
+          return true;
+        } else if (!quiet && pollAttempts >= 10) {
+          if (statusTitle) statusTitle.textContent = "Payment Awaiting Approval";
+          if (statusDesc) statusDesc.textContent = `Prompt dispatched. Approve on your phone using ${selectedProvider === 'MTN MoMo' ? '*165#' : '*185#'}, then click Check Payment Status.`;
+          if (checkStatusBtn) {
+            checkStatusBtn.classList.remove("hidden");
+            checkStatusBtn.style.display = "inline-flex";
+          }
+        }
+      } catch (err) {
+        console.warn("Payment verify poll error:", err);
+      }
+      return false;
+    }
+
+    if (submitBtn) {
+      submitBtn.textContent = "Authorize & Pay";
+      submitBtn.onclick = async () => {
+        const rawPhone = phoneInput ? phoneInput.value.trim() : "";
+        const clean = rawPhone.replace(/\D/g, "");
+        const formatted10 = clean.length === 9 ? "0" + clean : (clean.length === 12 && clean.startsWith("256") ? "0" + clean.slice(3) : clean);
+
+        if (!/^07\d{8}$/.test(formatted10)) {
+          openNotice("Invalid Phone Number", "Please enter a valid 10-digit Ugandan mobile phone number (e.g. 0772 123 456).");
+          return;
+        }
+
+        const prefix = formatted10.slice(0, 3);
+        if (selectedProvider === "MTN MoMo" && !["076", "077", "078"].includes(prefix)) {
+          openNotice("MTN Prefix Mismatch", "The phone number entered does not belong to MTN Uganda (must begin with 076, 077, or 078).");
+          return;
+        }
+        if (selectedProvider === "Airtel Money" && !["070", "074", "075"].includes(prefix)) {
+          openNotice("Airtel Prefix Mismatch", "The phone number entered does not belong to Airtel Uganda (must begin with 070, 074, or 075).");
+          return;
+        }
+
+        submitBtn.disabled = true;
+        submitBtn.textContent = "Authorizing...";
+        if (statusCard) {
+          statusCard.classList.remove("hidden");
+          statusCard.style.display = "block";
+          if (statusTitle) statusTitle.textContent = "Payment awaiting confirmation...";
+          if (statusDesc) statusDesc.textContent = `Approval prompt sent to ${formatted10}. Enter your PIN on ${selectedProvider === 'MTN MoMo' ? '*165#' : '*185#'} to complete payment.`;
+        }
+
+        try {
+          const initRes = await fetch("http://127.0.0.1:8787/api/payments/initialize", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              provider: selectedProvider,
+              phone: formatted10,
+              amount: order.total,
+              reference: orderNumber,
+              type: "order",
+              details: {
+                orderId: orderNumber,
+                orderNumber,
+                customerId: order.customerId,
+                customerName: order.customerName,
+                customerPhone: formatted10,
+                deliveryAddress: order.deliveryAddress,
+                deliveryDivision: order.deliveryDivision,
+                deliveryArea: order.deliveryArea,
+                specificLocation: order.specificLocation,
+                landmark: order.landmark,
+                deliveryFee: order.deliveryFee,
+                itemsSummary: (order.items || []).map(i => `${i.quantity}x ${i.name}`).join(", ")
+              }
+            })
+          });
+
+          const initData = await initRes.json();
+          if (!initData.success) {
+            throw new Error(initData.message || "Payment initialization failed.");
+          }
+
+          pollAttempts = 0;
+          if (pollTimer) clearInterval(pollTimer);
+          pollTimer = setInterval(async () => {
+            pollAttempts++;
+            const verified = await checkVerification(pollAttempts < 5);
+            if (verified || pollAttempts >= 12) {
+              clearInterval(pollTimer);
+              if (!verified) {
+                if (retryBtn) {
+                  retryBtn.classList.remove("hidden");
+                  retryBtn.style.display = "inline-flex";
+                }
+                if (checkStatusBtn) {
+                  checkStatusBtn.classList.remove("hidden");
+                  checkStatusBtn.style.display = "inline-flex";
+                }
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Authorize & Pay";
+              }
+            }
+          }, 2000);
+
+        } catch (err) {
+          order.paymentStatus = "FAILED";
+          saveOrdersToStorage();
+          showOrderConfirmationModal(order);
+          if (statusTitle) statusTitle.textContent = "Payment Failed";
+          if (statusDesc) statusDesc.textContent = err?.message || "Could not connect to mobile money gateway. Please try again.";
+          if (retryBtn) {
+            retryBtn.classList.remove("hidden");
+            retryBtn.style.display = "inline-flex";
+          }
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Authorize & Pay";
+        }
+      };
+    }
+
+    if (checkStatusBtn) {
+      checkStatusBtn.onclick = async () => {
+        checkStatusBtn.disabled = true;
+        checkStatusBtn.textContent = "Checking...";
+        const ok = await checkVerification(false);
+        checkStatusBtn.disabled = false;
+        checkStatusBtn.textContent = "Check Payment Status";
+        if (!ok) {
+          openNotice("Payment Still Pending", "We have not yet received confirmation from your provider. Please approve the USSD prompt on your phone.");
+        }
+      };
+    }
+
+    if (retryBtn) {
+      retryBtn.onclick = () => {
+        if (retryBtn) {
+          retryBtn.classList.add("hidden");
+          retryBtn.style.display = "none";
+        }
+        if (checkStatusBtn) {
+          checkStatusBtn.classList.add("hidden");
+          checkStatusBtn.style.display = "none";
+        }
+        if (statusCard) {
+          statusCard.classList.add("hidden");
+          statusCard.style.display = "none";
+        }
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.textContent = "Authorize & Pay";
+        }
+      };
+    }
+  }
+
+  const cancelBtn = $("#order-pay-cancel-btn");
+  if (cancelBtn) {
+    cancelBtn.onclick = () => payModal.close();
+  }
+  const closeBtn = $("#close-order-pay-modal");
+  if (closeBtn) {
+    closeBtn.onclick = () => payModal.close();
+  }
+
+  if (typeof payModal.showModal === "function") {
+    payModal.showModal();
   }
 }
 
@@ -14705,14 +15409,41 @@ function bindEventListeners() {
         if (d) {
           d.status = "Out for Delivery";
           recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Out for Delivery");
-          const conv = STATE.conversations.find(c => c.orderId === (d.orderNumber || d.orderId) || c.orderId === d.id);
+          const orderRef = d.orderNumber || d.orderId || d.id;
+          const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
+          if (order) {
+            order.deliveryStatus = "OUT_FOR_DELIVERY";
+            order.orderStatus = "Out for Delivery";
+            saveOrdersToStorage();
+          }
+          const conv = STATE.conversations.find(c => c.orderId === orderRef || c.orderId === d.id);
           if (conv) {
             conv.deliveryStatus = "OUT_FOR_DELIVERY";
             conv.updatedAt = new Date().toISOString();
             saveConversationsToStorage();
           }
+          try {
+            fetch("http://127.0.0.1:8787/api/deliveries/status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: orderRef,
+                status: "Out for Delivery",
+                notes: "Marked out for delivery by driver"
+              })
+            }).catch(() => {});
+          } catch (_) {}
+          broadcastAppSync("ORDER_DELIVERY_STATUS_CHANGED", {
+            orderId: orderRef,
+            deliveryStatus: "OUT_FOR_DELIVERY",
+            status: "Out for Delivery"
+          });
+          if (typeof updateOrderTrackingModalIfOpen === "function") {
+            updateOrderTrackingModalIfOpen(orderRef);
+          }
         }
         renderDeliveriesView();
+        renderRoleDashboard();
         openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Out for Delivery.`);
       } else if (action === "mark-delivered") {
         const effRole = getEffectiveRole();
@@ -14727,7 +15458,11 @@ function bindEventListeners() {
           const orderRef = d.orderNumber || d.orderId || d.id;
           const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
           if (order) {
+            order.deliveryStatus = "DELIVERED";
             order.orderStatus = "Delivered";
+            if (order.paymentMethod === "Cash on Delivery") {
+              order.paymentStatus = "PAID";
+            }
             saveOrdersToStorage();
           }
           const conv = STATE.conversations.find(c => c.orderId === orderRef || c.orderId === d.id);
@@ -14762,10 +15497,71 @@ function bindEventListeners() {
               })
             }).catch(() => {});
           } catch (_) {}
+          broadcastAppSync("ORDER_DELIVERY_STATUS_CHANGED", {
+            orderId: orderRef,
+            deliveryStatus: "DELIVERED",
+            status: "Delivered"
+          });
+          if (typeof updateOrderTrackingModalIfOpen === "function") {
+            updateOrderTrackingModalIfOpen(orderRef);
+          }
         }
         renderDeliveriesView();
         renderRoleDashboard();
         openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Delivered.`);
+      } else if (action === "accept-delivery") {
+        const effRole = getEffectiveRole();
+        if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
+          openNotice("Permission Denied", "Only delivery staff or administrators can accept delivery runs.");
+          return;
+        }
+        const d = STATE.deliveries.find(item => item.id === id);
+        if (d) {
+          const myUid = STATE.currentUser?.uid || "staff-del-1";
+          const myName = STATE.currentUser?.displayName || STATE.currentUser?.name || "Moses Kato";
+          const myPhone = STATE.currentUser?.phone || "0700000005";
+          d.deliveryManId = myUid;
+          d.deliveryStaffId = myUid;
+          d.deliveryStaffName = myName;
+          d.status = "Assigned";
+          const orderRef = d.orderNumber || d.orderId || d.id;
+          const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
+          if (order) {
+            order.deliveryManId = myUid;
+            order.deliveryStaffId = myUid;
+            order.deliveryManName = myName;
+            order.deliveryManPhone = myPhone;
+            order.deliveryStatus = "ASSIGNED";
+            order.orderStatus = "Assigned";
+            saveOrdersToStorage();
+          }
+          const conv = STATE.conversations.find(c => c.orderId === orderRef || c.orderId === d.id);
+          if (conv) {
+            conv.deliveryManId = myUid;
+            conv.deliveryStaffId = myUid;
+            conv.deliveryManName = myName;
+            conv.deliveryStatus = "ASSIGNED";
+            saveConversationsToStorage();
+          }
+          broadcastAppSync("ORDER_DELIVERY_STATUS_CHANGED", {
+            orderId: orderRef,
+            deliveryStatus: "ASSIGNED",
+            status: "Assigned",
+            deliveryManName: myName,
+            deliveryManPhone: myPhone
+          });
+          if (typeof updateOrderTrackingModalIfOpen === "function") {
+            updateOrderTrackingModalIfOpen(orderRef);
+          }
+        }
+        renderDeliveriesView();
+        renderRoleDashboard();
+        openNotice("Delivery Accepted", `You have accepted delivery run #${id}.`);
+      } else if (action === "call-customer") {
+        const d = STATE.deliveries.find(item => item.id === id);
+        if (d && d.phone) {
+          window.location.href = `tel:${d.phone}`;
+        }
       } else if (action === "mark-failed") {
         const effRole = getEffectiveRole();
         if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {

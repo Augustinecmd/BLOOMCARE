@@ -11791,6 +11791,75 @@ dialog,
   gap: 8px;
 }
 
+.btn-whatsapp {
+  background: #25D366 !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+}
+.btn-whatsapp:hover {
+  background: #128C7E !important;
+  color: #ffffff !important;
+}
+
+.btn-call {
+  background: #0284c7 !important;
+  color: #ffffff !important;
+  border: none !important;
+  font-weight: 600;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background 0.2s ease;
+}
+.btn-call:hover {
+  background: #0369a1 !important;
+  color: #ffffff !important;
+}
+
+.confirm-payment-badge.status-pending,
+.confirm-payment-badge.status-pending_payment {
+  background: #fef3c7;
+  color: #b45309;
+  border-color: #fde68a;
+}
+.confirm-payment-badge.status-paid,
+.confirm-payment-badge.status-successful {
+  background: #dcfce7;
+  color: #15803d;
+  border-color: #86efac;
+}
+.confirm-payment-badge.status-failed {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-color: #fca5a5;
+}
+
+#order-payment-dialog {
+  border: none;
+  border-radius: 16px;
+  padding: 0;
+  max-width: 520px;
+  width: 94%;
+  background: #ffffff;
+  box-shadow: 0 20px 45px rgba(15, 23, 42, 0.16), 0 8px 16px rgba(15, 23, 42, 0.08);
+  font-family: inherit;
+  color: var(--text-main, #1e293b);
+  overflow: hidden;
+}
+#order-payment-dialog::backdrop {
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(4px);
+}
+
 /* =============================================================
    DELIVERY DASHBOARD: NEW DELIVERIES & NOTIFICATIONS
    ============================================================= */

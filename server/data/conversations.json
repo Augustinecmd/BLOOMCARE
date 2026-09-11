@@ -11,11 +11,11 @@
     "deliveryManName": "Moses Kato",
     "deliveryStatus": "Delivered",
     "status": "COMPLETED",
-    "unreadDelivery": 32,
+    "unreadDelivery": 37,
     "unreadCustomer": 0,
     "lastMessage": "Please call when you reach the gate.",
     "createdAt": "2026-09-05T17:01:54.860704+00:00",
-    "updatedAt": "2026-09-11T16:02:59.143788+00:00",
+    "updatedAt": "2026-09-11T19:09:31.608590+00:00",
     "messages": [
       {
         "id": "MSG-1788627714909",
@@ -396,6 +396,71 @@
         "message": "Please call when you reach the gate.",
         "text": "Please call when you reach the gate.",
         "timestamp": "2026-09-11T16:02:59.143788+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789145571884",
+        "messageId": "MSG-1789145571884",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-11T16:52:51.884563+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789145633596",
+        "messageId": "MSG-1789145633596",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-11T16:53:53.596411+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789145673115",
+        "messageId": "MSG-1789145673115",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-11T16:54:33.115049+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789153440377",
+        "messageId": "MSG-1789153440377",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-11T19:04:00.377334+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789153771608",
+        "messageId": "MSG-1789153771608",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-11T19:09:31.608590+00:00",
         "read": false
       }
     ]
