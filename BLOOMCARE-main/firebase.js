@@ -1200,4 +1200,42 @@ export function subscribeOrderById(orderId, callback) {
         console.warn("[BloomCare Orders] subscribeOrderById error:", err?.message || err);
         return () => {};
     }
-}
+}
+
+// -------------------------------------------------------------
+// 12. CUSTOMER CART PERSISTENCE
+// -------------------------------------------------------------
+
+export async function saveUserCartToFirestore(userId, cartItems) {
+    if (!db || !userId) return;
+    try {
+        const cleanItems = (cartItems || []).map(i => ({
+            productId: i.productId || i.product?.id,
+            name: i.name || i.product?.name || "",
+            price: Number(i.price ?? i.product?.price ?? 0),
+            image: i.image || "",
+            quantity: Number(i.quantity || 1),
+            requiresPrescription: Boolean(i.requiresPrescription || i.product?.requiresPrescription)
+        }));
+        await setDoc(doc(db, "carts", userId), {
+            userId,
+            items: cleanItems,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (err) {
+        console.warn("[BloomCare Cart] saveUserCartToFirestore warning:", err?.message || err);
+    }
+}
+
+export async function getUserCartFromFirestore(userId) {
+    if (!db || !userId) return null;
+    try {
+        const snap = await getDoc(doc(db, "carts", userId));
+        if (snap.exists()) {
+            return snap.data()?.items || [];
+        }
+    } catch (err) {
+        console.warn("[BloomCare Cart] getUserCartFromFirestore warning:", err?.message || err);
+    }
+    return null;
+}

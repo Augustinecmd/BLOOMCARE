@@ -50,7 +50,9 @@ import {
   subscribeCustomerOrders,
   subscribeDeliveryOrders,
   subscribeUserNotifications,
-  subscribeOrderById
+  subscribeOrderById,
+  saveUserCartToFirestore,
+  getUserCartFromFirestore
 } from "./firebase.js";
 import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
@@ -98,8 +100,8 @@ export {
 };
 
 // DOM Utility
-const $ = (selector) => document.querySelector(selector);
-const $$ = (selector) => Array.from(document.querySelectorAll(selector));
+const $ = (selector) => (typeof document !== "undefined" ? document.querySelector(selector) : null);
+const $$ = (selector) => (typeof document !== "undefined" ? Array.from(document.querySelectorAll(selector)) : []);
 
 // -------------------------------------------------------------
 // 1. PROFESSIONAL SVG VECTOR ICONS (ZERO EMOJIS)
@@ -2244,9 +2246,13 @@ function escapeHtml(value) {
 }
 
 function openNotice(title, message) {
-  $("#notice-title").textContent = title;
-  $("#notice-msg").innerHTML = message;
-  $("#notice-modal").showModal();
+  if (typeof document === "undefined") return;
+  const titleEl = $("#notice-title");
+  if (titleEl) titleEl.textContent = title;
+  const msgEl = $("#notice-msg");
+  if (msgEl) msgEl.innerHTML = message;
+  const modalEl = $("#notice-modal");
+  if (modalEl && typeof modalEl.showModal === "function") modalEl.showModal();
 }
 
 // -------------------------------------------------------------
@@ -2329,6 +2335,8 @@ export function handleAppSyncMessage(event) {
     } else if (STATE.currentRoute === "deliveries") {
       renderDeliveriesView();
     }
+  } else if (type === "DELIVERY_STATUS_UPDATED" && payload?.orderId) {
+    const { orderId, status } = payload;
   } else if ((type === "DELIVERY_STATUS_UPDATED" || type === "ORDER_DELIVERY_STATUS_CHANGED") && (payload?.orderId || payload?.orderNumber)) {
     const orderId = payload.orderId || payload.orderNumber;
     const status = payload.status || payload.deliveryStatus;
@@ -2347,6 +2355,7 @@ export function handleAppSyncMessage(event) {
       if (payload.deliveryManId) del.deliveryManId = payload.deliveryManId;
     }
     const conv = STATE.conversations.find(c => c.orderId === orderId || c.orderNumber === orderId);
+    if (conv) conv.deliveryStatus = status;
     if (conv) {
       if (payload.deliveryStatus) conv.deliveryStatus = payload.deliveryStatus;
       if (payload.deliveryManName) conv.deliveryManName = payload.deliveryManName;
@@ -2493,31 +2502,99 @@ export function enforceCategoryUniqueImages(products) {
 
 const CART_STORAGE_KEY = "bloomcare_cart_items";
 
+export function getCartStorageKey(targetUid = null) {
+  const uid = targetUid || STATE.currentUser?.uid || STATE.currentUser?.id;
+  return uid ? `bloomcare_cart_items_${uid}` : "bloomcare_cart_items_guest";
+}
+
+export function updateAllProductCardSteppers() {
+  if (typeof document === "undefined") return;
+  const cards = document.querySelectorAll(".product-card[data-product-id]");
+  cards.forEach(card => {
+    const prodId = card.dataset.productId;
+    if (!prodId) return;
+    const prod = STATE.products.find(p => p.id === prodId);
+    const cartItem = (STATE.cart || []).find(i => (i.productId || i.product?.id) === prodId);
+    const inCart = Boolean(cartItem && cartItem.quantity > 0);
+    const cartQty = inCart ? cartItem.quantity : 1;
+    const maxStock = prod ? (prod.stockQuantity ?? 999) : 999;
+    const isOutOfStock = !prod || prod.stockQuantity <= 0;
+
+    const stepper = card.querySelector(`.product-card-qty-stepper[data-product-id="${prodId}"]`) || card.querySelector(".product-card-qty-stepper");
+    const addBtn = card.querySelector(`.add-cart-btn[data-product-id="${prodId}"]`) || card.querySelector(".add-cart-btn");
+
+    if (stepper) {
+      if (inCart) {
+        stepper.classList.remove("hidden");
+        stepper.style.display = "inline-flex";
+        const valSpan = stepper.querySelector(".card-qty-val") || stepper.querySelector(".prod-card-qty-input");
+        if (valSpan) {
+          if (valSpan.tagName === "INPUT") valSpan.value = String(cartQty);
+          else valSpan.textContent = String(cartQty);
+        }
+        const plusBtn = stepper.querySelector(".btn-qty-plus");
+        if (plusBtn) {
+          plusBtn.disabled = cartQty >= maxStock;
+        }
+      } else {
+        stepper.classList.add("hidden");
+        stepper.style.display = "none";
+      }
+    }
+
+    if (addBtn) {
+      if (inCart) {
+        addBtn.classList.add("hidden");
+        addBtn.style.display = "none";
+      } else {
+        addBtn.classList.remove("hidden");
+        addBtn.style.display = "";
+        addBtn.disabled = isOutOfStock;
+        addBtn.textContent = isOutOfStock ? "Out of Stock" : "Add to Cart";
+      }
+    }
+  });
+}
+
 export function saveCartToStorage() {
   try {
+    const serializable = (STATE.cart || []).map(i => ({
+      productId: i.productId || i.product?.id,
+      name: i.name || i.product?.name,
+      price: i.price ?? i.product?.price ?? 0,
+      image: i.image,
+      quantity: i.quantity || 1,
+      requiresPrescription: Boolean(i.requiresPrescription || i.product?.requiresPrescription)
+    }));
+
     if (typeof localStorage !== "undefined") {
-      const serializable = STATE.cart.map(i => ({
-        productId: i.productId || i.product?.id,
-        name: i.name || i.product?.name,
-        price: i.price || i.product?.price,
-        image: i.image,
-        quantity: i.quantity,
-        requiresPrescription: Boolean(i.requiresPrescription || i.product?.requiresPrescription)
-      }));
+      const userKey = getCartStorageKey();
+      localStorage.setItem(userKey, JSON.stringify(serializable));
       localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(serializable));
+    }
+
+    const currentUid = STATE.currentUser?.uid || STATE.currentUser?.id;
+    if (currentUid && typeof saveUserCartToFirestore === "function" && typeof window !== "undefined") {
+      saveUserCartToFirestore(currentUid, serializable).catch(err => {
+        console.warn("[BloomCare Cart] Firestore sync deferred:", err?.message || err);
+      });
     }
   } catch (e) {
     console.warn("[BLOOMCARE] Could not write cart to localStorage:", e);
   }
 }
 
-export function loadCartFromStorage() {
+export function loadCartFromStorage(targetUid = null) {
   try {
     if (typeof localStorage !== "undefined") {
-      const raw = localStorage.getItem(CART_STORAGE_KEY);
+      const key = getCartStorageKey(targetUid);
+      let raw = localStorage.getItem(key);
+      if (!raw && key === "bloomcare_cart_items_guest") {
+        raw = localStorage.getItem(CART_STORAGE_KEY);
+      }
       if (raw) {
         const parsed = JSON.parse(raw);
-        if (Array.isArray(parsed) && parsed.length > 0) {
+        if (Array.isArray(parsed)) {
           STATE.cart = parsed.map(item => {
             const fullProd = STATE.products.find(p => p.id === item.productId);
             const prodImg = fullProd ? getProductImage(fullProd) : "";
@@ -2540,12 +2617,53 @@ export function loadCartFromStorage() {
               }
             };
           });
-          updateCartBadge();
+        } else {
+          STATE.cart = [];
         }
+      } else {
+        STATE.cart = [];
       }
+      updateCartBadge();
+      updateAllProductCardSteppers();
     }
   } catch (e) {
     console.warn("[BLOOMCARE] Could not load cart from localStorage:", e);
+  }
+}
+
+export async function syncUserCartFromFirestore(uid) {
+  if (!uid || typeof getUserCartFromFirestore !== "function") return;
+  try {
+    const remoteItems = await getUserCartFromFirestore(uid);
+    if (Array.isArray(remoteItems) && remoteItems.length > 0) {
+      STATE.cart = remoteItems.map(item => {
+        const fullProd = STATE.products.find(p => p.id === item.productId);
+        const prodImg = fullProd ? getProductImage(fullProd) : "";
+        const itemImg = (item.image && item.image !== BLOOMCARE_PLACEHOLDER_IMAGE && item.image !== "products/placeholder-medicine.svg")
+          ? item.image
+          : (prodImg || BLOOMCARE_PLACEHOLDER_IMAGE);
+        return {
+          productId: item.productId,
+          name: item.name,
+          price: item.price,
+          image: itemImg,
+          quantity: item.quantity || 1,
+          requiresPrescription: Boolean(item.requiresPrescription),
+          product: fullProd || {
+            id: item.productId,
+            name: item.name,
+            price: item.price,
+            stockQuantity: 99,
+            requiresPrescription: Boolean(item.requiresPrescription)
+          }
+        };
+      });
+      saveCartToStorage();
+      updateCartBadge();
+      updateAllProductCardSteppers();
+    }
+  } catch (err) {
+    console.warn("[BloomCare Cart] Firestore remote cart sync deferred:", err?.message || err);
   }
 }
 
@@ -2611,6 +2729,8 @@ async function loadAppData(userId = null) {
     STATE.prescriptions = [];
     STATE.consultations = [];
     STATE.refills = [];
+    loadCartFromStorage(userId);
+    syncUserCartFromFirestore(userId);
   }
 
   try {
@@ -6008,6 +6128,10 @@ export function renderRecommendedProductCardHtml(prod) {
   const strengthMatch = prod.name.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i) || prod.genericName?.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i);
   const pack = prod.packSize || prod.dosageForm || "Pack";
   const generic = prod.genericName || (strengthMatch ? strengthMatch[0] : "");
+  const cartItem = (STATE.cart || []).find(i => (i.productId || i.product?.id) === prod.id);
+  const inCart = Boolean(cartItem && cartItem.quantity > 0);
+  const cartQty = inCart ? cartItem.quantity : 1;
+  const isOutOfStock = prod.stockQuantity <= 0 || !avail.isAvailable;
 
   return `
     <article class="product-card recommended-prod-card" data-product-id="${escapeHtml(prod.id)}" title="View ${escapeHtml(prod.name)}">
@@ -6021,13 +6145,21 @@ export function renderRecommendedProductCardHtml(prod) {
       <div class="rec-card-body">
         <h4 class="rec-product-name">${escapeHtml(prod.name)}</h4>
         <p class="rec-product-meta">${escapeHtml(pack)}${generic ? ` &bull; ${escapeHtml(generic)}` : ""}</p>
+        <div class="rec-stock-row" style="font-size:11.5px; margin-bottom:4px;">
+          <span class="stock-status-label ${avail.badgeClass}">Stock: ${prod.stockQuantity > 0 ? `<strong>${prod.stockQuantity}</strong> available` : "Out of Stock"}</span>
+        </div>
         <div class="rec-pricing-row">
           <div class="rec-price-box">
             <span class="rec-current-price">${formatUGX(prod.price)}</span>
             ${hasDiscount ? `<span class="rec-original-price" style="text-decoration:line-through; color:var(--text-muted); font-size:11px; margin-left:4px;">${formatUGX(prod.originalPrice)}</span>` : ""}
           </div>
-          <button class="circular-plus-btn add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" ${!avail.isAvailable ? "disabled" : ""}>
-            Add to Cart
+          <div class="product-card-qty-stepper ${inCart ? "" : "hidden"}" data-product-id="${escapeHtml(prod.id)}" style="${inCart ? "display:inline-flex;" : "display:none;"}">
+            <button type="button" class="btn-qty-step btn-qty-minus" data-id="${escapeHtml(prod.id)}" aria-label="Decrease quantity" title="Decrease quantity">&minus;</button>
+            <span class="card-qty-val prod-card-qty-input" data-id="${escapeHtml(prod.id)}">${cartQty}</span>
+            <button type="button" class="btn-qty-step btn-qty-plus" data-id="${escapeHtml(prod.id)}" aria-label="Increase quantity" title="Increase quantity" ${cartQty >= prod.stockQuantity ? "disabled" : ""}>&plus;</button>
+          </div>
+          <button class="circular-plus-btn add-cart-btn ${inCart ? "hidden" : ""}" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" style="${inCart ? "display:none;" : ""}" ${isOutOfStock ? "disabled" : ""}>
+            ${isOutOfStock ? "Out of Stock" : "Add to Cart"}
           </button>
         </div>
       </div>
@@ -6353,6 +6485,10 @@ export function renderProductCardHtml(prod) {
   const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "");
   const form = prod.dosageForm || "Unit";
   const pack = prod.packSize || form;
+  const cartItem = (STATE.cart || []).find(i => (i.productId || i.product?.id) === prod.id);
+  const inCart = Boolean(cartItem && cartItem.quantity > 0);
+  const cartQty = inCart ? cartItem.quantity : 1;
+  const isOutOfStock = prod.stockQuantity <= 0 || !avail.isAvailable;
 
   return `
     <article class="product-card horizontal-card" data-product-id="${escapeHtml(prod.id)}" title="Click to view details for ${escapeHtml(prod.name)}">
@@ -6373,7 +6509,7 @@ export function renderProductCardHtml(prod) {
         </div>
         <p class="product-meta-sub"><small class="muted"><strong>Category:</strong> ${escapeHtml(prod.category)}</small></p>
         <div class="product-card-stock-status">
-          <span class="stock-status-label ${avail.badgeClass}">Stock: ${avail.isAvailable ? "Available" : "Unavailable"}</span>
+          <span class="stock-status-label ${avail.badgeClass}">Stock: ${prod.stockQuantity > 0 ? `<strong>${prod.stockQuantity}</strong> available` : '<strong style="color:var(--danger, #dc2626);">Out of Stock</strong>'}</span>
         </div>
         <div class="product-price-row">
           <p class="product-price">${formatUGX(prod.price)}</p>
@@ -6381,17 +6517,17 @@ export function renderProductCardHtml(prod) {
         </div>
       </div>
 
-      <div class="product-card-foot">
+      <div class="product-card-foot" data-product-id="${escapeHtml(prod.id)}">
         <button class="prod-card-fav-btn ${isFav ? "active" : ""}" type="button" data-id="${escapeHtml(prod.id)}" aria-label="${isFav ? "Remove from favorites" : "Add to favorites"}">
           ${isFav ? "♥" : "♡"}
         </button>
-        <div class="product-card-qty-stepper hidden" style="display:none;">
-          <button type="button" class="btn-qty-step btn-qty-minus" data-id="${escapeHtml(prod.id)}" aria-label="Decrease quantity" ${!avail.isAvailable ? "disabled" : ""}>&minus;</button>
-          <input type="number" class="prod-card-qty-input" data-id="${escapeHtml(prod.id)}" value="1" min="1" max="${Math.max(1, prod.stockQuantity || 1)}" ${!avail.isAvailable ? "disabled" : ""} />
-          <button type="button" class="btn-qty-step btn-qty-plus" data-id="${escapeHtml(prod.id)}" aria-label="Increase quantity" ${!avail.isAvailable || (prod.stockQuantity <= 1) ? "disabled" : ""}>&plus;</button>
+        <div class="product-card-qty-stepper ${inCart ? "" : "hidden"}" data-product-id="${escapeHtml(prod.id)}" style="${inCart ? "display:inline-flex;" : "display:none;"}">
+          <button type="button" class="btn-qty-step btn-qty-minus" data-id="${escapeHtml(prod.id)}" aria-label="Decrease quantity" title="Decrease quantity">&minus;</button>
+          <span class="card-qty-val prod-card-qty-input" data-id="${escapeHtml(prod.id)}">${cartQty}</span>
+          <button type="button" class="btn-qty-step btn-qty-plus" data-id="${escapeHtml(prod.id)}" aria-label="Increase quantity" title="Increase quantity" ${cartQty >= prod.stockQuantity ? "disabled" : ""}>&plus;</button>
         </div>
-        <button class="circular-plus-btn add-cart-btn" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" ${!avail.isAvailable ? "disabled" : ""}>
-          Add to Cart
+        <button class="circular-plus-btn add-cart-btn ${inCart ? "hidden" : ""}" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" style="${inCart ? "display:none;" : ""}" ${isOutOfStock ? "disabled" : ""}>
+          ${isOutOfStock ? "Out of Stock" : "Add to Cart"}
         </button>
       </div>
     </article>
@@ -11465,7 +11601,7 @@ function renderContactView() {
 // -------------------------------------------------------------
 // MODULE 5: SHOPPING CART & STOCK LIMITS
 // -------------------------------------------------------------
-function addToCart(productId, quantity = 1) {
+export function addToCart(productId, quantity = 1) {
   const prod = STATE.products.find(p => p.id === productId);
   if (!prod) {
     openNotice("Item Not Found", "Unable to add this product to your cart. Please try again.");
@@ -11473,7 +11609,7 @@ function addToCart(productId, quantity = 1) {
   }
 
   const avail = getProductAvailability(prod);
-  if (!avail.isAvailable) {
+  if (!avail.isAvailable || prod.stockQuantity <= 0) {
     openNotice("Medicine Unavailable", `Unable to add this product to your cart. <strong>${escapeHtml(prod.name)}</strong> is currently ${escapeHtml(avail.label.toLowerCase())}.`);
     return false;
   }
@@ -11482,7 +11618,7 @@ function addToCart(productId, quantity = 1) {
   const currentInCart = existing ? existing.quantity : 0;
 
   if (currentInCart + quantity > prod.stockQuantity) {
-    openNotice("Stock Limit Exceeded", `Unable to add this product to your cart. Only <strong>${prod.stockQuantity}</strong> units of <em>${escapeHtml(prod.name)}</em> are currently in stock.`);
+    openNotice("Stock Limit Reached", `Only <strong>${prod.stockQuantity}</strong> units of <em>${escapeHtml(prod.name)}</em> are available.`);
     return false;
   }
 
@@ -11504,6 +11640,7 @@ function addToCart(productId, quantity = 1) {
 
   saveCartToStorage();
   updateCartBadge();
+  updateAllProductCardSteppers();
   return true;
 }
 
@@ -11512,14 +11649,26 @@ export function updateCartItemQuantity(productId, delta) {
   if (!item) return;
 
   const prod = item.product || STATE.products.find(p => p.id === productId);
+  const maxStock = prod ? (prod.stockQuantity ?? 999) : 999;
   const newQty = item.quantity + delta;
 
-  if (newQty < 1) {
+  if (delta > 0 && newQty > maxStock) {
+    openNotice("Stock Limit Reached", `Only <strong>${maxStock}</strong> units of <em>${escapeHtml(item.name)}</em> are available.`);
     return;
   }
 
-  if (prod && newQty > prod.stockQuantity) {
-    openNotice("Stock Limit Reached", `Unable to increase quantity. Only <strong>${prod.stockQuantity}</strong> units of <em>${escapeHtml(item.name)}</em> are available.`);
+  if (newQty < 1 || (item.quantity === 1 && delta < 0)) {
+    openUserConfirmDialog({
+      title: "Remove Medicine",
+      icon: "🗑️",
+      message: `Remove <strong>${escapeHtml(item.name)}</strong> from your cart?`,
+      submessage: "You can add it back to your cart at any time from the pharmacy catalog.",
+      confirmText: "Remove",
+      confirmClass: "btn-danger",
+      onConfirm: () => {
+        removeCartItem(productId);
+      }
+    });
     return;
   }
 
@@ -11527,6 +11676,7 @@ export function updateCartItemQuantity(productId, delta) {
   saveCartToStorage();
   updateCartBadge();
   renderCartDialogContents();
+  updateAllProductCardSteppers();
 }
 
 export function removeCartItem(productId) {
@@ -11536,6 +11686,7 @@ export function removeCartItem(productId) {
   saveCartToStorage();
   updateCartBadge();
   renderCartDialogContents();
+  updateAllProductCardSteppers();
   openNotice("Item Removed", `<strong>${escapeHtml(itemName)}</strong> was removed from your cart.`);
 }
 
@@ -11580,14 +11731,15 @@ function renderCartDialogContents() {
           <div class="cart-item-unit-price">${formatUGX(itemPrice)} each</div>
         </div>
         <div class="cart-qty-control-group">
-          <button class="cart-qty-btn cart-qty-minus" type="button" data-action="decrease-qty" data-id="${escapeHtml(prodId)}" title="Decrease quantity" ${item.quantity <= 1 ? "disabled" : ""}>&minus;</button>
+          <button class="cart-qty-btn cart-qty-minus" type="button" data-action="decrease-qty" data-id="${escapeHtml(prodId)}" title="Decrease quantity" aria-label="Decrease quantity">&minus;</button>
           <span class="cart-qty-value">${item.quantity}</span>
-          <button class="cart-qty-btn cart-qty-plus" type="button" data-action="increase-qty" data-id="${escapeHtml(prodId)}" title="Increase quantity" ${item.quantity >= maxStock ? "disabled" : ""}>&plus;</button>
+          <button class="cart-qty-btn cart-qty-plus" type="button" data-action="increase-qty" data-id="${escapeHtml(prodId)}" title="Increase quantity" aria-label="Increase quantity" ${item.quantity >= maxStock ? "disabled" : ""}>&plus;</button>
         </div>
         <div class="cart-item-total">
+          <small style="display:block; font-size:11px; color:var(--muted); font-weight:normal;">Subtotal:</small>
           <strong>${formatUGX(itemTotal)}</strong>
         </div>
-        <button class="cart-remove-btn" type="button" data-action="remove-item" data-id="${escapeHtml(prodId)}" title="Remove from cart">&times;</button>
+        <button class="cart-remove-btn" type="button" data-action="remove-item" data-id="${escapeHtml(prodId)}" title="Remove from cart" aria-label="Remove ${escapeHtml(item.name)} from cart">&times;</button>
       </div>
     `;
   }).join("");
@@ -11775,9 +11927,25 @@ async function handleCheckoutOrder(e) {
 
   try {
     // 1. Validate Cart
-  if (!STATE.cart || STATE.cart.length === 0) {
-    return openNotice("Cart Empty", "Your shopping cart is currently empty. Please add items to your cart before placing an order.");
-  }
+    if (!STATE.cart || STATE.cart.length === 0) {
+      return openNotice("Cart Empty", "Your shopping cart is currently empty. Please add items to your cart before placing an order.");
+    }
+
+    // 1b. Real-time Stock & Availability Validation for All Cart Items
+    for (const item of STATE.cart) {
+      const prodId = item.productId || item.product?.id;
+      const prod = STATE.products.find(p => p.id === prodId);
+      if (!prod) {
+        return openNotice("Medicine Unavailable", `The medicine <strong>${escapeHtml(item.name)}</strong> is no longer available in the pharmacy catalog.`);
+      }
+      const avail = getProductAvailability(prod);
+      if (!avail.isAvailable || prod.stockQuantity <= 0) {
+        return openNotice("Out of Stock", `Sorry, <strong>${escapeHtml(prod.name)}</strong> is currently out of stock or unavailable. Please adjust your cart.`);
+      }
+      if (item.quantity > prod.stockQuantity) {
+        return openNotice("Stock Limit Exceeded", `Only <strong>${prod.stockQuantity}</strong> units of <em>${escapeHtml(prod.name)}</em> are available in stock. Please adjust your cart.`);
+      }
+    }
 
   // 2. Validate Customer Information
   const name = $("#chk-name")?.value.trim() || "";
@@ -12141,6 +12309,7 @@ async function handleCheckoutOrder(e) {
   STATE.cart = [];
   saveCartToStorage();
   updateCartBadge();
+  updateAllProductCardSteppers();
   $("#checkout-dialog")?.close();
 
   // Initialize delivery chat conversation immediately upon order placement!
@@ -15531,9 +15700,11 @@ function bindEventListeners() {
       e.preventDefault();
       e.stopPropagation();
       const card = addBtn.closest(".product-card");
-      const qtyInput = card?.querySelector(".prod-card-qty-input");
-      const qty = qtyInput ? (parseInt(qtyInput.value, 10) || 1) : 1;
-      addToCart(addBtn.dataset.productId, qty);
+      const prodId = addBtn.dataset.productId || card?.dataset.productId;
+      if (prodId) {
+        const qty = 1;
+        addToCart(prodId, qty);
+      }
       return;
     }
 
@@ -15541,10 +15712,10 @@ function bindEventListeners() {
     if (cardMinusBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const input = cardMinusBtn.parentElement?.querySelector(".prod-card-qty-input");
-      if (input) {
-        const val = parseInt(input.value, 10) || 1;
-        if (val > 1) input.value = String(val - 1);
+      const card = cardMinusBtn.closest(".product-card") || cardMinusBtn.closest(".product-card-qty-stepper");
+      const prodId = cardMinusBtn.dataset.id || card?.dataset.productId;
+      if (prodId) {
+        updateCartItemQuantity(prodId, -1);
       }
       return;
     }
@@ -15553,16 +15724,15 @@ function bindEventListeners() {
     if (cardPlusBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const input = cardPlusBtn.parentElement?.querySelector(".prod-card-qty-input");
-      if (input) {
-        const max = parseInt(input.getAttribute("max"), 10) || 999;
-        const val = parseInt(input.value, 10) || 1;
-        if (val < max) input.value = String(val + 1);
+      const card = cardPlusBtn.closest(".product-card") || cardPlusBtn.closest(".product-card-qty-stepper");
+      const prodId = cardPlusBtn.dataset.id || card?.dataset.productId;
+      if (prodId) {
+        updateCartItemQuantity(prodId, 1);
       }
       return;
     }
 
-    if (e.target.closest(".prod-card-qty-input")) {
+    if (e.target.closest(".prod-card-qty-input") || e.target.closest(".card-qty-val")) {
       e.stopPropagation();
       return;
     }
@@ -16670,6 +16840,7 @@ function bindEventListeners() {
     STATE.refills = [];
     saveCartToStorage();
     updateCartBadge();
+    updateAllProductCardSteppers();
     updateUserPill();
     renderSidebarNavigation();
     hideAuthLoadingScreen();

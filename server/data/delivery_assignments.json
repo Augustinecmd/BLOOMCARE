@@ -23,8 +23,8 @@
     ],
     "status": "Delivered",
     "deliveryStatus": "Delivered",
-    "assignedAt": "2026-09-11T19:09:31.559115+00:00",
-    "updatedAt": "2026-09-11T19:09:31.645827+00:00",
+    "assignedAt": "2026-09-11T22:09:35.289785+00:00",
+    "updatedAt": "2026-09-11T22:09:35.436156+00:00",
     "assignmentHistory": [
       {
         "timestamp": "2026-09-06T06:29:49.049287+00:00",
@@ -214,6 +214,12 @@
       },
       {
         "timestamp": "2026-09-11T19:09:31.559115+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-11T22:09:35.289785+00:00",
         "action": "ASSIGNED",
         "deliveryManId": "usr-staff-5",
         "deliveryManName": "Moses Kato"
@@ -629,8 +635,8 @@
     "deliveryManName": null,
     "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
     "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
-    "assignedAt": "2026-09-11T19:09:31.727523+00:00",
-    "updatedAt": "2026-09-11T19:09:31.727523+00:00",
+    "assignedAt": "2026-09-11T22:09:35.524065+00:00",
+    "updatedAt": "2026-09-11T22:09:35.524065+00:00",
     "deliveryArea": "Kiyanja",
     "deliveryDivision": "Kamukuzi",
     "deliveryLocation": "Mbarara City",
@@ -646,7 +652,7 @@
     ],
     "assignmentHistory": [
       {
-        "timestamp": "2026-09-11T19:09:31.727523+00:00",
+        "timestamp": "2026-09-11T22:09:35.524065+00:00",
         "action": "QUEUED_WAITING_FOR_DRIVER",
         "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
       }

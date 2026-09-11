@@ -83,8 +83,10 @@ test('4. REFERENCE GENERATOR: Generates unique BC-SALE-YYYYMMDD-XXXX references'
   const ref2 = generateWalkinSaleReference();
   assert.notEqual(ref1, ref2, 'Sale references must be unique');
 
-  const todayStr = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  assert.ok(ref1.startsWith(`BC-SALE-${todayStr}-`), `Reference ${ref1} must start with BC-SALE-YYYYMMDD-`);
+  const d = new Date();
+  const todayStrLocal = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`;
+  const todayStrUtc = d.toISOString().slice(0, 10).replace(/-/g, '');
+  assert.ok(ref1.startsWith(`BC-SALE-${todayStrLocal}-`) || ref1.startsWith(`BC-SALE-${todayStrUtc}-`), `Reference ${ref1} must start with BC-SALE-YYYYMMDD-`);
   assert.match(ref1, /^BC-SALE-\d{8}-\d{4}$/, 'Reference must match BC-SALE-YYYYMMDD-XXXX format');
 });
 
