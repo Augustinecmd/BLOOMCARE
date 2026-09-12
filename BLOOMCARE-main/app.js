@@ -52,7 +52,13 @@ import {
   subscribeUserNotifications,
   subscribeOrderById,
   saveUserCartToFirestore,
-  getUserCartFromFirestore
+  getUserCartFromFirestore,
+  saveUserWishlistToFirestore,
+  getUserWishlistFromFirestore,
+  saveUserAddressesToFirestore,
+  getUserAddressesFromFirestore,
+  saveProductReviewToFirestore,
+  getProductReviewsFromFirestore
 } from "./firebase.js";
 import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
@@ -2181,6 +2187,13 @@ export const STATE = {
   reportsDateFilter: "month",
   fulfillmentOption: "delivery", // delivery | pickup
   deliveryFee: 5000,
+  deliverySpeed: "standard", // standard | express
+  activeCheckoutStep: 1,
+  wishlist: [],
+  savedAddresses: [],
+  productReviews: {},
+  macroCategory: "All",
+  activeAccountTab: "profile",
   isPlacingOrder: false,
   designatedDeliveryDriver: null,
   deliveryOrdersFilter: "all",

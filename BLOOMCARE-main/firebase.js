@@ -1239,3 +1239,93 @@ export async function getUserCartFromFirestore(userId) {
     }
     return null;
 }
+
+// -------------------------------------------------------------
+// 13. CUSTOMER WISHLIST PERSISTENCE
+// -------------------------------------------------------------
+
+export async function saveUserWishlistToFirestore(userId, wishlistIds) {
+    if (!db || !userId) return;
+    try {
+        await setDoc(doc(db, "wishlists", userId), {
+            userId,
+            productIds: Array.isArray(wishlistIds) ? wishlistIds : [],
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (err) {
+        console.warn("[BloomCare Wishlist] saveUserWishlistToFirestore warning:", err?.message || err);
+    }
+}
+
+export async function getUserWishlistFromFirestore(userId) {
+    if (!db || !userId) return null;
+    try {
+        const snap = await getDoc(doc(db, "wishlists", userId));
+        if (snap.exists()) {
+            return snap.data()?.productIds || [];
+        }
+    } catch (err) {
+        console.warn("[BloomCare Wishlist] getUserWishlistFromFirestore warning:", err?.message || err);
+    }
+    return null;
+}
+
+// -------------------------------------------------------------
+// 14. CUSTOMER SAVED ADDRESSES PERSISTENCE
+// -------------------------------------------------------------
+
+export async function saveUserAddressesToFirestore(userId, addresses) {
+    if (!db || !userId) return;
+    try {
+        await setDoc(doc(db, "users", userId), {
+            savedAddresses: Array.isArray(addresses) ? addresses : [],
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+    } catch (err) {
+        console.warn("[BloomCare Addresses] saveUserAddressesToFirestore warning:", err?.message || err);
+    }
+}
+
+export async function getUserAddressesFromFirestore(userId) {
+    if (!db || !userId) return null;
+    try {
+        const snap = await getDoc(doc(db, "users", userId));
+        if (snap.exists()) {
+            return snap.data()?.savedAddresses || [];
+        }
+    } catch (err) {
+        console.warn("[BloomCare Addresses] getUserAddressesFromFirestore warning:", err?.message || err);
+    }
+    return null;
+}
+
+// -------------------------------------------------------------
+// 15. VERIFIED PRODUCT REVIEWS PERSISTENCE
+// -------------------------------------------------------------
+
+export async function saveProductReviewToFirestore(productId, review) {
+    if (!db || !productId || !review) return null;
+    try {
+        const reviewRef = await addDoc(collection(db, `products/${productId}/reviews`), {
+            ...review,
+            productId,
+            createdAt: new Date().toISOString()
+        });
+        return { id: reviewRef.id, ...review };
+    } catch (err) {
+        console.warn("[BloomCare Reviews] saveProductReviewToFirestore warning:", err?.message || err);
+        return { id: "REV-" + Date.now(), ...review };
+    }
+}
+
+export async function getProductReviewsFromFirestore(productId) {
+    if (!db || !productId) return [];
+    try {
+        const snap = await getDocs(collection(db, `products/${productId}/reviews`));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+        console.warn("[BloomCare Reviews] getProductReviewsFromFirestore warning:", err?.message || err);
+        return [];
+    }
+}
+
