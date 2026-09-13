@@ -171,10 +171,25 @@
 
         <!-- Global Search Bar -->
         <div class="top-search-box" id="top-search-container">
-          <input type="search" id="top-search-input" placeholder="Search medicines, orders, users..." autocomplete="off" aria-autocomplete="list" aria-controls="top-search-suggestions" />
+          <input type="search" id="top-search-input" placeholder="Search medicines, healthcare products and more..." autocomplete="off" aria-autocomplete="list" aria-controls="top-search-suggestions" />
+          <input type="search" id="admin-top-search-input" class="hidden" style="display:none;" placeholder="Search medicines, orders, users..." aria-hidden="true" />
+          <button type="button" class="search-clear-btn hidden" id="top-search-clear" aria-label="Clear search">&times;</button>
           <span class="search-ico" id="top-search-icon"></span>
           <div class="search-suggestions-dropdown hidden" id="top-search-suggestions" role="listbox"></div>
         </div>
+
+        <!-- Quick Orders Access Button -->
+        <button class="top-header-btn" id="top-orders-btn" type="button" data-route="customer/orders" title="My Orders">
+          <span class="top-header-btn-icon">📦</span>
+          <span class="top-header-btn-label">Orders</span>
+        </button>
+
+        <!-- Wishlist Button -->
+        <button class="cart-btn wishlist-btn" id="open-wishlist-btn" type="button" aria-label="Open Wishlist" title="Wishlist">
+          <span class="cart-btn-icon">♡</span>
+          <span class="cart-btn-label">Wishlist</span>
+          <span class="cart-badge" id="nav-wishlist-count">0</span>
+        </button>
 
         <!-- Notifications Bell with Dropdown Panel -->
         <div class="top-notif-wrap" id="top-notif-wrap">
@@ -239,6 +254,39 @@
         </div>
       </div>
     </header>
+
+    <!-- Jumia-Style Macro-Category Bar -->
+    <nav class="marketplace-categories-bar" id="marketplace-categories-bar" aria-label="Product Categories">
+      <div class="marketplace-categories-scroll categories-bar-inner">
+        <button type="button" class="macro-category-pill macro-cat-item active" data-macro="All" data-macro-category="All">
+          <span class="macro-cat-icon pill-icon">🏥</span> All Medicines
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Prescription Medicines" data-macro-category="Prescription Medicines">
+          <span class="macro-cat-icon pill-icon">📋</span> Prescription (Rx)
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Over-the-Counter" data-macro-category="Over-the-Counter">
+          <span class="macro-cat-icon pill-icon">💊</span> Over-The-Counter
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Pain &amp; Fever" data-macro-category="Pain &amp; Fever">
+          <span class="macro-cat-icon pill-icon">🩹</span> Pain &amp; Fever
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Personal Care" data-macro-category="Personal Care">
+          <span class="macro-cat-icon pill-icon">🧴</span> Personal Care
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Baby Care" data-macro-category="Baby Care">
+          <span class="macro-cat-icon pill-icon">🍼</span> Baby Care
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Vitamins &amp; Supplements" data-macro-category="Vitamins &amp; Supplements">
+          <span class="macro-cat-icon pill-icon">🌿</span> Vitamins &amp; Supplements
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Medical Equipment" data-macro-category="Medical Equipment">
+          <span class="macro-cat-icon pill-icon">🩺</span> Medical Devices
+        </button>
+        <button type="button" class="macro-category-pill macro-cat-item" data-macro="Beauty &amp; Wellness" data-macro-category="Beauty &amp; Wellness">
+          <span class="macro-cat-icon pill-icon">✨</span> Beauty &amp; Wellness
+        </button>
+      </div>
+    </nav>
 
     <!-- Main Viewport Content Panes -->
     <main class="app-content-viewport" id="app-content-viewport">
@@ -356,6 +404,53 @@
               <span class="metric-icon-clock">⏱</span>
               <strong class="metric-primary-val">10–15 min</strong>
               <span class="metric-secondary-val">Delivery Time</span>
+            </div>
+          </div>
+
+          <!-- Jumia-Style Promo Banner Strip -->
+          <div class="marketplace-promo-banner-wrap" id="marketplace-promo-banner">
+            <div class="promo-banner-slide">
+              <div class="promo-banner-content">
+                <span class="promo-badge">⚡ FLASH DEALS &amp; HEALTH ESSENTIALS</span>
+                <h3 class="promo-banner-title">Authentic NDA-Certified Medicines Delivered Fast</h3>
+                <p class="promo-banner-sub">Up to 25% discount on daily wellness essentials, pain relief, and chronic health prescriptions in Mbarara City.</p>
+                <div class="promo-banner-actions">
+                  <a href="#medicines" class="btn btn-primary btn-sm promo-shop-btn" data-macro="Over-the-Counter">Shop Daily Care &rarr;</a>
+                  <a href="#prescriptions" class="btn btn-outline btn-sm promo-rx-btn" data-route="prescriptions">Upload Prescription</a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Value Strip (Jumia-style trust icons) -->
+          <div class="marketplace-value-strip">
+            <div class="value-item">
+              <span class="value-icon">🛡️</span>
+              <div class="value-text">
+                <strong>100% Genuine Medicines</strong>
+                <small>NDA Uganda Certified Dispensary</small>
+              </div>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">⚡</span>
+              <div class="value-text">
+                <strong>Express Doorstep Delivery</strong>
+                <small>Express Delivery 30–45 mins within Mbarara City</small>
+              </div>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">💬</span>
+              <div class="value-text">
+                <strong>Licensed Pharmacist Support</strong>
+                <small>Free clinical advice via WhatsApp &amp; chat</small>
+              </div>
+            </div>
+            <div class="value-item">
+              <span class="value-icon">📱</span>
+              <div class="value-text">
+                <strong>Instant Mobile Money</strong>
+                <small>MTN MoMo &bull; Airtel Money &bull; Cash</small>
+              </div>
             </div>
           </div>
 
@@ -1083,25 +1178,74 @@
           <p class="page-desc" id="profile-page-desc">Manage your personal information and account security.</p>
         </div>
 
-        <div class="content-dual-grid">
-          <!-- Profile Info Card -->
-          <div class="content-card">
-            <h3>Personal Information</h3>
-            <form id="profile-edit-form" class="standard-form">
-              <label>Full Name<input type="text" id="prof-fullname" required /></label>
-              <label>Email Address<input type="email" id="prof-email" readonly disabled /></label>
-              <label>Phone Number<input type="tel" id="prof-phone" required /></label>
-              <button class="btn btn-primary" type="submit">Save Profile Details</button>
-            </form>
-          </div>
+        <!-- Customer Account Hub Navigation Tabs -->
+        <div class="account-hub-tabs" id="account-hub-tabs" style="display:flex; gap:8px; margin-bottom:18px; border-bottom:2px solid var(--border-color); overflow-x:auto; padding-bottom:8px;">
+          <button type="button" class="account-tab-btn active" data-account-tab="profile">👤 Personal Info</button>
+          <button type="button" class="account-tab-btn" data-account-tab="orders">📦 My Orders</button>
+          <button type="button" class="account-tab-btn" data-account-tab="wishlist">♡ Saved Wishlist</button>
+          <button type="button" class="account-tab-btn" data-account-tab="addresses">📍 Delivery Addresses</button>
+          <button type="button" class="account-tab-btn" data-account-tab="prescriptions">📄 Prescriptions</button>
+        </div>
 
-          <!-- Security / Password Reset -->
-          <div class="content-card">
-            <h3>Password &amp; Account Security</h3>
-            <p class="muted">Request a secure password reset link sent to your registered email address.</p>
-            <div style="margin-top: 14px;">
-              <button class="btn btn-secondary" id="btn-profile-reset-pass" type="button">Send Password Reset Email</button>
+        <div id="account-panel-profile" class="account-tab-panel">
+          <div class="content-dual-grid">
+            <!-- Profile Info Card -->
+            <div class="content-card">
+              <h3>Personal Information</h3>
+              <form id="profile-edit-form" class="standard-form">
+                <label>Full Name<input type="text" id="prof-fullname" required /></label>
+                <label>Email Address<input type="email" id="prof-email" readonly disabled /></label>
+                <label>Phone Number<input type="tel" id="prof-phone" required /></label>
+                <button class="btn btn-primary" type="submit">Save Profile Details</button>
+              </form>
             </div>
+
+            <!-- Security / Password Reset -->
+            <div class="content-card">
+              <h3>Password &amp; Account Security</h3>
+              <p class="muted">Request a secure password reset link sent to your registered email address.</p>
+              <div style="margin-top: 14px;">
+                <button class="btn btn-secondary" id="btn-profile-reset-pass" type="button">Send Password Reset Email</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div id="account-panel-orders" class="account-tab-panel hidden">
+          <div class="content-card">
+            <div class="flex-between" style="margin-bottom:14px;">
+              <h3 style="margin:0;">My Online &amp; Store Orders</h3>
+              <button class="btn btn-primary btn-sm" type="button" data-route="medicines">+ Start New Order</button>
+            </div>
+            <div id="account-orders-preview-box"></div>
+          </div>
+        </div>
+
+        <div id="account-panel-wishlist" class="account-tab-panel hidden">
+          <div class="content-card">
+            <h3 style="margin-bottom:12px;">My Saved Wishlist (<span id="account-wishlist-count">0</span> items)</h3>
+            <div id="account-wishlist-preview-box"></div>
+          </div>
+        </div>
+
+        <div id="account-panel-addresses" class="account-tab-panel hidden">
+          <div class="content-card">
+            <div class="flex-between" style="margin-bottom:14px;">
+              <h3 style="margin:0;">Saved Delivery Locations</h3>
+              <button class="btn btn-primary btn-sm" id="btn-add-new-address" type="button">+ Add New Address</button>
+            </div>
+            <div id="account-addresses-preview-box"></div>
+          </div>
+        </div>
+
+        <div id="account-panel-prescriptions" class="account-tab-panel hidden">
+          <div class="content-card">
+            <div class="flex-between" style="margin-bottom:14px;">
+              <h3 style="margin:0;">Prescription Uploads</h3>
+              <button class="btn btn-primary btn-sm" type="button" data-route="prescriptions">Upload New Prescription</button>
+            </div>
+            <p class="muted">View verified prescriptions and clinical notes issued by BloomCare pharmacists.</p>
+            <div id="account-rx-preview-box"></div>
           </div>
         </div>
       </section>
@@ -1897,6 +2041,30 @@
     <label>Category Name<input type="text" id="cat-name" placeholder="e.g. Diabetes Care" required /></label>
     <label>Category Code / Identifier<input type="text" id="cat-icon" placeholder="e.g. diabetes" required /></label>
     <label>Short Description<textarea id="cat-desc" rows="2" placeholder="Description of medicines and healthcare products in this category..." required></textarea></label>
+    
+    <label>Status
+      <select id="cat-status">
+        <option value="active">Active (Visible in Storefront &amp; Filters)</option>
+        <option value="inactive">Inactive (Hidden)</option>
+      </select>
+    </label>
+
+    <div class="category-image-management-group" style="margin: 12px 0; padding: 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px;">
+      <label style="font-weight: 600; margin-bottom: 6px; display: block;">Category Image / Icon</label>
+      <div style="display: flex; align-items: center; gap: 14px; margin-bottom: 10px;">
+        <div style="width: 52px; height: 52px; border-radius: 12px; border: 1.5px solid #cbd5e1; background: #ffffff; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+          <img id="cat-image-preview" src="categories/all-medicines.svg" alt="Preview" style="width: 44px; height: 44px; object-fit: contain;" />
+        </div>
+        <div style="flex: 1;">
+          <input type="file" id="cat-image-file" accept="image/*" style="font-size: 12px; margin-bottom: 4px;" />
+          <small class="muted" style="display: block; font-size: 11px;">Upload PNG, SVG, JPG, or WebP icon</small>
+        </div>
+      </div>
+      <label style="font-size: 12px; margin-bottom: 2px;">Or Image Path / URL
+        <input type="text" id="cat-image-url" placeholder="e.g. categories/diabetes-care.svg" style="font-size: 13px;" />
+      </label>
+    </div>
+
     <div class="form-actions-row">
       <button class="btn btn-outline" type="button" id="cancel-cat-form-btn">Cancel</button>
       <button class="btn btn-primary" type="submit">Save Category</button>
@@ -2039,6 +2207,8 @@
         <button type="button" class="btn-qty-step" id="modal-qty-plus" aria-label="Increase quantity">&plus;</button>
       </div>
       <button class="btn btn-primary" id="modal-add-cart-btn" type="button">Add to Cart</button>
+      <button class="btn btn-warning" id="modal-buy-now-btn" type="button">Buy Now</button>
+      <button class="btn btn-outline" id="modal-wishlist-btn" type="button" aria-label="Add to Wishlist">♡ Wishlist</button>
     </div>
   </div>
 </dialog>
@@ -2091,7 +2261,15 @@
     <button class="dialog-close-btn" id="close-checkout-modal">&times;</button>
   </div>
   <form id="checkout-form" class="checkout-form-body" novalidate>
-    <h4 style="margin-top:4px;">1. Customer Information</h4>
+    <!-- Checkout Multi-Step Header -->
+    <div class="checkout-steps-bar" id="checkout-steps-bar" style="display:flex; gap:6px; margin-bottom:14px; background:var(--bg-page); padding:6px; border-radius:var(--radius-sm); border:1px solid var(--border-color);">
+      <div class="checkout-step-pill active" data-checkout-step="1" style="flex:1; text-align:center; font-size:11.5px; font-weight:700; padding:6px 4px; border-radius:4px; background:#0f766e; color:#fff;"><span>1.</span> Address</div>
+      <div class="checkout-step-pill" data-checkout-step="2" style="flex:1; text-align:center; font-size:11.5px; font-weight:600; padding:6px 4px; border-radius:4px; color:var(--muted);"><span>2.</span> Speed</div>
+      <div class="checkout-step-pill" data-checkout-step="3" style="flex:1; text-align:center; font-size:11.5px; font-weight:600; padding:6px 4px; border-radius:4px; color:var(--muted);"><span>3.</span> Prescription</div>
+      <div class="checkout-step-pill" data-checkout-step="4" style="flex:1; text-align:center; font-size:11.5px; font-weight:600; padding:6px 4px; border-radius:4px; color:var(--muted);"><span>4.</span> Payment</div>
+    </div>
+
+    <h4 style="margin-top:4px;">1. Customer Information &amp; Delivery Address</h4>
     <div class="form-row-2">
       <label>Full Name<input type="text" id="chk-name" required /></label>
       <label>Email Address<input type="email" id="chk-email" placeholder="you@example.com" required /></label>
@@ -2105,7 +2283,32 @@
       </select>
     </label>
 
+    <!-- Delivery Speed Selector -->
+    <div id="chk-delivery-speed-wrap" class="delivery-speed-options" style="margin-top:8px; margin-bottom:12px;">
+      <label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Delivery Speed &amp; Priority</label>
+      <div class="speed-cards-grid" style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <label class="speed-option-card active" id="speed-card-standard" style="border:1.5px solid #0f766e; background:#f0fdf4; border-radius:6px; padding:8px 10px; cursor:pointer; display:block;">
+          <input type="radio" name="chk-delivery-speed" value="standard" checked style="margin-right:4px;" />
+          <strong style="font-size:12.5px; color:#0f766e;">Standard Delivery</strong>
+          <div style="font-size:11px; color:var(--muted);">30–45 min &bull; UGX 5,000</div>
+        </label>
+        <label class="speed-option-card" id="speed-card-express" style="border:1px solid var(--border-color); background:var(--bg-card); border-radius:6px; padding:8px 10px; cursor:pointer; display:block;">
+          <input type="radio" name="chk-delivery-speed" value="express" style="margin-right:4px;" />
+          <strong style="font-size:12.5px;">⚡ Express Priority</strong>
+          <div style="font-size:11px; color:var(--muted);">15–25 min &bull; UGX 8,000</div>
+        </label>
+      </div>
+    </div>
+
     <div id="chk-delivery-fields">
+      <!-- Saved Addresses Book Quick Selector -->
+      <div id="chk-saved-addresses-selector" class="saved-addresses-selector-box" style="margin-bottom:10px;">
+        <div class="flex-between" style="margin-bottom:6px; display:flex; justify-content:space-between; align-items:center;">
+          <span style="font-size:12px; font-weight:700; color:var(--text-main);">📍 Saved Delivery Addresses</span>
+          <button type="button" class="btn btn-outline btn-xs" id="chk-add-address-btn">+ Add New Address</button>
+        </div>
+        <div id="chk-saved-addresses-cards" class="saved-address-cards-row" style="display:flex; gap:8px; overflow-x:auto; padding-bottom:4px;"></div>
+      </div>
       <!-- Saved Location Preview (Populated if customer has a saved delivery location) -->
       <div id="chk-saved-location-box" class="saved-delivery-location-card hidden" style="background:var(--bg-page); border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px 12px; margin-bottom:10px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -2194,6 +2397,68 @@
     </div>
 
     <button class="btn btn-primary btn-block" type="submit" style="margin-top: 10px;">Place Order &amp; Generate Reference</button>
+  </form>
+</dialog>
+
+<!-- 9A2. Customer Wishlist Dialog -->
+<dialog id="wishlist-dialog" class="form-modal-dialog" style="max-width: 620px;">
+  <div class="dialog-header">
+    <div style="display:flex; align-items:center; gap:8px;">
+      <span style="font-size:1.25rem;">♡</span>
+      <h2 style="margin:0; font-size:1.15rem;">My Saved Wishlist</h2>
+    </div>
+    <button class="dialog-close-btn" id="close-wishlist-modal" type="button">&times;</button>
+  </div>
+  <div class="dialog-body" style="padding:16px;">
+    <div id="wishlist-items-container"></div>
+  </div>
+  <div class="dialog-footer" style="padding:12px 16px; border-top:1px solid var(--border-color); display:flex; justify-content:flex-end;">
+    <button class="btn btn-secondary" id="wishlist-close-btn" type="button">Close</button>
+  </div>
+</dialog>
+
+<!-- 9A3. Saved Address Dialog (Add / Edit) -->
+<dialog id="address-dialog" class="form-modal-dialog" style="max-width: 520px;">
+  <div class="dialog-header">
+    <h3 id="address-modal-title" style="margin:0;">Add Delivery Address</h3>
+    <button class="dialog-close-btn" id="close-address-modal" type="button">&times;</button>
+  </div>
+  <form id="address-form" class="standard-form" style="padding:16px;">
+    <input type="hidden" id="addr-id" />
+    <label>Address Label
+      <input type="text" id="addr-label" placeholder="e.g. Home, Office, Clinic" required />
+    </label>
+    <div class="form-row-2">
+      <label>Mbarara Division
+        <select id="addr-division" required>
+          <option value="">-- Select Division --</option>
+          <option value="Kamukuzi">Kamukuzi</option>
+          <option value="Kakoba">Kakoba</option>
+          <option value="Nyamitanga">Nyamitanga</option>
+          <option value="Kakiika">Kakiika</option>
+          <option value="Biharwe">Biharwe</option>
+          <option value="Nyakayojo">Nyakayojo</option>
+        </select>
+      </label>
+      <label>Area / Neighborhood
+        <select id="addr-area" required disabled>
+          <option value="">-- First Select Division --</option>
+        </select>
+      </label>
+    </div>
+    <label>Specific Landmark / Street
+      <input type="text" id="addr-landmark" placeholder="e.g. Near Kiyanja Market, Plot 4, Blue gate" required />
+    </label>
+    <label>Contact Phone Number
+      <input type="tel" id="addr-phone" placeholder="0772 123 456" required />
+    </label>
+    <label style="display:flex; align-items:center; gap:8px; margin-top:8px; font-size:13px; cursor:pointer;">
+      <input type="checkbox" id="addr-default" /> Set as Default Delivery Address
+    </label>
+    <div class="form-actions-row" style="margin-top:14px;">
+      <button class="btn btn-outline" type="button" id="cancel-address-btn">Cancel</button>
+      <button class="btn btn-primary" type="submit">Save Address</button>
+    </div>
   </form>
 </dialog>
 
@@ -3069,6 +3334,7 @@
   </div>
 </dialog>
 
+<!-- 10A. Online Order Confirmation Dialog (Clean Screen, No Counter Receipt Required) -->
 <!-- 10A. Online Order Confirmation Dialog (Complete Payment + Delivery Experience) -->
 <dialog id="order-confirmation-dialog" class="order-confirm-dialog" aria-labelledby="order-confirm-modal-title">
   <div class="order-confirm-header">
@@ -3077,6 +3343,8 @@
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       </div>
       <div>
+        <h2 id="order-confirm-modal-title" class="order-confirm-title">Order Confirmed!</h2>
+        <p class="order-confirm-subtitle">Your online order has been placed and payment confirmed.</p>
         <h2 id="order-confirm-modal-title" class="order-confirm-title">✓ ORDER CREATED SUCCESSFULLY</h2>
         <p class="order-confirm-subtitle" id="order-confirm-modal-sub">Thank you for ordering from BloomCare Pharmacy.</p>
       </div>
@@ -3089,15 +3357,19 @@
     <div class="order-confirm-card order-confirm-summary-card">
       <div class="order-confirm-row-grid">
         <div class="order-confirm-meta-cell">
+          <span class="confirm-cell-label">Order Number</span>
           <span class="confirm-cell-label">Order Reference</span>
           <strong class="confirm-cell-value order-ref-text" id="confirm-order-number">BC-20260905-00000</strong>
         </div>
         <div class="order-confirm-meta-cell">
+          <span class="confirm-cell-label">Order Status</span>
+          <span class="confirm-status-pill" id="confirm-order-status">Confirmed</span>
           <span class="confirm-cell-label">Delivery Status</span>
           <span class="confirm-status-pill" id="confirm-order-status">Order Placed</span>
         </div>
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Payment Status</span>
+          <span class="confirm-payment-badge" id="confirm-payment-status">PAID ✓</span>
           <span class="confirm-payment-badge" id="confirm-payment-status">🟠 Payment Pending</span>
         </div>
         <div class="order-confirm-meta-cell">
@@ -3159,17 +3431,21 @@
       </div>
     </div>
 
+    <!-- Assigned Delivery Man Card -->
     <!-- Assigned Delivery Man Card (Rendered Only When Courier Assigned) -->
     <div class="order-confirm-card order-confirm-driver-card" id="confirm-driver-card">
       <div class="confirm-section-header">
         <span class="confirm-section-icon">🛵</span>
+        <h3 class="confirm-section-title">Assigned Delivery Man</h3>
         <h3 class="confirm-section-title">Delivery Courier</h3>
       </div>
+      <div class="confirm-driver-box">
       <div class="confirm-driver-box" id="confirm-driver-assigned-content">
         <div class="driver-avatar-circle" id="confirm-driver-avatar">MK</div>
         <div class="driver-info-wrap">
           <strong class="driver-name-text" id="confirm-driver-name">Moses Kato</strong>
           <span class="driver-phone-text" id="confirm-driver-phone">📞 0700 000 005</span>
+          <span class="driver-status-badge" id="confirm-driver-status">Assigned &amp; Dispatching</span>
           <span class="driver-status-badge" id="confirm-driver-status">🟢 Assigned</span>
         </div>
       </div>
@@ -3188,6 +3464,7 @@
         <!-- Dynamically rendered items -->
       </div>
       <div class="confirm-total-row">
+        <span>Total Paid:</span>
         <span>Total Payable:</span>
         <strong id="confirm-total-val">UGX 0</strong>
       </div>
@@ -3196,13 +3473,19 @@
 
   <!-- Action Bar -->
   <div class="order-confirm-actions">
+    <button class="btn btn-primary btn-lg order-confirm-chat-action" id="order-confirm-chat-btn" type="button">
+      <span class="btn-icon">💬</span> Chat with Delivery Man
     <!-- Prominent Primary Payment Action -->
     <button class="btn btn-primary btn-block" id="order-confirm-pay-btn" type="button" style="padding:12px; font-size:15px; font-weight:700;">
       <span>💳 CONTINUE PAYMENT</span>
     </button>
+    <button class="btn btn-outline" id="order-confirm-view-orders-btn" type="button">
+      View in My Orders
     <button class="btn btn-outline btn-sm hidden" id="order-confirm-check-pay-btn" type="button">
       <span>🔄 CHECK PAYMENT STATUS</span>
     </button>
+    <button class="btn btn-secondary" id="order-confirm-continue-btn" type="button">
+      Continue Shopping
     <button class="btn btn-warning btn-sm hidden" id="order-confirm-retry-pay-btn" type="button">
       <span>⚠️ RETRY PAYMENT</span>
     </button>

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="wellBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#ecfdf5"/>
+      <stop offset="100%" stop-color="#d1fae5"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#wellBg)"/>
+  <rect x="1" y="1" width="46" height="46" rx="11" fill="none" stroke="#a7f3d0" stroke-width="1.5"/>
+  <!-- Wellness Lotus / Vitality Leaves -->
+  <!-- Center petal -->
+  <path d="M24 13c-4 5-4 12 0 17 4-5 4-12 0-17z" fill="#10b981"/>
+  <!-- Left petal -->
+  <path d="M22 21c-5-2-11 2-10 8 5 3 9-1 10-8z" fill="#059669" opacity="0.85"/>
+  <!-- Right petal -->
+  <path d="M26 21c5-2 11 2 10 8-5 3-9-1-10-8z" fill="#059669" opacity="0.85"/>
+  <!-- Base soothing pool curve -->
+  <path d="M14 34c5 2 15 2 20 0" stroke="#047857" stroke-width="2" stroke-linecap="round"/>
+  <!-- Harmony sun sparkle -->
+  <circle cx="24" cy="11" r="1.5" fill="#34d399"/>
+</svg>

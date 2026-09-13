@@ -25,6 +25,7 @@ export default defineConfig({
       name: "copy-static-assets",
       closeBundle() {
         copyDir(path.resolve(__dirname, "products"), path.resolve(__dirname, "dist/products"));
+        copyDir(path.resolve(__dirname, "categories"), path.resolve(__dirname, "dist/categories"));
       },
     },
   ],

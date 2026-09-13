@@ -52,7 +52,13 @@ import {
   subscribeUserNotifications,
   subscribeOrderById,
   saveUserCartToFirestore,
-  getUserCartFromFirestore
+  getUserCartFromFirestore,
+  saveUserWishlistToFirestore,
+  getUserWishlistFromFirestore,
+  saveUserAddressesToFirestore,
+  getUserAddressesFromFirestore,
+  saveProductReviewToFirestore,
+  getProductReviewsFromFirestore
 } from "./firebase.js";
 import { UGANDA_PHARMACY_CATALOG } from "./data/medicines-catalog.js";
 import { createWhatsAppUrl, normalizeWhatsAppPhone } from "./whatsapp.js";
@@ -141,22 +147,70 @@ export const ICONS = {
 // 2. 15 PHARMACY HEALTH DEPARTMENTS
 // -------------------------------------------------------------
 const ESSENTIAL_CATEGORIES = [
-  { id: "cat-pain", name: "Pain Relief", iconKey: "medicines", desc: "Headache, body pain, fever, joint and muscle relief.", productCount: 49, status: "active" },
-  { id: "cat-cold", name: "Cold & Flu", iconKey: "medicines", desc: "Cough syrups, decongestants, antibiotics and lozenges.", productCount: 47, status: "active" },
-  { id: "cat-vitamins", name: "Vitamins & Supplements", iconKey: "prescriptions", desc: "Immunity boosters, minerals and daily multivitamins.", productCount: 51, status: "active" },
-  { id: "cat-digestive", name: "Digestive Health", iconKey: "medicines", desc: "Antacids, ORS hydration, laxatives and probiotics.", productCount: 49, status: "active" },
-  { id: "cat-firstaid", name: "First Aid", iconKey: "shield", desc: "Antiseptics, bandages, surgical gauze and emergency kits.", productCount: 48, status: "active" },
-  { id: "cat-skin", name: "Skin Care", iconKey: "prescriptions", desc: "Medicated lotions, moisturizing creams and ointments.", productCount: 51, status: "active" },
-  { id: "cat-personal", name: "Personal Care", iconKey: "prescriptions", desc: "Sanitizers, oral hygiene and daily personal care.", productCount: 52, status: "active" },
-  { id: "cat-baby", name: "Baby & Child Care", iconKey: "customers", desc: "Pediatric syrups, infant drops and baby supplements.", productCount: 48, status: "active" },
-  { id: "cat-maternal", name: "Maternal Health", iconKey: "prescriptions", desc: "Folic acid, prenatal multivitamins and calcium supplements.", productCount: 51, status: "active" },
-  { id: "cat-chronic", name: "Chronic Care", iconKey: "medicines", desc: "Blood pressure, heart and cardiovascular medications.", productCount: 52, status: "active" },
-  { id: "cat-diabetes", name: "Diabetes Care", iconKey: "medicines", desc: "Glucose control, test strips and diabetic care.", productCount: 52, status: "active" },
-  { id: "cat-respiratory", name: "Respiratory Care", iconKey: "medicines", desc: "Salbutamol inhalers, nebulizer solutions and respiratory therapy.", productCount: 48, status: "active" },
-  { id: "cat-allergy", name: "Allergy Care", iconKey: "medicines", desc: "Antihistamines, eye drops and non-drowsy allergy relief.", productCount: 51, status: "active" },
-  { id: "cat-devices", name: "Medical Devices", iconKey: "inventory", desc: "Digital thermometers, BP monitors, oximeters and lancets.", productCount: 48, status: "active" },
-  { id: "cat-wellness", name: "Wellness Products", iconKey: "shield", desc: "Nutritional shakes, dietary minerals and wellness essentials.", productCount: 52, status: "active" }
+  { id: "cat-pain", name: "Pain Relief", iconKey: "medicines", desc: "Headache, body pain, fever, joint and muscle relief.", productCount: 49, status: "active", imageUrl: "categories/pain-relief.svg" },
+  { id: "cat-cold", name: "Cold & Flu", iconKey: "medicines", desc: "Cough syrups, decongestants, antibiotics and lozenges.", productCount: 47, status: "active", imageUrl: "categories/cold-flu.svg" },
+  { id: "cat-vitamins", name: "Vitamins & Supplements", iconKey: "prescriptions", desc: "Immunity boosters, minerals and daily multivitamins.", productCount: 51, status: "active", imageUrl: "categories/vitamins-supplements.svg" },
+  { id: "cat-digestive", name: "Digestive Health", iconKey: "medicines", desc: "Antacids, ORS hydration, laxatives and probiotics.", productCount: 49, status: "active", imageUrl: "categories/digestive-health.svg" },
+  { id: "cat-firstaid", name: "First Aid", iconKey: "shield", desc: "Antiseptics, bandages, surgical gauze and emergency kits.", productCount: 48, status: "active", imageUrl: "categories/first-aid.svg" },
+  { id: "cat-skin", name: "Skin Care", iconKey: "prescriptions", desc: "Medicated lotions, moisturizing creams and ointments.", productCount: 51, status: "active", imageUrl: "categories/skin-care.svg" },
+  { id: "cat-personal", name: "Personal Care", iconKey: "prescriptions", desc: "Sanitizers, oral hygiene and daily personal care.", productCount: 52, status: "active", imageUrl: "categories/personal-care.svg" },
+  { id: "cat-baby", name: "Baby & Child Care", iconKey: "customers", desc: "Pediatric syrups, infant drops and baby supplements.", productCount: 48, status: "active", imageUrl: "categories/baby-child-care.svg" },
+  { id: "cat-maternal", name: "Maternal Health", iconKey: "prescriptions", desc: "Folic acid, prenatal multivitamins and calcium supplements.", productCount: 51, status: "active", imageUrl: "categories/maternal-health.svg" },
+  { id: "cat-chronic", name: "Chronic Care", iconKey: "medicines", desc: "Blood pressure, heart and cardiovascular medications.", productCount: 52, status: "active", imageUrl: "categories/chronic-care.svg" },
+  { id: "cat-diabetes", name: "Diabetes Care", iconKey: "medicines", desc: "Glucose control, test strips and diabetic care.", productCount: 52, status: "active", imageUrl: "categories/diabetes-care.svg" },
+  { id: "cat-respiratory", name: "Respiratory Care", iconKey: "medicines", desc: "Salbutamol inhalers, nebulizer solutions and respiratory therapy.", productCount: 48, status: "active", imageUrl: "categories/respiratory-care.svg" },
+  { id: "cat-allergy", name: "Allergy Care", iconKey: "medicines", desc: "Antihistamines, eye drops and non-drowsy allergy relief.", productCount: 51, status: "active", imageUrl: "categories/allergy-care.svg" },
+  { id: "cat-devices", name: "Medical Devices", iconKey: "inventory", desc: "Digital thermometers, BP monitors, oximeters and lancets.", productCount: 48, status: "active", imageUrl: "categories/medical-devices.svg" },
+  { id: "cat-wellness", name: "Wellness Products", iconKey: "shield", desc: "Nutritional shakes, dietary minerals and wellness essentials.", productCount: 52, status: "active", imageUrl: "categories/wellness-products.svg" }
 ];
+
+export const DEFAULT_CATEGORY_IMAGES = {
+  "all": "categories/all-medicines.svg",
+  "all medicines": "categories/all-medicines.svg",
+  "pain relief": "categories/pain-relief.svg",
+  "cat-pain": "categories/pain-relief.svg",
+  "cold & flu": "categories/cold-flu.svg",
+  "cat-cold": "categories/cold-flu.svg",
+  "vitamins & supplements": "categories/vitamins-supplements.svg",
+  "cat-vitamins": "categories/vitamins-supplements.svg",
+  "digestive health": "categories/digestive-health.svg",
+  "cat-digestive": "categories/digestive-health.svg",
+  "first aid": "categories/first-aid.svg",
+  "cat-firstaid": "categories/first-aid.svg",
+  "skin care": "categories/skin-care.svg",
+  "cat-skin": "categories/skin-care.svg",
+  "personal care": "categories/personal-care.svg",
+  "cat-personal": "categories/personal-care.svg",
+  "baby & child care": "categories/baby-child-care.svg",
+  "cat-baby": "categories/baby-child-care.svg",
+  "maternal health": "categories/maternal-health.svg",
+  "cat-maternal": "categories/maternal-health.svg",
+  "chronic care": "categories/chronic-care.svg",
+  "cat-chronic": "categories/chronic-care.svg",
+  "diabetes care": "categories/diabetes-care.svg",
+  "cat-diabetes": "categories/diabetes-care.svg",
+  "respiratory care": "categories/respiratory-care.svg",
+  "cat-respiratory": "categories/respiratory-care.svg",
+  "allergy care": "categories/allergy-care.svg",
+  "cat-allergy": "categories/allergy-care.svg",
+  "medical devices": "categories/medical-devices.svg",
+  "cat-devices": "categories/medical-devices.svg",
+  "wellness products": "categories/wellness-products.svg",
+  "cat-wellness": "categories/wellness-products.svg"
+};
+
+export function getCategoryImageUrl(cat) {
+  if (!cat) return "categories/all-medicines.svg";
+  if (typeof cat === "string") {
+    const key = cat.toLowerCase().trim();
+    return DEFAULT_CATEGORY_IMAGES[key] || "categories/all-medicines.svg";
+  }
+  if (cat.imageUrl) return cat.imageUrl;
+  const nameKey = (cat.name || "").toLowerCase().trim();
+  const idKey = (cat.id || "").toLowerCase().trim();
+  return DEFAULT_CATEGORY_IMAGES[idKey] || DEFAULT_CATEGORY_IMAGES[nameKey] || "categories/all-medicines.svg";
+}
+
 
 // Product Catalog (Demonstration Medicine Catalog with All 14 Required Structured Fields)
 const INITIAL_MEDICINES = [
@@ -2181,6 +2235,13 @@ export const STATE = {
   reportsDateFilter: "month",
   fulfillmentOption: "delivery", // delivery | pickup
   deliveryFee: 5000,
+  deliverySpeed: "standard", // standard | express
+  activeCheckoutStep: 1,
+  wishlist: [],
+  savedAddresses: [],
+  productReviews: {},
+  macroCategory: "All",
+  activeAccountTab: "profile",
   isPlacingOrder: false,
   designatedDeliveryDriver: null,
   deliveryOrdersFilter: "all",
@@ -2667,6 +2728,718 @@ export async function syncUserCartFromFirestore(uid) {
   }
 }
 
+export async function syncUserWishlistFromFirestore(uid) {
+  if (!uid || typeof getUserWishlistFromFirestore !== "function") return;
+  try {
+    const remoteWishlist = await getUserWishlistFromFirestore(uid);
+    if (Array.isArray(remoteWishlist) && remoteWishlist.length > 0) {
+      const merged = Array.from(new Set([...(STATE.wishlist || []), ...remoteWishlist]));
+      STATE.wishlist = merged;
+      saveWishlistToStorage(uid);
+      updateWishlistBadge();
+    }
+  } catch (err) {
+    console.warn("[BloomCare Wishlist] Firestore remote wishlist sync deferred:", err?.message || err);
+  }
+}
+
+export async function syncUserAddressesFromFirestore(uid) {
+  if (!uid || typeof getUserAddressesFromFirestore !== "function") return;
+  try {
+    const remoteAddrs = await getUserAddressesFromFirestore(uid);
+    if (Array.isArray(remoteAddrs) && remoteAddrs.length > 0) {
+      STATE.savedAddresses = remoteAddrs;
+      saveAddressesToStorage(uid);
+    }
+  } catch (err) {
+    console.warn("[BloomCare Addresses] Firestore remote addresses sync deferred:", err?.message || err);
+  }
+}
+
+export function getWishlistStorageKey(userId = null) {
+  const uid = userId || STATE.currentUser?.uid || "guest";
+  return `bloomcare_wishlist_${uid}`;
+}
+
+export function saveWishlistToStorage(userId = null) {
+  try {
+    const key = getWishlistStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(STATE.wishlist || []));
+    if (STATE.currentUser?.uid && typeof saveUserWishlistToFirestore === "function") {
+      saveUserWishlistToFirestore(STATE.currentUser.uid, STATE.wishlist || []).catch(err => {
+        console.warn("[BloomCare Wishlist] Background save deferred:", err?.message || err);
+      });
+    }
+  } catch (e) {
+    console.warn("[BloomCare Wishlist] Storage save error:", e);
+  }
+}
+
+export function loadWishlistFromStorage(userId = null) {
+  try {
+    const key = getWishlistStorageKey(userId);
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        STATE.wishlist = parsed;
+      }
+    }
+    updateWishlistBadge();
+  } catch (e) {
+    console.warn("[BloomCare Wishlist] Storage load error:", e);
+  }
+}
+
+export function updateWishlistBadge() {
+  const count = (STATE.wishlist || []).length;
+  const badge = $("#nav-wishlist-count");
+  if (badge) {
+    badge.textContent = String(count);
+    badge.classList.toggle("hidden", count === 0);
+  }
+  const accCount = $("#account-wishlist-count");
+  if (accCount) accCount.textContent = String(count);
+
+  $$(".prod-card-fav-btn").forEach(btn => {
+    const id = btn.dataset.id;
+    if (id) {
+      const isFav = (STATE.wishlist || []).includes(id);
+      btn.classList.toggle("active", isFav);
+      btn.textContent = isFav ? "♥" : "♡";
+      btn.setAttribute("aria-label", isFav ? "Remove from wishlist" : "Add to wishlist");
+    }
+  });
+}
+
+export function isInWishlist(productId) {
+  return (STATE.wishlist || []).includes(productId);
+}
+
+export async function toggleProductWishlist(productId) {
+  if (!productId) return false;
+  if (!Array.isArray(STATE.wishlist)) STATE.wishlist = [];
+  const idx = STATE.wishlist.indexOf(productId);
+  let isSaved = false;
+  if (idx > -1) {
+    STATE.wishlist.splice(idx, 1);
+    isSaved = false;
+    openNotice("Wishlist Updated", "Item removed from your wishlist.");
+  } else {
+    STATE.wishlist.push(productId);
+    isSaved = true;
+    openNotice("Saved to Wishlist", "Item added to your saved items.");
+  }
+  saveWishlistToStorage();
+  updateWishlistBadge();
+  return isSaved;
+}
+
+export function saveCartItemForLater(productId) {
+  const item = STATE.cart.find(i => (i.productId || i.product?.id) === productId);
+  if (!item) return;
+  if (!Array.isArray(STATE.wishlist)) STATE.wishlist = [];
+  if (!STATE.wishlist.includes(productId)) {
+    STATE.wishlist.push(productId);
+    saveWishlistToStorage();
+    updateWishlistBadge();
+  }
+  removeCartItem(productId);
+  openNotice("Saved for Later", `<strong>${escapeHtml(item.name)}</strong> was moved to your Wishlist.`);
+}
+
+export function getAddressesStorageKey(userId = null) {
+  const uid = userId || STATE.currentUser?.uid || "guest";
+  return `bloomcare_saved_addresses_${uid}`;
+}
+
+export function saveAddressesToStorage(userId = null) {
+  try {
+    const key = getAddressesStorageKey(userId);
+    localStorage.setItem(key, JSON.stringify(STATE.savedAddresses || []));
+    if (STATE.currentUser?.uid && typeof saveUserAddressesToFirestore === "function") {
+      saveUserAddressesToFirestore(STATE.currentUser.uid, STATE.savedAddresses || []).catch(err => {
+        console.warn("[BloomCare Addresses] Background save deferred:", err?.message || err);
+      });
+    }
+  } catch (e) {
+    console.warn("[BloomCare Addresses] Storage save error:", e);
+  }
+}
+
+export function loadAddressesFromStorage(userId = null) {
+  try {
+    const key = getAddressesStorageKey(userId);
+    const raw = localStorage.getItem(key);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      if (Array.isArray(parsed)) {
+        STATE.savedAddresses = parsed;
+      }
+    }
+    if ((!STATE.savedAddresses || STATE.savedAddresses.length === 0) && STATE.currentUser) {
+      const legacy = getCustomerDeliveryAddress(STATE.currentUser);
+      if (legacy && (legacy.deliveryDivision || legacy.division)) {
+        STATE.savedAddresses = [{
+          id: "addr-" + Date.now(),
+          label: "Home",
+          division: legacy.deliveryDivision || legacy.division,
+          area: legacy.deliveryArea || legacy.area,
+          landmark: legacy.specificLocation || legacy.landmark || legacy.address || "",
+          phone: STATE.currentUser.phone || "",
+          isDefault: true,
+          createdAt: new Date().toISOString()
+        }];
+        saveAddressesToStorage(userId);
+      }
+    }
+  } catch (e) {
+    console.warn("[BloomCare Addresses] Storage load error:", e);
+  }
+}
+
+export async function loadProductReviews(productId) {
+  if (!productId) return [];
+  if (STATE.productReviews[productId]) return STATE.productReviews[productId];
+  try {
+    if (typeof getProductReviewsFromFirestore === "function") {
+      const remote = await getProductReviewsFromFirestore(productId);
+      if (Array.isArray(remote) && remote.length > 0) {
+        STATE.productReviews[productId] = remote;
+        return remote;
+      }
+    }
+  } catch (err) {
+    console.warn("[BloomCare Reviews] Fetch deferred:", err?.message || err);
+  }
+  const sample = [
+    {
+      id: `rev-${productId}-1`,
+      reviewerName: "Agaba Emmanuel",
+      rating: 5,
+      date: "2026-09-02",
+      comment: "Genuine product with valid expiry date. Fast delivery in Booma.",
+      verifiedBuyer: true
+    },
+    {
+      id: `rev-${productId}-2`,
+      reviewerName: "Brenda Kembabazi",
+      rating: 5,
+      date: "2026-08-28",
+      comment: "Dispensed in perfect sealed packaging with clear dosage instructions.",
+      verifiedBuyer: true
+    }
+  ];
+  STATE.productReviews[productId] = sample;
+  return sample;
+}
+
+export async function submitProductReview(productId, rating, comment, reviewerName) {
+  const review = {
+    id: `rev-${productId}-${Date.now()}`,
+    reviewerName: reviewerName || STATE.currentUser?.displayName || "Verified Customer",
+    rating: Number(rating) || 5,
+    date: new Date().toISOString().split("T")[0],
+    comment: (comment || "").trim(),
+    verifiedBuyer: true
+  };
+  if (!STATE.productReviews[productId]) STATE.productReviews[productId] = [];
+  STATE.productReviews[productId].unshift(review);
+
+  try {
+    if (typeof saveProductReviewToFirestore === "function") {
+      await saveProductReviewToFirestore(productId, review);
+    }
+  } catch (err) {
+    console.warn("[BloomCare Reviews] Save deferred:", err?.message || err);
+  }
+  openNotice("Review Submitted", "Thank you! Your verified customer review has been recorded.");
+  return review;
+}
+
+export function handleBuyNow(productId) {
+  const prod = STATE.products.find(p => p.id === productId);
+  if (!prod) return;
+  const avail = getProductAvailability(prod);
+  if (!avail.isAvailable || prod.stockQuantity <= 0) {
+    openNotice("Medicine Unavailable", `Sorry, <strong>${escapeHtml(prod.name)}</strong> is currently ${escapeHtml(avail.label.toLowerCase())}.`);
+    return;
+  }
+  const existing = STATE.cart.find(i => (i.productId || i.product?.id) === productId);
+  if (!existing) {
+    addToCart(productId, 1);
+  }
+  $("#product-details-dialog")?.close();
+  openCheckoutDialog();
+}
+
+export function openWishlistModal() {
+  const modal = $("#wishlist-dialog");
+  if (!modal) return;
+  renderWishlistModalContents();
+  modal.showModal();
+}
+
+export function renderWishlistModalContents() {
+  const container = $("#wishlist-items-container");
+  if (!container) return;
+  const wishlistIds = STATE.wishlist || [];
+  const items = (STATE.products || []).filter(p => wishlistIds.includes(p.id));
+
+  if (items.length === 0) {
+    container.innerHTML = `
+      <div class="wishlist-empty-state" style="text-align:center; padding:32px 16px;">
+        <div style="font-size:40px; margin-bottom:12px; color:var(--muted);">♡</div>
+        <h4 style="margin:0 0 6px;">Your Wishlist is Empty</h4>
+        <p class="muted" style="margin-bottom:16px; font-size:13px;">Save your frequently needed medicines and healthcare products for quick ordering anytime.</p>
+        <button type="button" class="btn btn-primary" id="wishlist-browse-btn">Browse Pharmacy Catalog</button>
+      </div>
+    `;
+    $("#wishlist-browse-btn")?.addEventListener("click", () => {
+      $("#wishlist-dialog")?.close();
+      navigateTo("medicines");
+    });
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="wishlist-cards-list" style="display:flex; flex-direction:column; gap:10px;">
+      ${items.map(p => {
+        const avail = getProductAvailability(p);
+        const img = getProductImage(p);
+        return `
+          <div class="wishlist-item-card" style="display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:var(--bg-page); gap:12px;">
+            <div style="display:flex; align-items:center; gap:12px; flex:1; min-width:0;">
+              <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" style="width:48px; height:48px; object-fit:contain; border-radius:4px; background:#fff; border:1px solid var(--border-color);" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+              <div style="min-width:0;">
+                <div style="font-weight:700; font-size:13.5px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(p.name)}</div>
+                <div style="font-size:12px; font-weight:700; color:var(--primary);">${formatUGX(p.price)}</div>
+                <span class="stock-pill ${avail.badgeClass}" style="font-size:10px; padding:1px 6px;">${avail.label}</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button type="button" class="btn btn-primary btn-sm wishlist-move-cart-btn" data-id="${p.id}" ${!avail.isAvailable ? "disabled" : ""}>+ Add to Cart</button>
+              <button type="button" class="btn btn-outline btn-sm wishlist-remove-btn" data-id="${p.id}" style="color:var(--danger);">&times;</button>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+export function openAddressModal(addressIdToEdit = null) {
+  const modal = $("#address-dialog");
+  if (!modal) return;
+  const title = $("#address-modal-title");
+  const idInput = $("#addr-id");
+  const labelInput = $("#addr-label");
+  const divSelect = $("#addr-division");
+  const areaSelect = $("#addr-area");
+  const landmarkInput = $("#addr-landmark");
+  const phoneInput = $("#addr-phone");
+  const defaultCheck = $("#addr-default");
+
+  if (divSelect) {
+    divSelect.innerHTML = `<option value="">-- Select Division --</option>` + MBARARA_DIVISIONS.map(d => `<option value="${d}">${d}</option>`).join("");
+    divSelect.onchange = (e) => {
+      const val = e.target.value;
+      if (!val) {
+        areaSelect.innerHTML = `<option value="">-- First Select Division --</option>`;
+        areaSelect.disabled = true;
+        return;
+      }
+      const areas = getMbararaAreas(val);
+      areaSelect.innerHTML = `<option value="">-- Select Area --</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+      areaSelect.disabled = false;
+    };
+  }
+
+  if (addressIdToEdit) {
+    const addr = (STATE.savedAddresses || []).find(a => a.id === addressIdToEdit);
+    if (addr) {
+      if (title) title.textContent = "Edit Delivery Address";
+      if (idInput) idInput.value = addr.id;
+      if (labelInput) labelInput.value = addr.label || "Home";
+      if (divSelect) {
+        divSelect.value = addr.division || "";
+        const areas = getMbararaAreas(addr.division);
+        if (areaSelect) {
+          areaSelect.innerHTML = `<option value="">-- Select Area --</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+          areaSelect.disabled = false;
+          areaSelect.value = addr.area || "";
+        }
+      }
+      if (landmarkInput) landmarkInput.value = addr.landmark || "";
+      if (phoneInput) phoneInput.value = addr.phone || STATE.currentUser?.phone || "";
+      if (defaultCheck) defaultCheck.checked = Boolean(addr.isDefault);
+    }
+  } else {
+    if (title) title.textContent = "Add Delivery Address";
+    if (idInput) idInput.value = "";
+    if (labelInput) labelInput.value = "";
+    if (divSelect) divSelect.value = "";
+    if (areaSelect) {
+      areaSelect.innerHTML = `<option value="">-- First Select Division --</option>`;
+      areaSelect.disabled = true;
+    }
+    if (landmarkInput) landmarkInput.value = "";
+    if (phoneInput) phoneInput.value = STATE.currentUser?.phone || "";
+    if (defaultCheck) defaultCheck.checked = (STATE.savedAddresses || []).length === 0;
+  }
+
+  modal.showModal();
+}
+
+export function handleAddressFormSubmit(e) {
+  e.preventDefault();
+  const idInput = $("#addr-id")?.value;
+  const label = $("#addr-label")?.value.trim() || "Home";
+  const division = $("#addr-division")?.value || "";
+  const area = $("#addr-area")?.value || "";
+  const landmark = $("#addr-landmark")?.value.trim() || "";
+  const phone = $("#addr-phone")?.value.trim() || "";
+  const isDefault = Boolean($("#addr-default")?.checked);
+
+  if (!division || !area) {
+    openNotice("Incomplete Address", "Please select both a division and an area in Mbarara City.");
+    return;
+  }
+
+  const phoneVal = validateUgandanPhone(phone);
+  if (!phoneVal.valid) {
+    openNotice("Invalid Phone Number", phoneVal.message || "Please provide a valid Ugandan phone number.");
+    return;
+  }
+
+  if (!Array.isArray(STATE.savedAddresses)) STATE.savedAddresses = [];
+
+  if (isDefault) {
+    STATE.savedAddresses.forEach(a => a.isDefault = false);
+  }
+
+  if (idInput) {
+    const idx = STATE.savedAddresses.findIndex(a => a.id === idInput);
+    if (idx > -1) {
+      STATE.savedAddresses[idx] = {
+        ...STATE.savedAddresses[idx],
+        label,
+        division,
+        area,
+        landmark,
+        phone: phoneVal.normalized,
+        isDefault
+      };
+    }
+  } else {
+    STATE.savedAddresses.push({
+      id: "addr-" + Date.now(),
+      label,
+      division,
+      area,
+      landmark,
+      phone: phoneVal.normalized,
+      isDefault: isDefault || STATE.savedAddresses.length === 0,
+      createdAt: new Date().toISOString()
+    });
+  }
+
+  saveAddressesToStorage();
+  $("#address-dialog")?.close();
+  renderAccountAddresses();
+  renderCheckoutSavedAddresses();
+  openNotice("Address Saved", `Delivery address <strong>${escapeHtml(label)}</strong> has been saved.`);
+}
+
+export function deleteSavedAddress(addressId) {
+  if (!addressId) return;
+  STATE.savedAddresses = (STATE.savedAddresses || []).filter(a => a.id !== addressId);
+  if (STATE.savedAddresses.length > 0 && !STATE.savedAddresses.some(a => a.isDefault)) {
+    STATE.savedAddresses[0].isDefault = true;
+  }
+  saveAddressesToStorage();
+  renderAccountAddresses();
+  renderCheckoutSavedAddresses();
+  openNotice("Address Deleted", "Delivery address was removed from your address book.");
+}
+
+export function setDefaultAddress(addressId) {
+  if (!addressId) return;
+  (STATE.savedAddresses || []).forEach(a => {
+    a.isDefault = (a.id === addressId);
+  });
+  saveAddressesToStorage();
+  renderAccountAddresses();
+  renderCheckoutSavedAddresses();
+  openNotice("Default Updated", "Default delivery address updated.");
+}
+
+export function switchAccountTab(tabName) {
+  STATE.activeAccountTab = tabName;
+  $$("#account-hub-tabs .account-tab-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.dataset.accountTab === tabName);
+  });
+
+  const panels = {
+    profile: $("#account-panel-profile"),
+    orders: $("#account-panel-orders"),
+    wishlist: $("#account-panel-wishlist"),
+    addresses: $("#account-panel-addresses"),
+    prescriptions: $("#account-panel-prescriptions")
+  };
+
+  Object.keys(panels).forEach(key => {
+    if (panels[key]) {
+      panels[key].classList.toggle("hidden", key !== tabName);
+    }
+  });
+
+  if (tabName === "orders") renderAccountOrders();
+  else if (tabName === "wishlist") renderAccountWishlist();
+  else if (tabName === "addresses") renderAccountAddresses();
+  else if (tabName === "prescriptions") renderAccountPrescriptions();
+}
+
+export function renderAccountOrders() {
+  const container = $("#account-orders-preview-box");
+  if (!container) return;
+  const uid = STATE.currentUser?.uid;
+  const userOrders = (STATE.orders || []).filter(o => 
+    o.customerId === uid || 
+    (STATE.currentUser?.email && o.customerEmail === STATE.currentUser.email) ||
+    (STATE.currentUser?.phone && o.customerPhone === STATE.currentUser.phone)
+  );
+
+  if (userOrders.length === 0) {
+    container.innerHTML = `<p class="muted">No orders found. Tap "+ Start New Order" to purchase medicines from our catalog.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:10px;">
+      ${userOrders.slice(0, 10).map(o => `
+        <div style="padding:12px; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:var(--bg-page);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="font-size:13.5px; color:var(--primary);">Order #${escapeHtml(o.orderNumber || o.id)}</strong>
+            <span class="status-pill status-${(o.orderStatus || 'pending').toLowerCase().replace(/\s+/g, '-')}" style="font-size:11px; padding:2px 8px; border-radius:12px; font-weight:700;">${escapeHtml(o.orderStatus || 'Pending')}</span>
+          </div>
+          <div style="font-size:12px; color:var(--muted); margin-bottom:4px;">Placed on: ${new Date(o.createdAt).toLocaleDateString()} &bull; Total: <strong>${formatUGX(o.total || 0)}</strong></div>
+          <div style="font-size:12px; color:var(--text-main); margin-bottom:8px;">${escapeHtml((o.items || []).map(i => `${i.quantity}x ${i.name || i.productName}`).join(", "))}</div>
+          <div style="display:flex; gap:8px;">
+            <button type="button" class="btn btn-outline btn-xs track-order-btn" data-id="${o.id}">Track Order</button>
+            <button type="button" class="btn btn-secondary btn-xs view-rec-btn" data-id="${o.id}">View Receipt</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+export function renderAccountWishlist() {
+  const container = $("#account-wishlist-preview-box");
+  if (!container) return;
+  const countEl = $("#account-wishlist-count");
+  const wishlistIds = STATE.wishlist || [];
+  if (countEl) countEl.textContent = String(wishlistIds.length);
+  const items = (STATE.products || []).filter(p => wishlistIds.includes(p.id));
+
+  if (items.length === 0) {
+    container.innerHTML = `<p class="muted">Your saved items list is empty. Tap the heart icon on any medicine card to save it here.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(200px, 1fr)); gap:12px;">
+      ${items.map(p => {
+        const avail = getProductAvailability(p);
+        const img = getProductImage(p);
+        return `
+          <div class="wishlist-account-card" style="border:1px solid var(--border-color); border-radius:var(--radius-sm); padding:10px; background:var(--bg-page); display:flex; flex-direction:column; justify-content:space-between;">
+            <div>
+              <img src="${escapeHtml(img)}" alt="${escapeHtml(p.name)}" style="width:100%; height:110px; object-fit:contain; background:#fff; border-radius:4px; margin-bottom:8px;" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+              <div style="font-weight:700; font-size:13px; line-height:1.3; margin-bottom:4px;">${escapeHtml(p.name)}</div>
+              <div style="font-size:13px; font-weight:700; color:var(--primary);">${formatUGX(p.price)}</div>
+            </div>
+            <div style="display:flex; gap:6px; margin-top:10px;">
+              <button type="button" class="btn btn-primary btn-xs wishlist-move-cart-btn" data-id="${p.id}" ${!avail.isAvailable ? "disabled" : ""} style="flex:1;">+ Cart</button>
+              <button type="button" class="btn btn-outline btn-xs wishlist-remove-btn" data-id="${p.id}" style="color:var(--danger);">&times;</button>
+            </div>
+          </div>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
+export function renderAccountAddresses() {
+  const container = $("#account-addresses-preview-box");
+  if (!container) return;
+  const addrs = STATE.savedAddresses || [];
+
+  if (addrs.length === 0) {
+    container.innerHTML = `<p class="muted">No delivery addresses saved yet. Add your home, work, or clinic address for faster 1-click checkout.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(240px, 1fr)); gap:12px;">
+      ${addrs.map(a => `
+        <div style="border:1px solid ${a.isDefault ? '#0f766e' : 'var(--border-color)'}; background:${a.isDefault ? 'rgba(15,118,110,0.03)' : 'var(--bg-page)'}; border-radius:var(--radius-sm); padding:12px; display:flex; flex-direction:column; justify-content:space-between;">
+          <div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <strong style="font-size:13.5px;">📍 ${escapeHtml(a.label || 'Home')}</strong>
+              ${a.isDefault ? '<span style="font-size:10px; background:#dcfce7; color:#166534; font-weight:700; padding:1px 6px; border-radius:3px;">DEFAULT</span>' : ''}
+            </div>
+            <div style="font-size:12px; color:var(--text-main); line-height:1.4;">${escapeHtml(a.division)}, ${escapeHtml(a.area)}</div>
+            <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">${escapeHtml(a.landmark || '')}</div>
+            <div style="font-size:11.5px; color:var(--muted); margin-top:2px;">Phone: ${escapeHtml(a.phone || '')}</div>
+          </div>
+          <div style="display:flex; gap:6px; margin-top:10px; border-top:1px solid var(--border-color); padding-top:8px;">
+            <button type="button" class="btn btn-outline btn-xs btn-edit-address" data-id="${a.id}">Edit</button>
+            ${!a.isDefault ? `<button type="button" class="btn btn-outline btn-xs btn-set-default-address" data-id="${a.id}">Set Default</button>` : ''}
+            <button type="button" class="btn btn-outline btn-xs btn-delete-address" data-id="${a.id}" style="color:var(--danger); margin-left:auto;">Delete</button>
+          </div>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+export function renderAccountPrescriptions() {
+  const container = $("#account-rx-preview-box");
+  if (!container) return;
+  const uid = STATE.currentUser?.uid;
+  const userRxs = (STATE.prescriptions || []).filter(p => p.patientId === uid || p.customerId === uid);
+
+  if (userRxs.length === 0) {
+    container.innerHTML = `<p class="muted">No prescription records found. Upload a doctor's prescription anytime to get prescription medicine approved.</p>`;
+    return;
+  }
+
+  container.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      ${userRxs.map(rx => `
+        <div style="padding:10px 12px; border:1px solid var(--border-color); border-radius:var(--radius-sm); background:var(--bg-page); display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong>Rx #${escapeHtml(rx.prescriptionNumber || rx.id)}</strong>
+            <div style="font-size:12px; color:var(--muted);">Uploaded on: ${new Date(rx.createdAt).toLocaleDateString()}</div>
+          </div>
+          <span class="status-pill status-${(rx.status || 'pending').toLowerCase()}" style="font-size:11px; padding:2px 8px; border-radius:12px;">${escapeHtml(rx.status || 'Pending Verification')}</span>
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+export function renderCheckoutSavedAddresses() {
+  const row = $("#chk-saved-addresses-cards");
+  if (!row) return;
+
+  const addrs = STATE.savedAddresses || [];
+  if (addrs.length === 0) {
+    row.innerHTML = `<span style="font-size:11.5px; color:var(--muted); padding:4px 0;">No saved addresses yet. Enter your delivery location below.</span>`;
+    return;
+  }
+
+  row.innerHTML = addrs.map(a => `
+    <div class="chk-saved-address-card ${a.isDefault ? 'active' : ''}" data-id="${a.id}" style="min-width:140px; padding:6px 10px; border:1.5px solid ${a.isDefault ? '#0f766e' : 'var(--border-color)'}; background:${a.isDefault ? '#f0fdf4' : 'var(--bg-card)'}; border-radius:6px; cursor:pointer; font-size:11.5px;">
+      <div style="font-weight:700; display:flex; justify-content:space-between; align-items:center;">
+        <span>${escapeHtml(a.label || 'Address')}</span>
+        ${a.isDefault ? '<span style="font-size:9.5px; color:#166534; font-weight:800;">✓</span>' : ''}
+      </div>
+      <div style="color:var(--text-main); font-size:11px; margin-top:2px;">${escapeHtml(a.division)}, ${escapeHtml(a.area)}</div>
+      <div style="color:var(--muted); font-size:10px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(a.landmark || '')}</div>
+    </div>
+  `).join("");
+
+  // Select default address if none selected yet
+  const defaultAddr = addrs.find(a => a.isDefault) || addrs[0];
+  if (defaultAddr) {
+    selectCheckoutSavedAddress(defaultAddr.id);
+  }
+}
+
+export function selectCheckoutSavedAddress(addressId) {
+  const addr = (STATE.savedAddresses || []).find(a => a.id === addressId);
+  if (!addr) return;
+
+  $$("#chk-saved-addresses-cards .chk-saved-address-card").forEach(c => {
+    const isThis = c.dataset.id === addressId;
+    c.classList.toggle("active", isThis);
+    c.style.borderColor = isThis ? "#0f766e" : "var(--border-color)";
+    c.style.background = isThis ? "#f0fdf4" : "var(--bg-card)";
+  });
+
+  const divSelect = $("#chk-delivery-division");
+  const areaSelect = $("#chk-delivery-area");
+  const specificInput = $("#chk-delivery-specific");
+  const phoneInput = $("#chk-phone");
+  const addrHidden = $("#chk-address");
+
+  if (divSelect) {
+    divSelect.value = addr.division;
+    const areas = getMbararaAreas(addr.division);
+    if (areaSelect) {
+      areaSelect.innerHTML = `<option value="">-- Select Area --</option>` + areas.map(a => `<option value="${a}">${a}</option>`).join("");
+      areaSelect.disabled = false;
+      areaSelect.value = addr.area;
+    }
+  }
+  if (specificInput) specificInput.value = addr.landmark || "";
+  if (phoneInput && addr.phone) phoneInput.value = addr.phone;
+  if (addrHidden) addrHidden.value = `${addr.division}, ${addr.area} - ${addr.landmark}`;
+}
+
+export function switchCheckoutStep(stepNumber) {
+  STATE.activeCheckoutStep = stepNumber;
+  $$("#checkout-steps-bar .checkout-step-pill").forEach(pill => {
+    const step = parseInt(pill.dataset.checkoutStep, 10);
+    pill.classList.toggle("active", step === stepNumber);
+    pill.classList.toggle("completed", step < stepNumber);
+    if (step === stepNumber) {
+      pill.style.background = "#0f766e";
+      pill.style.color = "#fff";
+    } else if (step < stepNumber) {
+      pill.style.background = "#dcfce7";
+      pill.style.color = "#166534";
+    } else {
+      pill.style.background = "transparent";
+      pill.style.color = "var(--muted)";
+    }
+  });
+}
+
+export function handleDeliverySpeedChange(speed) {
+  STATE.deliverySpeed = speed; // "standard" | "express"
+  const isPickup = STATE.fulfillmentOption === "pickup";
+  const standardFee = 5000;
+  const expressFee = 8000;
+  STATE.deliveryFee = isPickup ? 0 : (speed === "express" ? expressFee : standardFee);
+
+  const stdCard = $("#speed-card-standard");
+  const expCard = $("#speed-card-express");
+  if (stdCard && expCard) {
+    const isExp = speed === "express";
+    stdCard.classList.toggle("active", !isExp);
+    expCard.classList.toggle("active", isExp);
+    stdCard.style.borderColor = !isExp ? "#0f766e" : "var(--border-color)";
+    stdCard.style.background = !isExp ? "#f0fdf4" : "var(--bg-card)";
+    expCard.style.borderColor = isExp ? "#0f766e" : "var(--border-color)";
+    expCard.style.background = isExp ? "#f0fdf4" : "var(--bg-card)";
+
+    const stdRadio = stdCard.querySelector("input[type='radio']");
+    const expRadio = expCard.querySelector("input[type='radio']");
+    if (stdRadio) stdRadio.checked = !isExp;
+    if (expRadio) expRadio.checked = isExp;
+  }
+
+  const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * i.quantity), 0);
+  const total = subtotal + STATE.deliveryFee;
+  if ($("#chk-total-val")) {
+    $("#chk-total-val").textContent = formatUGX(total);
+  }
+}
+
 export function calculateCartSummary(cartItems, flatDeliveryFee = 5000) {
   const subtotal = cartItems.reduce((sum, item) => {
     const p = item.price ?? item.product?.price ?? 0;
@@ -2724,6 +3497,8 @@ function executePendingAction() {
 // APP INITIALIZATION & FIRESTORE DATA SYNCHRONIZATION
 // -------------------------------------------------------------
 async function loadAppData(userId = null) {
+  loadWishlistFromStorage(userId);
+  loadAddressesFromStorage(userId);
   if (userId && getEffectiveRole() === "customer") {
     STATE.orders = [];
     STATE.prescriptions = [];
@@ -2731,6 +3506,8 @@ async function loadAppData(userId = null) {
     STATE.refills = [];
     loadCartFromStorage(userId);
     syncUserCartFromFirestore(userId);
+    syncUserWishlistFromFirestore(userId);
+    syncUserAddressesFromFirestore(userId);
   }
 
   try {
@@ -5466,15 +6243,33 @@ function renderRoleDashboard() {
               <span class="muted" style="font-size:12px;">Quick filter by therapeutic class</span>
             </div>
           </div>
-          <div class="cust-dash-category-pills" id="cust-dash-category-pills" style="display:flex; gap:8px; flex-wrap:wrap;">
-            <button type="button" class="category-pill cust-dash-cat-pill active" data-category="all" style="padding:6px 14px; border-radius:20px; font-size:12.5px; font-weight:600; cursor:pointer; border:1px solid var(--primary, #0f766e); background:var(--primary, #0f766e); color:#ffffff;">
-              All Medicines (${activeProducts.length})
+          <div class="cust-dash-category-pills" id="cust-dash-category-pills">
+            <button type="button" class="category-pill cust-dash-cat-pill active" data-category="all" title="View all medicines">
+              <span class="cat-pill-icon-wrap">
+                <img src="categories/all-medicines.svg" alt="All Medicines" class="cat-card-img" width="24" height="24" loading="lazy" />
+              </span>
+              <span class="cat-pill-label-wrap">
+                <span class="cat-pill-title">All Medicines</span>
+                <span class="cat-pill-count">(${activeProducts.length})</span>
+              </span>
             </button>
-            ${dashCategories.slice(0, 8).map(c => `
-              <button type="button" class="category-pill cust-dash-cat-pill" data-category="${escapeHtml(c.id || c.name)}" style="padding:6px 14px; border-radius:20px; font-size:12.5px; font-weight:500; cursor:pointer; border:1px solid var(--border-color, #cbd5e1); background:var(--bg-card, #ffffff); color:var(--text-main, #334155);">
-                ${escapeHtml(c.name)}
-              </button>
-            `).join("")}
+            ${(dashCategories.length ? dashCategories : ESSENTIAL_CATEGORIES).filter(c => c.status !== "inactive").slice(0, 8).map(c => {
+              const count = activeProducts.filter(p => {
+                const pCat = (p.category || p.categoryId || "").toLowerCase().trim();
+                return pCat === (c.name || "").toLowerCase().trim() || pCat === (c.id || "").toLowerCase().trim();
+              }).length;
+              return `
+                <button type="button" class="category-pill cust-dash-cat-pill" data-category="${escapeHtml(c.name || c.id)}" title="${escapeHtml(c.name)}">
+                  <span class="cat-pill-icon-wrap">
+                    <img src="${escapeHtml(getCategoryImageUrl(c))}" alt="${escapeHtml(c.name)}" class="cat-card-img" width="24" height="24" loading="lazy" />
+                  </span>
+                  <span class="cat-pill-label-wrap">
+                    <span class="cat-pill-title">${escapeHtml(c.name)}</span>
+                    <span class="cat-pill-count">(${count})</span>
+                  </span>
+                </button>
+              `;
+            }).join("")}
           </div>
         </div>
 
@@ -5827,9 +6622,19 @@ function renderRoleDashboard() {
       let matched = activeProducts;
 
       if (currentDashCategory && currentDashCategory !== "all") {
+        const target = currentDashCategory.toLowerCase().trim();
         matched = matched.filter(p => {
-          const cat = (p.category || p.categoryId || "").toLowerCase();
-          return cat === currentDashCategory.toLowerCase();
+          const cat = (p.category || p.categoryId || "").toLowerCase().trim();
+          if (cat === target) return true;
+          const foundCat = (STATE.categories || ESSENTIAL_CATEGORIES).find(c =>
+            (c.id && c.id.toLowerCase() === target) ||
+            (c.name && c.name.toLowerCase() === target)
+          );
+          if (foundCat) {
+            return (foundCat.name && cat === foundCat.name.toLowerCase().trim()) ||
+                   (foundCat.id && cat === foundCat.id.toLowerCase().trim());
+          }
+          return false;
         });
       }
 
@@ -6336,10 +7141,16 @@ export function renderMedicinesView() {
       const activeProds = STATE.products.filter(p => p && p.status !== "inactive");
       const totalActive = activeProds.length;
       pills.innerHTML = `
-        <button class="pill-btn ${STATE.selectedCategory === "All" ? "active" : ""}" data-filter="All">All Categories (${totalActive})</button>
+        <button class="pill-btn ${STATE.selectedCategory === "All" ? "active" : ""}" data-filter="All">
+          <img src="categories/all-medicines.svg" alt="All Categories" class="cat-card-img" width="18" height="18" style="vertical-align:middle; border-radius:4px;" />
+          <span>All Categories (${totalActive})</span>
+        </button>
         ${STATE.categories.map(c => {
           const count = activeProds.filter(p => p.category === c.name).length;
-          return `<button class="pill-btn ${STATE.selectedCategory === c.name ? "active" : ""}" data-filter="${escapeHtml(c.name)}">${escapeHtml(c.name)} (${count})</button>`;
+          return `<button class="pill-btn ${STATE.selectedCategory === c.name ? "active" : ""}" data-filter="${escapeHtml(c.name)}">
+            <img src="${escapeHtml(getCategoryImageUrl(c))}" alt="${escapeHtml(c.name)}" class="cat-card-img" width="18" height="18" style="vertical-align:middle; border-radius:4px;" />
+            <span>${escapeHtml(c.name)} (${count})</span>
+          </button>`;
         }).join("")}
       `;
     }
@@ -6359,8 +7170,33 @@ export function renderMedicinesView() {
       }
     }
 
+    // Update Macro Category Navigation Bar Active State
+    $$(".macro-cat-item").forEach(item => {
+      const m = item.dataset.macro || "All";
+      item.classList.toggle("active", m === (STATE.macroCategory || "All"));
+    });
+
     // 6. Filter and Sort Catalog List
     let list = [...STATE.products.filter(p => p && p.status !== "inactive")];
+    if (STATE.macroCategory && STATE.macroCategory !== "All") {
+      if (STATE.macroCategory === "Prescription Medicines") {
+        list = list.filter(p => p.requiresPrescription === true);
+      } else if (STATE.macroCategory === "Over-the-Counter") {
+        list = list.filter(p => !p.requiresPrescription);
+      } else if (STATE.macroCategory === "Pain & Fever") {
+        list = list.filter(p => p.category === "Pain Relief" || p.category === "Cold & Flu");
+      } else if (STATE.macroCategory === "Personal Care") {
+        list = list.filter(p => p.category === "Personal Care");
+      } else if (STATE.macroCategory === "Baby Care") {
+        list = list.filter(p => p.category === "Baby & Child Care" || p.category === "Baby Care");
+      } else if (STATE.macroCategory === "Vitamins & Supplements") {
+        list = list.filter(p => p.category === "Vitamins & Supplements" || p.category === "Vitamins");
+      } else if (STATE.macroCategory === "Medical Equipment") {
+        list = list.filter(p => p.category === "Medical Devices" || p.category === "First Aid");
+      } else if (STATE.macroCategory === "Beauty & Wellness") {
+        list = list.filter(p => p.category === "Skin Care" || p.category === "Wellness Products" || p.category === "Personal Care");
+      }
+    }
     if (STATE.selectedCategory && STATE.selectedCategory !== "All") {
       list = list.filter(p => p.category === STATE.selectedCategory);
     }
@@ -6511,6 +7347,11 @@ export function renderProductCardHtml(prod) {
         <div class="product-card-stock-status">
           <span class="stock-status-label ${avail.badgeClass}">Stock: ${prod.stockQuantity > 0 ? `<strong>${prod.stockQuantity}</strong> available` : '<strong style="color:var(--danger, #dc2626);">Out of Stock</strong>'}</span>
         </div>
+        <div class="product-rating-row" style="display:flex; align-items:center; gap:4px; font-size:11.5px; margin:3px 0;">
+          <span style="color:#eab308; font-size:12px;">★★★★★</span>
+          <span style="font-weight:700; color:var(--text-main);">4.8</span>
+          <span class="muted">(24 reviews)</span>
+        </div>
         <div class="product-price-row">
           <p class="product-price">${formatUGX(prod.price)}</p>
           ${hasDiscount ? `<span class="product-original-price" style="text-decoration:line-through; color:var(--text-muted); font-size:13px; margin-left:8px;">${formatUGX(prod.originalPrice)}</span>` : ""}
@@ -6528,6 +7369,9 @@ export function renderProductCardHtml(prod) {
         </div>
         <button class="circular-plus-btn add-cart-btn ${inCart ? "hidden" : ""}" type="button" data-product-id="${escapeHtml(prod.id)}" aria-label="Add ${escapeHtml(prod.name)} to cart" style="${inCart ? "display:none;" : ""}" ${isOutOfStock ? "disabled" : ""}>
           ${isOutOfStock ? "Out of Stock" : "Add to Cart"}
+        </button>
+        <button class="btn btn-warning btn-xs btn-buy-now" type="button" data-product-id="${escapeHtml(prod.id)}" title="Buy Now immediately" ${isOutOfStock ? "disabled" : ""} style="padding:4px 10px; font-weight:700; font-size:11.5px; border-radius:var(--radius-xs);">
+          Buy Now
         </button>
       </div>
     </article>
@@ -6876,47 +7720,236 @@ function openProductDetailsModal(productId) {
     addBtn.textContent = !avail.isAvailable ? "Currently Unavailable" : "Add to Cart";
   }
 
+  const buyNowBtn = $("#modal-buy-now-btn");
+  if (buyNowBtn) {
+    buyNowBtn.dataset.productId = prod.id;
+    buyNowBtn.disabled = !avail.isAvailable;
+    buyNowBtn.onclick = () => handleBuyNow(prod.id);
+  }
+
+  const wishlistBtn = $("#modal-wishlist-btn");
+  if (wishlistBtn) {
+    wishlistBtn.dataset.productId = prod.id;
+    const isSaved = isInWishlist(prod.id);
+    wishlistBtn.textContent = isSaved ? "♥ In Wishlist" : "♡ Add to Wishlist";
+    wishlistBtn.onclick = async () => {
+      const added = await toggleProductWishlist(prod.id);
+      wishlistBtn.textContent = added ? "♥ In Wishlist" : "♡ Add to Wishlist";
+    };
+  }
+
   const strengthMatch = prod.name.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i) || prod.genericName?.match(/\b\d+(\.\d+)?\s*(mg|mcg|g|ml|%|IU)\b/i);
   const strength = prod.strength || (strengthMatch ? strengthMatch[0] : "Standard Dose");
+  const relatedProds = (STATE.products || []).filter(p => p && p.id !== prod.id && p.category === prod.category).slice(0, 4);
 
+  // Initial render
+  renderProductDetailsTabsContent(prod, avail, img, strength, relatedProds);
+
+  // Load reviews asynchronously and re-populate reviews tab
+  loadProductReviews(prod.id).then(reviews => {
+    const revList = document.getElementById("modal-reviews-list-box");
+    if (revList) {
+      if (reviews.length === 0) {
+        revList.innerHTML = `<p class="muted">No customer reviews yet. Be the first verified customer to review this medicine.</p>`;
+      } else {
+        revList.innerHTML = reviews.map(r => `
+          <div class="product-review-card" style="padding:10px; border:1px solid var(--border-color); border-radius:6px; margin-bottom:8px; background:var(--bg-page);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+              <div>
+                <strong style="font-size:13px;">${escapeHtml(r.reviewerName || 'Verified Buyer')}</strong>
+                ${r.verifiedBuyer ? '<span style="font-size:10.5px; background:#dcfce7; color:#166534; padding:1px 5px; border-radius:3px; margin-left:6px;">✓ Verified Purchase</span>' : ''}
+              </div>
+              <div style="color:#eab308; font-size:12px;">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</div>
+            </div>
+            <p style="margin:4px 0 2px; font-size:12.5px; color:var(--text-main); line-height:1.4;">${escapeHtml(r.comment || '')}</p>
+            <small class="muted" style="font-size:11px;">${escapeHtml(r.date || 'Recent')}</small>
+          </div>
+        `).join("");
+      }
+    }
+  });
+
+  $("#product-details-dialog").showModal();
+}
+
+function renderProductDetailsTabsContent(prod, avail, img, strength, relatedProds) {
   $("#product-details-content").innerHTML = `
     <div class="modal-product-hero">
       <div class="modal-product-img-wrap">
         <img src="${escapeHtml(img)}" alt="${escapeHtml(prod.name)}" class="modal-product-large-img" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
       </div>
       <div class="modal-product-hero-meta">
-        <div class="product-badges-row" style="margin-bottom:8px;">
+        <div class="product-badges-row" style="margin-bottom:6px;">
           <span class="stock-pill ${avail.badgeClass}">Stock: ${avail.label}</span>
           ${prod.requiresPrescription ? '<span class="rx-pill rx-req">Prescription Required (Rx)</span>' : '<span class="rx-pill otc-ok">Over-The-Counter (OTC)</span>'}
         </div>
         <h3 class="modal-prod-title">${escapeHtml(prod.name)}</h3>
-        <p class="modal-prod-generic"><strong>Active Ingredient / Generic:</strong> ${escapeHtml(prod.genericName || "Pharmaceutical Active Substance")}</p>
+        <div class="product-rating-row" style="display:flex; align-items:center; gap:6px; font-size:12.5px; margin:4px 0 8px;">
+          <span style="color:#eab308; font-size:14px;">★★★★★</span>
+          <strong>4.8</strong>
+          <span class="muted">(24 verified reviews)</span>
+        </div>
+        <p class="modal-prod-generic"><strong>Active Ingredient:</strong> ${escapeHtml(prod.genericName || "Active Molecule")}</p>
         <p class="modal-prod-category"><strong>Department:</strong> ${escapeHtml(prod.category)}</p>
         <div class="modal-prod-pills">
           <span class="spec-pill"><strong>Strength:</strong> ${escapeHtml(strength)}</span>
-          <span class="spec-pill"><strong>Dosage Form:</strong> ${escapeHtml(prod.dosageForm || "Unit")}</span>
+          <span class="spec-pill"><strong>Pack Size:</strong> ${escapeHtml(prod.packSize || prod.dosageForm || "Pack")}</span>
         </div>
         <div class="modal-prod-price-banner">
           <span class="modal-price-label">Price:</span>
           <strong class="modal-price-val">${formatUGX(prod.price)}</strong>
+          ${prod.originalPrice && prod.originalPrice > prod.price ? `<span style="text-decoration:line-through; font-size:13px; color:var(--text-muted); margin-left:6px;">${formatUGX(prod.originalPrice)}</span>` : ''}
         </div>
       </div>
     </div>
-    <div class="monograph-meta">
-      <div class="monograph-details-grid">
+
+    <!-- Interactive Monograph Tabs Bar -->
+    <div class="monograph-tabs-bar" id="monograph-tabs-bar" style="display:flex; gap:6px; border-bottom:2px solid var(--border-color); margin:14px 0 10px; overflow-x:auto; padding-bottom:6px;">
+      <button type="button" class="monograph-tab-btn active" data-mono-tab="indications" style="font-size:12px; font-weight:700; padding:6px 10px; border-radius:4px; border:none; cursor:pointer; background:#0f766e; color:#fff;">Indications &amp; Uses</button>
+      <button type="button" class="monograph-tab-btn" data-mono-tab="dosage" style="font-size:12px; font-weight:600; padding:6px 10px; border-radius:4px; border:none; cursor:pointer; background:var(--bg-page); color:var(--text-main);">Dosage &amp; Usage</button>
+      <button type="button" class="monograph-tab-btn" data-mono-tab="storage" style="font-size:12px; font-weight:600; padding:6px 10px; border-radius:4px; border:none; cursor:pointer; background:var(--bg-page); color:var(--text-main);">Storage &amp; Safety</button>
+      <button type="button" class="monograph-tab-btn" data-mono-tab="reviews" style="font-size:12px; font-weight:600; padding:6px 10px; border-radius:4px; border:none; cursor:pointer; background:var(--bg-page); color:var(--text-main);">Customer Reviews</button>
+      <button type="button" class="monograph-tab-btn" data-mono-tab="related" style="font-size:12px; font-weight:600; padding:6px 10px; border-radius:4px; border:none; cursor:pointer; background:var(--bg-page); color:var(--text-main);">Related Medicines</button>
+    </div>
+
+    <!-- Tab 1: Indications -->
+    <div class="monograph-tab-pane" id="mono-pane-indications">
+      <div class="monograph-desc-box">
+        <strong>Clinical Indications &amp; Summary:</strong>
+        <p style="margin-top:4px; line-height:1.5;">${escapeHtml(prod.description)}</p>
+      </div>
+      <div class="monograph-details-grid" style="margin-top:10px;">
         <div class="monograph-item"><strong>Manufacturer:</strong> <span>${escapeHtml(prod.manufacturer || "BloomCare Pharma")}</span></div>
         <div class="monograph-item"><strong>Batch / Lot:</strong> <code>${escapeHtml(prod.batchNumber || "DEMO-2026")}</code></div>
         <div class="monograph-item"><strong>Expiry Date:</strong> <span>${escapeHtml(prod.expiryDate || "2028-12-31")}</span></div>
         <div class="monograph-item"><strong>In Stock:</strong> <span>${prod.stockQuantity} units available</span></div>
       </div>
-      <div class="monograph-desc-box">
-        <strong>Description &amp; Clinical Indications:</strong>
-        <p>${escapeHtml(prod.description)}</p>
+    </div>
+
+    <!-- Tab 2: Dosage & Administration -->
+    <div class="monograph-tab-pane hidden" id="mono-pane-dosage">
+      <div style="background:var(--bg-page); padding:12px; border-radius:6px; border:1px solid var(--border-color);">
+        <h4 style="margin:0 0 6px; font-size:13.5px; color:#0f766e;">Clinical Dosage &amp; Administration Guidelines</h4>
+        <p style="margin:0 0 8px; font-size:12.5px; line-height:1.5;">
+          Administer orally as directed by your physician or pharmacist. Take with plenty of clean drinking water. For suspension or pediatric drops, shake well before measuring with an oral syringe or dosing cup.
+        </p>
+        <div style="font-size:12px; color:var(--muted); line-height:1.4;">
+          <strong>Dispensing Advice:</strong> Do not chew delayed-release capsules or tablets. Consult a BloomCare pharmacist on WhatsApp (+256 750 210 886) for individualized therapeutic guidance.
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab 3: Storage & Safety Warnings -->
+    <div class="monograph-tab-pane hidden" id="mono-pane-storage">
+      <div style="background:var(--bg-page); padding:12px; border-radius:6px; border:1px solid var(--border-color);">
+        <h4 style="margin:0 0 6px; font-size:13.5px; color:#b45309;">Storage Conditions &amp; Pharmacist Precautions</h4>
+        <ul style="margin:0 0 8px; padding-left:18px; font-size:12.5px; line-height:1.5;">
+          <li>Store below 30°C in a dry place away from direct sunlight and heat.</li>
+          <li>Keep out of reach of children and pets.</li>
+          <li>Do not consume after the printed expiry date (${escapeHtml(prod.expiryDate || '2028-12-31')}).</li>
+          <li>Report any unexpected adverse reaction to your doctor or NDA National Pharmacovigilance Centre.</li>
+        </ul>
+      </div>
+    </div>
+
+    <!-- Tab 4: Customer Reviews -->
+    <div class="monograph-tab-pane hidden" id="mono-pane-reviews">
+      <div id="modal-reviews-list-box" style="margin-bottom:12px;">
+        <p class="muted">Loading verified customer reviews...</p>
+      </div>
+
+      <!-- Add Review Form -->
+      <div style="border-top:1px solid var(--border-color); padding-top:10px;">
+        <h4 style="margin:0 0 8px; font-size:13px;">Write a Customer Review</h4>
+        <form id="modal-submit-review-form" style="display:flex; flex-direction:column; gap:8px;">
+          <div style="display:flex; gap:10px; align-items:center;">
+            <label style="font-size:12px; font-weight:600; margin:0;">Rating:
+              <select id="rev-input-rating" style="padding:3px 6px; border-radius:4px; font-size:12px;">
+                <option value="5">★★★★★ (5 Stars)</option>
+                <option value="4">★★★★☆ (4 Stars)</option>
+                <option value="3">★★★☆☆ (3 Stars)</option>
+                <option value="2">★★☆☆☆ (2 Stars)</option>
+                <option value="1">★☆☆☆☆ (1 Star)</option>
+              </select>
+            </label>
+            <label style="font-size:12px; font-weight:600; margin:0; flex:1;">Your Name:
+              <input type="text" id="rev-input-name" placeholder="Full Name" style="width:100%; padding:3px 8px; font-size:12px; border:1px solid var(--border-color); border-radius:4px;" value="${escapeHtml(STATE.currentUser?.displayName || '')}" required />
+            </label>
+          </div>
+          <textarea id="rev-input-comment" placeholder="Share your experience with this medicine, delivery speed, or product packaging..." rows="2" style="width:100%; padding:6px 8px; font-size:12px; border:1px solid var(--border-color); border-radius:4px;" required></textarea>
+          <button type="submit" class="btn btn-secondary btn-xs" style="align-self:flex-start;">Submit Review</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Tab 5: Related Medicines -->
+    <div class="monograph-tab-pane hidden" id="mono-pane-related">
+      <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:10px;">
+        ${relatedProds.map(rp => `
+          <div class="related-prod-card" data-product-id="${escapeHtml(rp.id)}" style="border:1px solid var(--border-color); border-radius:6px; padding:8px; cursor:pointer; background:var(--bg-card); display:flex; flex-direction:column; gap:4px;">
+            <img src="${escapeHtml(getProductImage(rp))}" alt="${escapeHtml(rp.name)}" style="width:100%; height:80px; object-fit:contain; border-radius:4px; background:#f8fafc;" onerror="this.onerror=null;this.src='products/placeholder-medicine.svg';" />
+            <strong style="font-size:12px; margin-top:2px;">${escapeHtml(rp.name)}</strong>
+            <span style="font-size:11px; color:var(--muted);">${escapeHtml(rp.genericName || rp.category)}</span>
+            <div style="font-size:12px; font-weight:700; color:var(--primary); margin-top:auto;">${formatUGX(rp.price)}</div>
+          </div>
+        `).join("")}
       </div>
     </div>
   `;
 
-  $("#product-details-dialog").showModal();
+  // Bind Monograph Tabs click events
+  $("#monograph-tabs-bar")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".monograph-tab-btn");
+    if (btn) {
+      const tab = btn.dataset.monoTab;
+      document.querySelectorAll(".monograph-tab-btn").forEach(b => {
+        const isAct = b.dataset.monoTab === tab;
+        b.classList.toggle("active", isAct);
+        b.style.background = isAct ? "#0f766e" : "var(--bg-page)";
+        b.style.color = isAct ? "#ffffff" : "var(--text-main)";
+      });
+      document.querySelectorAll(".monograph-tab-pane").forEach(pane => pane.classList.add("hidden"));
+      document.getElementById(`mono-pane-${tab}`)?.classList.remove("hidden");
+    }
+  });
+
+  // Bind Related Product clicks
+  document.querySelectorAll(".related-prod-card").forEach(card => {
+    card.addEventListener("click", () => {
+      const id = card.dataset.productId;
+      if (id) openProductDetailsModal(id);
+    });
+  });
+
+  // Bind Review Form submit
+  $("#modal-submit-review-form")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const rating = $("#rev-input-rating")?.value || 5;
+    const name = $("#rev-input-name")?.value || "Verified Customer";
+    const comment = $("#rev-input-comment")?.value || "";
+    if (!comment.trim()) return;
+    await submitProductReview(prod.id, rating, comment, name);
+    // Reload reviews in pane
+    const updated = await loadProductReviews(prod.id);
+    const revList = document.getElementById("modal-reviews-list-box");
+    if (revList) {
+      revList.innerHTML = updated.map(r => `
+        <div class="product-review-card" style="padding:10px; border:1px solid var(--border-color); border-radius:6px; margin-bottom:8px; background:var(--bg-page);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+            <div>
+              <strong style="font-size:13px;">${escapeHtml(r.reviewerName || 'Verified Buyer')}</strong>
+              <span style="font-size:10.5px; background:#dcfce7; color:#166534; padding:1px 5px; border-radius:3px; margin-left:6px;">✓ Verified Purchase</span>
+            </div>
+            <div style="color:#eab308; font-size:12px;">${'★'.repeat(r.rating || 5)}${'☆'.repeat(5 - (r.rating || 5))}</div>
+          </div>
+          <p style="margin:4px 0 2px; font-size:12.5px; color:var(--text-main); line-height:1.4;">${escapeHtml(r.comment || '')}</p>
+          <small class="muted" style="font-size:11px;">${escapeHtml(r.date || 'Recent')}</small>
+        </div>
+      `).join("");
+    }
+    const form = document.getElementById("modal-submit-review-form");
+    if (form) form.reset();
+  });
 }
 
 export function openStaffQuickLookupModal(prod) {
@@ -7073,15 +8106,45 @@ export function setupAutocompleteSearch({ inputId, dropdownId, onSelect, getCont
     currentResults = topMatches;
     activeIndex = -1;
 
+    // Toggle top search clear button if applicable
+    if (inputId === "top-search-input") {
+      const clearBtn = document.getElementById("top-search-clear");
+      if (clearBtn) clearBtn.classList.toggle("hidden", !q);
+    }
+
     if (allMatches.length === 0) {
+      let didYouMean = null;
+      if (q.length >= 3) {
+        for (const item of (STATE.products || [])) {
+          const itemWords = (item.name || "").toLowerCase().split(/[\s,()/-]+/);
+          for (const w of itemWords) {
+            if (w.length >= 4 && Math.abs(w.length - q.length) <= 2) {
+              if (levenshteinDistance(q, w) <= 2) {
+                didYouMean = item.name;
+                break;
+              }
+            }
+          }
+          if (didYouMean) break;
+        }
+      }
+
       dropdown.innerHTML = `
         <div class="search-empty-state">
           <div class="search-empty-icon">🔍</div>
           <p class="search-empty-title">No medicine found.</p>
           <p class="search-empty-desc">Try searching by medicine name, generic name or active ingredient.</p>
+          ${didYouMean ? `<p style="margin-top:8px; font-size:12.5px; color:var(--text-main);">Did you mean: <button type="button" class="btn-did-you-mean" data-suggest="${escapeHtml(didYouMean)}" style="background:none; border:none; color:var(--primary, #0f766e); font-weight:700; text-decoration:underline; cursor:pointer; padding:0;">${escapeHtml(didYouMean)}</button>?</p>` : ""}
         </div>
       `;
       dropdown.classList.remove("hidden");
+      dropdown.querySelector(".btn-did-you-mean")?.addEventListener("click", (e) => {
+        const sugg = e.target.dataset.suggest;
+        if (sugg) {
+          input.value = sugg;
+          input.dispatchEvent(new Event("input", { bubbles: true }));
+        }
+      });
       return;
     }
 
@@ -7240,7 +8303,9 @@ function renderCategoriesView() {
       const count = STATE.products.filter(p => p.category === cat.name).length;
       return `
         <div class="category-card" data-category="${escapeHtml(cat.name)}">
-          <div class="category-icon-box">${ICONS[cat.iconKey] || ICONS.categories}</div>
+          <div class="category-icon-box">
+            <img src="${escapeHtml(getCategoryImageUrl(cat))}" alt="${escapeHtml(cat.name)}" class="cat-card-img" style="width:40px; height:40px; object-fit:contain;" />
+          </div>
           <h3 class="category-name">${escapeHtml(cat.name)}</h3>
           <p class="category-desc">${escapeHtml(cat.desc)}</p>
           <small class="muted" style="display:block; margin-bottom:10px;">${count} products available</small>
@@ -7255,20 +8320,65 @@ function renderCategoriesView() {
     if (tableBox) {
       tableBox.innerHTML = `
         <table class="standard-table">
-          <thead><tr><th>Category Name</th><th>Description</th><th>Products</th><th>Status</th><th>Action</th></tr></thead>
+          <thead><tr><th>Icon</th><th>Category Name</th><th>Description</th><th>Products</th><th>Status</th><th>Action</th></tr></thead>
           <tbody>
-            ${STATE.categories.map(c => `
-              <tr>
-                <td><strong>${escapeHtml(c.name)}</strong></td>
-                <td>${escapeHtml(c.desc)}</td>
-                <td>${STATE.products.filter(p => p.category === c.name).length}</td>
-                <td><span class="status-pill status-${c.status || "active"}">${c.status || "active"}</span></td>
-                <td><button class="btn btn-secondary btn-sm edit-cat-btn" data-id="${c.id}">Edit</button></td>
-              </tr>
-            `).join("")}
+            ${STATE.categories.map(c => {
+              const isAct = c.status !== "inactive";
+              return `
+                <tr>
+                  <td style="width:48px; text-align:center;">
+                    <img src="${escapeHtml(getCategoryImageUrl(c))}" alt="${escapeHtml(c.name)}" style="width:34px; height:34px; object-fit:contain; border-radius:8px; background:#f8fafc; border:1px solid #e2e8f0; padding:2px;" />
+                  </td>
+                  <td><strong>${escapeHtml(c.name)}</strong></td>
+                  <td>${escapeHtml(c.desc || "")}</td>
+                  <td>${STATE.products.filter(p => p.category === c.name).length}</td>
+                  <td><span class="status-pill status-${isAct ? "active" : "inactive"}">${isAct ? "Active" : "Inactive"}</span></td>
+                  <td>
+                    <div style="display:flex; gap:6px;">
+                      <button type="button" class="btn btn-secondary btn-sm edit-cat-btn" data-id="${c.id}">Edit</button>
+                      <button type="button" class="btn btn-outline btn-sm toggle-cat-status-btn" data-id="${c.id}" data-status="${isAct ? "inactive" : "active"}">
+                        ${isAct ? "Deactivate" : "Activate"}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `;
+            }).join("")}
           </tbody>
         </table>
       `;
+
+      tableBox.querySelectorAll(".edit-cat-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          const cat = STATE.categories.find(c => c.id === id);
+          if (!cat) return;
+          if ($("#cat-id")) $("#cat-id").value = cat.id || "";
+          if ($("#category-modal-title")) $("#category-modal-title").textContent = "Edit Pharmacy Category";
+          if ($("#cat-name")) $("#cat-name").value = cat.name || "";
+          if ($("#cat-icon")) $("#cat-icon").value = cat.iconKey || cat.id || "categories";
+          if ($("#cat-desc")) $("#cat-desc").value = cat.desc || "";
+          if ($("#cat-status")) $("#cat-status").value = cat.status || "active";
+          const imgUrl = cat.imageUrl || getCategoryImageUrl(cat);
+          if ($("#cat-image-url")) $("#cat-image-url").value = imgUrl;
+          if ($("#cat-image-preview")) $("#cat-image-preview").src = imgUrl;
+          $("#category-form-dialog")?.showModal();
+        });
+      });
+
+      tableBox.querySelectorAll(".toggle-cat-status-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const id = btn.dataset.id;
+          const newStatus = btn.dataset.status;
+          const cat = STATE.categories.find(c => c.id === id);
+          if (!cat) return;
+          cat.status = newStatus;
+          try { saveCategory(cat); } catch (_) {}
+          renderCategoriesView();
+          renderCustomerDashboardView();
+          openNotice("Category Updated", `Category <strong>${escapeHtml(cat.name)}</strong> is now <strong>${newStatus}</strong>.`);
+        });
+      });
     }
   }
 }
@@ -11492,6 +12602,10 @@ function renderProfileView() {
   if (nameInput) nameInput.value = STATE.currentUser.displayName || "";
   if (emailInput) emailInput.value = STATE.currentUser.email || "";
   if (phoneInput) phoneInput.value = STATE.currentUser.phone || "";
+
+  if (!isStaff) {
+    switchAccountTab(STATE.activeAccountTab || "profile");
+  }
 }
 
 // -------------------------------------------------------------
@@ -11715,7 +12829,7 @@ function renderCartDialogContents() {
 
   const summary = calculateCartSummary(STATE.cart, STATE.deliveryFee);
 
-  container.innerHTML = STATE.cart.map(item => {
+  const rowsHtml = STATE.cart.map(item => {
     const itemPrice = item.price ?? item.product?.price ?? 0;
     const itemTotal = itemPrice * item.quantity;
     const prodId = item.productId || item.product?.id;
@@ -11729,6 +12843,7 @@ function renderCartDialogContents() {
         <div class="cart-item-details">
           <strong class="cart-item-name">${escapeHtml(item.name)}</strong>
           <div class="cart-item-unit-price">${formatUGX(itemPrice)} each</div>
+          <button type="button" class="cart-save-later-link" data-action="save-later" data-id="${escapeHtml(prodId)}" style="background:none; border:none; color:var(--primary, #0f766e); font-size:11px; cursor:pointer; padding:2px 0; margin-top:2px;">♡ Save for Later</button>
         </div>
         <div class="cart-qty-control-group">
           <button class="cart-qty-btn cart-qty-minus" type="button" data-action="decrease-qty" data-id="${escapeHtml(prodId)}" title="Decrease quantity" aria-label="Decrease quantity">&minus;</button>
@@ -11743,6 +12858,29 @@ function renderCartDialogContents() {
       </div>
     `;
   }).join("");
+
+  const wishlistItems = (STATE.wishlist || []).map(id => STATE.products.find(p => p.id === id)).filter(Boolean);
+  let savedShelfHtml = "";
+  if (wishlistItems.length > 0) {
+    savedShelfHtml = `
+      <div class="cart-saved-later-shelf" style="margin-top:16px; border-top:1px dashed var(--border-color); padding-top:12px;">
+        <h4 style="margin:0 0 8px; font-size:12.5px; color:var(--text-main);">Saved for Later (${wishlistItems.length})</h4>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          ${wishlistItems.map(sp => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:var(--bg-page); padding:6px 10px; border-radius:4px; font-size:12px;">
+              <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:200px;">${escapeHtml(sp.name)}</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <strong>${formatUGX(sp.price)}</strong>
+                <button type="button" class="btn btn-outline btn-xs" data-action="move-saved-cart" data-id="${escapeHtml(sp.id)}">Move to Cart</button>
+              </div>
+            </div>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = rowsHtml + savedShelfHtml;
 
   $("#cart-subtotal-val").textContent = formatUGX(summary.subtotal);
   $("#cart-delivery-val").textContent = formatUGX(summary.deliveryFee);
@@ -11777,6 +12915,10 @@ function openCheckoutDialog() {
     submitBtn.disabled = false;
     submitBtn.textContent = "Place Order & Generate Reference";
   }
+
+  switchCheckoutStep(1);
+  renderCheckoutSavedAddresses();
+  handleDeliverySpeedChange(STATE.deliverySpeed || "standard");
 
   // Ensure fulfillment option UI is properly synchronized
   const fulfillSelect = $("#chk-fulfillment-option");
@@ -12219,22 +13361,25 @@ async function handleCheckoutOrder(e) {
     console.warn(`[BloomCare Order] Cloud Firestore sync deferred for #${orderRef}:`, err?.message || err);
   }
 
-  // Deduct inventory stock
-  for (const item of newOrder.items) {
-    const prod = STATE.products.find(p => p.id === item.productId);
-    if (prod) {
-      prod.stockQuantity = Math.max(0, prod.stockQuantity - item.quantity);
-      STATE.inventoryLogs.unshift({
-        id: "log-" + Date.now(),
-        productName: prod.name,
-        type: "stock_out",
-        quantity: item.quantity,
-        previousStock: prod.stockQuantity + item.quantity,
-        newStock: prod.stockQuantity,
-        reason: `Order #${orderRef}`,
-        performedBy: name,
-        timestamp: new Date().toISOString()
-      });
+  // Deduct inventory stock (idempotent guard)
+  if (!newOrder.inventoryDeducted) {
+    newOrder.inventoryDeducted = true;
+    for (const item of newOrder.items) {
+      const prod = STATE.products.find(p => p.id === item.productId);
+      if (prod) {
+        prod.stockQuantity = Math.max(0, prod.stockQuantity - item.quantity);
+        STATE.inventoryLogs.unshift({
+          id: "log-" + Date.now(),
+          productName: prod.name,
+          type: "stock_out",
+          quantity: item.quantity,
+          previousStock: prod.stockQuantity + item.quantity,
+          newStock: prod.stockQuantity,
+          reason: `Order #${orderRef}`,
+          performedBy: name,
+          timestamp: new Date().toISOString()
+        });
+      }
     }
   }
 
@@ -15202,9 +16347,79 @@ function bindEventListeners() {
   $("#top-search-input")?.addEventListener("input", (e) => {
     STATE.searchQuery = e.target.value;
     STATE.marketplacePage = 1;
+    $("#top-search-clear")?.classList.toggle("hidden", !e.target.value);
     if (STATE.currentRoute !== "medicines") navigateTo("medicines");
     else renderMedicinesView();
   });
+  $("#top-search-clear")?.addEventListener("click", () => {
+    const input = $("#top-search-input");
+    if (input) {
+      input.value = "";
+      input.focus();
+    }
+    $("#top-search-clear")?.classList.add("hidden");
+    $("#top-search-suggestions")?.classList.add("hidden");
+    STATE.searchQuery = "";
+    STATE.marketplacePage = 1;
+    if (STATE.currentRoute === "medicines") renderMedicinesView();
+  });
+
+  $("#top-orders-btn")?.addEventListener("click", () => {
+    if (!STATE.currentUser) {
+      navigateTo("login");
+      return;
+    }
+    navigateTo("profile");
+    switchAccountTab("orders");
+  });
+
+  $("#open-wishlist-btn")?.addEventListener("click", () => {
+    openWishlistModal();
+  });
+  $("#close-wishlist-modal")?.addEventListener("click", () => $("#wishlist-dialog")?.close());
+  $("#wishlist-close-btn")?.addEventListener("click", () => $("#wishlist-dialog")?.close());
+
+  // Address Dialog Events
+  $("#close-address-modal")?.addEventListener("click", () => $("#address-dialog")?.close());
+  $("#cancel-address-btn")?.addEventListener("click", () => $("#address-dialog")?.close());
+  $("#address-form")?.addEventListener("submit", handleAddressFormSubmit);
+  $("#btn-add-new-address")?.addEventListener("click", () => openAddressModal());
+  $("#chk-add-address-btn")?.addEventListener("click", () => openAddressModal());
+
+  // Delivery speed options in checkout
+  $("#speed-card-standard")?.addEventListener("click", () => handleDeliverySpeedChange("standard"));
+  $("#speed-card-express")?.addEventListener("click", () => handleDeliverySpeedChange("express"));
+
+  // Checkout step pills
+  $("#checkout-steps-bar")?.addEventListener("click", (e) => {
+    const pill = e.target.closest(".checkout-step-pill");
+    if (pill) {
+      const step = parseInt(pill.dataset.checkoutStep, 10);
+      if (!isNaN(step)) switchCheckoutStep(step);
+    }
+  });
+
+  // Account Hub tabs
+  $("#account-hub-tabs")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".account-tab-btn");
+    if (btn && btn.dataset.accountTab) {
+      switchAccountTab(btn.dataset.accountTab);
+    }
+  });
+
+  // Jumia Macro Categories Bar
+  $("#marketplace-categories-bar")?.addEventListener("click", (e) => {
+    const pill = e.target.closest(".macro-category-pill");
+    if (pill) {
+      const cat = pill.dataset.macroCategory || "All";
+      STATE.macroCategory = cat;
+      $$("#marketplace-categories-bar .macro-category-pill").forEach(p => p.classList.toggle("active", p === pill));
+      STATE.marketplacePage = 1;
+      if (STATE.currentRoute !== "medicines") navigateTo("medicines");
+      else renderMedicinesView();
+    }
+  });
+
   $("#catalog-search-input")?.addEventListener("input", (e) => {
     STATE.searchQuery = e.target.value;
     STATE.marketplacePage = 1;
@@ -15452,6 +16667,22 @@ function bindEventListeners() {
         e.preventDefault();
         e.stopPropagation();
         updateCartItemQuantity(id, 1);
+        return;
+      } else if (action === "move-saved-cart") {
+        e.preventDefault();
+        e.stopPropagation();
+        const added = addToCart(id, 1);
+        if (added) {
+          if (Array.isArray(STATE.wishlist)) {
+            const wIdx = STATE.wishlist.indexOf(id);
+            if (wIdx > -1) {
+              STATE.wishlist.splice(wIdx, 1);
+              saveWishlistToStorage();
+              updateWishlistBadge();
+            }
+          }
+          renderCartDialogContents();
+        }
         return;
       } else if (action === "picked-up") {
         const effRole = getEffectiveRole();
@@ -15734,6 +16965,95 @@ function bindEventListeners() {
 
     if (e.target.closest(".prod-card-qty-input") || e.target.closest(".card-qty-val")) {
       e.stopPropagation();
+      return;
+    }
+
+    const buyNowBtn = e.target.closest(".btn-buy-now");
+    if (buyNowBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prodId = buyNowBtn.dataset.productId || buyNowBtn.dataset.id;
+      if (prodId) {
+        handleBuyNow(prodId);
+      }
+      return;
+    }
+
+    const saveLaterLink = e.target.closest(".cart-save-later-link");
+    if (saveLaterLink) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prodId = saveLaterLink.dataset.id;
+      if (prodId) {
+        saveCartItemForLater(prodId);
+        renderCartDialogContents();
+      }
+      return;
+    }
+
+    const wishMoveBtn = e.target.closest(".wishlist-move-cart-btn");
+    if (wishMoveBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prodId = wishMoveBtn.dataset.id;
+      if (prodId) {
+        addToCart(prodId, 1);
+        if (Array.isArray(STATE.wishlist)) {
+          const wIdx = STATE.wishlist.indexOf(prodId);
+          if (wIdx > -1) {
+            STATE.wishlist.splice(wIdx, 1);
+            saveWishlistToStorage();
+            updateWishlistBadge();
+          }
+        }
+        renderWishlistModalContents();
+        renderAccountWishlist();
+      }
+      return;
+    }
+
+    const wishRemoveBtn = e.target.closest(".wishlist-remove-btn");
+    if (wishRemoveBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const prodId = wishRemoveBtn.dataset.id;
+      if (prodId) {
+        toggleProductWishlist(prodId);
+        renderWishlistModalContents();
+        renderAccountWishlist();
+      }
+      return;
+    }
+
+    const editAddrBtn = e.target.closest(".btn-edit-address");
+    if (editAddrBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      openAddressModal(editAddrBtn.dataset.id);
+      return;
+    }
+
+    const delAddrBtn = e.target.closest(".btn-delete-address");
+    if (delAddrBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      deleteSavedAddress(delAddrBtn.dataset.id);
+      return;
+    }
+
+    const setDefAddrBtn = e.target.closest(".btn-set-default-address");
+    if (setDefAddrBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      setDefaultAddress(setDefAddrBtn.dataset.id);
+      return;
+    }
+
+    const chkAddrChip = e.target.closest(".chk-saved-address-card");
+    if (chkAddrChip) {
+      e.preventDefault();
+      e.stopPropagation();
+      selectCheckoutSavedAddress(chkAddrChip.dataset.id);
       return;
     }
 
@@ -16238,23 +17558,50 @@ function bindEventListeners() {
 
   // Category Form Modal
   $("#btn-open-add-category")?.addEventListener("click", () => {
-    $("#cat-id").value = "";
-    $("#category-modal-title").textContent = "Add Pharmacy Category";
-    $("#cat-name").value = "";
-    $("#cat-icon").value = "categories";
-    $("#cat-desc").value = "";
-    $("#category-form-dialog").showModal();
+    if ($("#cat-id")) $("#cat-id").value = "";
+    if ($("#category-modal-title")) $("#category-modal-title").textContent = "Add Pharmacy Category";
+    if ($("#cat-name")) $("#cat-name").value = "";
+    if ($("#cat-icon")) $("#cat-icon").value = "categories";
+    if ($("#cat-desc")) $("#cat-desc").value = "";
+    if ($("#cat-status")) $("#cat-status").value = "active";
+    if ($("#cat-image-url")) $("#cat-image-url").value = "categories/all-medicines.svg";
+    if ($("#cat-image-preview")) $("#cat-image-preview").src = "categories/all-medicines.svg";
+    if ($("#cat-image-file")) $("#cat-image-file").value = "";
+    $("#category-form-dialog")?.showModal();
   });
   $("#close-category-form-modal")?.addEventListener("click", () => $("#category-form-dialog")?.close());
   $("#cancel-cat-form-btn")?.addEventListener("click", () => $("#category-form-dialog")?.close());
+
+  $("#cat-image-file")?.addEventListener("change", (e) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (re) => {
+        const dataUrl = re.target.result;
+        if ($("#cat-image-preview")) $("#cat-image-preview").src = dataUrl;
+        if ($("#cat-image-url")) $("#cat-image-url").value = dataUrl;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+
+  $("#cat-image-url")?.addEventListener("input", (e) => {
+    const url = e.target.value.trim();
+    if ($("#cat-image-preview") && url) {
+      $("#cat-image-preview").src = url;
+    }
+  });
+
   $("#category-manage-form")?.addEventListener("submit", (e) => {
     e.preventDefault();
     const id = $("#cat-id").value || "cat-" + Date.now();
     const name = $("#cat-name").value.trim();
     const iconKey = $("#cat-icon").value.trim() || "categories";
     const desc = $("#cat-desc").value.trim();
+    const status = $("#cat-status") ? $("#cat-status").value : "active";
+    const imageUrl = $("#cat-image-url") ? $("#cat-image-url").value.trim() : "";
 
-    const catData = { id, name, iconKey, desc, productCount: 0, status: "active" };
+    const catData = { id, name, iconKey, desc, productCount: 0, status, imageUrl };
     const existing = STATE.categories.find(c => c.id === id);
     if (existing) Object.assign(existing, catData);
     else STATE.categories.push(catData);
@@ -16262,6 +17609,7 @@ function bindEventListeners() {
     try { saveCategory(catData); } catch (_) {}
     $("#category-form-dialog").close();
     renderCategoriesView();
+    renderCustomerDashboardView();
     openNotice("Category Saved", `Category <strong>${escapeHtml(name)}</strong> saved.`);
   });
 

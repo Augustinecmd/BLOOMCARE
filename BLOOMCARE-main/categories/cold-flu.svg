@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="coldBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0f9ff"/>
+      <stop offset="100%" stop-color="#e0f2fe"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#coldBg)"/>
+  <rect x="1" y="1" width="46" height="46" rx="11" fill="none" stroke="#bae6fd" stroke-width="1.5"/>
+  <!-- Thermometer -->
+  <path d="M19 13a3 3 0 0 1 6 0v13.2a6 6 0 1 1-6 0V13z" fill="#ffffff" stroke="#0284c7" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Mercury bulb & column -->
+  <circle cx="22" cy="31" r="3.5" fill="#0284c7"/>
+  <path d="M22 20v8" stroke="#0284c7" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Thermometer tick marks -->
+  <line x1="26" y1="16" x2="28" y2="16" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round"/>
+  <line x1="26" y1="20" x2="28" y2="20" stroke="#0284c7" stroke-width="1.5" stroke-linecap="round"/>
+  <!-- Capsule pill on side -->
+  <g transform="translate(31, 14) rotate(35)">
+    <rect x="0" y="0" width="8" height="16" rx="4" fill="#38bdf8" stroke="#0284c7" stroke-width="1.5"/>
+    <path d="M0 8h8" stroke="#0284c7" stroke-width="1.5"/>
+    <rect x="0" y="8" width="8" height="8" rx="4" fill="#ffffff"/>
+    <rect x="0" y="8" width="8" height="4" fill="#ffffff"/>
+  </g>
+</svg>
+

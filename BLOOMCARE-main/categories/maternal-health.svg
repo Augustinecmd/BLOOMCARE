@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="matBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff1f2"/>
+      <stop offset="100%" stop-color="#ffe4e6"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#matBg)"/>
+  <rect x="1" y="1" width="46" height="46" rx="11" fill="none" stroke="#fecdd3" stroke-width="1.5"/>
+  <!-- Mother and baby nesting hearts -->
+  <path d="M24 18c-5-5-11 0-11 6 0 7 11 14 11 14s11-7 11-14c0-6-6-11-11-6z" fill="#ffffff" stroke="#e11d48" stroke-width="2"/>
+  <path d="M24 22c-3-3-6 0-6 3.5 0 4 6 7.5 6 7.5s6-3.5 6-7.5c0-3.5-3-6.5-6-3.5z" fill="#f43f5e"/>
+  <!-- Maternal aura sparkles -->
+  <circle cx="24" cy="11" r="2" fill="#fb7185"/>
+  <circle cx="15" cy="14" r="1.5" fill="#fda4af"/>
+  <circle cx="33" cy="14" r="1.5" fill="#fda4af"/>
+</svg>
+

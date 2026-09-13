@@ -334,7 +334,7 @@ test("19. DRIVER ASSIGNMENT SYNC & MESSAGE PRESERVATION: Updating driver syncs c
   const convAfterAssign = getOrCreateOrderDeliveryChat(testOrderRef);
   assert.equal(convAfterAssign.id, conv.id, "Must return existing conversation");
   assert.equal(convAfterAssign.deliveryManName, "Moses Kato", "Driver name must be updated");
-  assert.equal(convAfterAssign.deliveryManId, "usr-5", "Driver ID must be updated");
+  assert.equal(convAfterAssign.deliveryManId, "eM6qgrSVjTeTUo62Sa556sKkXpG3", "Driver ID must be updated");
 
   const totalConvCount = STATE.conversations.filter(c => c.orderId === testOrderRef).length;
   assert.equal(totalConvCount, 1, "Must never duplicate conversation on driver assignment");

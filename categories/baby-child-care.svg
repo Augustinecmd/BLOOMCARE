@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="babyBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#f0fdf4"/>
+      <stop offset="100%" stop-color="#ecfdf5"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#babyBg)"/>
+  <rect x="1" y="1" width="46" height="46" rx="11" fill="none" stroke="#a7f3d0" stroke-width="1.5"/>
+  <!-- Baby Feeding Bottle -->
+  <g transform="translate(14, 8)">
+    <!-- Teat -->
+    <path d="M8 3c0-1.5 1-2.5 2-2.5s2 1 2 2.5v3H8V3z" fill="#fcd34d"/>
+    <!-- Collar ring -->
+    <rect x="6" y="5.5" width="8" height="3.5" rx="1" fill="#059669"/>
+    <!-- Bottle body -->
+    <rect x="4" y="9" width="12" height="23" rx="3" fill="#ffffff" stroke="#059669" stroke-width="1.8"/>
+    <!-- Measurement lines -->
+    <line x1="7" y1="14" x2="10" y2="14" stroke="#10b981" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="18" x2="11" y2="18" stroke="#10b981" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="22" x2="10" y2="22" stroke="#10b981" stroke-width="1.2" stroke-linecap="round"/>
+    <line x1="7" y1="26" x2="12" y2="26" stroke="#10b981" stroke-width="1.2" stroke-linecap="round"/>
+  </g>
+  <!-- Care Heart -->
+  <path d="M33 26c-3-3-6 0-6 3 0 3 6 7 6 7s6-4 6-7c0-3-3-6-6-3z" fill="#f43f5e"/>
+</svg>

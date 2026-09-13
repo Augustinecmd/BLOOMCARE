@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" width="48" height="48">
+  <defs>
+    <linearGradient id="allrBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fffbeb"/>
+      <stop offset="100%" stop-color="#fef3c7"/>
+    </linearGradient>
+  </defs>
+  <rect width="48" height="48" rx="12" fill="url(#allrBg)"/>
+  <rect x="1" y="1" width="46" height="46" rx="11" fill="none" stroke="#fde68a" stroke-width="1.5"/>
+  <!-- Protective Allergy Shield -->
+  <path d="M24 11l10 4v8c0 7-5 12-10 14-5-2-10-7-10-14v-8l10-4z" fill="#ffffff" stroke="#d97706" stroke-width="2" stroke-linejoin="round"/>
+  <!-- Shield cross / defense badge -->
+  <path d="M24 18v10M19 23h10" stroke="#d97706" stroke-width="2.5" stroke-linecap="round"/>
+  <!-- Blocked allergen pollen spores outside shield -->
+  <circle cx="9" cy="19" r="2" fill="#f59e0b"/>
+  <circle cx="11" cy="27" r="1.5" fill="#d97706"/>
+  <circle cx="39" cy="22" r="2" fill="#f59e0b"/>
+</svg>

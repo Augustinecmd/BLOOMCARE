@@ -315,9 +315,17 @@ test('12. PERIOD SWITCHING: calculateSalesOverviewData updates immediately for e
   assert.equal(weekData.period, 'week');
   assert.equal(weekData.breakdown.length, 7);
 
+  const sevenDaysData = calculateSalesOverviewData('7days', mockOrders, refDate);
+  assert.equal(sevenDaysData.period, '7days');
+  assert.equal(sevenDaysData.breakdown.length, 7);
+
   const monthData = calculateSalesOverviewData('month', mockOrders, refDate);
   assert.equal(monthData.period, 'month');
   assert.equal(monthData.breakdown.length, 30);
+
+  const thirtyDaysData = calculateSalesOverviewData('30days', mockOrders, refDate);
+  assert.equal(thirtyDaysData.period, '30days');
+  assert.equal(thirtyDaysData.breakdown.length, 30);
 
   const yearData = calculateSalesOverviewData('year', mockOrders, refDate);
   assert.equal(yearData.period, 'year');
