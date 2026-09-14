@@ -337,6 +337,31 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
     }
+
+    // -------------------------------------------------------------
+    // RECOMMENDATION STATISTICS DERIVED DATA
+    // -------------------------------------------------------------
+    match /recommendationStats/{docId} {
+      allow read: if true;
+      allow write: if isSignedIn();
+    }
+
+    // -------------------------------------------------------------
+    // AI CHATBOT SESSIONS & PHARMACY KNOWLEDGE BASE
+    // -------------------------------------------------------------
+    match /chatSessions/{sessionId} {
+      allow read: if isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() ? (request.resource.data.userId == request.auth.uid) : true;
+      allow update: if (isSignedIn() && (resource.data.userId == request.auth.uid || isAdmin())) || !isSignedIn();
+      allow delete: if isAdmin();
+    }
+
+    match /aiKnowledgeBase/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 }
+
+
 

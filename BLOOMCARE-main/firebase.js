@@ -2531,3 +2531,34 @@ export async function getProductReviewsFromFirestore(productId) {
     }
 }
 
+// -------------------------------------------------------------
+// 16. AI RECOMMENDATION STATISTICS DERIVED DATA
+// -------------------------------------------------------------
+
+export async function saveRecommendationStatsToFirestore(stats) {
+    if (!db || !stats) return false;
+    try {
+        const docId = stats.productId || "global_stats";
+        await setDoc(doc(db, "recommendationStats", docId), {
+            ...stats,
+            updatedAt: new Date().toISOString()
+        }, { merge: true });
+        return true;
+    } catch (err) {
+        console.warn("[BloomCare Recommendations] saveRecommendationStatsToFirestore error:", err?.message || err);
+        return false;
+    }
+}
+
+export async function getRecommendationStatsFromFirestore() {
+    if (!db) return [];
+    try {
+        const snap = await getDocs(collection(db, "recommendationStats"));
+        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    } catch (err) {
+        console.warn("[BloomCare Recommendations] getRecommendationStatsFromFirestore error:", err?.message || err);
+        return [];
+    }
+}
+
+

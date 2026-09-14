@@ -18,7 +18,7 @@ from urllib.parse import urlparse, parse_qs
 HOST = "127.0.0.1"
 PORT = 8787
 CURRENCY = "UGX"
-MAX_REQUEST_BODY_BYTES = 64 * 1024
+MAX_REQUEST_BODY_BYTES = 1024 * 1024
 DATA_FILE = Path(__file__).parent / "data" / "payments.json"
 USERS_FILE = Path(__file__).parent / "data" / "users.json"
 AUDIT_FILE = Path(__file__).parent / "data" / "audit_logs.json"
@@ -1320,6 +1320,23 @@ class PaymentHandler(BaseHTTPRequestHandler):
             self.send_json(200, {"status": "ok", "service": "BloomCare Pharmacy Payment API", "currency": "UGX"})
             return
 
+        # AI CHATBOT GET ENDPOINTS
+        if parsed.path == "/api/ai/analytics":
+            try:
+                from .ai_chatbot import load_analytics
+            except ImportError:
+                from ai_chatbot import load_analytics
+            self.send_json(200, {"success": True, "analytics": load_analytics()})
+            return
+
+        if parsed.path == "/api/ai/knowledge":
+            try:
+                from .ai_chatbot import load_knowledge_base
+            except ImportError:
+                from ai_chatbot import load_knowledge_base
+            self.send_json(200, {"success": True, "knowledge": load_knowledge_base()})
+            return
+
         # ADMIN ENDPOINTS
         if parsed.path == "/api/admin/users":
             is_admin, role, meta = is_admin_request(self.headers)
@@ -1478,6 +1495,35 @@ class PaymentHandler(BaseHTTPRequestHandler):
         except json.JSONDecodeError:
             self.send_json(400, {"success": False, "message": "Invalid JSON format"})
             return
+
+        # AI CHATBOT ENDPOINTS
+        if parsed.path == "/api/ai/chat":
+            try:
+                from .ai_chatbot import process_ai_chat_message
+            except ImportError:
+                from ai_chatbot import process_ai_chat_message
+            ai_res = process_ai_chat_message(payload)
+            self.send_json(200, {"success": True, **ai_res})
+            return
+
+        if parsed.path == "/api/ai/knowledge":
+            is_admin, admin_role, admin_meta = is_admin_request(self.headers)
+            if not is_admin:
+                self.send_json(403, {"success": False, "message": "Access Denied: Administrative privileges required."})
+                return
+            new_faq = payload.get("faq")
+            if new_faq and isinstance(new_faq, dict):
+                try:
+                    from .ai_chatbot import load_knowledge_base, KNOWLEDGE_FILE
+                except ImportError:
+                    from ai_chatbot import load_knowledge_base, KNOWLEDGE_FILE
+                kb = load_knowledge_base()
+                faqs = kb.setdefault("faqs", [])
+                faqs.append(new_faq)
+                with open(KNOWLEDGE_FILE, "w", encoding="utf-8") as f:
+                    json.dump(kb, f, indent=2)
+                self.send_json(200, {"success": True, "message": "FAQ added successfully.", "knowledge": kb})
+                return
 
         # ADMIN ENDPOINTS (Restricted to Admin & Developer)
         if parsed.path.startswith("/api/admin/"):

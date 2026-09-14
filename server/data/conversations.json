@@ -11,11 +11,11 @@
     "deliveryManName": "Moses Kato",
     "deliveryStatus": "Delivered",
     "status": "COMPLETED",
-    "unreadDelivery": 43,
+    "unreadDelivery": 46,
     "unreadCustomer": 0,
     "lastMessage": "Please call when you reach the gate.",
     "createdAt": "2026-09-05T17:01:54.860704+00:00",
-    "updatedAt": "2026-09-12T07:33:57.087534+00:00",
+    "updatedAt": "2026-09-14T09:43:35.619362+00:00",
     "messages": [
       {
         "id": "MSG-1788627714909",
@@ -539,6 +539,45 @@
         "message": "Please call when you reach the gate.",
         "text": "Please call when you reach the gate.",
         "timestamp": "2026-09-12T07:33:57.087534+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789304550496",
+        "messageId": "MSG-1789304550496",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-13T13:02:30.496577+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789305337378",
+        "messageId": "MSG-1789305337378",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-13T13:15:37.378110+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789379015619",
+        "messageId": "MSG-1789379015619",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-14T09:43:35.619362+00:00",
         "read": false
       }
     ]

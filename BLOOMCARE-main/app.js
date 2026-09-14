@@ -89,6 +89,27 @@ import {
   formatDeliveryAddress,
   validateMbararaDeliveryAddress
 } from "./mbarara-delivery-areas.js";
+import {
+  getRecommendedProducts,
+  getTrendingProducts,
+  getFrequentlyPurchased,
+  getPopularProducts,
+  getFrequentlyBoughtTogether,
+  getTopCoPurchaseBundle,
+  updateRecommendationStatsOnOrder,
+  getRecommendationAdminAnalytics,
+  renderFrequentlyBoughtTogetherHtml,
+  calculateProductPurchaseStats,
+  calculateRecommendationScores,
+  isProductEligibleForRecommendation,
+  isValidCompletedOrder
+} from "./recommendation-service.js";
+import {
+  initBloomCareChatbot,
+  openBloomCareChatbot,
+  closeBloomCareChatbot,
+  sendMessageToBloomCareAI
+} from "./chatbot.js";
 
 export {
   isPaidOrder,
@@ -102,7 +123,27 @@ export {
   isValidMbararaArea,
   searchMbararaLocations,
   formatDeliveryAddress,
-  validateMbararaDeliveryAddress
+  validateMbararaDeliveryAddress,
+  getRecommendedProducts,
+  getTrendingProducts,
+  getFrequentlyPurchased,
+  getPopularProducts,
+  getFrequentlyBoughtTogether,
+  getTopCoPurchaseBundle,
+  updateRecommendationStatsOnOrder,
+  getRecommendationAdminAnalytics,
+  renderFrequentlyBoughtTogetherHtml,
+  calculateProductPurchaseStats,
+  calculateRecommendationScores,
+  isProductEligibleForRecommendation,
+  isValidCompletedOrder,
+  renderAdminRecommendationsSection,
+  renderAdminAiAnalyticsSection,
+  showToast,
+  initBloomCareChatbot,
+  openBloomCareChatbot,
+  closeBloomCareChatbot,
+  sendMessageToBloomCareAI
 };
 
 // DOM Utility
@@ -2316,6 +2357,11 @@ function openNotice(title, message) {
   if (modalEl && typeof modalEl.showModal === "function") modalEl.showModal();
 }
 
+function showToast(message, type = "info") {
+  const heading = type === "error" ? "Notice" : (type === "warning" ? "Caution" : "BloomCare Pharmacy");
+  openNotice(heading, message);
+}
+
 // -------------------------------------------------------------
 // REAL-TIME MULTI-USER / MULTI-TAB SYNCHRONIZATION ENGINE
 // -------------------------------------------------------------
@@ -3831,6 +3877,21 @@ async function initApp() {
   loadCartFromStorage();
   bindEventListeners();
   setupGlobalDialogNavigation();
+
+  // Initialize BloomCare AI Chatbot Assistant
+  try {
+    initBloomCareChatbot({
+      getProducts: () => STATE.products,
+      getCurrentUser: () => STATE.currentUser,
+      getOrders: () => STATE.orders,
+      addToCart: (productId, quantity) => addToCart(productId, quantity),
+      openProductDetails: (productId) => openProductDetailsModal(productId),
+      openOrderTracking: (orderId) => openOrderTrackingModal(orderId),
+      whatsappPhone: STATE.systemSettings?.whatsappNumber || "256750210886"
+    });
+  } catch (chatErr) {
+    console.warn("[BloomCare AI] Chatbot initialization warning:", chatErr);
+  }
 
   // Background Delivery, Notifications & Chat Sync
   initAppSyncChannel();
@@ -5499,6 +5560,12 @@ function renderRoleDashboard() {
       <!-- Walk-in Pharmacy Sales & Counter Register Hub (Admin Access) -->
       <div class="admin-section-block" id="admin-walkin-overview-section"></div>
 
+      <!-- AI Product Recommendations & Purchasing Trends (Admin Access) -->
+      <div class="admin-section-block" id="admin-recommendations-analytics-section"></div>
+
+      <!-- AI Assistant Usage & Clinical Inquiries (Admin Access) -->
+      <div class="admin-section-block" id="admin-ai-assistant-analytics-section"></div>
+
       <!-- Quick Actions Section (Max 4 Actions) -->
       <div class="admin-section-block">
         <div class="admin-section-head">
@@ -5574,6 +5641,8 @@ function renderRoleDashboard() {
     $("#admin-btn-walkin-sale")?.addEventListener("click", () => openWalkinSaleModal());
     renderSalesOverviewSection($("#admin-sales-overview-section"), STATE.salesOverviewPeriod || "today");
     renderAdminWalkinSection();
+    renderAdminRecommendationsSection();
+    renderAdminAiAnalyticsSection();
 
   } else if (role === "pharmacist") {
     // 2. PHARMACIST DASHBOARD
@@ -6025,15 +6094,32 @@ function renderRoleDashboard() {
     const savedAreas = savedDiv ? getMbararaAreas(savedDiv) : [];
     const activeDriver = latestActive ? getAssignedDeliveryManForOrder(latestActive) : null;
     const activeProducts = STATE.products.filter(p => p && p.status !== "inactive");
-    const featuredMeds = activeProducts.filter(p => getProductAvailability(p).isAvailable).slice(0, 10);
+    const custId = STATE.currentUser?.uid || STATE.currentUser?.email;
+    const recommendedMeds = getRecommendedProducts(custId, STATE.products, STATE.orders, 8);
+    const trendingMeds = getTrendingProducts(STATE.products, STATE.orders, 8);
+    const frequentlyPurchasedMeds = getFrequentlyPurchased(STATE.products, STATE.orders, 8);
+    const topBundle = getTopCoPurchaseBundle(STATE.products, STATE.orders);
+    const hasHistory = (STATE.orders || []).some(o => (o.customerId === custId || o.customerEmail === custId) && isValidCompletedOrder(o));
     const dashCategories = STATE.categories || [];
 
     container.innerHTML = `
-      <!-- 1. Compact Welcome Section & Quick Actions -->
-      <div class="customer-welcome-card">
+      <!-- 1. Customer Dashboard Hero & Brand Showcase -->
+      <div class="customer-welcome-card customer-hero-brand-card">
         <div class="customer-welcome-left">
+          <div class="customer-hero-motto-pill" style="display:inline-flex; align-items:center; gap:6px; background:rgba(15,118,110,0.1); color:#0f766e; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; margin-bottom:8px; letter-spacing:0.3px;">
+            <span>🌿</span>
+            <span>Your Health, Our Priority</span>
+          </div>
           <h1 class="page-title" style="font-size:22px; margin-bottom:4px;">Welcome, ${escapeHtml(STATE.currentUser?.displayName || "Customer")}</h1>
-          <p class="page-desc">Manage your orders, prescriptions, and pharmacy care in one place.</p>
+          <p class="page-desc" style="font-size:13.5px; color:var(--text-muted, #64748b); margin-bottom:10px; max-width:520px; line-height:1.45;">
+            Your trusted licensed pharmacy in Mbarara City for genuine <strong>Medicines</strong>, comprehensive <strong>Wellness</strong>, essential <strong>Personal Care</strong>, and professional <strong>Health Advice</strong>.
+          </p>
+          <div class="customer-service-tags" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">
+            <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">💊 Medicines</span>
+            <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">🌿 Wellness</span>
+            <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">🧴 Personal Care</span>
+            <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">🩺 Health Advice</span>
+          </div>
           <div class="customer-welcome-actions">
             <button class="btn btn-primary btn-sm" type="button" data-route="medicines">Browse Medicines</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="prescriptions">Upload Prescription</button>
@@ -6041,8 +6127,19 @@ function renderRoleDashboard() {
             <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
           </div>
         </div>
-        <div class="customer-welcome-right">
-          <span class="customer-badge-pill">${ICONS.check} ${STATE.currentUser?.accountType === "BUSINESS" ? "Verified Business Customer" : "Verified Customer Account"}</span>
+        <div class="customer-welcome-right customer-hero-brand-right">
+          <div class="customer-hero-badge-row" style="margin-bottom:8px;">
+            <span class="customer-badge-pill">${ICONS.check} ${STATE.currentUser?.accountType === "BUSINESS" ? "Verified Business Customer" : "Verified Customer Account"}</span>
+          </div>
+          <div class="customer-hero-bag-wrapper" style="text-align:center;">
+            <img 
+              src="bloomcare-paper-bag.jpg" 
+              alt="BloomCare Pharmacy branded paper bag" 
+              class="customer-hero-bag-img" 
+              loading="lazy" 
+              decoding="async" 
+            />
+          </div>
         </div>
       </div>
 
@@ -6121,6 +6218,10 @@ function renderRoleDashboard() {
             </div>
             <div style="font-size: 13px; margin-bottom: 8px;">
               <strong>Delivery:</strong> <span>${activeDriver ? `<span style="font-weight:600; color:#0f766e;">🚚 ${escapeHtml(activeDriver)}</span>` : `<span class="muted">${latestActive.fulfillmentType === 'pickup' ? 'Pharmacy Pickup' : 'Pending Assignment'}</span>`}</span>
+            </div>
+            <div style="font-size:12px; color:#0f766e; background:rgba(15,118,110,0.07); border:1px solid rgba(15,118,110,0.15); padding:6px 10px; border-radius:6px; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
+              <img src="bloomcare-paper-bag.jpg" alt="BloomCare Pharmacy branded paper bag" style="width:22px; height:22px; object-fit:contain; border-radius:3px;" />
+              <span>Your order will be carefully prepared and packed by BloomCare Pharmacy in our official tamper-evident bag.</span>
             </div>
             <div style="display: flex; gap: 8px; flex-wrap: wrap;">
               <button class="btn btn-primary btn-sm track-order-btn" data-id="${latestActive.id}">Track Order</button>
@@ -6221,17 +6322,59 @@ function renderRoleDashboard() {
           </div>
         </div>
 
-        <!-- Featured & Recommended Medicines -->
-        <div class="cust-dash-section" style="margin-bottom:24px;">
+        <!-- AI RECOMMENDATION ENGINE SUITE -->
+
+        <!-- 1. Recommended For You (Personalized / Popular Fallback) -->
+        <div class="cust-dash-section rec-dash-section" style="margin-bottom:24px;">
           <div class="flex-between" style="margin-bottom:12px;">
             <div>
-              <h3 style="margin:0; font-size:16px; font-weight:700;">Featured &amp; Recommended Medicines</h3>
-              <span class="muted" style="font-size:12px;">Popular essentials &amp; fast-acting relief verified by our pharmacists</span>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 style="margin:0; font-size:16px; font-weight:700;">${hasHistory ? "Recommended For You" : "Popular Products You May Like"}</h3>
+                <span class="rec-ai-pill" style="background:rgba(15,118,110,0.1); color:#0f766e; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;">AI Powered</span>
+              </div>
+              <span class="muted" style="font-size:12px;">${hasHistory ? "Curated for your wellness based on your purchase patterns and category preferences" : "Popular essentials & fast-acting relief verified by our pharmacists"}</span>
             </div>
             <button class="btn btn-link btn-sm" type="button" data-route="customer/medicines">See All &rarr;</button>
           </div>
           <div class="rec-scroll-track" id="cust-dash-rec-track" style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory;">
-            ${featuredMeds.length > 0 ? featuredMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px;">No featured medicines available at the moment.</p>`}
+            ${recommendedMeds.length > 0 ? recommendedMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px; padding:8px 0;">Explore our popular products.</p>`}
+          </div>
+        </div>
+
+        <!-- 2. Frequently Bought Together Bundle -->
+        ${topBundle ? renderFrequentlyBoughtTogetherHtml(topBundle, escapeHtml, formatUGX) : ""}
+
+        <!-- 3. 🔥 Trending Products (Recent Purchase Velocity) -->
+        <div class="cust-dash-section rec-dash-section" style="margin-bottom:24px;">
+          <div class="flex-between" style="margin-bottom:12px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 style="margin:0; font-size:16px; font-weight:700;">🔥 Trending Products</h3>
+                <span class="rec-badge-trending" style="background:rgba(239,68,68,0.1); color:#dc2626; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;">High Velocity</span>
+              </div>
+              <span class="muted" style="font-size:12px;">Fastest-moving medications and health supplies in Mbarara City over the last 30 days</span>
+            </div>
+            <button class="btn btn-link btn-sm" type="button" data-route="customer/medicines">Explore Catalog &rarr;</button>
+          </div>
+          <div class="rec-scroll-track" id="cust-dash-trending-track" style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory;">
+            ${trendingMeds.length > 0 ? trendingMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px; padding:8px 0;">No trending medicines available at the moment.</p>`}
+          </div>
+        </div>
+
+        <!-- 4. Frequently Purchased (Community Essentials) -->
+        <div class="cust-dash-section rec-dash-section" style="margin-bottom:24px;">
+          <div class="flex-between" style="margin-bottom:12px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 style="margin:0; font-size:16px; font-weight:700;">Frequently Purchased</h3>
+                <span class="rec-badge-freq" style="background:rgba(59,130,246,0.1); color:#2563eb; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;">Top Demand</span>
+              </div>
+              <span class="muted" style="font-size:12px;">Highest overall customer order frequency across BloomCare Dispensary</span>
+            </div>
+            <button class="btn btn-link btn-sm" type="button" data-route="customer/medicines">View All &rarr;</button>
+          </div>
+          <div class="rec-scroll-track" id="cust-dash-frequent-track" style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory;">
+            ${frequentlyPurchasedMeds.length > 0 ? frequentlyPurchasedMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px; padding:8px 0;">Explore our popular products.</p>`}
           </div>
         </div>
 
@@ -6440,7 +6583,16 @@ function renderRoleDashboard() {
                       <div class="hub-addr-city">Mbarara City, Uganda</div>
                     </div>
 
-                    <div class="delivery-coverage-banner">
+                    <div class="delivery-hub-brand-card" style="margin-top:10px; padding:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; gap:10px;">
+                      <img src="bloomcare-paper-bag.jpg" alt="BloomCare Pharmacy branded paper bag" style="width:40px; height:40px; object-fit:contain; border-radius:4px; flex-shrink:0;" />
+                      <div style="font-size:11.5px; color:#334155; line-height:1.4;">
+                        <div>📞 Tel: <strong>${escapeHtml(getConfiguredWhatsAppNumber(STATE.systemSettings) || BLOOMCARE_PHONE)}</strong></div>
+                        <div>🌐 Web: <strong>www.bloomcare.ug</strong></div>
+                        <div style="color:#0f766e; font-style:italic; font-weight:600;">Care Beyond Medicines</div>
+                      </div>
+                    </div>
+
+                    <div class="delivery-coverage-banner" style="margin-top:10px;">
                       <div class="coverage-check-icon" aria-hidden="true">
                         <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
                       </div>
@@ -6471,6 +6623,81 @@ function renderRoleDashboard() {
           `)}
         </div>
       </div>
+
+      <!-- BloomCare Trust Section: Why Choose BloomCare? -->
+      <section class="content-card bloomcare-trust-card" style="margin-top:20px; margin-bottom:20px; padding:22px; border:1px solid var(--border-color, #e2e8f0); border-radius:14px; background:linear-gradient(135deg, #ffffff 0%, #f0fdf4 100%);">
+        <div class="trust-section-grid" style="display:grid; grid-template-columns:1fr 240px; gap:20px; align-items:center;">
+          
+          <div>
+            <div style="display:inline-flex; align-items:center; gap:6px; background:rgba(15,118,110,0.12); color:#0f766e; padding:4px 12px; border-radius:999px; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; margin-bottom:8px;">
+              <span>🛡️</span>
+              <span>Authentic Healthcare Guarantee</span>
+            </div>
+            <h2 style="font-size:20px; font-weight:800; color:var(--text-main, #0f172a); margin:0 0 6px; letter-spacing:-0.3px;">Why Choose BloomCare?</h2>
+            <p style="font-size:13px; color:var(--text-muted, #64748b); margin:0 0 16px; line-height:1.45;">
+              <em>Care Beyond Medicines &bull; Healthier Today, Brighter Tomorrow.</em> Every medication is sourced through licensed supply chains, verified by registered pharmacists, and packed in authentic BloomCare packaging.
+            </p>
+
+            <div class="trust-pillars-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:12px;">
+              
+              <!-- 1. Quality Medicines -->
+              <div class="trust-pillar-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:16px;">💊</span>
+                  <strong style="font-size:13px; color:#0f172a;">Quality Medicines</strong>
+                </div>
+                <p style="margin:0; font-size:11.5px; color:#64748b; line-height:1.35;">100% authentic pharmaceuticals verified under National Drug Authority standards.</p>
+              </div>
+
+              <!-- 2. Health & Wellness -->
+              <div class="trust-pillar-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:16px;">🌿</span>
+                  <strong style="font-size:13px; color:#0f172a;">Health &amp; Wellness</strong>
+                </div>
+                <p style="margin:0; font-size:11.5px; color:#64748b; line-height:1.35;">Vitamins, immunity boosters, pediatric syrups, and daily personal care essentials.</p>
+              </div>
+
+              <!-- 3. Trusted Care -->
+              <div class="trust-pillar-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:16px;">🩺</span>
+                  <strong style="font-size:13px; color:#0f172a;">Trusted Care</strong>
+                </div>
+                <p style="margin:0; font-size:11.5px; color:#64748b; line-height:1.35;">1-on-1 consultations with registered pharmacists and professional dosage advice.</p>
+              </div>
+
+              <!-- 4. Our Community -->
+              <div class="trust-pillar-card" style="background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; box-shadow:0 1px 3px rgba(0,0,0,0.03);">
+                <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+                  <span style="font-size:16px;">👥</span>
+                  <strong style="font-size:13px; color:#0f172a;">Our Community</strong>
+                </div>
+                <p style="margin:0; font-size:11.5px; color:#64748b; line-height:1.35;">Proudly serving Mbarara City families with express 10–15 min doorstep delivery.</p>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Trust Bag Showcase -->
+          <div class="trust-bag-showcase" style="text-align:center;">
+            <div style="background:#ffffff; border:1px solid #bbf7d0; border-radius:12px; padding:10px; box-shadow:0 3px 12px rgba(15,118,110,0.08); display:inline-block;">
+              <img 
+                src="bloomcare-paper-bag.jpg" 
+                alt="BloomCare Pharmacy branded paper bag" 
+                class="trust-bag-img"
+                style="max-width:100%; height:auto; max-height:190px; object-fit:contain; border-radius:6px;" 
+                loading="lazy" 
+                decoding="async"
+              />
+              <div style="margin-top:6px; font-size:11px; font-weight:700; color:#0f766e; text-transform:uppercase; letter-spacing:0.4px;">
+                Official Dispensary Bag
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </section>
 
       <!-- 5. Recent Orders -->
       <div class="content-card">
@@ -7130,9 +7357,11 @@ export function renderMedicinesView() {
     // 3. Populate Recommended Products Carousel
     const recTrack = $("#recommended-products-track");
     if (recTrack) {
-      const activeAll = STATE.products.filter(p => p && p.status !== "inactive" && getProductAvailability(p).isAvailable);
-      const recommendedList = activeAll.slice(0, 10);
-      recTrack.innerHTML = recommendedList.map(renderRecommendedProductCardHtml).join("");
+      const custId = STATE.currentUser?.uid || STATE.currentUser?.email;
+      const recommendedList = getRecommendedProducts(custId, STATE.products, STATE.orders, 10);
+      recTrack.innerHTML = recommendedList.length > 0
+        ? recommendedList.map(renderRecommendedProductCardHtml).join("")
+        : `<p class="muted" style="font-size:13px; padding:12px;">Explore our popular products.</p>`;
     }
 
     // 4. Populate Category Pills
@@ -9855,8 +10084,6 @@ export function openUserProfileModal(user) {
       <div class="profile-overview-card">
         <div class="profile-big-avatar avatar-${target.role}">${initial}</div>
         <div class="profile-quick-details">
-          <h3>${escapeHtml(target.name || target.d
-... [truncated for diff preview]
           <h3>${escapeHtml(target.name || target.displayName)}</h3>
           <p>${escapeHtml(target.email || "No email")} &bull; ${escapeHtml(target.phone || "No phone")}</p>
           <div style="margin-top:6px; display:flex; gap:8px;">
@@ -12411,6 +12638,232 @@ export function renderAdminWalkinSection() {
   });
 }
 
+function renderAdminRecommendationsSection() {
+  const wrapper = $("#admin-recommendations-analytics-section");
+  if (!wrapper) return;
+
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    wrapper.innerHTML = "";
+    wrapper.classList.add("hidden");
+    return;
+  }
+  wrapper.classList.remove("hidden");
+
+  const analytics = getRecommendationAdminAnalytics(STATE.orders, STATE.products);
+  const topPurchased = analytics.topPurchased || [];
+  const topTrending = analytics.topTrending || [];
+  const topPairs = analytics.topPairs || [];
+
+  wrapper.innerHTML = `
+    <div class="admin-walkin-panel" style="margin-top:24px;">
+      <div class="admin-walkin-header flex-between" style="flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div class="admin-walkin-title-wrap">
+          <div class="admin-walkin-badge" style="background:rgba(15,118,110,0.1); color:#0f766e; border-color:rgba(15,118,110,0.2);">
+            <span class="admin-walkin-pulse-dot" style="background:#0f766e;"></span>
+            <span>REAL-TIME AI RECOMMENDATION ENGINE</span>
+          </div>
+          <h2 class="admin-section-title" style="margin-top:6px; margin-bottom:2px;">Recommendation &amp; Purchasing Trends</h2>
+          <p class="admin-section-caption">Analytics derived from ${analytics.validOrdersCount} authentic completed customer orders across Mbarara City.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="rec-badge" style="background:#f1f5f9; color:#475569; font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px;">
+            ${analytics.totalProductsScored} Active Medicines Scored
+          </span>
+        </div>
+      </div>
+
+      <div class="admin-rec-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+        
+        <!-- Top Performing Recommendations -->
+        <div class="admin-rec-col" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px;">
+          <h4 style="margin:0 0 10px; font-size:14px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+            <span>⭐</span>
+            <span>Most Purchased Medicines</span>
+          </h4>
+          ${topPurchased.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${topPurchased.map((p, idx) => `
+                <div style="display:flex; align-items:center; justify-content:space-between; font-size:13px; padding:6px 8px; background:#fff; border:1px solid #edf2f7; border-radius:6px;">
+                  <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                    <span style="font-weight:700; color:#0f766e; font-size:11px;">#${idx + 1}</span>
+                    <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${escapeHtml(p.name)}</strong>
+                  </div>
+                  <div style="text-align:right;">
+                    <span style="font-weight:700; color:#0f172a;">${p.recommendationMetrics.totalQuantity} units</span>
+                    <small class="muted" style="display:block; font-size:11px;">${formatUGX(p.recommendationMetrics.totalRevenue)}</small>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="muted" style="font-size:12px; margin:0;">No completed purchases recorded yet.</p>`}
+        </div>
+
+        <!-- Trending Recent Velocity -->
+        <div class="admin-rec-col" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px;">
+          <h4 style="margin:0 0 10px; font-size:14px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+            <span>🔥</span>
+            <span>Trending Products (Last 30 Days)</span>
+          </h4>
+          ${topTrending.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${topTrending.map((p, idx) => `
+                <div style="display:flex; align-items:center; justify-content:space-between; font-size:13px; padding:6px 8px; background:#fff; border:1px solid #edf2f7; border-radius:6px;">
+                  <div style="display:flex; align-items:center; gap:8px; overflow:hidden;">
+                    <span style="font-weight:700; color:#dc2626; font-size:11px;">#${idx + 1}</span>
+                    <strong style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:180px;">${escapeHtml(p.name)}</strong>
+                  </div>
+                  <div>
+                    <span class="badge" style="background:#fef2f2; color:#b91c1c; font-weight:700; font-size:11px; padding:2px 8px; border-radius:12px;">Score: ${(p.recommendationMetrics.recommendationScore * 100).toFixed(0)}%</span>
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="muted" style="font-size:12px; margin:0;">No recent purchase velocity recorded.</p>`}
+        </div>
+
+        <!-- Frequently Bought Together Pairs -->
+        <div class="admin-rec-col" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px;">
+          <h4 style="margin:0 0 10px; font-size:14px; font-weight:700; color:#0f172a; display:flex; align-items:center; gap:6px;">
+            <span>🤝</span>
+            <span>Top Co-Purchased Combinations</span>
+          </h4>
+          ${topPairs.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${topPairs.map(pair => `
+                <div style="padding:6px 8px; background:#fff; border:1px solid #edf2f7; border-radius:6px; font-size:12.5px;">
+                  <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:2px;">
+                    <strong style="color:#0f172a;">${escapeHtml(pair.productAName)} + ${escapeHtml(pair.productBName)}</strong>
+                    <span class="badge" style="background:#f0fdf4; color:#166534; font-weight:700; font-size:11px;">${pair.count}x</span>
+                  </div>
+                  <span class="muted" style="font-size:11px;">Bundle Value: ${formatUGX(pair.totalPrice)}</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : `<p class="muted" style="font-size:12px; margin:0;">Not enough co-purchase data yet.</p>`}
+        </div>
+
+      </div>
+    </div>
+  `;
+}
+
+async function renderAdminAiAnalyticsSection() {
+  const wrapper = $("#admin-ai-assistant-analytics-section");
+  if (!wrapper) return;
+
+  const effRole = getEffectiveRole();
+  if (effRole !== "admin" && effRole !== "developer") {
+    wrapper.innerHTML = "";
+    wrapper.classList.add("hidden");
+    return;
+  }
+  wrapper.classList.remove("hidden");
+
+  let stats = {
+    totalConversations: 0,
+    totalMessages: 0,
+    totalSearches: 0,
+    totalRecommendations: 0,
+    totalCartAdditions: 0,
+    totalEscalations: 0,
+    topQueries: []
+  };
+
+  try {
+    const res = await fetch("http://127.0.0.1:8787/api/ai/analytics");
+    if (res.ok) {
+      const data = await res.json();
+      if (data && data.success && data.analytics) {
+        stats = { ...stats, ...data.analytics };
+      }
+    }
+  } catch (_) {
+    // Local offline graceful fallback
+  }
+
+  wrapper.innerHTML = `
+    <div class="admin-walkin-panel" style="margin-top:24px;">
+      <div class="admin-walkin-header flex-between" style="flex-wrap:wrap; gap:12px; margin-bottom:16px;">
+        <div class="admin-walkin-title-wrap">
+          <div class="admin-walkin-badge" style="background:rgba(6,95,70,0.1); color:#065f46; border-color:rgba(6,95,70,0.25);">
+            <span class="admin-walkin-pulse-dot" style="background:#065f46;"></span>
+            <span>BLOOMCARE AI PHARMACY ASSISTANT</span>
+          </div>
+          <h2 class="admin-section-title" style="margin-top:6px; margin-bottom:2px;">AI Assistant Usage &amp; Clinical Inquiries</h2>
+          <p class="admin-section-caption">Patient queries, medicine consultations, smart cart conversions, and clinical safety triage stats.</p>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="rec-badge" style="background:#ecfdf5; color:#065f46; font-size:12px; font-weight:700; padding:6px 12px; border-radius:8px;">
+            🤖 Assistant Engine: Active
+          </span>
+        </div>
+      </div>
+
+      <div class="kpi-grid-4" style="margin-bottom:16px;">
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:rgba(6,95,70,0.1); color:#065f46;">💬</div>
+          <div>
+            <strong class="kpi-value">${stats.totalConversations}</strong>
+            <span class="kpi-label">Chat Sessions</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:rgba(14,165,233,0.1); color:#0284c7;">🔍</div>
+          <div>
+            <strong class="kpi-value">${stats.totalSearches}</strong>
+            <span class="kpi-label">Catalog Searches</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:rgba(16,185,129,0.1); color:#059669;">🛒</div>
+          <div>
+            <strong class="kpi-value">${stats.totalCartAdditions}</strong>
+            <span class="kpi-label">In-Chat Cart Adds</span>
+          </div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-icon-wrap" style="background:rgba(239,68,68,0.1); color:#dc2626;">🚨</div>
+          <div>
+            <strong class="kpi-value">${stats.totalEscalations}</strong>
+            <span class="kpi-label">Emergency/Rx Triage</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-rec-grid" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:16px;">
+        <div class="admin-rec-col" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px;">
+          <h4 style="margin:0 0 10px; font-size:14px; font-weight:700; color:#0f172a;">🔥 Top Customer Inquiries</h4>
+          ${stats.topQueries && stats.topQueries.length > 0 ? `
+            <div style="display:flex; flex-direction:column; gap:8px;">
+              ${stats.topQueries.map(q => `
+                <div style="display:flex; align-items:center; justify-content:space-between; font-size:13px; padding:6px 8px; background:#fff; border:1px solid #edf2f7; border-radius:6px;">
+                  <strong style="color:#0f172a;">${escapeHtml(q.query || q.topic || "")}</strong>
+                  <span class="badge" style="background:#ecfdf5; color:#065f46; font-weight:700; font-size:11px; padding:2px 8px; border-radius:12px;">${q.count} queries</span>
+                </div>
+              `).join("")}
+            </div>
+          ` : `
+            <p class="muted" style="font-size:12px; margin:0;">Inquiries tracked in real-time as patients interact with BloomCare AI.</p>
+          `}
+        </div>
+
+        <div class="admin-rec-col" style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:14px 16px;">
+          <h4 style="margin:0 0 10px; font-size:14px; font-weight:700; color:#0f172a;">🛡️ Clinical Safety Guardrails</h4>
+          <p style="font-size:12.5px; color:#475569; margin:0 0 8px;">
+            Enforcing strict NDA regulation: Prescriptions require licensed verification. Emergency red flags (chest pain, breathing distress) are routed directly to emergency services.
+          </p>
+          <div style="display:flex; gap:6px; flex-wrap:wrap;">
+            <span class="status-pill status-completed">Zero Prescription Bypass</span>
+            <span class="status-pill status-completed">Red Flag Escalation Active</span>
+            <span class="status-pill status-completed">Verified Catalog Grounding</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // -------------------------------------------------------------
 // MODULE 15B: FINANCIAL AUDIT & DETAILED REPORTS (Admin)
 // -------------------------------------------------------------
@@ -13546,6 +13999,11 @@ async function handleCheckoutOrder(e) {
   });
 
   STATE.orders.unshift(newOrder);
+  try {
+    updateRecommendationStatsOnOrder(newOrder, STATE.products);
+  } catch (err) {
+    console.warn("[BloomCare Recommendation] Stats update error:", err?.message || err);
+  }
   STATE.cart = [];
   saveCartToStorage();
   updateCartBadge();
@@ -14736,6 +15194,11 @@ export async function completeWalkinSale() {
 
   // Save order directly to central STATE.orders
   STATE.orders.unshift(newSaleOrder);
+  try {
+    updateRecommendationStatsOnOrder(newSaleOrder, STATE.products);
+  } catch (err) {
+    console.warn("[BloomCare Recommendation] POS stats update error:", err?.message || err);
+  }
   try { await createOrder(newSaleOrder); } catch (err) { console.warn("[BloomCare POS] Firestore walk-in order sync deferred:", err?.message || err); }
   try { saveCartToStorage(); } catch (_) {}
 
@@ -17021,6 +17484,21 @@ function bindEventListeners() {
     }
 
     // Product Selection & Add to Cart
+    const bundleBtn = e.target.closest(".add-fbt-bundle-btn");
+    if (bundleBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const pA = bundleBtn.dataset.prodA;
+      const pB = bundleBtn.dataset.prodB;
+      let added = 0;
+      if (pA && addToCart(pA, 1)) added++;
+      if (pB && addToCart(pB, 1)) added++;
+      if (added > 0) {
+        showToast("Frequently bought bundle added to your cart!", "success");
+      }
+      return;
+    }
+
     const addBtn = e.target.closest(".add-cart-btn");
     if (addBtn) {
       e.preventDefault();

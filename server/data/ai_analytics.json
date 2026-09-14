@@ -1,0 +1,33 @@
+{
+  "totalConversations": 1,
+  "todayConversations": 1,
+  "lastResetDate": "2026-09-14",
+  "productSearches": 1,
+  "successfulRecommendations": 1,
+  "cartAdditions": 0,
+  "escalationsToPharmacists": 0,
+  "unansweredQuestions": 0,
+  "topAskedQuestions": {
+    "hlo": 3
+  },
+  "recentEvents": [
+    {
+      "type": "recommendation",
+      "query": "hlo",
+      "timestamp": "2026-09-14T12:50:43.312259",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "hlo",
+      "timestamp": "2026-09-14T12:50:43.301278",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "hlo",
+      "timestamp": "2026-09-14T12:50:43.289806",
+      "details": {}
+    }
+  ]
+}

@@ -1,0 +1,61 @@
+{
+  "pharmacy": {
+    "name": "BloomCare Pharmacy",
+    "tagline": "Care That Goes Beyond Medicine",
+    "motto": "Your Health, Our Priority",
+    "licensing": "Licensed by the National Drug Authority (NDA) Uganda (#NDA/UG/PHARM/2026/894)",
+    "location": "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda",
+    "phone": "+256 700 000 000",
+    "whatsapp": "256750210886",
+    "website": "www.bloomcare.ug",
+    "hours": "Open 24/7 for digital orders & urgent dispatch; physical dispensary open 8:00 AM – 10:00 PM Daily"
+  },
+  "delivery": {
+    "speed": "Express 10–15 minutes doorstep delivery within Mbarara City",
+    "coverage": "Kamukuzi, Kakoba, Nyamitanga, Ruharo, Biharwe, Kakiika, Nyakayojo, and surrounding Mbarara City divisions",
+    "baseFee": 5000,
+    "feeFormatted": "UGX 5,000",
+    "packaging": "Orders are packed in our official tamper-evident branded BloomCare paper dispensary bags."
+  },
+  "prescriptions": {
+    "policy": "Prescription-only medicines (marked Rx) strictly require clinical verification by a registered pharmacist.",
+    "howToUpload": "Add the medicine to your order, proceed to checkout, and upload a clear photo or PDF scan of your prescription. Our pharmacists review it prior to dispensing.",
+    "bypassRule": "Prescriptions cannot be bypassed. This is mandated by the National Drug Authority for patient safety."
+  },
+  "returns": {
+    "policy": "Due to pharmaceutical cold-chain and safety regulations, dispensed medicines cannot be returned once delivered, unless damaged or dispensed in error."
+  },
+  "faqs": [
+    {
+      "keywords": ["opening", "hours", "time", "open", "close"],
+      "question": "What are your operating hours?",
+      "answer": "BloomCare Pharmacy offers 24/7 online ordering and rapid doorstep dispatch across Mbarara City. Our physical central dispensary is open 8:00 AM – 10:00 PM every day."
+    },
+    {
+      "keywords": ["delivery", "cost", "fee", "how much", "shipping"],
+      "question": "How much is delivery and how fast does it arrive?",
+      "answer": "Delivery is UGX 5,000 across Mbarara City and arrives in approximately 10–15 minutes via our dedicated delivery couriers. All orders are packed in tamper-evident BloomCare bags."
+    },
+    {
+      "keywords": ["prescription", "upload", "rx", "doctor note"],
+      "question": "How do I submit or upload my prescription?",
+      "answer": "Add your needed prescription medication to the cart, head to checkout, and click 'Upload Prescription' to attach a photo or PDF. A licensed BloomCare pharmacist will clinically review and verify it."
+    },
+    {
+      "keywords": ["pharmacist", "doctor", "consult", "advice", "talk"],
+      "question": "Can I talk directly to a licensed pharmacist?",
+      "answer": "Yes! You can book a 1-on-1 medication consultation in the Consultations tab or reach our Care Desk directly on WhatsApp at 0750210886."
+    },
+    {
+      "keywords": ["payment", "momo", "airtel", "cash", "pay"],
+      "question": "What payment methods are supported?",
+      "answer": "We accept MTN Mobile Money (076, 077, 078), Airtel Money (070, 074, 075), and Cash on Delivery (COD) for eligible local orders."
+    },
+    {
+      "keywords": ["track", "status", "where is", "courier", "driver"],
+      "question": "How can I track my order?",
+      "answer": "Go to 'My Orders' and click 'Track Order'. You will see real-time 6-stage delivery progression, assigned driver details, and can chat directly with your courier."
+    }
+  ]
+}
+

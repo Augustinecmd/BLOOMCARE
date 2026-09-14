@@ -1,25 +1,29 @@
 /* ==============================================================
-   BLOOMCARE PHARMACY - SYSTEM DESIGN & VECTOR SVG STYLES
-  Brand Colors: Medical Teal (#00897B) & Pharmacy Green (#2E7D32)
-   Zero Emojis - Professional Healthcare Standard
+   BLOOMCARE PHARMACY - SYSTEM DESIGN & BRANDING
+   Official Colors: Deep Forest Green (#065f46 / #07381f) & Vibrant Lime Green (#55ac0f / #65a30d)
+   Supporting: Crisp White (#FFFFFF) & Soft Clean Neutrals
    ============================================================== */
 
 :root {
-  --primary: #00897B;
-  --primary-dark: #00695C;
-  --primary-light: #E0F2F1;
-  --secondary: #2E7D32;
-  --secondary-light: #E8F5E9;
+  --primary: #065f46;
+  --primary-dark: #064e3b;
+  --primary-deep: #07381f;
+  --primary-light: #ecfdf5;
+  --secondary: #55ac0f;
+  --secondary-dark: #448b0c;
+  --secondary-light: #f7fee7;
+  --brand-primary: #065f46;
+  --brand-lime: #55ac0f;
   --danger: #d32f2f;
   --danger-light: #FFEBEE;
   --warning: #F9A825;
   --warning-light: #FFF8E1;
-  --success: #2e7d32;
-  --success-light: #E8F5E9;
+  --success: #065f46;
+  --success-light: #ecfdf5;
   
-  --ink: #263238;
-  --ink-light: #455A64;
-  --muted: #607D8B;
+  --ink: #1e293b;
+  --ink-light: #334155;
+  --muted: #64748b;
   --line: #E0E7E5;
   --bg-page: #F7FAF9;
   --bg-card: #FFFFFF;
@@ -505,11 +509,55 @@ a {
   align-items: center;
   gap: 8px;
 }
+.top-header-brand-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: inherit;
+}
+.top-nav-logo {
+  height: 34px;
+  width: auto;
+  max-width: 90px;
+  object-fit: contain;
+  display: block;
+}
 .top-brand-text {
   font-size: 16px;
   font-weight: 700;
   color: var(--ink);
   letter-spacing: -0.2px;
+}
+
+/* Auth & Modal Official Logos */
+.auth-card-logo-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.auth-card-logo {
+  height: 48px;
+  width: auto;
+  max-width: 160px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(6, 95, 70, 0.08));
+}
+.auth-screen-logo {
+  height: 46px;
+  width: auto;
+  max-width: 150px;
+  object-fit: contain;
+  margin-bottom: 8px;
+  filter: drop-shadow(0 2px 8px rgba(6, 95, 70, 0.1));
+}
+.modal-brand-logo {
+  height: 32px;
+  width: auto;
+  max-width: 100px;
+  object-fit: contain;
+  vertical-align: middle;
 }
 
 .top-header-right {
@@ -12950,5 +12998,803 @@ dialog,
   width: 100%;
 }
 
+/* -------------------------------------------------------------
+   AI RECOMMENDATION ENGINE & BUNDLE STYLING
+   ------------------------------------------------------------- */
+.rec-dash-section {
+  position: relative;
+}
 
+.rec-scroll-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 10px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: #cbd5e1 transparent;
+}
+
+.rec-scroll-track::-webkit-scrollbar {
+  height: 6px;
+}
+
+.rec-scroll-track::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.rec-scroll-track::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 999px;
+}
+
+.frequently-bought-together-card {
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.frequently-bought-together-card:hover {
+  box-shadow: 0 6px 20px rgba(15, 118, 110, 0.08);
+}
+
+.fbt-item-box {
+  transition: transform 0.15s ease;
+}
+
+.fbt-item-box:hover {
+  transform: translateY(-1px);
+}
+
+.add-fbt-bundle-btn {
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(15, 118, 110, 0.25);
+  transition: all 0.15s ease;
+}
+
+.add-fbt-bundle-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.35);
+}
+
+@media (max-width: 640px) {
+  .fbt-body {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+  .fbt-cta-box {
+    justify-content: space-between;
+    width: 100%;
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px dashed var(--border-color, #e2e8f0);
+  }
+  .fbt-item-box {
+    min-width: 100% !important;
+  }
+  .fbt-items-row {
+    flex-direction: column;
+    align-items: stretch !important;
+  }
+}
+
+/* -------------------------------------------------------------
+   BLOOMCARE BRAND IDENTITY & OFFICIAL PAPER BAG ASSETS
+   ------------------------------------------------------------- */
+.customer-hero-brand-card {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+}
+
+.customer-hero-brand-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  flex-shrink: 0;
+}
+
+.customer-hero-bag-wrapper {
+  background: radial-gradient(circle, rgba(16, 185, 129, 0.08) 0%, rgba(255, 255, 255, 0) 70%);
+  padding: 8px;
+  border-radius: 12px;
+}
+
+.customer-hero-bag-img {
+  max-height: 165px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 20px rgba(15, 118, 110, 0.15));
+  transition: transform 0.2s ease;
+}
+
+.customer-hero-bag-img:hover {
+  transform: translateY(-2px) scale(1.02);
+}
+
+.bloomcare-trust-card {
+  transition: box-shadow 0.2s ease;
+}
+
+.bloomcare-trust-card:hover {
+  box-shadow: 0 8px 24px rgba(15, 118, 110, 0.08);
+}
+
+.trust-pillar-card {
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.trust-pillar-card:hover {
+  transform: translateY(-2px);
+  border-color: #bbf7d0;
+}
+
+.trust-bag-img {
+  filter: drop-shadow(0 4px 12px rgba(15, 118, 110, 0.12));
+  transition: transform 0.2s ease;
+}
+
+.trust-bag-img:hover {
+  transform: scale(1.03);
+}
+
+.order-confirm-packaging-banner {
+  animation: fadeIn 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .customer-welcome-card.customer-hero-brand-card {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .customer-hero-brand-right {
+    width: 100%;
+    align-items: center !important;
+    margin-top: 14px;
+  }
+  .customer-hero-bag-img {
+    max-height: 125px;
+  }
+  .trust-section-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+    text-align: center;
+  }
+  .trust-bag-showcase {
+    order: -1;
+    margin-bottom: 8px;
+  }
+}
+
+/* ==============================================================
+   BLOOMCARE AI PHARMACY ASSISTANT CHATBOT
+   Modern, accessible floating trigger, responsive drawer & in-chat cards
+   ============================================================== */
+
+.bloomcare-ai-fab {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 18px;
+  background: linear-gradient(135deg, #065f46 0%, #07381f 100%);
+  color: #ffffff;
+  border: 2px solid rgba(85, 172, 15, 0.45);
+  border-radius: 9999px;
+  box-shadow: 0 8px 24px rgba(6, 95, 70, 0.35);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  user-select: none;
+}
+
+.bloomcare-ai-fab:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: 0 12px 28px rgba(6, 95, 70, 0.45);
+  border-color: #55ac0f;
+}
+
+.bloomcare-ai-fab:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.bloomcare-ai-fab .ai-fab-icon {
+  font-size: 18px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bloomcare-ai-fab .ai-online-dot {
+  width: 8px;
+  height: 8px;
+  background-color: #55ac0f;
+  border-radius: 50%;
+  box-shadow: 0 0 6px #55ac0f;
+  display: inline-block;
+  animation: aiPulse 2s infinite ease-in-out;
+}
+
+.bloomcare-ai-fab .ai-fab-badge {
+  background: #ef4444;
+  color: #ffffff;
+  font-size: 11px;
+  font-weight: 800;
+  padding: 2px 7px;
+  border-radius: 9999px;
+  border: 1.5px solid #ffffff;
+  display: inline-block;
+}
+
+@keyframes aiPulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.3);
+    opacity: 0.75;
+  }
+}
+
+/* Chatbot Floating Window */
+.bloomcare-ai-window {
+  position: fixed;
+  bottom: 82px;
+  right: 24px;
+  width: 410px;
+  max-width: calc(100vw - 32px);
+  height: 590px;
+  max-height: calc(100vh - 110px);
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.22);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 1001;
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.2s ease;
+}
+
+.bloomcare-ai-window.hidden {
+  display: none !important;
+}
+
+.bloomcare-ai-window.minimized {
+  height: 62px !important;
+  max-height: 62px !important;
+}
+
+.bloomcare-ai-window.minimized .ai-quick-strip,
+.bloomcare-ai-window.minimized .ai-messages-pane,
+.bloomcare-ai-window.minimized .ai-suggested-strip,
+.bloomcare-ai-window.minimized .ai-input-area {
+  display: none !important;
+}
+
+/* Header */
+.ai-window-header {
+  background: linear-gradient(135deg, #065f46 0%, #07381f 100%);
+  color: #ffffff;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid rgba(85, 172, 15, 0.3);
+  flex-shrink: 0;
+}
+
+.ai-header-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.ai-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  border: 1.5px solid rgba(85, 172, 15, 0.6);
+}
+
+.ai-title-wrap {
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-title-wrap .ai-title-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ai-title-wrap strong {
+  font-size: 14.5px;
+  letter-spacing: -0.2px;
+}
+
+.ai-online-pill {
+  font-size: 10px;
+  background: rgba(85, 172, 15, 0.25);
+  color: #a3e635;
+  border: 1px solid rgba(85, 172, 15, 0.5);
+  border-radius: 9999px;
+  padding: 1px 6px;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.ai-title-wrap small {
+  font-size: 11px;
+  color: #cbd5e1;
+  font-weight: 500;
+}
+
+.ai-header-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-header-btn {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.ai-header-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+/* Quick Action Strip */
+.ai-quick-strip {
+  display: flex;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-bottom: 1px solid #e2e8f0;
+  overflow-x: auto;
+  white-space: nowrap;
+  flex-shrink: 0;
+  scrollbar-width: thin;
+}
+
+.ai-quick-strip::-webkit-scrollbar {
+  height: 4px;
+}
+
+.ai-quick-strip::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.ai-quick-btn {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #065f46;
+  border-radius: 9999px;
+  padding: 4px 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.ai-quick-btn:hover {
+  background: #065f46;
+  color: #ffffff;
+  border-color: #065f46;
+}
+
+/* Messages Pane */
+.ai-messages-pane {
+  flex: 1;
+  overflow-y: auto;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: #f8fafc;
+  scroll-behavior: smooth;
+}
+
+.ai-msg-row {
+  display: flex;
+  gap: 8px;
+  max-width: 100%;
+}
+
+.ai-msg-user {
+  flex-direction: row-reverse;
+}
+
+.ai-msg-assistant {
+  flex-direction: row;
+}
+
+.ai-msg-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #065f46;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.ai-msg-user .ai-msg-avatar {
+  background: #065f46;
+  color: #ffffff;
+}
+
+.ai-msg-bubble {
+  max-width: 82%;
+  padding: 10px 14px;
+  border-radius: 14px;
+  font-size: 13.5px;
+  line-height: 1.45;
+  word-break: break-word;
+}
+
+.ai-msg-user .ai-msg-bubble {
+  background: #065f46;
+  color: #ffffff;
+  border-bottom-right-radius: 3px;
+}
+
+.ai-msg-assistant .ai-msg-bubble {
+  background: #ffffff;
+  color: #1e293b;
+  border: 1px solid #e2e8f0;
+  border-bottom-left-radius: 3px;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.04);
+}
+
+.ai-msg-bubble p {
+  margin: 0 0 6px 0;
+}
+
+.ai-msg-bubble p:last-child {
+  margin-bottom: 0;
+}
+
+.ai-msg-bubble strong {
+  color: inherit;
+}
+
+.ai-msg-bubble a {
+  color: #065f46;
+  font-weight: 600;
+  text-decoration: underline;
+}
+
+.ai-msg-user .ai-msg-bubble a {
+  color: #a3e635;
+}
+
+.ai-msg-time {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 4px;
+  display: block;
+}
+
+.ai-msg-user .ai-msg-time {
+  color: rgba(255, 255, 255, 0.7);
+  text-align: right;
+}
+
+/* In-Chat Product Cards Grid */
+.ai-products-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.ai-product-card {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 10px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.03);
+  transition: transform 0.15s ease, border-color 0.15s ease;
+}
+
+.ai-product-card:hover {
+  transform: translateY(-2px);
+  border-color: #065f46;
+}
+
+.ai-card-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  line-height: 1.3;
+}
+
+.ai-card-generic {
+  font-size: 11px;
+  color: #64748b;
+  font-style: italic;
+}
+
+.ai-card-badge {
+  align-self: flex-start;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.ai-card-badge.rx {
+  background: #fef2f2;
+  color: #dc2626;
+  border: 1px solid #fecaca;
+}
+
+.ai-card-badge.otc {
+  background: #ecfdf5;
+  color: #065f46;
+  border: 1px solid #a7f3d0;
+}
+
+.ai-card-price {
+  font-size: 13.5px;
+  font-weight: 800;
+  color: #065f46;
+  margin-top: 2px;
+}
+
+.ai-card-stock {
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.ai-card-stock.in-stock {
+  color: #16a34a;
+}
+
+.ai-card-stock.low-stock {
+  color: #d97706;
+}
+
+.ai-card-stock.out-stock {
+  color: #dc2626;
+}
+
+.ai-card-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.ai-card-actions button {
+  flex: 1;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.ai-btn-view {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  color: #334155;
+}
+
+.ai-btn-view:hover {
+  background: #e2e8f0;
+}
+
+.ai-btn-cart {
+  background: #065f46;
+  border: 1px solid #065f46;
+  color: #ffffff;
+}
+
+.ai-btn-cart:hover {
+  background: #07381f;
+}
+
+.ai-btn-cart:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Order Summary Box */
+.ai-order-summary {
+  background: #f8fafc;
+  border: 1px solid #cbd5e1;
+  border-left: 4px solid #065f46;
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin-top: 8px;
+}
+
+.ai-order-meta {
+  font-size: 12px;
+  color: #475569;
+  line-height: 1.4;
+}
+
+.ai-order-actions {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+/* Suggested Question Chips */
+.ai-suggested-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 8px 12px;
+  background: #f1f5f9;
+  border-top: 1px solid #e2e8f0;
+  flex-shrink: 0;
+}
+
+.ai-suggestion-chip {
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  color: #065f46;
+  border-radius: 9999px;
+  padding: 5px 11px;
+  font-size: 11.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.ai-suggestion-chip:hover {
+  background: #065f46;
+  color: #ffffff;
+  border-color: #065f46;
+}
+
+/* Input Area */
+.ai-input-area {
+  padding: 10px 14px;
+  background: #ffffff;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.ai-chat-input {
+  flex: 1;
+  border: 1px solid #cbd5e1;
+  border-radius: 24px;
+  padding: 9px 14px;
+  font-size: 13.5px;
+  outline: none;
+  font-family: inherit;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.ai-chat-input:focus {
+  border-color: #065f46;
+  box-shadow: 0 0 0 3px rgba(6, 95, 70, 0.12);
+}
+
+.ai-send-btn {
+  background: #065f46;
+  color: #ffffff;
+  border: none;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+  flex-shrink: 0;
+}
+
+.ai-send-btn:hover {
+  background: #07381f;
+  transform: scale(1.05);
+}
+
+.ai-send-btn:active {
+  transform: scale(0.95);
+}
+
+/* Typing indicator */
+.ai-typing-indicator {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 14px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  border-bottom-left-radius: 3px;
+  width: fit-content;
+}
+
+.ai-typing-dot {
+  width: 6px;
+  height: 6px;
+  background: #94a3b8;
+  border-radius: 50%;
+  animation: aiBounce 1.4s infinite ease-in-out both;
+}
+
+.ai-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.ai-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.ai-typing-dot:nth-child(3) { animation-delay: 0s; }
+
+@keyframes aiBounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* Mobile responsiveness */
+@media (max-width: 640px) {
+  .bloomcare-ai-fab {
+    bottom: 74px; /* Sits above .mobile-bottom-nav (height 60px) */
+    right: 14px;
+    padding: 9px 14px;
+    font-size: 13px;
+  }
+
+  .bloomcare-ai-window {
+    bottom: 0;
+    right: 0;
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw;
+    max-height: 100vh;
+    border-radius: 0;
+    z-index: 10001;
+  }
+}
 
