@@ -10,63 +10,73 @@ const rootDir = path.resolve(__dirname, '..');
 const htmlPath = path.join(rootDir, 'BLOOMCARE-main', 'index.html');
 const cssPath = path.join(rootDir, 'BLOOMCARE-main', 'styles.css');
 
-test('TOP BAR LAYOUT: Information bar exists at top of website above navigation header', () => {
+test('1. FOOTER POSITION: Copyright footer appears at the very bottom after all page content', () => {
   const html = fs.readFileSync(htmlPath, 'utf8');
 
-  // Verify top information bar container exists
-  assert.ok(html.includes('id="top-site-info-bar"'), 'top-site-info-bar must exist in index.html');
-  assert.ok(html.includes('class="top-site-info-bar"'), 'top-site-info-bar class must exist');
-
-  // Verify position: must appear before app-top-header in DOM order
-  const topBarIndex = html.indexOf('id="top-site-info-bar"');
   const headerIndex = html.indexOf('id="app-top-header"');
-  assert.ok(topBarIndex !== -1, 'Top information bar not found in index.html');
-  assert.ok(headerIndex !== -1, 'app-top-header not found in index.html');
-  assert.ok(topBarIndex < headerIndex, 'Top information bar must be positioned above app-top-header');
+  const mainIndex = html.indexOf('id="app-content-viewport"');
+  const footerIndex = html.indexOf('id="main-bottom-footer"');
+
+  assert.ok(headerIndex !== -1, 'app-top-header must exist');
+  assert.ok(mainIndex !== -1, 'app-content-viewport must exist');
+  assert.ok(footerIndex !== -1, 'main-bottom-footer must exist');
+
+  assert.ok(headerIndex < mainIndex, 'Header must come before main content');
+  assert.ok(mainIndex < footerIndex, 'Main content must come before bottom footer');
 });
 
-test('EXACT TEXT & LICENSING: Exact copyright and National Drug Authority text is present at top', () => {
+test('2. NO TOP INSTANCE: Footer and copyright do not appear at the top above header', () => {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  const headerIndex = html.indexOf('id="app-top-header"');
+  const topPart = html.substring(0, headerIndex);
+
+  assert.ok(!topPart.includes('Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894)'), 'Top of page must NOT contain copyright/NDA licensing text');
+  assert.ok(!topPart.includes('id="top-site-info-bar"'), 'top-site-info-bar must NOT exist at top of page');
+});
+
+test('3. EXACT TEXT & LICENSING: Exact copyright and National Drug Authority text in bottom footer', () => {
   const html = fs.readFileSync(htmlPath, 'utf8');
 
   const exactLicenseText = '&copy; 2026 BloomCare Pharmacy. All rights reserved. Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894).';
-  assert.ok(html.includes(exactLicenseText), 'Must contain exact licensing text');
-  assert.ok(html.includes('Pharmacy Workers:'), 'Must contain "Pharmacy Workers:" prefix');
-  assert.ok(html.includes('Staff Portal Sign In'), 'Must contain "Staff Portal Sign In" label');
-});
-
-test('CLICKABLE LINK: Staff Portal Sign In links to #staff-login with data-route="staff-login"', () => {
-  const html = fs.readFileSync(htmlPath, 'utf8');
-
-  assert.ok(
-    html.includes('href="#staff-login"') && html.includes('data-route="staff-login"'),
-    'Must link to #staff-login with data-route="staff-login"'
-  );
-  assert.ok(
-    html.includes('id="top-staff-portal-link"'),
-    'Link must have id="top-staff-portal-link"'
-  );
-});
-
-test('NO DUPLICATION: Bottom footer does not contain copyright or staff portal link', () => {
-  const html = fs.readFileSync(htmlPath, 'utf8');
-
-  const footerStart = html.indexOf('<footer class="main-bottom-footer"');
-  assert.ok(footerStart !== -1, 'main-bottom-footer must exist');
+  const footerStart = html.indexOf('id="main-bottom-footer"');
   const footerEnd = html.indexOf('</footer>', footerStart);
-  assert.ok(footerEnd !== -1, 'footer closing tag must exist');
-
   const footerContent = html.substring(footerStart, footerEnd + 9);
-  assert.ok(!footerContent.includes('Licensed by National Drug Authority'), 'Footer must not duplicate NDA license');
-  assert.ok(!footerContent.includes('Staff Portal Sign In'), 'Footer must not duplicate Staff Portal link');
-  assert.ok(!footerContent.includes('&copy; 2026 BloomCare Pharmacy'), 'Footer must not duplicate copyright');
+
+  assert.ok(footerContent.includes(exactLicenseText), 'Footer must contain exact licensing text');
+  assert.ok(footerContent.includes('Pharmacy Workers:'), 'Footer must contain "Pharmacy Workers:" prefix');
+  assert.ok(footerContent.includes('Staff Portal Sign In'), 'Footer must contain "Staff Portal Sign In" label');
 });
 
-test('RESPONSIVE CSS: styles.css contains rules for top-site-info-bar and empty footer handling', () => {
+test('4. CLICKABLE LINK: Staff Portal Sign In links to #staff-login with data-route="staff-login"', () => {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  const footerStart = html.indexOf('id="main-bottom-footer"');
+  const footerEnd = html.indexOf('</footer>', footerStart);
+  const footerContent = html.substring(footerStart, footerEnd + 9);
+
+  assert.ok(
+    footerContent.includes('href="#staff-login"') && footerContent.includes('data-route="staff-login"'),
+    'Footer link must have href="#staff-login" and data-route="staff-login"'
+  );
+});
+
+test('5. STICKY FOOTER LAYOUT & CSS: Proper flex-based sticky layout and full width styling', () => {
   const css = fs.readFileSync(cssPath, 'utf8');
 
-  assert.ok(css.includes('.top-site-info-bar'), 'styles.css must style .top-site-info-bar');
-  assert.ok(css.includes('.top-site-info-inner'), 'styles.css must style .top-site-info-inner');
-  assert.ok(css.includes('.top-staff-portal-link'), 'styles.css must style .top-staff-portal-link');
-  assert.ok(css.includes('.main-bottom-footer:empty'), 'styles.css must handle .main-bottom-footer:empty');
+  assert.ok(css.includes('.app-main-viewport-container'), 'styles.css must style .app-main-viewport-container');
+  assert.ok(css.includes('.main-bottom-footer'), 'styles.css must style .main-bottom-footer');
+  assert.ok(css.includes('margin-top: auto'), 'main-bottom-footer must have margin-top: auto for sticky behavior');
+  assert.ok(css.includes('width: 100%'), 'main-bottom-footer must be full width');
+  assert.ok(css.includes('border-bottom: 3px solid #065f46') || css.includes('#065f46'), 'Footer must feature green border');
 });
 
+test('6. SINGLE INSTANCE: Exactly one footer and one copyright block on the page', () => {
+  const html = fs.readFileSync(htmlPath, 'utf8');
+
+  const matches = html.match(/Licensed by National Drug Authority \(#NDA\/UG\/PHARM\/2026\/894\)/g) || [];
+  assert.equal(matches.length, 1, 'There must be exactly one instance of the copyright/licensing text on the page');
+
+  const footerMatches = html.match(/<footer class="main-bottom-footer"/g) || [];
+  assert.equal(footerMatches.length, 1, 'There must be exactly one main-bottom-footer on the page');
+});

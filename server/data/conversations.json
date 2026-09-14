@@ -11,11 +11,11 @@
     "deliveryManName": "Moses Kato",
     "deliveryStatus": "Delivered",
     "status": "COMPLETED",
-    "unreadDelivery": 46,
+    "unreadDelivery": 47,
     "unreadCustomer": 0,
     "lastMessage": "Please call when you reach the gate.",
     "createdAt": "2026-09-05T17:01:54.860704+00:00",
-    "updatedAt": "2026-09-14T09:43:35.619362+00:00",
+    "updatedAt": "2026-09-14T14:02:47.350584+00:00",
     "messages": [
       {
         "id": "MSG-1788627714909",
@@ -578,6 +578,19 @@
         "message": "Please call when you reach the gate.",
         "text": "Please call when you reach the gate.",
         "timestamp": "2026-09-14T09:43:35.619362+00:00",
+        "read": false
+      },
+      {
+        "id": "MSG-1789394567350",
+        "messageId": "MSG-1789394567350",
+        "orderId": "BC-TEST-AUTO-001",
+        "senderId": "usr-test-cust",
+        "senderRole": "customer",
+        "senderName": "Joan Atuhaire",
+        "receiverId": "usr-staff-5",
+        "message": "Please call when you reach the gate.",
+        "text": "Please call when you reach the gate.",
+        "timestamp": "2026-09-14T14:02:47.350584+00:00",
         "read": false
       }
     ]

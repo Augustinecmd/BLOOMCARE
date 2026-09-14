@@ -3161,13 +3161,89 @@ dialog,
 .dialog-action-right { display: flex; justify-content: flex-end; margin-top: 14px; }
 
 .main-bottom-footer {
-  padding: 18px 28px;
-  background: #ffffff;
-  border-top: 1px solid var(--line);
+  width: 100%;
+  box-sizing: border-box;
+  background: #f0f7f4;
+  border-top: 1px solid #d4e7e0;
+  border-bottom: 3px solid #065f46;
+  color: #1a3832;
+  font-size: 11.5px;
+  line-height: 1.45;
+  padding: 12px 24px;
   text-align: center;
-  font-size: 12px;
-  color: var(--muted);
+  margin-top: auto;
+  position: relative;
+  z-index: 10;
 }
+
+.main-bottom-footer-inner {
+  max-width: 1400px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  text-align: center;
+}
+
+.bottom-site-license-text {
+  min-width: 0;
+  max-width: 100%;
+  font-weight: 500;
+  color: #1b3d36;
+  overflow-wrap: anywhere;
+}
+
+.bottom-site-info-divider {
+  color: #7aa398;
+  user-select: none;
+  font-size: 10px;
+}
+
+.bottom-site-staff-text {
+  min-width: 0;
+  max-width: 100%;
+  color: #1b3d36;
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+
+.bottom-staff-portal-link {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  transition: color 0.15s ease;
+  cursor: pointer;
+}
+
+.bottom-staff-portal-link:hover,
+.bottom-staff-portal-link:focus-visible {
+  color: var(--primary-dark);
+  text-decoration: underline;
+}
+
+@media (max-width: 900px) {
+  .main-bottom-footer-inner {
+    flex-direction: column;
+    gap: 4px;
+  }
+  .bottom-site-info-divider {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .main-bottom-footer {
+    padding: 12px 16px 82px; /* Extra bottom padding so content clears mobile bottom navigation */
+    font-size: 11px;
+    line-height: 1.4;
+  }
+}
+
 .main-bottom-footer:empty {
   display: none;
   padding: 0;

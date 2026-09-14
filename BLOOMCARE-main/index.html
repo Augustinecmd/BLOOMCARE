@@ -135,17 +135,6 @@
   <!-- ============================================================== -->
   <div class="app-main-viewport-container">
     
-    <!-- ============================================================== -->
-    <!-- TOP INFORMATION BAR (LICENSING & STAFF PORTAL ACCESS) -->
-    <!-- ============================================================== -->
-    <div class="top-site-info-bar" id="top-site-info-bar" role="region" aria-label="Pharmacy Licensing and Staff Access">
-      <div class="top-site-info-inner">
-        <span class="top-site-license-text">&copy; 2026 BloomCare Pharmacy. All rights reserved. Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894).</span>
-        <span class="top-site-info-divider" aria-hidden="true">&bull;</span>
-        <span class="top-site-staff-text">Pharmacy Workers: <a href="#staff-login" data-route="staff-login" class="top-staff-portal-link" id="top-staff-portal-link">Staff Portal Sign In</a></span>
-      </div>
-    </div>
-
     <!-- Top Announcement Bar -->
     <div class="main-top-announcement">
       <span><strong>BloomCare Pharmacy Uganda</strong> &bull; Doorstep Medicine Delivery &bull; Mbarara City, Uganda</span>
@@ -1722,7 +1711,12 @@
     </main>
 
     <!-- Main Footer -->
-    <footer class="main-bottom-footer" id="main-bottom-footer">
+    <footer class="main-bottom-footer" id="main-bottom-footer" role="contentinfo" aria-label="Pharmacy Licensing and Staff Access">
+      <div class="main-bottom-footer-inner">
+        <span class="bottom-site-license-text top-site-license-text">&copy; 2026 BloomCare Pharmacy. All rights reserved. Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894).</span>
+        <span class="bottom-site-info-divider" aria-hidden="true">&bull;</span>
+        <span class="bottom-site-staff-text top-site-staff-text">Pharmacy Workers: <a href="#staff-login" data-route="staff-login" class="bottom-staff-portal-link top-staff-portal-link" id="bottom-staff-portal-link">Staff Portal Sign In</a></span>
+      </div>
     </footer>
 
   </div>
