@@ -343,6 +343,7 @@ export async function getSystemSettings() {
             pharmacyName: "BloomCare Pharmacy",
 
             phone: "+256 700 000 000",
+            phone: "0750210886",
 
             email: "care@bloomcare.com",
 
@@ -367,6 +368,7 @@ export async function getSystemSettings() {
             pharmacyName: "BloomCare Pharmacy",
 
             phone: "+256 700 000 000",
+            phone: "0750210886",
 
             email: "care@bloomcare.com",
 

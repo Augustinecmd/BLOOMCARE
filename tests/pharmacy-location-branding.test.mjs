@@ -25,6 +25,7 @@ test("1. CENTRALIZED CONSTANTS: Exports canonical pharmacy location and name", (
     "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda"
   );
   assert.equal(BLOOMCARE_PHONE, "+256 700 000 000");
+  assert.equal(BLOOMCARE_PHONE, "0750210886");
   assert.equal(BLOOMCARE_CENTRAL_LOCATION.city, "Mbarara City");
   assert.equal(BLOOMCARE_CENTRAL_LOCATION.fullAddress, BLOOMCARE_PHARMACY_LOCATION);
 });
@@ -51,6 +52,7 @@ test("3. EXACT RECEIPT/BRANDING HEADER: Contains required brand, tagline, Mbarar
     "Must have the exact Mbarara dispensary address"
   );
   assert.ok(receiptHeader.includes("+256 700 000 000"), "Must keep existing valid phone number +256 700 000 000");
+  assert.ok(receiptHeader.includes("0750210886"), "Must keep existing valid phone number 0750210886");
   assert.ok(!receiptHeader.includes("Plot 14, Kampala Road"), "Receipt header must not contain Plot 14, Kampala Road");
   assert.ok(!receiptHeader.includes("Central Kampala"), "Receipt header must not contain Central Kampala");
 });

@@ -2210,7 +2210,7 @@ export const STATE = {
   orderAreaFilter: "all",
   systemSettings: {
     pharmacyName: "BloomCare Pharmacy",
-    phone: "+256 700 000 000",
+    phone: "0750210886",
     email: "care@bloomcare.com",
     whatsapp: "256750210886",
     address: "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda",

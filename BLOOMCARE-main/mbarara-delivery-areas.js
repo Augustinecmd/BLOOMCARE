@@ -4,6 +4,7 @@
 export const BLOOMCARE_PHARMACY_NAME = "BloomCare Pharmacy";
 export const BLOOMCARE_PHARMACY_LOCATION = "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda";
 export const BLOOMCARE_PHONE = "+256 700 000 000";
+export const BLOOMCARE_PHONE = "0750210886";
 export const BLOOMCARE_WHATSAPP = "256750210886";
 
 export const BLOOMCARE_CENTRAL_LOCATION = {

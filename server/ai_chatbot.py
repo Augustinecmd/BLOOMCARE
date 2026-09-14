@@ -210,6 +210,7 @@ def evaluate_medical_safety(message: str, knowledge: Dict[str, Any]) -> Optional
         if pattern.search(message):
             pharm = knowledge.get("pharmacy", {})
             phone = pharm.get("phone", "+256 700 000 000")
+            phone = pharm.get("phone", "0750210886")
             whatsapp = pharm.get("whatsapp", "256750210886")
             return {
                 "text": (
@@ -333,6 +334,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
         record_analytics_event("escalation", message)
         whatsapp = pharm.get("whatsapp", "256750210886")
         phone = pharm.get("phone", "+256 700 000 000")
+        phone = pharm.get("phone", "0750210886")
         return {
             "text": (
                 f"I'm connecting you directly to our registered clinical team! 🩺\n\n"

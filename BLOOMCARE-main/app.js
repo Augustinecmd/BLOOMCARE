@@ -2252,6 +2252,7 @@ export const STATE = {
   systemSettings: {
     pharmacyName: "BloomCare Pharmacy",
     phone: "+256 700 000 000",
+    phone: "0750210886",
     email: "care@bloomcare.com",
     whatsapp: "256750210886",
     address: "Near Mbarara Regional Referral Hospital, Opposite Rubis Station, Near Mbarara Central Police Station, Mbarara City, Uganda",
@@ -9979,6 +9980,8 @@ function renderUsersTableOnly() {
               <td>
                 <span style="font-size:12.5px; color:#334155;">Joined: ${escapeHtml(u.createdAt || "2026-01-01")}</span>
                 <br>
+       
+... [truncated for diff preview]
                 <small class="muted" style="font-size:11px;">Last: ${escapeHtml(u.lastLogin || "Never")}</small>
               </td>
               <td style="text-align:right;">

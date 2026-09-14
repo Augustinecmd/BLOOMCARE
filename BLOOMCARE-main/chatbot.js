@@ -393,6 +393,7 @@ export function initBloomCareChatbot(options = {}) {
         quickActions: [
           { label: "💬 WhatsApp Support", action: "whatsapp", value: "https://wa.me/256750210886" },
           { label: "📞 Call +256 700 000 000", action: "call_phone", value: "+256700000000" }
+          { label: "📞 Call 0750210886", action: "call_phone", value: "0750210886" }
         ],
         timestamp: Date.now()
       };
@@ -534,6 +535,7 @@ export function initBloomCareChatbot(options = {}) {
     if (action === "call_phone") {
       return `
         <a href="tel:${escapeHtml(val || '+256700000000')}" class="btn btn-sm btn-call ai-action-link">
+        <a href="tel:${escapeHtml(val || '0750210886')}" class="btn btn-sm btn-call ai-action-link">
           <span>📞</span>
           <span>${label}</span>
         </a>
@@ -621,6 +623,7 @@ export function initBloomCareChatbot(options = {}) {
         isSafetyAlert: true,
         quickActions: [
           { label: "📞 Call Dispensary", action: "call_phone", value: "+256700000000" },
+          { label: "📞 Call Dispensary", action: "call_phone", value: "0750210886" },
           { label: "💬 WhatsApp Care Desk", action: "whatsapp", value: "https://wa.me/256750210886?text=URGENT%20Medical%20Emergency%20Inquiry" }
         ]
       };
