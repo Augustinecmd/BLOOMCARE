@@ -55,11 +55,8 @@ test("CLICKABLE WHATSAPP LINK: Points to https://wa.me/256750210886 with safe ta
   assert.ok(match[1].includes("WhatsApp Care Desk: 0750210886"), 'Link text must contain "WhatsApp Care Desk: 0750210886"');
 });
 
-test("MAIN TELEPHONE: Retains Tel: +256 700 000 000 in top announcement bar", () => {
 test("MAIN TELEPHONE: Retains Tel: 0750210886 in top announcement bar", () => {
   const html = fs.readFileSync(htmlPath, "utf8");
-  assert.ok(html.includes("Tel: +256 700 000 000"), "Main telephone must be preserved");
-  assert.ok(html.includes('href="tel:+256700000000"'), "Telephone click-to-call link must be preserved");
   assert.ok(html.includes("Tel: 0750210886"), "Main telephone must be preserved");
   assert.ok(html.includes('href="tel:0750210886"'), "Telephone click-to-call link must be preserved");
 });
