@@ -5,7 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="BloomCare Pharmacy - Professional Pharmacy Management & Online Healthcare System in Uganda." />
   <title>BloomCare Pharmacy | Management & Healthcare System</title>
-  <link rel="icon" type="image/png" href="bloomcare-logo.png" />
+  <link rel="icon" type="image/png" sizes="32x32" href="bloomcare-logo.png" />
+  <link rel="shortcut icon" href="favicon.ico" />
+  <link rel="apple-touch-icon" href="bloomcare-logo.png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&family=Libre+Baskerville:wght@400;700&display=swap" rel="stylesheet" />
@@ -45,6 +47,9 @@
   <!-- ============================================================== -->
   <div class="auth-loading-overlay" id="auth-loading-screen" role="alert" aria-busy="true" aria-live="polite">
     <div class="auth-loading-card" id="auth-loading-card">
+      <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
+        <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-screen-logo" style="height:44px; width:auto; max-width:140px; object-fit:contain;" />
+      </div>
       <div class="auth-spinner" id="auth-loading-spinner"></div>
       <h2 class="auth-loading-title" id="auth-loading-title">Loading your BloomCare workspace...</h2>
       <p class="auth-loading-subtitle" id="auth-loading-subtitle">Verifying your account role and access permissions...</p>
@@ -130,17 +135,6 @@
   <!-- ============================================================== -->
   <div class="app-main-viewport-container">
     
-    <!-- ============================================================== -->
-    <!-- TOP INFORMATION BAR (LICENSING & STAFF PORTAL ACCESS) -->
-    <!-- ============================================================== -->
-    <div class="top-site-info-bar" id="top-site-info-bar" role="region" aria-label="Pharmacy Licensing and Staff Access">
-      <div class="top-site-info-inner">
-        <span class="top-site-license-text">&copy; 2026 BloomCare Pharmacy. All rights reserved. Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894).</span>
-        <span class="top-site-info-divider" aria-hidden="true">&bull;</span>
-        <span class="top-site-staff-text">Pharmacy Workers: <a href="#staff-login" data-route="staff-login" class="top-staff-portal-link" id="top-staff-portal-link">Staff Portal Sign In</a></span>
-      </div>
-    </div>
-
     <!-- Top Announcement Bar -->
     <div class="main-top-announcement">
       <span><strong>BloomCare Pharmacy Uganda</strong> &bull; Doorstep Medicine Delivery &bull; Mbarara City, Uganda</span>
@@ -158,7 +152,10 @@
           <span></span><span></span><span></span>
         </button>
         <div class="top-header-brand">
-          <span class="top-brand-text">BloomCare Pharmacy</span>
+          <a href="#dashboard" data-route="dashboard" class="top-header-brand-link">
+            <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="top-nav-logo" />
+            <span class="top-brand-text">BloomCare Pharmacy</span>
+          </a>
         </div>
       </div>
 
@@ -1587,6 +1584,9 @@
           <!-- Register Screen (Create Customer Account) -->
           <div class="auth-card hidden" id="register-card">
             <div class="auth-card-head">
+              <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
+                <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-card-logo" style="height:48px; width:auto; max-width:160px; object-fit:contain;" />
+              </div>
               <h2>Create Your BloomCare Account</h2>
               <p class="muted">Register to access genuine medicines, prescription review, consultations, and doorstep refills.</p>
             </div>
@@ -1640,6 +1640,9 @@
           <!-- Customer Login Screen -->
           <div class="auth-card" id="login-card">
             <div class="auth-card-head">
+              <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
+                <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-card-logo" style="height:52px; width:auto; max-width:170px; object-fit:contain;" />
+              </div>
               <h2>BloomCare Pharmacy</h2>
               <p class="muted">Customer Login</p>
             </div>
@@ -1676,6 +1679,9 @@
           <!-- Dedicated Staff Portal Login Screen (Separate Route #staff-login) -->
           <div class="auth-card hidden" id="staff-login-card">
             <div class="auth-card-head">
+              <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
+                <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-card-logo" style="height:50px; width:auto; max-width:160px; object-fit:contain;" />
+              </div>
               <h2>BloomCare Clinical &amp; Staff Portal</h2>
               <p class="muted">Pharmacy Staff &amp; Administrator Sign In</p>
             </div>
@@ -1705,7 +1711,12 @@
     </main>
 
     <!-- Main Footer -->
-    <footer class="main-bottom-footer" id="main-bottom-footer">
+    <footer class="main-bottom-footer" id="main-bottom-footer" role="contentinfo" aria-label="Pharmacy Licensing and Staff Access">
+      <div class="main-bottom-footer-inner">
+        <span class="bottom-site-license-text top-site-license-text">&copy; 2026 BloomCare Pharmacy. All rights reserved. Licensed by National Drug Authority (#NDA/UG/PHARM/2026/894).</span>
+        <span class="bottom-site-info-divider" aria-hidden="true">&bull;</span>
+        <span class="bottom-site-staff-text top-site-staff-text">Pharmacy Workers: <a href="#staff-login" data-route="staff-login" class="bottom-staff-portal-link top-staff-portal-link" id="bottom-staff-portal-link">Staff Portal Sign In</a></span>
+      </div>
     </footer>
 
   </div>
@@ -1718,8 +1729,11 @@
 
 <!-- 0. Account Required Modal (Account-First Customer Protection) -->
 <dialog id="auth-required-dialog" class="form-modal-dialog">
-  <div class="dialog-header">
-    <h3>Account Required</h3>
+  <div class="dialog-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="modal-brand-logo" style="height:32px; width:auto; object-fit:contain;" />
+      <h3 style="margin:0;">Account Required</h3>
+    </div>
     <button class="dialog-close-btn" id="close-auth-required-modal">&times;</button>
   </div>
   <p id="auth-required-msg" style="margin: 12px 0 20px; font-size: 14px;">
@@ -3353,6 +3367,15 @@
   </div>
 
   <div class="order-confirm-body" id="order-confirm-body">
+    <!-- Packaging Reassurance Banner -->
+    <div class="order-confirm-packaging-banner" style="display:flex; align-items:center; gap:12px; background:#f0fdf4; border:1px solid #bbf7d0; border-radius:10px; padding:10px 14px; margin-bottom:14px;">
+      <img src="bloomcare-paper-bag.jpg" alt="BloomCare Pharmacy branded paper bag" style="width:44px; height:44px; object-fit:contain; border-radius:6px; background:#fff; padding:2px; box-shadow:0 1px 3px rgba(0,0,0,0.05); flex-shrink:0;" />
+      <div>
+        <strong style="color:#0f766e; font-size:13px; display:block;">Authentic BloomCare Dispensary Packaging</strong>
+        <span style="color:#166534; font-size:12px; line-height:1.4; display:block;">Your order will be carefully prepared and packed by BloomCare Pharmacy in our official tamper-evident branded paper bag.</span>
+      </div>
+    </div>
+
     <!-- Highlight Card: Key Order & Payment Status -->
     <div class="order-confirm-card order-confirm-summary-card">
       <div class="order-confirm-row-grid">
@@ -3711,8 +3734,11 @@
 
 <!-- 12. Forgot Password Modal -->
 <dialog id="forgot-password-dialog" class="form-modal-dialog">
-  <div class="dialog-header">
-    <h2>Reset Password</h2>
+  <div class="dialog-header" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="modal-brand-logo" style="height:32px; width:auto; object-fit:contain;" />
+      <h2 style="margin:0;">Reset Password</h2>
+    </div>
     <button class="dialog-close-btn" id="close-forgot-modal">&times;</button>
   </div>
   <form id="forgot-password-form" class="standard-form">

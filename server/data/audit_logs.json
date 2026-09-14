@@ -1,5 +1,25 @@
 [
   {
+    "id": "AUDIT-1789401771139",
+    "timestamp": "2026-09-14 16:02:51 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPEND",
+    "affectedUser": "System",
+    "affectedUserId": "",
+    "description": ""
+  },
+  {
+    "id": "AUDIT-1789399889717",
+    "timestamp": "2026-09-14 15:31:29 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPEND",
+    "affectedUser": "System",
+    "affectedUserId": "",
+    "description": ""
+  },
+  {
     "id": "AUDIT-1789397033582",
     "timestamp": "2026-09-14 14:43:53 UTC",
     "admin": "Dr. Admin Mugisha",

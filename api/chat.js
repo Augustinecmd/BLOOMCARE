@@ -33,12 +33,10 @@ export default async function handler(req, res) {
     if (emergencyRegex.test(message)) {
       return res.status(200).json({
         success: true,
-        text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate a serious medical emergency. **BloomCare AI is an online pharmacy assistant and cannot diagnose conditions or manage emergencies.**\n\n🚨 **Immediate Action Required:**\n1. Seek immediate in-person care at the nearest hospital (e.g. Mbarara Regional Referral Hospital).\n2. Contact emergency services or call BloomCare Urgent Support at **+256 700 000 000**.",
         text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate a serious medical emergency. **BloomCare AI is an online pharmacy assistant and cannot diagnose conditions or manage emergencies.**\n\n🚨 **Immediate Action Required:**\n1. Seek immediate in-person care at the nearest hospital (e.g. Mbarara Regional Referral Hospital).\n2. Contact emergency services or call BloomCare Urgent Support at **0750210886**.",
         products: [],
         isSafetyAlert: true,
         quickActions: [
-          { label: "📞 Call Dispensary", action: "call_phone", value: "+256700000000" },
           { label: "📞 Call Dispensary", action: "call_phone", value: "0750210886" },
           { label: "💬 WhatsApp Care Desk", action: "whatsapp", value: "https://wa.me/256750210886?text=URGENT%20Medical%20Inquiry" }
         ]
