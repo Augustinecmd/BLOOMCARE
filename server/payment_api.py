@@ -570,6 +570,8 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
             return existing
 
         # Check payment status: Payment must be verified before automated assignment
+        # Check payment status: Payment must be verified before automated assignment unless Cash on Delivery or immediate assignment requested
+        payment_method = str(order_data.get("paymentMethod") or "").strip().lower()
         payment_status = str(order_data.get("paymentStatus") or "").strip().upper()
         if payment_status not in {"SUCCESSFUL", "PAID"}:
             return {
@@ -577,6 +579,16 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
                 "status": "PAYMENT_NOT_VERIFIED",
                 "message": "Payment must be verified before automated delivery assignment."
             }
+        is_cod = payment_method in {"cash on delivery", "cash", "cod"} or "cash" in payment_method
+        allow_unpaid = bool(order_data.get("allowPendingPayment") or order_data.get("immediateAssignment") or is_cod)
+
+        if not allow_unpaid:
+            if payment_status not in {"SUCCESSFUL", "PAID"}:
+                return {
+                    "orderId": order_key,
+                    "status": "PAYMENT_NOT_VERIFIED",
+                    "message": "Payment must be verified before automated delivery assignment."
+                }
 
         now_iso = datetime.now(timezone.utc).isoformat()
         driver = find_eligible_delivery_man(
@@ -616,12 +628,38 @@ def auto_assign_delivery(order_id: str, order_data: dict) -> dict:
             assignments[order_key] = rec
             write_assignments(assignments)
 
+            # Ensure 1:1 conversation exists immediately for this order even when waiting for driver
+            conv_id = f"CHAT-{order_key}"
+            conversations = read_conversations()
+            if conv_id not in conversations:
+                conversations[conv_id] = {
+                    "id": conv_id,
+                    "conversationId": conv_id,
+                    "orderId": order_key,
+                    "orderNumber": order_data.get("orderNumber", order_key),
+                    "customerId": order_data.get("customerId"),
+                    "customerName": order_data.get("customerName", "Customer"),
+                    "customerPhone": order_data.get("customerPhone", ""),
+                    "deliveryManId": None,
+                    "deliveryManName": None,
+                    "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
+                    "status": "ACTIVE",
+                    "unreadDelivery": 0,
+                    "unreadCustomer": 0,
+                    "lastMessage": None,
+                    "createdAt": now_iso,
+                    "updatedAt": now_iso,
+                    "messages": []
+                }
+                write_conversations(conversations)
+
             create_notification_backend({
                 "role": "admin",
                 "type": "DELIVERY_ASSIGNMENT_PENDING",
                 "orderId": order_key,
                 "title": "DELIVERY ASSIGNMENT PENDING",
                 "message": f"Order #{order_key} is confirmed and paid, waiting for an available Delivery Man.",
+                "message": f"Order #{order_key} is confirmed and waiting for an available Delivery Man.",
                 "read": False,
                 "createdAt": now_iso
             })

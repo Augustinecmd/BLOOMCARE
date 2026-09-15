@@ -3357,8 +3357,6 @@
         <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
       </div>
       <div>
-        <h2 id="order-confirm-modal-title" class="order-confirm-title">Order Confirmed!</h2>
-        <p class="order-confirm-subtitle">Your online order has been placed and payment confirmed.</p>
         <h2 id="order-confirm-modal-title" class="order-confirm-title">✓ ORDER CREATED SUCCESSFULLY</h2>
         <p class="order-confirm-subtitle" id="order-confirm-modal-sub">Thank you for ordering from BloomCare Pharmacy.</p>
       </div>
@@ -3380,20 +3378,16 @@
     <div class="order-confirm-card order-confirm-summary-card">
       <div class="order-confirm-row-grid">
         <div class="order-confirm-meta-cell">
-          <span class="confirm-cell-label">Order Number</span>
           <span class="confirm-cell-label">Order Reference</span>
           <strong class="confirm-cell-value order-ref-text" id="confirm-order-number">BC-20260905-00000</strong>
         </div>
         <div class="order-confirm-meta-cell">
-          <span class="confirm-cell-label">Order Status</span>
-          <span class="confirm-status-pill" id="confirm-order-status">Confirmed</span>
           <span class="confirm-cell-label">Delivery Status</span>
           <span class="confirm-status-pill" id="confirm-order-status">Order Placed</span>
         </div>
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Payment Status</span>
           <span class="confirm-payment-badge" id="confirm-payment-status">PAID ✓</span>
-          <span class="confirm-payment-badge" id="confirm-payment-status">🟠 Payment Pending</span>
         </div>
         <div class="order-confirm-meta-cell">
           <span class="confirm-cell-label">Delivery Fee</span>
@@ -3455,25 +3449,21 @@
     </div>
 
     <!-- Assigned Delivery Man Card -->
-    <!-- Assigned Delivery Man Card (Rendered Only When Courier Assigned) -->
     <div class="order-confirm-card order-confirm-driver-card" id="confirm-driver-card">
       <div class="confirm-section-header">
         <span class="confirm-section-icon">🛵</span>
-        <h3 class="confirm-section-title">Assigned Delivery Man</h3>
         <h3 class="confirm-section-title">Delivery Courier</h3>
       </div>
-      <div class="confirm-driver-box">
       <div class="confirm-driver-box" id="confirm-driver-assigned-content">
         <div class="driver-avatar-circle" id="confirm-driver-avatar">MK</div>
         <div class="driver-info-wrap">
           <strong class="driver-name-text" id="confirm-driver-name">Moses Kato</strong>
           <span class="driver-phone-text" id="confirm-driver-phone">📞 0700 000 005</span>
-          <span class="driver-status-badge" id="confirm-driver-status">Assigned &amp; Dispatching</span>
           <span class="driver-status-badge" id="confirm-driver-status">🟢 Assigned</span>
         </div>
       </div>
-      <div id="confirm-driver-unassigned-notice" class="hidden" style="padding:10px 0; font-size:12.5px; color:var(--muted); text-align:center;">
-        🛵 Matching available delivery courier in Mbarara City...
+      <div id="confirm-driver-unassigned-notice" class="hidden" style="padding:12px 10px; font-size:13px; color:var(--text-main); text-align:center; background:#f0fdf4; border-radius:8px; border:1px dashed #86efac; margin-top:6px;">
+        🛵 <strong>Delivery Person:</strong> Awaiting assignment. Your order has been received and a delivery person will be assigned shortly.
       </div>
     </div>
 
@@ -3487,7 +3477,6 @@
         <!-- Dynamically rendered items -->
       </div>
       <div class="confirm-total-row">
-        <span>Total Paid:</span>
         <span>Total Payable:</span>
         <strong id="confirm-total-val">UGX 0</strong>
       </div>
@@ -3495,39 +3484,39 @@
   </div>
 
   <!-- Action Bar -->
-  <div class="order-confirm-actions">
-    <button class="btn btn-primary btn-lg order-confirm-chat-action" id="order-confirm-chat-btn" type="button">
-      <span class="btn-icon">💬</span> Chat with Delivery Man
-    <!-- Prominent Primary Payment Action -->
+  <div class="order-confirm-actions" style="display:flex; flex-direction:column; gap:10px;">
+    <!-- Prominent Primary Payment Action if payment pending -->
     <button class="btn btn-primary btn-block" id="order-confirm-pay-btn" type="button" style="padding:12px; font-size:15px; font-weight:700;">
       <span>💳 CONTINUE PAYMENT</span>
     </button>
-    <button class="btn btn-outline" id="order-confirm-view-orders-btn" type="button">
-      View in My Orders
-    <button class="btn btn-outline btn-sm hidden" id="order-confirm-check-pay-btn" type="button">
-      <span>🔄 CHECK PAYMENT STATUS</span>
-    </button>
-    <button class="btn btn-secondary" id="order-confirm-continue-btn" type="button">
-      Continue Shopping
-    <button class="btn btn-warning btn-sm hidden" id="order-confirm-retry-pay-btn" type="button">
-      <span>⚠️ RETRY PAYMENT</span>
-    </button>
+    <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap;">
+      <button class="btn btn-outline btn-sm hidden" id="order-confirm-check-pay-btn" type="button" style="flex:1;">
+        <span>🔄 CHECK PAYMENT STATUS</span>
+      </button>
+      <button class="btn btn-warning btn-sm hidden" id="order-confirm-retry-pay-btn" type="button" style="flex:1;">
+        <span>⚠️ RETRY PAYMENT</span>
+      </button>
+    </div>
 
-    <!-- Courier Contact Actions (Shown Only When Courier Assigned) -->
-    <div id="confirm-driver-actions-row" class="driver-contact-actions-row" style="display:flex; gap:8px; width:100%; flex-wrap:wrap; margin-top:4px;">
-      <button class="btn btn-primary btn-sm order-confirm-chat-action" id="order-confirm-chat-btn" type="button" style="flex:1; min-width:140px;">
+    <!-- Immediate Delivery Communication (Chat Button) -->
+    <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap;">
+      <button class="btn btn-primary btn-lg order-confirm-chat-action" id="order-confirm-chat-btn" type="button" style="flex:2; min-width:180px; display:inline-flex; align-items:center; justify-content:center; gap:8px; font-weight:700; background:#0f766e; border-color:#0f766e;">
         <span class="btn-icon">💬</span> Chat with Delivery Person
       </button>
-      <a class="btn btn-whatsapp btn-sm" id="order-confirm-whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:6px; background:#25D366; color:#ffffff; font-weight:600; text-decoration:none; padding:8px 14px; border-radius:var(--radius-xs); border:none;">
+    </div>
+
+    <!-- Optional Driver Contact Actions (WhatsApp & Direct Phone Call) -->
+    <div id="confirm-driver-actions-row" class="driver-contact-actions-row" style="display:flex; gap:8px; width:100%; flex-wrap:wrap;">
+      <a class="btn btn-whatsapp btn-sm" id="order-confirm-whatsapp-btn" href="#" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#25D366; color:#ffffff; font-weight:600; text-decoration:none; padding:8px 14px; border-radius:var(--radius-xs); border:none; flex:1;">
         <span>💬 Chat on WhatsApp</span>
       </a>
-      <a class="btn btn-call btn-sm" id="order-confirm-call-btn" href="#" style="display:inline-flex; align-items:center; gap:6px; background:#0284c7; color:#ffffff; font-weight:600; text-decoration:none; padding:8px 14px; border-radius:var(--radius-xs); border:none;">
+      <a class="btn btn-call btn-sm" id="order-confirm-call-btn" href="#" style="display:inline-flex; align-items:center; justify-content:center; gap:6px; background:#0284c7; color:#ffffff; font-weight:600; text-decoration:none; padding:8px 14px; border-radius:var(--radius-xs); border:none; flex:1;">
         <span>📞 Call Delivery Person</span>
       </a>
     </div>
 
-    <!-- Navigation & Secondary Actions -->
-    <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap; margin-top:4px;">
+    <!-- Navigation & Secondary Actions: Track Order, View in My Orders, Continue Shopping -->
+    <div style="display:flex; gap:8px; width:100%; flex-wrap:wrap; margin-top:2px;">
       <button class="btn btn-outline btn-sm" id="order-confirm-track-btn" type="button" style="flex:1;">
         📍 TRACK ORDER
       </button>

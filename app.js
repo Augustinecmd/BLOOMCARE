@@ -123,7 +123,6 @@ export {
   isValidMbararaArea,
   searchMbararaLocations,
   formatDeliveryAddress,
-  validateMbararaDeliveryAddress
   validateMbararaDeliveryAddress,
   getRecommendedProducts,
   getTrendingProducts,
@@ -2252,7 +2251,6 @@ export const STATE = {
   orderAreaFilter: "all",
   systemSettings: {
     pharmacyName: "BloomCare Pharmacy",
-    phone: "+256 700 000 000",
     phone: "0750210886",
     email: "care@bloomcare.com",
     whatsapp: "256750210886",
@@ -5857,9 +5855,9 @@ function renderRoleDashboard() {
                     ${d.landmark ? `<small style="color:#0284c7;">📍 Landmark: Near ${escapeHtml(d.landmark)}</small>` : ''}
                   </div>
                   <div class="new-delivery-cell">
-                    <span class="confirm-cell-label">Delivery Fee</span>
-                    <strong style="font-size:14px; color:#15803d;">${formatUGX(feeVal)}</strong>
-                    <small style="color:#64748b;">Status: PAID</small>
+                    <span class="confirm-cell-label">Order Value</span>
+                    <strong style="font-size:14px; color:#0f172a;">${formatUGX(relOrder?.total || (feeVal + (relOrder?.subtotal || 0)))}</strong>
+                    <small style="color:#15803d; font-weight:600;">Fee: ${formatUGX(feeVal)} (PAID)</small>
                   </div>
                   <div class="new-delivery-cell">
                     <span class="confirm-cell-label">Items Summary</span>
@@ -5875,9 +5873,20 @@ function renderRoleDashboard() {
                     ${ICONS.chat}
                     <span>💬 Chat with Customer</span>
                   </button>
-                  <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="picked-up" type="button">
-                    Picked Up
-                  </button>
+                  ${d.phone ? `
+                    <a class="btn btn-outline btn-sm" href="tel:${escapeHtml(d.phone)}" style="display:inline-flex; align-items:center; gap:5px; text-decoration:none;">
+                      <span>📞 Call Customer</span>
+                    </a>
+                  ` : ''}
+                  ${(d.status !== "Accepted" && d.status !== "Picked Up" && d.status !== "Out for Delivery" && d.status !== "Delivered") ? `
+                    <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="accept-delivery" type="button" style="background:#0284c7; border-color:#0284c7; color:#fff;">
+                      ✓ Accept Delivery
+                    </button>
+                  ` : `
+                    <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="picked-up" type="button">
+                      Picked Up
+                    </button>
+                  `}
                   <button class="btn btn-secondary btn-sm quick-driver-action" data-id="${d.id}" data-action="mark-delivered" type="button" style="background:#16a34a; border-color:#16a34a; color:#fff;">
                     📦 Mark Delivered
                   </button>
@@ -6096,7 +6105,6 @@ function renderRoleDashboard() {
     const savedAreas = savedDiv ? getMbararaAreas(savedDiv) : [];
     const activeDriver = latestActive ? getAssignedDeliveryManForOrder(latestActive) : null;
     const activeProducts = STATE.products.filter(p => p && p.status !== "inactive");
-    const featuredMeds = activeProducts.filter(p => getProductAvailability(p).isAvailable).slice(0, 10);
     const custId = STATE.currentUser?.uid || STATE.currentUser?.email;
     const recommendedMeds = getRecommendedProducts(custId, STATE.products, STATE.orders, 8);
     const trendingMeds = getTrendingProducts(STATE.products, STATE.orders, 8);
@@ -6106,8 +6114,6 @@ function renderRoleDashboard() {
     const dashCategories = STATE.categories || [];
 
     container.innerHTML = `
-      <!-- 1. Compact Welcome Section & Quick Actions -->
-      <div class="customer-welcome-card">
       <!-- 1. Customer Dashboard Hero & Brand Showcase -->
       <div class="customer-welcome-card customer-hero-brand-card">
         <div class="customer-welcome-left">
@@ -6116,7 +6122,6 @@ function renderRoleDashboard() {
             <span>Your Health, Our Priority</span>
           </div>
           <h1 class="page-title" style="font-size:22px; margin-bottom:4px;">Welcome, ${escapeHtml(STATE.currentUser?.displayName || "Customer")}</h1>
-          <p class="page-desc">Manage your orders, prescriptions, and pharmacy care in one place.</p>
           <p class="page-desc" style="font-size:13.5px; color:var(--text-muted, #64748b); margin-bottom:10px; max-width:520px; line-height:1.45;">
             Your trusted licensed pharmacy in Mbarara City for genuine <strong>Medicines</strong>, comprehensive <strong>Wellness</strong>, essential <strong>Personal Care</strong>, and professional <strong>Health Advice</strong>.
           </p>
@@ -6133,8 +6138,6 @@ function renderRoleDashboard() {
             <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
           </div>
         </div>
-        <div class="customer-welcome-right">
-          <span class="customer-badge-pill">${ICONS.check} ${STATE.currentUser?.accountType === "BUSINESS" ? "Verified Business Customer" : "Verified Customer Account"}</span>
         <div class="customer-welcome-right customer-hero-brand-right">
           <div class="customer-hero-badge-row" style="margin-bottom:8px;">
             <span class="customer-badge-pill">${ICONS.check} ${STATE.currentUser?.accountType === "BUSINESS" ? "Verified Business Customer" : "Verified Customer Account"}</span>
@@ -6330,16 +6333,12 @@ function renderRoleDashboard() {
           </div>
         </div>
 
-        <!-- Featured & Recommended Medicines -->
-        <div class="cust-dash-section" style="margin-bottom:24px;">
         <!-- AI RECOMMENDATION ENGINE SUITE -->
 
         <!-- 1. Recommended For You (Personalized / Popular Fallback) -->
         <div class="cust-dash-section rec-dash-section" style="margin-bottom:24px;">
           <div class="flex-between" style="margin-bottom:12px;">
             <div>
-              <h3 style="margin:0; font-size:16px; font-weight:700;">Featured &amp; Recommended Medicines</h3>
-              <span class="muted" style="font-size:12px;">Popular essentials &amp; fast-acting relief verified by our pharmacists</span>
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 style="margin:0; font-size:16px; font-weight:700;">${hasHistory ? "Recommended For You" : "Popular Products You May Like"}</h3>
                 <span class="rec-ai-pill" style="background:rgba(15,118,110,0.1); color:#0f766e; font-size:11px; font-weight:700; padding:2px 8px; border-radius:999px;">AI Powered</span>
@@ -6349,7 +6348,6 @@ function renderRoleDashboard() {
             <button class="btn btn-link btn-sm" type="button" data-route="customer/medicines">See All &rarr;</button>
           </div>
           <div class="rec-scroll-track" id="cust-dash-rec-track" style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px; scroll-snap-type:x mandatory;">
-            ${featuredMeds.length > 0 ? featuredMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px;">No featured medicines available at the moment.</p>`}
             ${recommendedMeds.length > 0 ? recommendedMeds.map(renderRecommendedProductCardHtml).join("") : `<p class="muted" style="font-size:13px; padding:8px 0;">Explore our popular products.</p>`}
           </div>
         </div>
@@ -6596,7 +6594,6 @@ function renderRoleDashboard() {
                       <div class="hub-addr-city">Mbarara City, Uganda</div>
                     </div>
 
-                    <div class="delivery-coverage-banner">
                     <div class="delivery-hub-brand-card" style="margin-top:10px; padding:10px; background:#ffffff; border:1px solid #e2e8f0; border-radius:8px; display:flex; align-items:center; gap:10px;">
                       <img src="bloomcare-paper-bag.jpg" alt="BloomCare Pharmacy branded paper bag" style="width:40px; height:40px; object-fit:contain; border-radius:4px; flex-shrink:0;" />
                       <div style="font-size:11.5px; color:#334155; line-height:1.4;">
@@ -7371,9 +7368,6 @@ export function renderMedicinesView() {
     // 3. Populate Recommended Products Carousel
     const recTrack = $("#recommended-products-track");
     if (recTrack) {
-      const activeAll = STATE.products.filter(p => p && p.status !== "inactive" && getProductAvailability(p).isAvailable);
-      const recommendedList = activeAll.slice(0, 10);
-      recTrack.innerHTML = recommendedList.map(renderRecommendedProductCardHtml).join("");
       const custId = STATE.currentUser?.uid || STATE.currentUser?.email;
       const recommendedList = getRecommendedProducts(custId, STATE.products, STATE.orders, 10);
       recTrack.innerHTML = recommendedList.length > 0
@@ -8735,8 +8729,8 @@ function renderOrdersView() {
             const deliveryBadge = isPickup
               ? `<small class="muted">Pharmacy Pickup</small>`
               : (driverName
-                  ? `<span class="driver-assigned-pill" style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#0f766e; background:#f0fdf4; padding:3px 8px; border-radius:12px; font-size:12px;">🚚 ${escapeHtml(driverName)}</span>`
-                  : `<span class="muted" style="font-size:12px;">Pending Assignment</span>`);
+                  ? `<span class="driver-assigned-pill" style="display:inline-flex; align-items:center; gap:4px; font-weight:600; color:#0f766e; background:#f0fdf4; padding:3px 8px; border-radius:12px; font-size:12px;">🚚 Driver Assigned (${escapeHtml(driverName)})</span>`
+                  : `<span class="muted" style="font-size:12px;">🛵 Driver: Awaiting Assignment</span>`);
             return `
             <tr>
               <td><strong>${escapeHtml(o.orderNumber || o.id)}</strong></td>
@@ -8753,7 +8747,7 @@ function renderOrdersView() {
                 <button class="btn btn-primary btn-sm track-order-btn" data-id="${o.id}">Track Order</button>
                 <button class="btn btn-secondary btn-sm view-rec-btn" data-id="${o.id}">View Order</button>
                 ${(!isPickup) ? `
-                  <button class="btn btn-outline btn-sm open-order-chat-btn" data-order-id="${o.orderNumber || o.id}" title="Chat with Delivery Driver">💬 Chat</button>
+                  <button class="btn btn-outline btn-sm open-order-chat-btn" data-order-id="${o.orderNumber || o.id}" title="Chat with Delivery Person">💬 Chat with Delivery Person</button>
                 ` : ''}
               </td>
             </tr>
@@ -8927,20 +8921,20 @@ export function openOrderTrackingModal(orderId) {
               Delivery Status: <span class="status-pill status-${(order.deliveryStatus || order.orderStatus || 'pending').toLowerCase().replace(/ /g, '_')}">${escapeHtml(order.deliveryStatus || order.orderStatus)}</span>
             </div>
           </div>
-          ${hasAssignedDriver ? `
-            <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
-              <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.orderNumber || order.id}" type="button" style="display:inline-flex; align-items:center; gap:5px;">
-                ${ICONS.chat}
-                <span>💬 Chat</span>
-              </button>
+          <div style="display:flex; gap:6px; flex-wrap:wrap; align-items:center;">
+            <button class="btn btn-primary btn-sm open-order-chat-btn" data-order-id="${order.orderNumber || order.id}" type="button" style="display:inline-flex; align-items:center; gap:5px;">
+              ${ICONS.chat}
+              <span>💬 Chat with Delivery Person</span>
+            </button>
+            ${hasAssignedDriver ? `
               <a class="btn btn-whatsapp btn-sm" href="https://wa.me/${waPhone}?text=${waText}" target="_blank" rel="noopener noreferrer" style="display:inline-flex; align-items:center; gap:5px; background:#25D366; color:#ffffff; font-weight:600; text-decoration:none; padding:6px 12px; border-radius:var(--radius-xs); border:none; font-size:12px;">
                 <span>💬 WhatsApp</span>
               </a>
               <a class="btn btn-call btn-sm" href="tel:${driverPhone}" style="display:inline-flex; align-items:center; gap:5px; background:#0284c7; color:#ffffff; font-weight:600; text-decoration:none; padding:6px 12px; border-radius:var(--radius-xs); border:none; font-size:12px;">
                 <span>📞 Call</span>
               </a>
-            </div>
-          ` : `<span class="muted" style="font-size:12px; align-self:center;">Matching available courier partner...</span>`}
+            ` : `<span class="muted" style="font-size:12px; align-self:center;">Matching available courier partner...</span>`}
+          </div>
         </div>
       </div>
     ` : ''}
@@ -10101,8 +10095,6 @@ export function openUserProfileModal(user) {
       <div class="profile-overview-card">
         <div class="profile-big-avatar avatar-${target.role}">${initial}</div>
         <div class="profile-quick-details">
-          <h3>${escapeHt
-... [truncated for diff preview]
           <h3>${escapeHtml(target.name || target.displayName)}</h3>
           <p>${escapeHtml(target.email || "No email")} &bull; ${escapeHtml(target.phone || "No phone")}</p>
           <div style="margin-top:6px; display:flex; gap:8px;">
@@ -10837,13 +10829,16 @@ export function canUserAccessConversation(conversation, user = STATE.currentUser
 
   // Customer access
   if (role === "customer") {
-    if (userUid && conversation.customerId === userUid) return true;
+    if (userUid && (conversation.customerId === userUid || (user && conversation.customerId === user.id))) return true;
     if (userEmail && (conversation.customerEmail || "").toLowerCase() === userEmail) return true;
     if (userDisplayName && (conversation.customerName || "").toLowerCase() === userDisplayName) return true;
     // Check if customer owns the associated order in state
     if (userUid && Array.isArray(STATE.orders)) {
-      const owned = STATE.orders.some(o => (o.id === conversation.orderId || o.orderNumber === conversation.orderId) && (o.customerId === userUid || (userEmail && (o.customerEmail || "").toLowerCase() === userEmail)));
+      const owned = STATE.orders.some(o => (o.id === conversation.orderId || o.orderNumber === conversation.orderId) && (o.customerId === userUid || (user && o.customerId === user.id) || (userEmail && (o.customerEmail || "").toLowerCase() === userEmail)));
       if (owned) return true;
+    }
+    if (STATE.activeConfirmationOrder && (STATE.activeConfirmationOrder.id === conversation.orderId || STATE.activeConfirmationOrder.orderNumber === conversation.orderId)) {
+      return true;
     }
     return false;
   }
@@ -13910,14 +13905,15 @@ async function handleCheckoutOrder(e) {
     paymentStatus: "PENDING",
     paymentReference: paymentMethod === "Cash on Delivery" ? "COD-" + orderRef : "BC-PAY-" + orderRef,
     orderStatus: orderInitialStatus,
-    deliveryStatus: assignedDriverId ? "ASSIGNED" : (fulfillmentType === "pickup" ? "READY_FOR_PICKUP" : "ORDER_PLACED"),
+    deliveryStatus: assignedDriverId ? "ASSIGNED" : (fulfillmentType === "pickup" ? "READY_FOR_PICKUP" : "awaiting_assignment"),
     prescriptionStatus: hasRx ? "Required" : "Not Required",
     rxVerified: false,
-    assignedStaff: assignedDriverName,
-    deliveryManId: assignedDriverId,
-    deliveryStaffId: assignedDriverId,
+    assignedStaff: assignedDriverId ? assignedDriverName : "Pending Assignment",
+    deliveryManId: assignedDriverId || null,
+    deliveryStaffId: assignedDriverId || null,
     deliveryManName: assignedDriverId ? assignedDriverName : null,
-    deliveryManPhone: assignedDriverPhone,
+    deliveryManPhone: assignedDriverPhone || null,
+    assignedDriverId: assignedDriverId || null,
     createdAt: new Date().toISOString()
   };
 
@@ -13964,14 +13960,20 @@ async function handleCheckoutOrder(e) {
       landmark: specificLocation,
       deliveryInstructions: instructions,
       itemsSummary: newOrder.items.map(i => `${i.quantity}x ${i.name}`).join(", "),
-      deliveryManId: assignedDriverId,
-      deliveryStaffId: assignedDriverId,
-      deliveryStaffName: assignedDriverName,
+      deliveryManId: assignedDriverId || null,
+      deliveryStaffId: assignedDriverId || null,
+      deliveryStaffName: assignedDriverId ? assignedDriverName : "Pending Assignment",
       status: assignedDriverId ? "Assigned" : "Pending Assignment",
-      deliveryStatus: assignedDriverId ? "ASSIGNED" : "ORDER_PLACED",
+      deliveryStatus: assignedDriverId ? "ASSIGNED" : "awaiting_assignment",
       createdAt: new Date().toISOString().slice(0, 10)
     };
     STATE.deliveries.unshift(newDelivery);
+
+    try {
+      await createDelivery(newDelivery);
+    } catch (err) {
+      console.warn(`[BloomCare Delivery] Failed to persist delivery for order ${orderRef}:`, err);
+    }
 
     if (assignedDriverId) {
       notifItem = {
@@ -13997,13 +13999,26 @@ async function handleCheckoutOrder(e) {
       } catch (err) {
         console.warn(`[BloomCare Assignment] Failed to persist notification for order ${orderRef}:`, err);
       }
-      try {
-        await createDelivery(newDelivery);
-      } catch (err) {
-        console.warn(`[BloomCare Delivery] Failed to persist delivery for order ${orderRef}:`, err);
-      }
     }
   }
+
+  // Customer order notification
+  const customerNotif = {
+    id: `order-${orderRef}-CUSTOMER_ORDER_PLACED`,
+    recipientId: newOrder.customerId,
+    userId: newOrder.customerId,
+    role: "customer",
+    type: "ORDER_PLACED",
+    orderId: orderRef,
+    title: "Order Placed Successfully",
+    message: `Your order #${orderRef} has been placed. Total: UGX ${total.toLocaleString()}.${assignedDriverId ? ` Delivery assigned to ${assignedDriverName}.` : ' Delivery person will be assigned shortly.'}`,
+    read: false,
+    createdAt: new Date().toISOString()
+  };
+  STATE.notifications.unshift(customerNotif);
+  try {
+    await createNotification(customerNotif);
+  } catch (_) {}
 
   // Create Payment Record
   STATE.payments.unshift({
@@ -14032,11 +14047,11 @@ async function handleCheckoutOrder(e) {
   // Initialize delivery chat conversation immediately upon order placement!
   try {
     conv = getOrCreateOrderDeliveryChat(orderRef);
-    if (conv && newOrder.deliveryManId) {
-      conv.deliveryManId = newOrder.deliveryManId;
-      conv.deliveryStaffId = newOrder.deliveryManId;
-      conv.deliveryManName = newOrder.deliveryManName;
-      conv.deliveryStatus = "ASSIGNED";
+    if (conv) {
+      conv.deliveryManId = assignedDriverId || null;
+      conv.deliveryStaffId = assignedDriverId || null;
+      conv.deliveryManName = assignedDriverId ? assignedDriverName : null;
+      conv.deliveryStatus = assignedDriverId ? "ASSIGNED" : "awaiting_assignment";
       saveConversationsToStorage();
     }
     await getOrCreateDeliveryConversation({
@@ -14046,11 +14061,11 @@ async function handleCheckoutOrder(e) {
       customerId: newOrder.customerId,
       customerName: newOrder.customerName,
       customerPhone: newOrder.customerPhone,
-      deliveryManId: newOrder.deliveryManId,
-      deliveryStaffId: newOrder.deliveryManId,
-      deliveryManName: newOrder.deliveryManName,
+      deliveryManId: assignedDriverId || null,
+      deliveryStaffId: assignedDriverId || null,
+      deliveryManName: assignedDriverId ? assignedDriverName : null,
       deliveryAddress: formattedAddress,
-      deliveryStatus: "ASSIGNED"
+      deliveryStatus: assignedDriverId ? "ASSIGNED" : "awaiting_assignment"
     });
   } catch (err) {
     console.error("Failed to initialize delivery chat:", err);
@@ -14073,6 +14088,9 @@ async function handleCheckoutOrder(e) {
   if (hasRx) {
     openNotice("Prescription Verification Note", `Order <strong>${orderRef}</strong> contains prescription medications and has been marked <strong>Awaiting Prescription Review</strong> on your order confirmation.`);
   }
+} catch (err) {
+  console.error("[BloomCare Checkout Error]:", err);
+  abortCheckout("Unable to Place Order", "Unable to place your order. Please try again. (" + (err?.message || "Unexpected error") + ")");
 } finally {
   STATE.isPlacingOrder = false;
   const submitBtn = $("#checkout-form button[type='submit']");
@@ -15632,7 +15650,11 @@ export function showOrderConfirmationModal(order) {
 
   // Level 2 Security: Verify customer ownership
   if (getEffectiveRole() === "customer" && STATE.currentUser) {
-    const isOwner = order.customerId === STATE.currentUser.uid || (STATE.currentUser.email && order.customerEmail === STATE.currentUser.email);
+    const isOwner = order === STATE.activeConfirmationOrder ||
+      order.customerId === STATE.currentUser.uid || 
+      order.customerId === STATE.currentUser.id ||
+      (STATE.currentUser.email && order.customerEmail === STATE.currentUser.email) ||
+      (STATE.currentUser.phone && order.customerPhone === STATE.currentUser.phone);
     if (!isOwner) {
       openNotice("Access Denied", "You do not have permission to view confirmation for an order belonging to another customer.");
       return;
@@ -15828,12 +15850,13 @@ export function showOrderConfirmationModal(order) {
         if (driverUnassignedNotice) {
           driverUnassignedNotice.classList.remove("hidden");
           driverUnassignedNotice.style.display = "block";
+          driverUnassignedNotice.innerHTML = "<p style='margin:0; font-size:13px; color:#475569;'>🛵 <strong>Delivery Person: Awaiting assignment.</strong> Your order has been received and a delivery person will be assigned shortly.</p>";
         }
       }
     }
   }
 
-  // Courier Actions (Chat, WhatsApp, Call)
+  // Courier Actions (WhatsApp & Direct Phone Call)
   if (driverActionsRow) {
     if (!isPickup && isDriverAssigned) {
       driverActionsRow.style.display = "flex";
@@ -15852,16 +15875,22 @@ export function showOrderConfirmationModal(order) {
       if (callBtn) {
         callBtn.href = `tel:${order.deliveryManPhone || "0700000005"}`;
       }
-
-      const chatBtn = $("#order-confirm-chat-btn");
-      if (chatBtn) {
-        chatBtn.onclick = () => {
-          modal.close();
-          openCustomerChatModal(orderNumber);
-        };
-      }
     } else {
       driverActionsRow.style.display = "none";
+    }
+  }
+
+  // Delivery Chat Button (Always available for doorstep delivery orders)
+  const chatBtn = $("#order-confirm-chat-btn");
+  if (chatBtn) {
+    if (isPickup) {
+      chatBtn.style.display = "none";
+    } else {
+      chatBtn.style.display = "inline-flex";
+      chatBtn.onclick = () => {
+        modal.close();
+        openCustomerChatModal(orderNumber);
+      };
     }
   }
 
@@ -17261,7 +17290,7 @@ function bindEventListeners() {
           renderCartDialogContents();
         }
         return;
-      } else if (action === "picked-up") {
+      } else if (action === "accept-delivery" || action === "picked-up") {
         const effRole = getEffectiveRole();
         if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
           openNotice("Permission Denied", "Only delivery staff or administrators can update delivery status.");
@@ -17269,18 +17298,36 @@ function bindEventListeners() {
         }
         const d = STATE.deliveries.find(item => item.id === id);
         if (d) {
-          d.status = "Picked Up";
-          recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Picked Up");
+          const newStatus = action === "accept-delivery" ? "Accepted" : "Picked Up";
+          d.status = newStatus;
+          recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, `Delivery marked ${newStatus}`);
           const conv = STATE.conversations.find(c => c.orderId === (d.orderNumber || d.orderId) || c.orderId === d.id);
           if (conv) {
-            conv.deliveryStatus = "PICKED_UP";
+            conv.deliveryStatus = action === "accept-delivery" ? "ACCEPTED" : "PICKED_UP";
             conv.updatedAt = new Date().toISOString();
             saveConversationsToStorage();
           }
+          const orderRef = d.orderNumber || d.orderId || d.id;
+          const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
+          if (order) {
+            order.deliveryStatus = action === "accept-delivery" ? "ACCEPTED" : "PICKED_UP";
+            saveOrdersToStorage();
+          }
+          try {
+            fetch("http://127.0.0.1:8787/api/deliveries/status", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                orderId: orderRef,
+                status: newStatus,
+                notes: `Marked ${newStatus} by delivery driver`
+              })
+            }).catch(() => {});
+          } catch (_) {}
         }
         renderDeliveriesView();
         renderRoleDashboard();
-        openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked Picked Up.`);
+        openNotice("Delivery Status", `Delivery <strong>${id}</strong> marked ${action === "accept-delivery" ? "Accepted" : "Picked Up"}.`);
       } else if (action === "mark-out") {
         const effRole = getEffectiveRole();
         if (effRole !== "delivery_person" && effRole !== "admin" && effRole !== "developer") {
