@@ -92,9 +92,9 @@ export function initBloomCareChatbot(options = {}) {
           <div class="ai-header-meta">
             <div class="ai-header-title-row">
               <strong id="ai-header-title" class="ai-header-name">BloomCare AI</strong>
-              <span class="ai-role-tag">Pharmacy Assistant</span>
+              <span class="ai-role-tag">Medical &amp; Pharmacy AI</span>
             </div>
-            <span class="ai-header-status-text">● Online &bull; Licensed Dispensary</span>
+            <span class="ai-header-status-text">● Online &bull; Licensed Dispensary &amp; Clinical Guidance</span>
           </div>
         </div>
         <div class="ai-header-actions">
@@ -106,12 +106,11 @@ export function initBloomCareChatbot(options = {}) {
 
       <!-- Quick Action Navigation Strip -->
       <nav class="ai-quick-strip" aria-label="Chatbot Quick Topics">
-        <button type="button" class="ai-quick-pill" data-ai-action="Find a medicine">🔎 Find Products</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Show my cart">🛒 My Cart</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Where is my order?">📦 Track Order</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="How do I upload a prescription?">💊 Rx Help</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="How much is delivery?">🚚 Delivery</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Talk to a pharmacist">👨‍⚕️ Pharmacist</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="Find a medicine">🔎 Find a medicine</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="Recommend a product">⭐ Recommend a product</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="Where is my order?">📦 Where is my order?</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="How do I upload a prescription?">💊 How do I upload a prescription?</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="Talk to a pharmacist">👨‍⚕️ Talk to a pharmacist</button>
       </nav>
 
       <!-- Chat Messages Scroll Area -->
@@ -124,7 +123,7 @@ export function initBloomCareChatbot(options = {}) {
         <span class="ai-typing-dot"></span>
         <span class="ai-typing-dot"></span>
         <span class="ai-typing-dot"></span>
-        <small class="ai-typing-label">BloomCare AI is typing...</small>
+        <small class="ai-typing-label">BloomCare AI is analyzing health information...</small>
       </div>
 
       <!-- Footer Form -->
@@ -134,7 +133,7 @@ export function initBloomCareChatbot(options = {}) {
             type="text" 
             id="ai-user-input" 
             class="ai-input-field" 
-            placeholder="Ask about medicines, orders, prices..." 
+            placeholder="Ask about symptoms, medicines, orders..." 
             autocomplete="off"
             aria-label="Message BloomCare AI"
           />
@@ -146,7 +145,7 @@ export function initBloomCareChatbot(options = {}) {
           </button>
         </form>
         <div class="ai-disclaimer-strip">
-          <span>🌿 Informational assistant. For acute medical emergencies, call 999 or visit hospital immediately.</span>
+          <span>BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care.</span>
         </div>
       </footer>
     </aside>
@@ -292,7 +291,7 @@ export function initBloomCareChatbot(options = {}) {
     const welcomeMsg = {
       id: "welcome-" + Date.now(),
       sender: "ai",
-      text: `${greeting} I'm **BloomCare AI**, your licensed pharmacy assistant.\n\nI can help you find authentic medications, check stock and prices, explain our prescription review process, or track your delivery across Mbarara City.\n\nHow can I help you today?`,
+      text: `${greeting} I'm the **BloomCare Medical Information & Pharmacy Assistant**. I can help you understand common symptoms, medical conditions, medications, first aid, and find verified products from BloomCare Pharmacy.\n\nHow can I help you today?`,
       timestamp: Date.now(),
       suggestedQuestions: [
         "Find a medicine",
@@ -389,10 +388,11 @@ export function initBloomCareChatbot(options = {}) {
       const errorMsg = {
         id: "error-" + Date.now(),
         sender: "ai",
-        text: "BloomCare AI is temporarily experiencing connection difficulty.\n\nOur team is available immediately on our Care Desk:",
+        text: "Sorry, I'm unable to respond right now. Please try again later or contact a qualified healthcare professional.\n\nOur clinical team is available immediately through our Care Desk:",
         quickActions: [
           { label: "💬 WhatsApp Support", action: "whatsapp", value: "https://wa.me/256750210886" },
-          { label: "📞 Call 0750210886", action: "call_phone", value: "0750210886" }
+          { label: "📞 Call 0750210886", action: "call_phone", value: "0750210886" },
+          { label: "🩺 Book Consultation", action: "navigate", value: "consultations" }
         ],
         timestamp: Date.now()
       };
@@ -613,20 +613,21 @@ export function initBloomCareChatbot(options = {}) {
     const lower = text.toLowerCase();
     const userId = currentUser?.uid || currentUser?.email || "";
 
-    // Emergency red-flag
-    if (/\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|stroke|suicid|kill\s+myself|overdose|poison)\b/i.test(text)) {
+    // 1. Emergency red-flags (12 life-threatening categories)
+    if (/\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|choking|gasping\s+for\s+(air|breath)|unconscious|fainted|passed\s+out|unresponsive|collapsed|severe\s+bleeding|bleeding\s+uncontrollably|spurting\s+blood|seizure|convulsing|fits|stroke|face\s+droop|slurred\s+speech|sudden\s+paralysis|anaphylaxis|throat\s+closing|severe\s+allergic\s+reaction|overdose|swallowed\s+poison|poisoning|severe\s+confusion|severe\s+dehydration|suicid|kill\s+myself)\b/i.test(text)) {
       return {
-        text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate an urgent medical emergency. **BloomCare AI is an informational pharmacy assistant and cannot diagnose conditions.**\n\n🚨 **Please seek immediate emergency hospital care at Mbarara Regional Referral Hospital or contact urgent services immediately.**",
+        text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate a serious or life-threatening medical emergency. **BloomCare AI is an online pharmacy assistant and cannot diagnose conditions or manage emergencies.**\n\n🚨 **Immediate Action Required:**\n1. Seek immediate in-person emergency hospital care at **Mbarara Regional Referral Hospital**.\n2. Contact local emergency services or call BloomCare Urgent Support at **0750210886**.\n\nDo not wait for an online medicine delivery for severe, sudden, or life-threatening symptoms.",
         products: [],
         isSafetyAlert: true,
         quickActions: [
-          { label: "📞 Call Dispensary", action: "call_phone", value: "0750210886" },
+          { label: "🚨 Emergency Contacts", action: "emergency_contacts" },
+          { label: "📞 Call Dispensary: 0750210886", action: "call_phone", value: "0750210886" },
           { label: "💬 WhatsApp Care Desk", action: "whatsapp", value: "https://wa.me/256750210886?text=URGENT%20Medical%20Emergency%20Inquiry" }
         ]
       };
     }
 
-    // Prescription bypass guardrail
+    // 2. Prescription bypass guardrail
     if (/\b(without\s+(a\s+)?prescription|bypass\s+prescription|skip\s+prescription|no\s+doctor\s+note|fake\s+prescription)\b/i.test(text)) {
       return {
         text: "🛡️ **Prescription Verification Policy**\n\nUnder Uganda National Drug Authority (NDA) regulations, prescription medications strictly require clinical verification by a registered pharmacist.\n\nYou can upload your doctor's prescription during checkout or consult our pharmacist directly.",
@@ -634,6 +635,62 @@ export function initBloomCareChatbot(options = {}) {
         quickActions: [
           { label: "💊 Upload Prescription", action: "navigate", value: "prescriptions" },
           { label: "🩺 Consult Pharmacist", action: "navigate", value: "consultations" }
+        ]
+      };
+    }
+
+    // 3. Dosage Safety Check
+    if (/\b(how\s+much\s+(should\s+i|can\s+i|to)\s+take|what\s+dosage|how\s+many\s+(tablets|pills|capsules|drops|spoons)|dosage\s+for|can\s+i\s+give\s+\d+|child\s+dose|pediatric\s+dose|dosage)\b/i.test(text) && !lower.includes("buy") && !lower.includes("add to cart")) {
+      return {
+        text: "🛡️ **Medication Dosage & Administration Safety**\n\nBloomCare AI cannot provide personalized prescriptive dosing instructions. Safe dosage varies significantly depending on several critical clinical factors:\n\n• **Patient Age & Weight:** Pediatric doses must be calculated strictly by weight (mg/kg), never by adult estimates.\n• **Organ Function:** Kidney and liver conditions alter drug metabolism and excretion.\n• **Pregnancy & Breastfeeding:** Certain medications require dose adjustment or are strictly contraindicated.\n• **Product Strength & Formulation:** Liquid syrups, drops, chewables, and tablets have different concentrations.\n• **Current Medications:** Potential drug-drug interactions may increase adverse reaction risks.\n\n📋 **Safe Next Steps:**\n1. **Read Product Label:** Always check the dosage table on the package or patient leaflet.\n2. **Use Accurate Measures:** Use an oral dosing syringe or medicinal spoon, never kitchen spoons.\n3. **Ask Our Pharmacist:** Our registered clinical team is available to calculate the exact safe dosage for you.",
+        products: (products || []).filter(p => (p.name || "").toLowerCase().includes("paracetamol")).slice(0, 2),
+        quickActions: [
+          { label: "👨‍⚕️ Consult Pharmacist", action: "whatsapp", value: "https://wa.me/256750210886?text=Dosage%20Inquiry" },
+          { label: "🩺 Book Consultation", action: "navigate", value: "consultations" },
+          { label: "💊 Browse Medicines", action: "navigate", value: "medicines" }
+        ]
+      };
+    }
+
+    // 4. Clinical Condition Guidance: Malaria
+    if (/\b(malaria|anopheles|plasmodium)\b/i.test(text)) {
+      return {
+        text: "🌿 **Medical Guidance: Malaria**\n\n**What it could mean:**\nMalaria is a parasitic infection transmitted by female Anopheles mosquitoes. Symptoms can mimic viral fever or typhoid, making laboratory confirmation essential before initiating antimalarial treatment.\n\n**Common symptoms:**\n• High fever and chills\n• Profuse sweating\n• Headache and muscle aches\n• Nausea, vomiting, or loss of appetite\n• General fatigue and weakness\n\n**What you can do:**\n• Take a rapid diagnostic test (RDT) or blood smear before starting antimalarials.\n• Stay well hydrated with clean drinking water and oral fluids.\n• Rest in a well-ventilated room.\n• Use paracetamol for fever reduction while awaiting test results.\n\n**When to seek medical care:**\n• ⚠️ Difficulty breathing or rapid deep breathing\n• ⚠️ Persistent vomiting unable to retain oral medicines\n• ⚠️ Yellowing of the eyes or dark urine\n• ⚠️ Convulsions or altered mental state\n\n🔬 **Recommended Diagnostic Confirmation:** Malaria Rapid Diagnostic Test (RDT) or Blood Smear\n\n_Disclaimer: BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care._",
+        products: (products || []).filter(p => {
+          const n = (p.name || "").toLowerCase();
+          return n.includes("paracetamol") || n.includes("coartem");
+        }).slice(0, 3),
+        quickActions: [
+          { label: "👨‍⚕️ Speak to a Pharmacist", action: "suggest", value: "Talk to a pharmacist" },
+          { label: "🩺 Book Consultation", action: "navigate", value: "consultations" },
+          { label: "💊 Browse Medicines", action: "navigate", value: "medicines" }
+        ]
+      };
+    }
+
+    // 5. Clinical Condition Guidance: Colds & Flu
+    if (/\b(flu|cold|cough|coughing|runny nose|sore throat|sneezing|influenza)\b/i.test(text)) {
+      return {
+        text: "🌿 **Medical Guidance: Colds, Cough, Flu & Upper Respiratory Symptoms**\n\n**What it could mean:**\nMost upper respiratory symptoms are caused by viral infections that resolve on their own in 7 to 10 days. However, severe cough or persistent fever can also indicate bronchitis, allergies, or secondary bacterial infection.\n\n**Common symptoms:**\n• Runny or blocked nose\n• Sore or scratchy throat\n• Cough and sneezing\n• Low-grade fever and fatigue\n\n**What you can do:**\n• Rest to support your immune system.\n• Drink warm fluids (warm water, herbal teas, broth) to soothe throat irritation.\n• Use steam inhalation or saline sprays for nasal congestion.\n• Honey and lemon can help soothe coughs in adults and children over 1 year.\n\n**When to seek medical care:**\n• ⚠️ Difficulty breathing or wheezing\n• ⚠️ Fever persisting longer than 3 to 4 days\n• ⚠️ Coughing up thick discolored or bloody phlegm\n\n_Disclaimer: BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care._",
+        products: (products || []).filter(p => {
+          const n = (p.name || "").toLowerCase();
+          return n.includes("cough") || n.includes("paracetamol") || n.includes("cold");
+        }).slice(0, 3),
+        quickActions: [
+          { label: "👨‍⚕️ Speak to a Pharmacist", action: "suggest", value: "Talk to a pharmacist" },
+          { label: "💊 Browse Cough & Cold", action: "navigate", value: "medicines" }
+        ]
+      };
+    }
+
+    // 6. Medicine Monograph: Amoxicillin
+    if (/\b(amoxicillin|amoxil)\b/i.test(text)) {
+      return {
+        text: "💊 **Medication Guide: Amoxicillin**\n• **Drug Class:** Penicillin-class Beta-lactam Antibiotic\n• **Prescription Status:** Prescription Only (Rx)\n\n**What it is and uses:**\nUsed for susceptible bacterial infections of the ear, nose, throat, respiratory tract, urinary tract, and skin. It is completely ineffective against viral colds and flu.\n\n**How it works:**\nInhibits bacterial cell wall synthesis during active division, leading to cell breakdown and death.\n\n**Common side effects:**\nNausea, vomiting, diarrhea, loose stools, mild skin rash.\n\n**Important precautions:**\nSTRICTLY CONTRAINDICATED in patients with penicillin allergy. Always finish the entire prescribed course.\n\n**When to consult a healthcare professional:**\nSeek emergency care immediately if you develop facial swelling, hives, or breathing difficulty.\n\n_Dosage Safety: Safe dosage depends on age, weight, liver/kidney health, and clinical history. Always follow product packaging instructions or consult a BloomCare pharmacist._",
+        products: (products || []).filter(p => (p.name || "").toLowerCase().includes("amoxicillin")).slice(0, 2),
+        quickActions: [
+          { label: "📄 Upload Prescription", action: "navigate", value: "prescriptions" },
+          { label: "👨‍⚕️ Ask a Pharmacist", action: "whatsapp", value: "https://wa.me/256750210886?text=Inquiry%20about%20Amoxicillin" }
         ]
       };
     }
@@ -701,13 +758,14 @@ export function initBloomCareChatbot(options = {}) {
 
     // Default friendly assistant response
     return {
-      text: "I'm **BloomCare AI**, your pharmacy assistant. I can help you search medicines, check stock and prices, explain prescriptions, or track your orders.\n\nWhat can I assist you with?",
+      text: "Hello! 👋 I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant.\n\nI can help you understand symptoms, explore medicine uses and precautions, check real-time product stock and prices, track deliveries across Mbarara, or connect you directly with our clinical team.",
       products: (products || []).filter(p => (p.name || "").toLowerCase().includes("paracetamol")).slice(0, 2),
       quickActions: [
         { label: "🔎 Find a Medicine", action: "suggest", value: "Find a medicine" },
-        { label: "⭐ Recommended Products", action: "suggest", value: "Recommend products for me" },
-        { label: "📦 Track Order", action: "suggest", value: "Where is my order?" },
-        { label: "👨‍⚕️ Speak to Pharmacist", action: "suggest", value: "Talk to a pharmacist" }
+        { label: "⭐ Recommend a Product", action: "suggest", value: "Recommend a product" },
+        { label: "📦 Where is my order?", action: "suggest", value: "Where is my order?" },
+        { label: "💊 How do I upload a prescription?", action: "suggest", value: "How do I upload a prescription?" },
+        { label: "👨‍⚕️ Talk to a pharmacist", action: "suggest", value: "Talk to a pharmacist" }
       ]
     };
   }

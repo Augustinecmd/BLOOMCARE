@@ -20,11 +20,11 @@
     "deliveryStaffId": "usr-staff-5",
     "deliveryStaffName": "Moses Kato",
     "status": "Delivered",
-    "createdAt": "2026-09-14T16:50:44.627570+00:00",
-    "assignedAt": "2026-09-14T16:50:44.627570+00:00",
-    "updatedAt": "2026-09-14T16:50:44.757347+00:00",
+    "createdAt": "2026-09-17T08:43:50.057507+00:00",
+    "assignedAt": "2026-09-17T08:43:50.057507+00:00",
+    "updatedAt": "2026-09-17T08:43:50.130022+00:00",
     "notes": "Handed over to customer",
-    "deliveredAt": "2026-09-14T16:50:44.757347+00:00"
+    "deliveredAt": "2026-09-17T08:43:50.130022+00:00"
   },
   "DEL-BC-20260905-62053": {
     "id": "DEL-BC-20260905-62053",

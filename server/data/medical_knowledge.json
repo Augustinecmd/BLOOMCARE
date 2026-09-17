@@ -1,0 +1,494 @@
+{
+  "emergencyCategories": [
+    {
+      "category": "respiratory_distress",
+      "name": "Difficulty Breathing or Severe Shortness of Breath",
+      "keywords": ["can't breathe", "cannot breathe", "difficulty breathing", "severe shortness of breath", "struggling to breathe", "gasping for air", "blue lips", "choking"],
+      "action": "Immediate emergency care required. Call emergency services or go to the nearest emergency department immediately."
+    },
+    {
+      "category": "chest_pain",
+      "name": "Severe Chest Pain or Pressure",
+      "keywords": ["chest pain", "severe chest pain", "heart attack", "crushing chest pain", "chest pressure", "pain radiating to arm", "pain radiating to jaw"],
+      "action": "Immediate emergency care required. Do not drive yourself; call emergency services or go to an emergency hospital department immediately."
+    },
+    {
+      "category": "unconsciousness",
+      "name": "Unconsciousness or Fainting with Inability to Wake",
+      "keywords": ["unconscious", "passed out and won't wake", "unresponsive", "fainted and not waking up", "loss of consciousness"],
+      "action": "Immediate emergency care required. Check airway and breathing, place in recovery position if breathing, and call emergency services immediately."
+    },
+    {
+      "category": "severe_bleeding",
+      "name": "Severe or Uncontrolled Bleeding",
+      "keywords": ["severe bleeding", "bleeding uncontrollably", "spurting blood", "gushing blood", "won't stop bleeding", "massive blood loss"],
+      "action": "Apply direct firm pressure with a clean cloth or bandage. Seek emergency medical attention immediately."
+    },
+    {
+      "category": "seizures",
+      "name": "Seizures or Convulsions",
+      "keywords": ["seizure", "convulsions", "having a fit", "shaking uncontrollably", "epileptic seizure"],
+      "action": "Protect the person from injury, do not put anything in their mouth, time the seizure, and seek immediate emergency medical care."
+    },
+    {
+      "category": "stroke",
+      "name": "Stroke-like Symptoms (FAST Signs)",
+      "keywords": ["stroke", "face droop", "slurred speech", "sudden paralysis", "sudden numbness on one side", "arm weakness", "sudden loss of vision"],
+      "action": "Think FAST (Face, Arms, Speech, Time). This is a critical medical emergency. Seek emergency hospital care immediately."
+    },
+    {
+      "category": "anaphylaxis",
+      "name": "Severe Allergic Reaction (Anaphylaxis)",
+      "keywords": ["anaphylaxis", "throat swelling", "throat closing", "swollen tongue", "severe allergic reaction", "cannot swallow and breathing hard"],
+      "action": "Use an adrenaline/epinephrine auto-injector if available and call emergency services immediately."
+    },
+    {
+      "category": "poisoning_overdose",
+      "name": "Poisoning or Medication Overdose",
+      "keywords": ["swallowed poison", "poisoning", "overdose", "took too many pills", "ingested chemical", "swallowed bleach", "accidental poisoning"],
+      "action": "Do not induce vomiting unless advised by medical professionals. Bring the container/packaging and seek immediate emergency care."
+    },
+    {
+      "category": "serious_injury",
+      "name": "Serious Injury or Major Trauma",
+      "keywords": ["severe burn", "deep wound", "compound fracture", "bone sticking out", "head trauma", "severe car accident injury", "major fall"],
+      "action": "Immobilize the injured area, control bleeding with direct pressure, and seek emergency hospital care immediately."
+    },
+    {
+      "category": "severe_confusion",
+      "name": "Sudden Severe Confusion or Altered Mental State",
+      "keywords": ["sudden confusion", "severe disorientation", "hallucinating suddenly", "does not recognize family suddenly", "acute delirium"],
+      "action": "Sudden altered mental state may indicate a serious medical problem like stroke, severe infection, or metabolic crisis. Seek urgent medical evaluation."
+    },
+    {
+      "category": "severe_dehydration",
+      "name": "Severe Dehydration",
+      "keywords": ["sunken eyes not urinating", "severe dehydration", "no urine for 24 hours", "lethargic child cannot drink", "extreme thirst dry tongue no tears"],
+      "action": "Severe dehydration, especially in infants, young children, or the elderly, requires urgent medical rehydration (often IV fluids)."
+    },
+    {
+      "category": "suicidal_intent",
+      "name": "Suicidal Thoughts or Immediate Danger",
+      "keywords": ["suicid", "kill myself", "end my life", "want to die", "harm myself", "self-harm"],
+      "action": "You are not alone. Please reach out to emergency mental health crisis support, a trusted loved one, or visit the nearest hospital immediately."
+    }
+  ],
+  "conditions": {
+    "malaria": {
+      "name": "Malaria",
+      "summary": "A life-threatening disease caused by Plasmodium parasites transmitted through the bites of infected female Anopheles mosquitoes.",
+      "possibleCauses": "Infection with Plasmodium parasites (most commonly Plasmodium falciparum in Uganda).",
+      "commonSymptoms": ["High fever and chills", "Profuse sweating", "Headache and joint/muscle aches", "Nausea, vomiting, or loss of appetite", "Fatigue and general weakness"],
+      "safeAdvice": [
+        "Take a rapid diagnostic test (RDT) or microscopy blood smear before initiating antimalarial therapy.",
+        "Stay well hydrated with clean water and oral fluids.",
+        "Rest in a cool, ventilated room.",
+        "Use paracetamol for fever reduction and comfort while awaiting test results."
+      ],
+      "warningSigns": [
+        "Difficulty breathing or deep, rapid breathing",
+        "Persistent vomiting unable to retain oral fluids or medicines",
+        "Extreme weakness, inability to sit or walk",
+        "Yellowing of the eyes or skin (jaundice)",
+        "Dark or cola-colored urine",
+        "Convulsions or altered consciousness (cerebral malaria signs)"
+      ],
+      "clarificationQuestions": [
+        "Have you taken a malaria blood test (RDT or blood smear)?",
+        "How long have you had the fever?",
+        "Are you experiencing vomiting or inability to keep fluids down?",
+        "Is this for an adult, a pregnant woman, or a child?"
+      ]
+    },
+    "colds_flu_cough": {
+      "name": "Common Cold, Flu & Upper Respiratory Symptoms",
+      "summary": "Viral infections affecting the upper respiratory tract (nose, throat, sinuses, and large airways).",
+      "possibleCauses": "Rhinovirus, influenza viruses, RSV, parainfluenza, and other seasonal respiratory viruses.",
+      "commonSymptoms": ["Runny or stuffy nose", "Sore or scratchy throat", "Cough (dry or with clear mucus)", "Mild body aches and low-grade fever", "Sneezing and mild fatigue"],
+      "safeAdvice": [
+        "Rest adequately and drink plenty of warm fluids (water, broth, herbal tea with honey for adults).",
+        "Use steam inhalation or saline nasal spray to relieve nasal congestion.",
+        "Over-the-counter pain relievers (paracetamol) can help reduce fever and body aches.",
+        "Antibiotics do NOT cure viral colds or flu and should never be used without a bacterial diagnosis."
+      ],
+      "warningSigns": [
+        "Difficulty breathing, wheezing, or shortness of breath",
+        "High fever lasting more than 3 to 4 days",
+        "Chest pain or pressure when breathing",
+        "Coughing up blood or rust-colored phlegm",
+        "Severe sore throat with inability to swallow liquids"
+      ],
+      "clarificationQuestions": [
+        "How long has the cough or cold been present?",
+        "Do you have any difficulty breathing or chest pain?",
+        "Is the cough dry or producing colored mucus?",
+        "Do you have a fever, and what is the person's age?"
+      ]
+    },
+    "headaches_migraines": {
+      "name": "Headaches and Migraines",
+      "summary": "Pain in any region of the head, varying from dull tension to throbbing unilateral migraine pain.",
+      "possibleCauses": "Tension/stress, dehydration, lack of sleep, eye strain, sinus congestion, malaria/systemic infection, or migraine.",
+      "commonSymptoms": ["Dull, aching head pain or tight band around the forehead (tension)", "Throbbing or pulsing pain on one side of the head (migraine)", "Sensitivity to light, sound, or smells", "Nausea or visual aura before pain starts"],
+      "safeAdvice": [
+        "Drink a large glass of clean water to rule out dehydration.",
+        "Rest in a quiet, darkened room.",
+        "Apply a cool cloth or gentle compress to the forehead or neck.",
+        "Mild over-the-counter analgesics like paracetamol can be considered for occasional tension headache."
+      ],
+      "warningSigns": [
+        "Sudden 'thunderclap' headache with extreme severity unlike any prior headache",
+        "Headache accompanied by stiff neck, high fever, and confusion",
+        "Headache following head trauma or injury",
+        "Weakness, numbness, speech slurring, or vision loss",
+        "New headache in persons over 50 or those with cancer/HIV"
+      ],
+      "clarificationQuestions": [
+        "Is the pain sudden and severe, or gradual and dull?",
+        "Is it on one side or all over the head?",
+        "Are you having fever, neck stiffness, or vision changes?",
+        "How frequently do these headaches occur?"
+      ]
+    },
+    "digestive_stomach": {
+      "name": "Stomach Ache, Indigestion & Heartburn",
+      "summary": "Discomfort or pain in the abdominal area, often related to digestion, acid reflux, gastritis, or infections.",
+      "possibleCauses": "Indigestion (dyspepsia), gastroesophageal reflux (GERD), gastritis, peptic ulcer disease, food intolerance, or constipation.",
+      "commonSymptoms": ["Burning sensation in chest or upper stomach (heartburn)", "Bloating, gas, and early fullness", "Mild crampy abdominal pain", "Acid regurgitation or sour taste in mouth"],
+      "safeAdvice": [
+        "Eat smaller, more frequent meals rather than large, heavy meals.",
+        "Avoid lying down for at least 2 to 3 hours after eating.",
+        "Limit spicy, greasy, acidic foods, caffeine, and alcohol.",
+        "Stay hydrated with small sips of water."
+      ],
+      "warningSigns": [
+        "Severe, sharp, or worsening abdominal pain that makes it hard to stand",
+        "Vomiting blood or dark 'coffee-ground' material",
+        "Black, tarry, or bloody stools",
+        "Persistent vomiting unable to keep food or fluids down",
+        "Unexplained weight loss or difficulty swallowing"
+      ],
+      "clarificationQuestions": [
+        "Where exactly is the pain located (upper, lower, right side)?",
+        "Is the pain burning, crampy, or sharp?",
+        "Are you experiencing vomiting, diarrhea, or fever?",
+        "Does the pain get better or worse after eating?"
+      ]
+    },
+    "diarrhea_vomiting": {
+      "name": "Diarrhea and Vomiting (Gastroenteritis)",
+      "summary": "Frequent loose watery stools often accompanied by nausea and vomiting, carrying risk of dehydration.",
+      "possibleCauses": "Viral gastroenteritis, bacterial food poisoning, parasitic infection, contaminated water/food, or medication side effects.",
+      "commonSymptoms": ["Watery or loose stools multiple times a day", "Nausea and vomiting", "Abdominal cramps", "Mild fever or chills", "Thirst and dry mouth"],
+      "safeAdvice": [
+        "The highest priority is preventing dehydration: drink Oral Rehydration Salts (ORS) solution continuously.",
+        "For infants and children, continue breastfeeding/feeding and give ORS after each loose stool.",
+        "Eat bland, easy-to-digest foods (rice, bananas, toast, porridge) when able to tolerate food.",
+        "Avoid sugary drinks, alcohol, dairy, and heavily spiced foods until recovery."
+      ],
+      "warningSigns": [
+        "Signs of severe dehydration: sunken eyes, extreme lethargy, no urination for 8+ hours, dry tongue",
+        "Blood or mucus in the stool",
+        "High fever (above 38.5°C / 101.3°F)",
+        "Inability to keep any liquids down for more than 12-24 hours",
+        "Diarrhea lasting more than 2 to 3 days without improvement"
+      ],
+      "clarificationQuestions": [
+        "What is the person's age (is it a baby, child, or adult)?",
+        "Are they able to keep oral fluids down?",
+        "Is there any blood or mucus in the stool?",
+        "How many times have they passed loose stool today?"
+      ]
+    },
+    "allergies": {
+      "name": "Allergies and Allergic Rhinitis",
+      "summary": "An immune system reaction to substances that are typically harmless, such as pollen, dust, animal dander, or foods.",
+      "possibleCauses": "Environmental allergens (dust mites, pollen, mold), pet dander, insect stings, food proteins, or medications.",
+      "commonSymptoms": ["Sneezing and itchy, runny or blocked nose", "Itchy, red, watery eyes", "Itchy skin rash, hives (urticaria)", "Dry cough or throat clearing"],
+      "safeAdvice": [
+        "Identify and minimize exposure to known allergen triggers.",
+        "Use saline nasal sprays or rinses to clear nasal passages of pollen and dust.",
+        "Keep windows closed during high pollen counts and wash bedding regularly in hot water.",
+        "Over-the-counter non-drowsy antihistamines may help relieve sneezing and itching."
+      ],
+      "warningSigns": [
+        "Swelling of the lips, tongue, face, or throat",
+        "Difficulty breathing, wheezing, or tightness in the chest",
+        "Dizziness, lightheadedness, or feeling faint",
+        "Widespread hives accompanied by vomiting or abdominal pain"
+      ],
+      "clarificationQuestions": [
+        "What symptoms are you experiencing (nasal, eyes, skin rash)?",
+        "Did symptoms start after eating a specific food, insect sting, or new medicine?",
+        "Are you having any tightness in your throat or trouble breathing?"
+      ]
+    },
+    "asthma": {
+      "name": "Asthma",
+      "summary": "A chronic condition in which airways narrow, swell, and produce extra mucus, causing breathing difficulty.",
+      "possibleCauses": "Airway hyperresponsiveness triggered by cold air, smoke, dust, exercise, respiratory infections, or stress.",
+      "commonSymptoms": ["Shortness of breath", "Chest tightness or pain", "Wheezing (a whistling sound when exhaling)", "Coughing, especially at night or early morning"],
+      "safeAdvice": [
+        "Always carry your prescribed fast-acting reliever inhaler (e.g. Salbutamol) everywhere.",
+        "Identify and avoid your specific asthma triggers (smoke, dust, strong scents, cold air).",
+        "Follow your personalized Asthma Action Plan provided by your physician.",
+        "Take prescribed preventer/controller inhalers regularly as directed by your doctor."
+      ],
+      "warningSigns": [
+        "Severe breathlessness or inability to speak full sentences",
+        "Reliever inhaler not providing relief or wearing off quickly",
+        "Chest and ribs pulling in tightly with each breath (retractions)",
+        "Blue or gray tint to the lips, tongue, or fingernails",
+        "Peak flow reading in the red zone"
+      ],
+      "clarificationQuestions": [
+        "Have you been formally diagnosed with asthma by a doctor?",
+        "Do you have your reliever inhaler with you?",
+        "Are you able to speak in full sentences right now?"
+      ]
+    },
+    "diabetes": {
+      "name": "Diabetes Mellitus",
+      "summary": "A chronic metabolic condition characterized by elevated blood glucose levels due to inadequate insulin production or insulin resistance.",
+      "possibleCauses": "Type 1 diabetes (autoimmune destruction of beta cells), Type 2 diabetes (insulin resistance and relative deficiency), or gestational diabetes.",
+      "commonSymptoms": ["Increased thirst (polydipsia) and frequent urination (polyuria)", "Unexplained weight loss", "Fatigue and lack of energy", "Blurred vision", "Slow-healing sores or cuts"],
+      "safeAdvice": [
+        "Follow a balanced diet rich in vegetables, whole grains, and lean proteins; minimize refined sugars.",
+        "Engage in regular physical activity such as brisk walking for 30 minutes most days.",
+        "Monitor blood glucose levels as advised by your healthcare provider.",
+        "Take prescribed medications or insulin consistently at designated times."
+      ],
+      "warningSigns": [
+        "Hypoglycemia (low blood sugar): Shakiness, sweating, dizziness, confusion (requires immediate fast-acting sugar)",
+        "Hyperglycemia crisis (DKA/HHS): Fruity-smelling breath, extreme thirst, confusion, vomiting, deep rapid breathing",
+        "Non-healing ulcers or infections on the feet",
+        "Sudden vision changes or persistent numbness in hands/feet"
+      ],
+      "clarificationQuestions": [
+        "Have you been diagnosed with Type 1 or Type 2 diabetes?",
+        "Are you taking insulin or oral diabetes medications?",
+        "Do you know your current blood glucose reading?"
+      ]
+    },
+    "hypertension": {
+      "name": "Hypertension (High Blood Pressure)",
+      "summary": "A common condition in which the long-term force of the blood against artery walls is elevated (consistently >= 140/90 mmHg).",
+      "possibleCauses": "Primary (essential) hypertension linked to genetics, lifestyle (high salt, obesity, lack of exercise, stress), or secondary to kidney/endocrine disease.",
+      "commonSymptoms": ["Often called 'the silent killer' because it usually has NO symptoms until severe complications develop.", "Severe elevations may cause morning headaches, dizziness, nosebleeds, or blurred vision."],
+      "safeAdvice": [
+        "Reduce dietary sodium (salt) intake and avoid processed foods.",
+        "Eat a heart-healthy diet rich in fruits, vegetables, and potassium (DASH diet).",
+        "Maintain a healthy weight and exercise regularly.",
+        "Avoid tobacco smoking and limit alcohol consumption.",
+        "Take prescribed blood pressure medications consistently every day, even when feeling completely healthy."
+      ],
+      "warningSigns": [
+        "Hypertensive crisis (BP >= 180/120 mmHg) with chest pain, shortness of breath, back pain, or vision changes",
+        "Severe sudden headache accompanied by confusion or numbness",
+        "Difficulty speaking or weakness on one side of the body"
+      ],
+      "clarificationQuestions": [
+        "Do you know your recent blood pressure readings?",
+        "Are you currently prescribed any blood pressure medication?",
+        "Are you having any chest pain, severe headache, or vision changes?"
+      ]
+    },
+    "skin_rashes": {
+      "name": "Common Skin Conditions & Rashes",
+      "summary": "Skin changes involving redness, bumps, itching, peeling, or blisters with diverse infectious and non-infectious causes.",
+      "possibleCauses": "Contact dermatitis (soap, cosmetic, plant allergy), fungal infection (ringworm/tinea), eczema (atopic dermatitis), bacterial infection (impetigo), or viral exanthem.",
+      "commonSymptoms": ["Redness, swelling, or warm patches on the skin", "Itching or burning sensation", "Dry, flaky, or thickened skin", "Small bumps, fluid-filled blisters, or scaling rings"],
+      "safeAdvice": [
+        "Gently wash the affected area with mild soap and lukewarm water, then pat dry.",
+        "Avoid scratching the rash to prevent secondary bacterial infection.",
+        "Apply a plain fragrance-free moisturizer or petroleum jelly for dry eczema.",
+        "Keep the area clean, dry, and exposed to fresh air where possible."
+      ],
+      "warningSigns": [
+        "Rash spreading very rapidly across large body areas",
+        "Blisters, skin peeling in sheets, or open raw skin",
+        "Signs of bacterial infection: yellow crusting, pus oozing, severe swelling, heat, red streaks",
+        "Rash accompanied by high fever, joint pain, or breathing difficulty"
+      ],
+      "clarificationQuestions": [
+        "Where is the rash located and how long has it been present?",
+        "Is it intensely itchy, painful, or burning?",
+        "Have you started any new soaps, cosmetics, or oral medicines recently?"
+      ]
+    }
+  },
+  "medicines": {
+    "paracetamol": {
+      "name": "Paracetamol (Acetaminophen)",
+      "class": "Non-opioid Analgesic and Antipyretic",
+      "uses": "Relief of mild to moderate pain (headache, toothache, muscle aches, sore throat) and reduction of fever.",
+      "mechanism": "Inhibits prostaglandin synthesis in the central nervous system to relieve pain and reduce the hypothalamic temperature set-point.",
+      "sideEffects": "Generally very well tolerated at recommended therapeutic doses. Rare allergic reactions (skin rash).",
+      "precautions": "Severe liver damage can occur with overdose or prolonged excessive use. Avoid combining with other paracetamol-containing combination cold/flu products.",
+      "interactions": "Warfarin (regular high-dose paracetamol may enhance anticoagulation), chronic alcohol use (increases liver toxicity risk).",
+      "prescriptionStatus": "Over-The-Counter (OTC)",
+      "dosageGuidance": "Standard adult dose is typically 500mg to 1000mg every 4 to 6 hours as needed, with a strict maximum of 4000mg (4 grams) in 24 hours. For children, dosing is strictly based on body weight (10-15 mg/kg per dose) — consult the medicine label or a pharmacist.",
+      "whenToConsult": "Seek medical help if fever persists beyond 3 days, pain lasts more than 5 days, or if an accidental overdose is suspected."
+    },
+    "ibuprofen": {
+      "name": "Ibuprofen",
+      "class": "Non-Steroidal Anti-Inflammatory Drug (NSAID)",
+      "uses": "Relief of inflammatory pain, headache, dental pain, menstrual cramps, arthritis, and fever.",
+      "mechanism": "Inhibits cyclooxygenase enzymes (COX-1 and COX-2), decreasing prostaglandin synthesis and reducing inflammation, pain, and fever.",
+      "sideEffects": "Stomach upset, heartburn, nausea, abdominal discomfort. Can cause gastric ulcers or bleeding with prolonged use.",
+      "precautions": "Take with or immediately after food or milk. Use with extreme caution in patients with history of stomach ulcers, asthma, kidney impairment, or heart disease. Avoid in pregnancy, especially the third trimester.",
+      "interactions": "Blood thinners (aspirin, warfarin), other NSAIDs, ACE inhibitors/diuretics (reduces kidney function), corticosteroids.",
+      "prescriptionStatus": "Over-The-Counter (OTC) in low doses; higher strengths may be prescription.",
+      "dosageGuidance": "Typical adult dose is 200mg to 400mg every 6 to 8 hours with food, up to a maximum recommended OTC limit of 1200mg per day unless prescribed otherwise. Pediatric doses depend strictly on weight.",
+      "whenToConsult": "Stop use and see a doctor immediately if you notice black tarry stools, vomit blood, experience severe stomach pain, or swollen ankles."
+    },
+    "amoxicillin": {
+      "name": "Amoxicillin",
+      "class": "Penicillin-class Beta-lactam Antibiotic",
+      "uses": "Treatment of susceptible bacterial infections of the ear, nose, throat, respiratory tract, urinary tract, and skin.",
+      "mechanism": "Inhibits bacterial cell wall synthesis during active multiplication, leading to cell lysis and death.",
+      "sideEffects": "Nausea, vomiting, diarrhea, loose stools, mild skin rash.",
+      "precautions": "STRICTLY CONTRAINDICATED in patients with known penicillin or beta-lactam allergy. Complete the full prescribed course even if symptoms improve early to prevent bacterial resistance.",
+      "interactions": "Methotrexate, probenecid, oral contraceptives (may reduce effectiveness), allopurinol (increases risk of rash).",
+      "prescriptionStatus": "Prescription Only (Rx) — Requires doctor's prescription and pharmacist review under NDA regulations.",
+      "dosageGuidance": "Dosage varies widely based on infection type, severity, renal function, and patient weight. Only take as specifically prescribed by a licensed healthcare professional.",
+      "whenToConsult": "Seek emergency medical care if you develop signs of an allergic reaction (hives, difficulty breathing, facial swelling) or severe watery diarrhea."
+    },
+    "coartem": {
+      "name": "Coartem (Artemether / Lumefantrine)",
+      "class": "Artemisinin-based Combination Therapy (ACT) Antimalarial",
+      "uses": "Treatment of acute, uncomplicated Plasmodium falciparum malaria.",
+      "mechanism": "Artemether rapidly reduces parasite biomass, while lumefantrine eliminates residual parasites to prevent recrudescence.",
+      "sideEffects": "Headache, dizziness, loss of appetite, joint/muscle aches, fatigue, sleep disturbances.",
+      "precautions": "Must be taken with food or drinks containing fat (such as milk) to ensure adequate absorption of lumefantrine. Complete the full 6-dose course over 3 days.",
+      "interactions": "Medicines that prolong the QT interval (certain antiarrhythmics, macrolides, antipsychotics), CYP3A4 inhibitors/inducers.",
+      "prescriptionStatus": "Prescription / Regulated Antimalarial — Recommended strictly following a positive malaria test (RDT or blood smear).",
+      "dosageGuidance": "Standard regimen is a 6-dose course over 3 days. Dosing for children and adults is strictly based on body weight categories. Check packaging or consult your pharmacist.",
+      "whenToConsult": "Seek immediate hospital care if the patient cannot retain the medicine due to repeated vomiting or shows signs of severe malaria (confusion, extreme lethargy)."
+    },
+    "omeprazole": {
+      "name": "Omeprazole",
+      "class": "Proton Pump Inhibitor (PPI)",
+      "uses": "Treatment of gastroesophageal reflux disease (GERD), heartburn, peptic ulcer disease, and Zollinger-Ellison syndrome.",
+      "mechanism": "Irreversibly inhibits the H+/K+ ATPase enzyme system in gastric parietal cells, significantly suppressing gastric acid secretion.",
+      "sideEffects": "Headache, abdominal pain, constipation, diarrhea, flatulence, nausea.",
+      "precautions": "Best taken 30 to 60 minutes before a meal (usually before breakfast). Long-term use without medical supervision is not recommended as it may affect magnesium and vitamin B12 absorption.",
+      "interactions": "Clopidogrel (may reduce antiplatelet efficacy), ketoconazole (reduced absorption), methotrexate, diazepam.",
+      "prescriptionStatus": "OTC for short-term heartburn; higher doses or extended courses require prescription.",
+      "dosageGuidance": "Common adult dosage is 20mg once daily before breakfast for 14 days for frequent heartburn. Swallow capsules whole with water; do not crush or chew.",
+      "whenToConsult": "Consult a doctor if heartburn continues after 14 days of treatment, or if you experience difficulty swallowing or unexplained weight loss."
+    },
+    "cetirizine": {
+      "name": "Cetirizine",
+      "class": "Second-Generation Antihistamine",
+      "uses": "Relief of symptoms associated with allergic rhinitis (sneezing, runny nose, itchy eyes) and chronic urticaria (hives).",
+      "mechanism": "Selectively antagonizes peripheral histamine H1-receptors, blocking the effects of histamine released during allergic reactions.",
+      "sideEffects": "Mild drowsiness in some individuals, dry mouth, headache, fatigue.",
+      "precautions": "Although less sedating than first-generation antihistamines, caution is advised when driving or operating machinery. Avoid alcohol.",
+      "interactions": "CNS depressants (sedatives, alcohol) may increase drowsiness risk.",
+      "prescriptionStatus": "Over-The-Counter (OTC)",
+      "dosageGuidance": "Standard adult dose is 10mg once daily, preferably in the evening. For children, lower weight-adjusted doses or syrups are used.",
+      "whenToConsult": "Seek urgent medical attention if allergic symptoms involve swelling of the tongue or throat, or difficulty breathing."
+    },
+    "ors_zinc": {
+      "name": "Oral Rehydration Salts (ORS) + Zinc Sulfate",
+      "class": "Rehydration Solution & Micronutrient Supplement",
+      "uses": "Prevention and treatment of dehydration caused by acute diarrhea and vomiting in adults and children.",
+      "mechanism": "ORS utilizes sodium-glucose co-transport in the gut to maximize water and electrolyte absorption. Zinc reduces diarrhea duration, severity, and recurrence risk in children.",
+      "sideEffects": "Extremely safe when prepared correctly. Rarely vomiting if drunk too quickly.",
+      "precautions": "Must be dissolved in the exact amount of clean, boiled and cooled water stated on the sachet (commonly 1 liter or 500ml). Do not mix with milk, juice, or soup.",
+      "interactions": "No significant adverse drug interactions.",
+      "prescriptionStatus": "Over-The-Counter (Essential Medicine)",
+      "dosageGuidance": "Drink small sips frequently after every loose stool. Children under 5 should also receive 20mg zinc daily (10mg for infants under 6 months) for 10-14 days.",
+      "whenToConsult": "Seek immediate emergency hospital care if the patient cannot drink, is vomiting everything, has sunken eyes, or is unusually sleepy or unresponsive."
+    }
+  },
+  "firstAid": {
+    "burns": {
+      "title": "First Aid for Minor Burns",
+      "steps": [
+        "Immediately cool the burn under gentle, cool running water for at least 10 to 20 minutes.",
+        "Do NOT use ice, iced water, butter, toothpaste, or oil on burns, as these cause tissue damage.",
+        "Gently remove rings, watches, or tight clothing around the burn before swelling occurs.",
+        "Cover the burn loosely with a sterile non-stick dressing or clean plastic wrap.",
+        "Seek immediate medical care if the burn is large, on the face/hands/genitals, or forms deep white/charred tissue."
+      ]
+    },
+    "cuts_wounds": {
+      "title": "First Aid for Minor Cuts & Scrapes",
+      "steps": [
+        "Wash your hands before tending to the wound.",
+        "Apply gentle direct pressure with a clean cloth or gauze to stop minor bleeding.",
+        "Rinse the wound thoroughly under clean running water to remove dirt and debris.",
+        "Pat dry and apply an antiseptic or petroleum jelly, then cover with a clean sterile bandage.",
+        "Seek medical attention if bleeding will not stop after 10 minutes of direct pressure, the wound is deep, or the patient has not had a tetanus vaccination in 10 years."
+      ]
+    },
+    "nosebleed": {
+      "title": "First Aid for Nosebleeds (Epistaxis)",
+      "steps": [
+        "Sit upright and lean slightly FORWARD (do NOT tilt head back, as blood can run into the throat and cause choking or vomiting).",
+        "Firmly pinch the soft part of the nose just below the bony bridge with thumb and index finger.",
+        "Breathe through the mouth and maintain continuous pressure for 10 to 15 minutes without releasing.",
+        "Apply a cold compress or ice pack wrapped in a cloth to the bridge of the nose.",
+        "Seek medical attention if bleeding continues after 20 minutes of firm pressure or follows significant head trauma."
+      ]
+    },
+    "choking": {
+      "title": "First Aid for Conscious Choking Adults",
+      "steps": [
+        "Ask 'Are you choking?' If the person can cough forcefully, encourage them to keep coughing.",
+        "If the person cannot speak, cough, or breathe, deliver 5 firm back blows between shoulder blades with the heel of your hand.",
+        "If back blows do not dislodge the object, perform 5 abdominal thrusts (Heimlich maneuver).",
+        "Alternate 5 back blows and 5 abdominal thrusts until the airway is clear or the person becomes unconscious.",
+        "If the person becomes unconscious, call emergency services immediately and begin CPR."
+      ]
+    }
+  },
+  "labTests": {
+    "malaria_rdt": {
+      "name": "Malaria Rapid Diagnostic Test (RDT) & Blood Smear",
+      "purpose": "Detects malaria parasite antigens or visualizes parasites in red blood cells under a microscope.",
+      "interpretation": "Positive indicates current malaria infection. Negative indicates malaria parasites were not detected; however, if symptoms persist, repeat testing or clinical re-evaluation is warranted.",
+      "advice": "Antimalarials should be taken based on positive test results rather than presumptive self-diagnosis."
+    },
+    "cbc": {
+      "name": "Complete Blood Count (CBC / FBC)",
+      "purpose": "Evaluates overall health and detects a wide range of conditions, including anemia, infection, and leukemia.",
+      "keyParameters": [
+        "Hemoglobin (Hb): Oxygen-carrying protein; low levels indicate anemia.",
+        "White Blood Cells (WBC): Immune cells; elevated levels often indicate infection or inflammation.",
+        "Platelets: Clotting cells; low levels increase bleeding risk."
+      ]
+    },
+    "urinalysis": {
+      "name": "Urinalysis (Urine Dipstick & Microscopy)",
+      "purpose": "Screens for urinary tract infections (UTIs), kidney disease, and diabetes.",
+      "keyParameters": [
+        "Leukocytes & Nitrites: Suggest bacterial urinary tract infection.",
+        "Protein: May indicate kidney stress or preeclampsia in pregnancy.",
+        "Glucose: Suggests elevated blood sugar (diabetes mellitus)."
+      ]
+    },
+    "blood_glucose": {
+      "name": "Fasting Blood Glucose & Random Blood Sugar (RBS)",
+      "purpose": "Measures glucose concentration in the blood to diagnose and monitor prediabetes and diabetes.",
+      "interpretation": "Normal fasting glucose is typically 70-99 mg/dL (3.9-5.5 mmol/L). Fasting >= 126 mg/dL (7.0 mmol/L) on repeated testing suggests diabetes."
+    },
+    "lipid_profile": {
+      "name": "Lipid Profile (Cholesterol Panel)",
+      "purpose": "Measures total cholesterol, LDL ('bad' cholesterol), HDL ('good' cholesterol), and triglycerides to evaluate cardiovascular risk."
+    }
+  },
+  "medicalGlossary": {
+    "otc": "Over-The-Counter: Medicines available for purchase without a doctor's prescription.",
+    "rx": "Prescription Only: Regulated medicines requiring a doctor's prescription and pharmacist review prior to dispensing.",
+    "analgesic": "A medicine designed specifically to relieve pain.",
+    "antipyretic": "A medicine used to reduce body fever.",
+    "antibiotic": "A medicine that fights bacterial infections (ineffective against viral colds and flu).",
+    "antiseptic": "A substance applied to living tissue/skin to reduce the risk of infection or sepsis.",
+    "contraindication": "A specific condition or factor that makes a particular treatment or medication inadvisable.",
+    "prophylaxis": "Treatment or action taken to prevent disease rather than cure an active illness.",
+    "adverse_effect": "An unwanted, unintended, or harmful reaction experienced from a medication."
+  }
+}

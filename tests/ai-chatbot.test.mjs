@@ -16,6 +16,7 @@ const pythonApiPath = path.join(rootDir, 'server', 'payment_api.py');
 const vercelApiPath = path.join(rootDir, 'api', 'chat.js');
 const aiKnowledgePath = path.join(rootDir, 'server', 'data', 'ai_knowledge.json');
 const aiAnalyticsPath = path.join(rootDir, 'server', 'data', 'ai_analytics.json');
+const medicalKnowledgePath = path.join(rootDir, 'server', 'data', 'medical_knowledge.json');
 
 // Read files for structural verification
 const appJsContent = fs.readFileSync(appJsPath, 'utf8');
@@ -27,6 +28,7 @@ const pythonApiContent = fs.readFileSync(pythonApiPath, 'utf8');
 const vercelApiContent = fs.readFileSync(vercelApiPath, 'utf8');
 const aiKnowledgeContent = fs.readFileSync(aiKnowledgePath, 'utf8');
 const aiAnalyticsContent = fs.readFileSync(aiAnalyticsPath, 'utf8');
+const medicalKnowledgeContent = fs.readFileSync(medicalKnowledgePath, 'utf8');
 
 // Import chatbot module
 const chatbotModule = await import('../BLOOMCARE-main/chatbot.js');

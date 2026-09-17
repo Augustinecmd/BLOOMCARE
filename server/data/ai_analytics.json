@@ -1,16 +1,148 @@
 {
-  "totalConversations": 1,
-  "todayConversations": 1,
-  "lastResetDate": "2026-09-14",
-  "productSearches": 1,
+  "totalConversations": 10,
+  "todayConversations": 9,
+  "lastResetDate": "2026-09-17",
+  "productSearches": 8,
   "successfulRecommendations": 1,
   "cartAdditions": 0,
-  "escalationsToPharmacists": 0,
+  "escalationsToPharmacists": 2,
   "unansweredQuestions": 0,
   "topAskedQuestions": {
-    "hlo": 3
+    "hlo": 3,
+    "i have chest pain": 2,
+    "tell me about malaria symptoms": 6,
+    "what is the dosage for paracetamol?": 4,
+    "what are the side effects of amoxicillin?": 2,
+    "i have severe chest pain and cannot breathe": 2,
+    "first aid for burns": 2
   },
   "recentEvents": [
+    {
+      "type": "search",
+      "query": "First aid for burns",
+      "timestamp": "2026-09-17T11:43:44.451239",
+      "details": {
+        "type": "first_aid"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "First aid for burns",
+      "timestamp": "2026-09-17T11:43:44.442074",
+      "details": {}
+    },
+    {
+      "type": "escalation",
+      "query": "I have severe chest pain and cannot breathe",
+      "timestamp": "2026-09-17T11:43:44.430523",
+      "details": {
+        "reason": "safety_check"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "I have severe chest pain and cannot breathe",
+      "timestamp": "2026-09-17T11:43:44.421985",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What is the dosage for Paracetamol?",
+      "timestamp": "2026-09-17T11:43:44.410943",
+      "details": {
+        "type": "dosage_safety"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What is the dosage for Paracetamol?",
+      "timestamp": "2026-09-17T11:43:44.402231",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the side effects of Amoxicillin?",
+      "timestamp": "2026-09-17T11:43:44.391123",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the side effects of Amoxicillin?",
+      "timestamp": "2026-09-17T11:43:44.381031",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Tell me about malaria symptoms",
+      "timestamp": "2026-09-17T11:43:44.372112",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Tell me about malaria symptoms",
+      "timestamp": "2026-09-17T11:43:44.359470",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Tell me about malaria symptoms",
+      "timestamp": "2026-09-17T11:41:52.173689",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Tell me about malaria symptoms",
+      "timestamp": "2026-09-17T11:41:52.163700",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What is the dosage for Paracetamol?",
+      "timestamp": "2026-09-17T11:41:46.287280",
+      "details": {
+        "type": "dosage_safety"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What is the dosage for Paracetamol?",
+      "timestamp": "2026-09-17T11:41:46.278089",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Tell me about malaria symptoms",
+      "timestamp": "2026-09-17T11:41:46.268510",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Tell me about malaria symptoms",
+      "timestamp": "2026-09-17T11:41:46.255579",
+      "details": {}
+    },
+    {
+      "type": "escalation",
+      "query": "I have chest pain",
+      "timestamp": "2026-09-17T11:41:46.244688",
+      "details": {
+        "reason": "safety_check"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "I have chest pain",
+      "timestamp": "2026-09-17T11:41:46.237164",
+      "details": {}
+    },
     {
       "type": "recommendation",
       "query": "hlo",

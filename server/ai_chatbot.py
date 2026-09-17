@@ -17,20 +17,45 @@ from typing import Any, Dict, List, Optional, Tuple
 
 DATA_DIR = Path(__file__).parent / "data"
 KNOWLEDGE_FILE = DATA_DIR / "ai_knowledge.json"
+MEDICAL_KNOWLEDGE_FILE = DATA_DIR / "medical_knowledge.json"
 ANALYTICS_FILE = DATA_DIR / "ai_analytics.json"
 DELIVERIES_FILE = DATA_DIR / "deliveries.json"
 ASSIGNMENTS_FILE = DATA_DIR / "delivery_assignments.json"
 
+# 12 Life-Threatening Emergency Categories
 EMERGENCY_PATTERNS = [
-    re.compile(r"\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing)\b", re.I),
-    re.compile(r"\b(stroke|face\s+droop|slurred\s+speech|sudden\s+paralysis|sudden\s+numbness)\b", re.I),
-    re.compile(r"\b(suicid|kill\s+myself|end\s+my\s+life|self[- ]harm)\b", re.I),
-    re.compile(r"\b(overdose|swallowed\s+poison|poisoning|bleeding\s+uncontrollably)\b", re.I),
-    re.compile(r"\b(anaphylaxis|throat\s+closing|severe\s+allergic\s+reaction)\b", re.I),
+    # 1. Difficulty breathing
+    re.compile(r"\b(shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|choking|gasping\s+for\s+(air|breath)|struggling\s+to\s+breathe|unable\s+to\s+breathe)\b", re.I),
+    # 2. Chest pain / heart attack
+    re.compile(r"\b(chest\s+pain|heart\s+attack|pressure\s+in\s+(my\s+)?chest|crushing\s+chest|tightness\s+in\s+chest|pain\s+radiating\s+to\s+(left\s+)?arm)\b", re.I),
+    # 3. Unconsciousness / fainting
+    re.compile(r"\b(unconscious|fainted|passed\s+out|unresponsive|collapsed|blacked\s+out|loss\s+of\s+consciousness)\b", re.I),
+    # 4. Severe bleeding
+    re.compile(r"\b(severe\s+bleeding|bleeding\s+uncontrollably|spurting\s+blood|gushing\s+blood|massive\s+hemorrhage|deep\s+arterial\s+cut)\b", re.I),
+    # 5. Seizures / convulsions
+    re.compile(r"\b(seizure|convulsing|fits|epilepsy\s+attack|shaking\s+uncontrollably)\b", re.I),
+    # 6. Stroke symptoms
+    re.compile(r"\b(stroke|face\s+droop|slurred\s+speech|sudden\s+paralysis|sudden\s+numbness|arm\s+weakness|can'?t\s+move\s+(one\s+)?side)\b", re.I),
+    # 7. Anaphylaxis / severe allergic reaction
+    re.compile(r"\b(anaphylaxis|throat\s+closing|severe\s+allergic\s+reaction|tongue\s+swelling|swollen\s+lips\s+and\s+breathing|lip\s+swelling\s+with\s+wheezing)\b", re.I),
+    # 8. Poisoning / overdose
+    re.compile(r"\b(overdose|swallowed\s+poison|poisoning|drank\s+bleach|ingested\s+chemical|swallowed\s+pills|toxic\s+ingestion)\b", re.I),
+    # 9. Serious injury / severe trauma
+    re.compile(r"\b(serious\s+head\s+injury|broken\s+bone\s+protruding|car\s+accident|severe\s+trauma|compound\s+fracture|severe\s+burn)\b", re.I),
+    # 10. Severe confusion / altered mental state
+    re.compile(r"\b(severe\s+confusion|sudden\s+disorientation|hallucinations|sudden\s+delirium|altered\s+mental\s+state)\b", re.I),
+    # 11. Severe dehydration (especially in infants / elderly)
+    re.compile(r"\b(severe\s+dehydration|sunken\s+eyes\s+no\s+tears|no\s+urine\s+for\s+(12|24)\s+hours|infant\s+unresponsive\s+dehydration)\b", re.I),
+    # 12. Suicidal intent / self-harm
+    re.compile(r"\b(suicid|kill\s+myself|end\s+my\s+life|self[- ]harm|want\s+to\s+die)\b", re.I),
 ]
 
 PRESCRIPTION_BYPASS_PATTERNS = [
     re.compile(r"\b(without\s+(a\s+)?prescription|bypass\s+prescription|skip\s+prescription|no\s+doctor\s+note|fake\s+prescription)\b", re.I),
+]
+
+DOSAGE_PATTERNS = [
+    re.compile(r"\b(how\s+much\s+(should\s+i|can\s+i|to)\s+take|what\s+dosage|how\s+many\s+(tablets|pills|capsules|drops|spoons)|dosage\s+for|can\s+i\s+give\s+\d+|child\s+dose|pediatric\s+dose|dose\s+for\s+child|dose\s+for\s+baby)\b", re.I),
 ]
 
 
@@ -39,6 +64,16 @@ def load_knowledge_base() -> Dict[str, Any]:
         return {}
     try:
         with open(KNOWLEDGE_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def load_medical_knowledge() -> Dict[str, Any]:
+    if not MEDICAL_KNOWLEDGE_FILE.exists():
+        return {}
+    try:
+        with open(MEDICAL_KNOWLEDGE_FILE, "r", encoding="utf-8") as f:
             return json.load(f)
     except Exception:
         return {}
@@ -198,6 +233,238 @@ def tool_get_bloomcare_faq(topic: str) -> Optional[str]:
             return f"**{faq.get('question')}**\n\n{faq.get('answer')}"
 
     return None
+
+
+MEDICINE_KEYWORD_MAP = {
+    "paracetamol": ["paracetamol", "acetaminophen", "panadol"],
+    "ibuprofen": ["ibuprofen", "advil", "brufen"],
+    "amoxicillin": ["amoxicillin", "amoxil"],
+    "coartem": ["coartem", "artemether", "lumefantrine", "lonart"],
+    "omeprazole": ["omeprazole", "losec", "prilosec"],
+    "cetirizine": ["cetirizine", "zyrtec"],
+    "ors_zinc": ["ors", "oral rehydration", "zinc sulfate", "rehydration salts"],
+}
+
+CONDITION_KEYWORD_MAP = {
+    "malaria": ["malaria", "anopheles", "plasmodium"],
+    "colds_flu": ["flu", "cold", "coughs", "coughing", "runny nose", "sore throat", "sneezing", "influenza"],
+    "headaches_migraines": ["headache", "migraine", "head ache", "throbbing head"],
+    "digestive_problems": ["heartburn", "indigestion", "acid reflux", "stomach ache", "bloating", "gastritis", "ulcer"],
+    "diarrhea_vomiting": ["diarrhea", "diarrhoea", "vomiting", "throwing up", "loose stool", "watery stool", "stomach bug"],
+    "allergies": ["allergy", "allergies", "allergic rhinitis", "hay fever", "hives", "urticaria"],
+    "asthma": ["asthma", "wheezing", "wheeze", "inhaler"],
+    "diabetes": ["diabetes", "high sugar", "hyperglycemia", "blood glucose", "diabetic"],
+    "hypertension": ["hypertension", "high blood pressure", "elevated bp"],
+    "skin_rashes": ["rash", "eczema", "dermatitis", "itchy skin", "ringworm", "skin infection", "skin allergy"],
+}
+
+
+def tool_get_condition_info(query: str, med_kb: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    kb = med_kb or load_medical_knowledge()
+    conditions = kb.get("conditions", {})
+    query_lower = query.lower()
+
+    # 1. Direct mapped keyword check
+    for cond_key, kw_list in CONDITION_KEYWORD_MAP.items():
+        if any(re.search(r"\b" + re.escape(kw) + r"\b", query_lower) for kw in kw_list):
+            if cond_key in conditions:
+                return conditions[cond_key]
+
+    # 2. Match condition name or common symptoms
+    for key, cond in conditions.items():
+        name = cond.get("name", "").lower()
+        if name in query_lower:
+            return cond
+        symptoms = [s.lower() for s in cond.get("commonSymptoms", [])]
+        if any(sym in query_lower for sym in symptoms):
+            return cond
+
+    return None
+
+
+def tool_get_medicine_info(query: str, med_kb: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    kb = med_kb or load_medical_knowledge()
+    medicines = kb.get("medicines", {})
+    query_lower = query.lower()
+
+    # Check mapped keywords with word boundaries
+    for med_key, kw_list in MEDICINE_KEYWORD_MAP.items():
+        if any(re.search(r"\b" + re.escape(kw) + r"\b", query_lower) for kw in kw_list):
+            if med_key in medicines:
+                return medicines[med_key]
+
+    # Match name
+    for key, med in medicines.items():
+        name = med.get("name", "").lower()
+        if name in query_lower:
+            return med
+
+    return None
+
+
+def tool_get_first_aid_info(query: str, med_kb: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    kb = med_kb or load_medical_knowledge()
+    first_aid = kb.get("firstAid", {})
+    query_lower = query.lower()
+
+    if any(w in query_lower for w in ["burn", "scald", "hot water burn"]):
+        return first_aid.get("burns")
+    if any(w in query_lower for w in ["cut", "scrape", "wound", "bleeding cut", "scrapes"]):
+        return first_aid.get("cuts_wounds")
+    if any(w in query_lower for w in ["nosebleed", "nose bleed", "bleeding nose"]):
+        return first_aid.get("nosebleed")
+    if any(w in query_lower for w in ["choking", "choke", "heimlich"]):
+        return first_aid.get("choking")
+
+    for key, item in first_aid.items():
+        title = item.get("title", "").lower()
+        if title in query_lower:
+            return item
+
+    return None
+
+
+def tool_get_lab_test_info(query: str, med_kb: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
+    kb = med_kb or load_medical_knowledge()
+    lab_tests = kb.get("labTests", {})
+    query_lower = query.lower()
+
+    if any(w in query_lower for w in ["malaria test", "rdt", "blood smear", "malaria check"]):
+        return lab_tests.get("malaria_rdt")
+    if any(w in query_lower for w in ["cbc", "complete blood count", "fbc", "blood count"]):
+        return lab_tests.get("cbc")
+    if any(w in query_lower for w in ["urinalysis", "urine test", "urine dipstick"]):
+        return lab_tests.get("urinalysis")
+    if any(w in query_lower for w in ["blood glucose", "blood sugar", "fasting blood glucose", "rbs"]):
+        return lab_tests.get("blood_glucose")
+    if any(w in query_lower for w in ["lipid", "cholesterol panel", "cholesterol test", "triglycerides"]):
+        return lab_tests.get("lipid_profile")
+
+    return None
+
+
+def tool_get_medical_term(query: str, med_kb: Optional[Dict[str, Any]] = None) -> Optional[Tuple[str, str]]:
+    kb = med_kb or load_medical_knowledge()
+    glossary = kb.get("medicalGlossary", {})
+    query_lower = query.lower()
+
+    for term, definition in glossary.items():
+        if re.search(r"\b" + re.escape(term) + r"\b", query_lower):
+            return term.upper(), definition
+
+    return None
+
+
+def format_condition_response(cond: Dict[str, Any]) -> str:
+    name = cond.get("name", "Condition")
+    causes = cond.get("possibleCauses") or cond.get("summary", "")
+    symptoms = cond.get("commonSymptoms", [])
+    safe_advice = cond.get("safeAdvice", [])
+    warnings = cond.get("warningSigns", [])
+    clarifications = cond.get("clarificationQuestions", [])
+    tests = cond.get("suggestedTests", [])
+
+    lines = [
+        f"🌿 **Medical Guidance: {name}**\n",
+        f"**What it could mean:**\n{causes}\n",
+    ]
+
+    if symptoms:
+        lines.append("**Common symptoms:**")
+        for s in symptoms:
+            lines.append(f"• {s}")
+        lines.append("")
+
+    if safe_advice:
+        lines.append("**What you can do:**")
+        for a in safe_advice:
+            lines.append(f"• {a}")
+        lines.append("")
+
+    if warnings:
+        lines.append("**When to seek medical care:**")
+        for w in warnings:
+            lines.append(f"• ⚠️ {w}")
+        lines.append("")
+
+    if tests:
+        lines.append(f"🔬 **Recommended Diagnostic Confirmation:** {', '.join(tests)}\n")
+
+    if clarifications:
+        lines.append("**To help our clinical team guide you more accurately, please consider:**")
+        for q in clarifications:
+            lines.append(f"• {q}")
+        lines.append("")
+
+    lines.append(
+        "_Disclaimer: BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care._"
+    )
+
+    return "\n".join(lines)
+
+
+def format_medicine_response(med: Dict[str, Any]) -> str:
+    name = med.get("name", "Medication")
+    med_class = med.get("class", "")
+    uses = med.get("uses", "")
+    mechanism = med.get("mechanism", "")
+    side_effects = med.get("sideEffects", "")
+    precautions = med.get("precautions", "")
+    interactions = med.get("interactions", "")
+    rx_status = med.get("prescriptionStatus", "Over-The-Counter (OTC)")
+    dosage = med.get("dosageGuidance", "")
+    consult = med.get("whenToConsult", "")
+
+    lines = [
+        f"💊 **Medication Guide: {name}**",
+        f"• **Drug Class:** {med_class}",
+        f"• **Prescription Status:** {rx_status}\n",
+    ]
+
+    if uses:
+        lines.append(f"**What it is and uses:**\n{uses}\n")
+
+    if mechanism:
+        lines.append(f"**How it works:**\n{mechanism}\n")
+
+    if side_effects:
+        lines.append(f"**Common side effects:**\n{side_effects}\n")
+
+    if precautions:
+        lines.append(f"**Important precautions:**\n{precautions}\n")
+
+    if interactions:
+        lines.append(f"**Drug interactions & safety:**\n{interactions}\n")
+
+    if dosage:
+        lines.append(f"**Dosage guidance:**\n{dosage}\n")
+
+    if consult:
+        lines.append(f"**When to consult a healthcare professional:**\n{consult}\n")
+
+    lines.append(
+        "_Dosage Safety: Safe dosage depends on age, weight, liver/kidney health, and clinical history. Always follow product packaging instructions or consult a BloomCare pharmacist._"
+    )
+
+    return "\n".join(lines)
+
+
+def format_dosage_safety_advisory(medicine_name: Optional[str] = None) -> str:
+    med_text = f" for **{medicine_name}**" if medicine_name else ""
+    return (
+        f"🛡️ **Medication Dosage & Administration Safety**\n\n"
+        f"BloomCare AI cannot provide personalized prescriptive dosing instructions{med_text}. "
+        f"Safe dosage varies significantly depending on several critical clinical factors:\n\n"
+        f"• **Patient Age & Weight:** Pediatric doses must be calculated strictly by weight (mg/kg), never by adult estimates.\n"
+        f"• **Organ Function:** Kidney and liver conditions alter how drugs are metabolized and cleared.\n"
+        f"• **Pregnancy & Breastfeeding:** Certain medications require dose adjustment or are strictly contraindicated.\n"
+        f"• **Product Strength & Formulation:** Liquid syrups, drops, chewables, and tablets contain different concentrations.\n"
+        f"• **Current Medications:** Potential drug-drug interactions may increase side effect risks.\n\n"
+        f"📋 **Safe Next Steps:**\n"
+        f"1. **Read Product Label:** Always check the dosage chart on the outer box or leaflet.\n"
+        f"2. **Use Accurate Measures:** Use oral syringes or medicine spoons, never kitchen spoons.\n"
+        f"3. **Ask Our Pharmacist:** Our licensed pharmacy team is ready to calculate the exact safe dosage for you."
+    )
 
 
 # -------------------------------------------------------------
@@ -506,9 +773,147 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
                 ],
             }
 
-    # Intent G: Product Search & Recommendation
+    # Intent G: Medication Dosage & Administration Safety
+    if any(p.search(message) for p in DOSAGE_PATTERNS) or ("dosage" in msg_lower and not ("buy" in msg_lower or "add" in msg_lower)):
+        record_analytics_event("search", message, {"type": "dosage_safety"})
+        matched_med = tool_get_medicine_info(message)
+        med_name = matched_med.get("name") if matched_med else None
+        cat_products = tool_search_products(products, med_name or message, limit=2) if med_name else []
+        return {
+            "text": format_dosage_safety_advisory(med_name),
+            "products": cat_products,
+            "quickActions": [
+                {"label": "👨‍⚕️ Consult BloomCare Pharmacist", "action": "whatsapp", "value": f"https://wa.me/{pharm.get('whatsapp')}?text=Dosage%20Inquiry%20for%20{med_name or 'Medication'}"},
+                {"label": "🩺 Book Consultation", "action": "navigate", "value": "consultations"},
+                {"label": "💊 Browse Medicines", "action": "navigate", "value": "medicines"},
+            ],
+            "suggestedQuestions": [
+                "What are common side effects?",
+                "When to consult a healthcare professional?",
+                "How do I upload a prescription?"
+            ]
+        }
+
+    # Intent H: First Aid Protocols
+    first_aid_match = tool_get_first_aid_info(message)
+    if first_aid_match:
+        record_analytics_event("search", message, {"type": "first_aid"})
+        title = first_aid_match.get("title", "First Aid")
+        steps = "\n".join([f"{idx+1}. {s}" for idx, s in enumerate(first_aid_match.get("immediate_steps", []))])
+        avoid = "\n".join([f"• ❌ {a}" for a in first_aid_match.get("what_not_to_do", [])])
+        red_flags = "\n".join([f"• ⚠️ {r}" for r in first_aid_match.get("red_flags", [])])
+
+        return {
+            "text": (
+                f"🩹 **First Aid Guidance: {title}**\n\n"
+                f"**Immediate Steps:**\n{steps}\n\n"
+                f"**What NOT to do:**\n{avoid}\n\n"
+                f"**Seek Emergency Care Immediately If:**\n{red_flags}\n\n"
+                "_First aid is initial supportive care and does not replace medical treatment by a qualified professional._"
+            ),
+            "products": tool_search_products(products, "Antiseptic", limit=2),
+            "quickActions": [
+                {"label": "📞 Call Dispensary", "action": "call_phone", "value": pharm.get("phone", "0750210886")},
+                {"label": "💬 WhatsApp Care Desk", "action": "whatsapp", "value": f"https://wa.me/{pharm.get('whatsapp')}?text=First%20Aid%20Emergency%20Inquiry"},
+            ]
+        }
+
+    # Intent I: Diagnostic Laboratory Tests
+    lab_test_match = tool_get_lab_test_info(message)
+    if lab_test_match and any(w in msg_lower for w in ["test", "lab", "screen", "smear", "rdt", "check", "glucose", "urinalysis", "cbc", "blood"]):
+        record_analytics_event("search", message, {"type": "lab_test"})
+        return {
+            "text": (
+                f"🔬 **Laboratory Test Information: {lab_test_match.get('name')}**\n\n"
+                f"• **Purpose:** {lab_test_match.get('purpose')}\n"
+                f"• **Sample Required:** {lab_test_match.get('sample_type')}\n"
+                f"• **Patient Preparation:** {lab_test_match.get('preparation')}\n"
+                f"• **Clinical Importance:** {lab_test_match.get('clinical_importance')}\n\n"
+                "BloomCare Pharmacy works closely with registered medical diagnostic centers across Mbarara. "
+                "Consult our clinical team if you need a test requisition or interpretation."
+            ),
+            "products": [],
+            "quickActions": [
+                {"label": "🩺 Clinical Consultation", "action": "navigate", "value": "consultations"},
+                {"label": "💬 Ask Pharmacist on WhatsApp", "action": "whatsapp", "value": f"https://wa.me/{pharm.get('whatsapp')}?text=Inquiry%20about%20{lab_test_match.get('name')}"},
+            ]
+        }
+
+    # Intent J: Medical Term / Health Glossary
+    term_match = tool_get_medical_term(message)
+    if term_match and any(w in msg_lower for w in ["what is", "what does", "meaning", "define", "term"]):
+        record_analytics_event("search", message, {"type": "glossary"})
+        return {
+            "text": (
+                f"📖 **Medical Definition: {term_match.get('term')}**\n\n"
+                f"{term_match.get('simple_explanation')}\n\n"
+                f"**Clinical Context:** {term_match.get('context')}"
+            ),
+            "products": [],
+            "quickActions": [
+                {"label": "💊 Browse Medicines", "action": "navigate", "value": "medicines"},
+                {"label": "👨‍⚕️ Speak to a Pharmacist", "action": "suggest", "value": "Talk to a pharmacist"},
+            ]
+        }
+
+    # Intent K: Specific Medicine Monograph Information
+    med_monograph = tool_get_medicine_info(message)
+    is_buying_intent = any(w in msg_lower for w in ["buy", "order", "price", "how much is", "add to cart", "purchase", "in stock", "cost"])
+    if med_monograph and (not is_buying_intent or any(w in msg_lower for w in ["side effect", "use", "work", "precaution", "interaction", "contraindication", "information", "tell me about"])):
+        record_analytics_event("search", message, {"type": "medicine_monograph"})
+        med_name = med_monograph.get("name", "")
+        cat_products = tool_search_products(products, med_name, limit=3)
+        return {
+            "text": format_medicine_response(med_monograph),
+            "products": cat_products,
+            "quickActions": [
+                {"label": "🛒 View Cart", "action": "view_cart"},
+                {"label": "👨‍⚕️ Ask a Pharmacist", "action": "whatsapp", "value": f"https://wa.me/{pharm.get('whatsapp')}?text=Inquiry%20about%20{med_name}"},
+                {"label": "💊 Browse Catalog", "action": "navigate", "value": "medicines"},
+            ],
+            "suggestedQuestions": [
+                f"What is the dosage safety for {med_name}?",
+                "When should I consult a doctor?",
+                "How do I upload a prescription?"
+            ]
+        }
+
+    # Intent L: Clinical Conditions & Symptom Guidance (Non-Diagnostic)
+    condition_match = tool_get_condition_info(message)
+    if condition_match:
+        record_analytics_event("search", message, {"type": "condition_guidance"})
+        cond_name = condition_match.get("name", "")
+        # Find relevant OTC support products from catalog
+        otc_keywords = condition_match.get("relevant_otc_products", [])
+        matched_products = []
+        for kw in otc_keywords:
+            matched_products.extend(tool_search_products(products, kw, limit=2))
+            if len(matched_products) >= 3:
+                break
+
+        # Deduplicate
+        seen_ids = set()
+        dedup_products = []
+        for p in matched_products:
+            p_id = p.get("id")
+            if p_id not in seen_ids:
+                seen_ids.add(p_id)
+                dedup_products.append(p)
+
+        return {
+            "text": format_condition_response(condition_match),
+            "products": dedup_products[:3],
+            "quickActions": [
+                {"label": "👨‍⚕️ Speak to a Pharmacist", "action": "suggest", "value": "Talk to a pharmacist"},
+                {"label": "🩺 Book Consultation", "action": "navigate", "value": "consultations"},
+                {"label": "💊 Browse Medicines", "action": "navigate", "value": "medicines"},
+            ],
+            "suggestedQuestions": condition_match.get("follow_up_questions", [])[:3]
+        }
+
+    # Intent M: Product Search & Recommendation
     search_keywords = ["do you have", "show me", "recommend", "looking for", "find", "buy", "vitamin", "pain", "paracetamol", "coartem", "baby", "cough", "syrup", "cheapest"]
-    if any(k in msg_lower for k in search_keywords) or len(message.split()) <= 4:
+    if any(k in msg_lower for k in search_keywords) or (len(message.split()) <= 4 and not any(w in msg_lower for w in ["why", "what", "how", "when"])):
         clean_query = msg_lower
         for phrase in ["do you have", "show me", "can i get", "i need", "looking for", "please find", "what products do you have for"]:
             clean_query = clean_query.replace(phrase, "")
@@ -540,7 +945,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
                 ],
             }
 
-    # Intent H: General FAQ Matching
+    # Intent N: General FAQ Matching
     faq_match = tool_get_bloomcare_faq(message)
     if faq_match:
         record_analytics_event("search", message)
@@ -556,17 +961,20 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
     # Default Helpful Response
     return {
         "text": (
-            f"I'm here to help you with anything related to BloomCare Pharmacy! 😊\n\n"
-            f"I can help you **find genuine medicines**, **check real-time stock and prices**, **track your delivery**, "
-            f"or connect you with **Dr. Amina Nanyonga** and our licensed pharmacy team.\n\n"
-            "What would you like to do?"
+            f"I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant! 😊\n\n"
+            f"I can help you with:\n"
+            f"• **Health Guidance:** Understanding symptoms, causes, supportive home care, and warning signs.\n"
+            f"• **Medicine Information:** Uses, mechanism, side effects, precautions, and interactions.\n"
+            f"• **Pharmacy Services:** Finding verified medicines, checking stock & prices, and tracking deliveries.\n"
+            f"• **Clinical Team:** Direct connection with **Dr. Amina Nanyonga** and our registered pharmacists.\n\n"
+            "How can I help you today?"
         ),
         "products": tool_search_products(products, "Paracetamol", in_stock_only=True, limit=2),
         "quickActions": [
             {"label": "🔎 Find a Medicine", "action": "suggest", "value": "Find a medicine"},
             {"label": "⭐ Recommended Products", "action": "suggest", "value": "Recommend products for me"},
             {"label": "📦 Track Order", "action": "suggest", "value": "Where is my order?"},
-            {"label": "🚚 Delivery Pricing", "action": "suggest", "value": "How much is delivery?"},
+            {"label": "💊 Prescription Help", "action": "suggest", "value": "How do I upload a prescription?"},
             {"label": "👨‍⚕️ Speak with Pharmacist", "action": "suggest", "value": "Talk to a pharmacist"},
         ],
     }
@@ -591,11 +999,14 @@ def call_gemini_provider(message: str, history: List[Dict[str, Any]], products: 
     } for p in relevant_products])
 
     system_prompt = (
-        "You are BloomCare AI, the official pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
-        "Strict clinical safety rules apply: You are NOT a doctor and must NEVER provide medical diagnoses or encourage bypassing prescriptions. "
-        "Strict anti-hallucination rules: Only recommend products present in this real database extract: "
-        f"{prod_context}. "
-        "Never invent prices, stock numbers, or medications. If asked about emergency medical symptoms, urge immediate emergency hospital care."
+        "You are BloomCare AI, the authoritative Medical Information and Licensed Pharmacy Assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
+        "Strict clinical safety rules: You provide helpful health education and guidance, but you are NOT a substitute for a doctor. "
+        "NEVER declare 'You have X' based only on symptoms; always use differential phrasing (e.g., 'Fever can have several causes such as malaria, viral infections, or bacterial infections... A diagnostic test can confirm'). "
+        "NEVER prescribe prescription medicines or encourage bypassing prescriptions. "
+        "Structure clinical guidance into: **What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "
+        "NEVER provide personalized prescriptive dosing; explain that dosage depends on age, weight, kidney/liver health, and pregnancy, and advise reading package instructions or asking a BloomCare pharmacist. "
+        "For acute red-flag emergencies (chest pain, severe breathing difficulty, stroke, severe bleeding, poisoning), urge immediate in-person hospital care. "
+        f"Strict anti-hallucination rules: Only recommend products present in this real database extract: {prod_context}. Never invent products or prices."
     )
 
     url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key={api_key}"
@@ -641,8 +1052,10 @@ def call_openai_provider(message: str, history: List[Dict[str, Any]], products: 
     } for p in relevant_products])
 
     system_prompt = (
-        "You are BloomCare AI, official pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
-        "Never diagnose illnesses or bypass prescriptions. Only use actual BloomCare products: " + prod_context
+        "You are BloomCare AI, official medical information and pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
+        "Never diagnose illnesses or bypass prescriptions. Always provide differential health guidance with structured sections: "
+        "**What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "
+        "Strictly refuse personalized dosing. Only use actual BloomCare products: " + prod_context
     )
 
     url = "https://api.openai.com/v1/chat/completions"
