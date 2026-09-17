@@ -1,22 +1,136 @@
 {
-  "totalConversations": 10,
-  "todayConversations": 9,
+  "totalConversations": 18,
+  "todayConversations": 17,
   "lastResetDate": "2026-09-17",
-  "productSearches": 8,
+  "productSearches": 14,
   "successfulRecommendations": 1,
   "cartAdditions": 0,
-  "escalationsToPharmacists": 2,
-  "unansweredQuestions": 0,
+  "escalationsToPharmacists": 3,
+  "unansweredQuestions": 1,
   "topAskedQuestions": {
     "hlo": 3,
     "i have chest pain": 2,
     "tell me about malaria symptoms": 6,
     "what is the dosage for paracetamol?": 4,
     "what are the side effects of amoxicillin?": 2,
-    "i have severe chest pain and cannot breathe": 2,
-    "first aid for burns": 2
+    "i have severe chest pain and cannot breathe": 4,
+    "first aid for burns": 2,
+    "what are the symptoms and causes of malaria?": 8,
+    "how much paracetamol should i give my 3-month-old infant?": 2,
+    "malaria tab": 2,
+    "find a medicine": 2
   },
   "recentEvents": [
+    {
+      "type": "unanswered",
+      "query": "Find a medicine",
+      "timestamp": "2026-09-17T12:32:30.539859",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "Find a medicine",
+      "timestamp": "2026-09-17T12:32:30.516768",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "malaria tab",
+      "timestamp": "2026-09-17T12:31:47.642376",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "malaria tab",
+      "timestamp": "2026-09-17T12:31:47.622697",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "How much paracetamol should I give my 3-month-old infant?",
+      "timestamp": "2026-09-17T12:29:44.883174",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "How much paracetamol should I give my 3-month-old infant?",
+      "timestamp": "2026-09-17T12:29:44.868306",
+      "details": {}
+    },
+    {
+      "type": "escalation",
+      "query": "I have severe chest pain and cannot breathe",
+      "timestamp": "2026-09-17T12:29:19.230534",
+      "details": {
+        "reason": "safety_check"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "I have severe chest pain and cannot breathe",
+      "timestamp": "2026-09-17T12:29:19.222106",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:28:37.400913",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:28:37.389722",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:27:50.297596",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:27:50.286328",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:27:22.542592",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:27:22.528565",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:27:10.033783",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the symptoms and causes of malaria?",
+      "timestamp": "2026-09-17T12:27:10.021742",
+      "details": {}
+    },
     {
       "type": "search",
       "query": "First aid for burns",

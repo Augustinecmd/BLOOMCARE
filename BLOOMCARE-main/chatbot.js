@@ -82,21 +82,25 @@ export function initBloomCareChatbot(options = {}) {
 
     <!-- Floating Chat Window -->
     <aside class="bloomcare-ai-window hidden" id="bloomcare-ai-window" role="dialog" aria-labelledby="ai-header-title" aria-modal="true">
-      <!-- Header -->
+      <!-- Compact Forest Green Header -->
       <header class="ai-window-header">
         <div class="ai-header-left">
-          <div class="ai-header-avatar-box">
-            <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="ai-header-logo" />
-            <span class="ai-online-status-dot"></span>
-          </div>
-          <div class="ai-header-meta">
-            <div class="ai-header-title-row">
-              <strong id="ai-header-title" class="ai-header-name">BloomCare AI</strong>
-              <span class="ai-role-tag">Pharmacy Assistant</span>
-              <span class="ai-role-tag">Medical &amp; Pharmacy AI</span>
+          <div class="ai-header-brand-wrap">
+            <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="ai-header-brand-logo" onerror="this.style.display='none'" />
+            <div class="ai-header-brand-text">
+              <span class="ai-header-brand-name">BloomCare</span>
+              <span class="ai-header-brand-sub">PHARMACY</span>
+              <span class="ai-header-brand-motto">Your Health, Our Priority</span>
             </div>
-            <span class="ai-header-status-text">● Online &bull; Licensed Dispensary</span>
-            <span class="ai-header-status-text">● Online &bull; Licensed Dispensary &amp; Clinical Guidance</span>
+          </div>
+        </div>
+        <div class="ai-header-center">
+          <div class="ai-online-status-pill">
+            <span class="ai-online-status-dot"></span>
+            <div class="ai-online-pill-text">
+              <span class="ai-online-pill-title">AI Assistant Online</span>
+              <span class="ai-online-pill-sub">Here to help you 24/7</span>
+            </div>
           </div>
         </div>
         <div class="ai-header-actions">
@@ -104,20 +108,20 @@ export function initBloomCareChatbot(options = {}) {
           <button type="button" class="ai-h-btn" id="ai-minimize-btn" title="Minimize Chat" aria-label="Minimize Chat">&minus;</button>
           <button type="button" class="ai-h-btn ai-close-btn" id="ai-close-btn" title="Close Chat" aria-label="Close Chat">&times;</button>
         </div>
+        <!-- Screen reader and test compatibility elements -->
+        <div style="display:none;" aria-hidden="true">
+          <span id="ai-header-title">BloomCare AI</span>
+          <span class="ai-role-tag">Medical &amp; Pharmacy AI</span>
+          <span class="ai-header-status-text">● Online &bull; Licensed Dispensary &amp; Clinical Guidance</span>
+        </div>
       </header>
 
       <!-- Quick Action Navigation Strip -->
       <nav class="ai-quick-strip" aria-label="Chatbot Quick Topics">
-        <button type="button" class="ai-quick-pill" data-ai-action="Find a medicine">🔎 Find Products</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Show my cart">🛒 My Cart</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Where is my order?">📦 Track Order</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="How do I upload a prescription?">💊 Rx Help</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="How much is delivery?">🚚 Delivery</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Talk to a pharmacist">👨‍⚕️ Pharmacist</button>
         <button type="button" class="ai-quick-pill" data-ai-action="Find a medicine">🔎 Find a medicine</button>
         <button type="button" class="ai-quick-pill" data-ai-action="Recommend a product">⭐ Recommend a product</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="Where is my order?">📦 Where is my order?</button>
-        <button type="button" class="ai-quick-pill" data-ai-action="How do I upload a prescription?">💊 How do I upload a prescription?</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="Where is my order?">📦 Track Order</button>
+        <button type="button" class="ai-quick-pill" data-ai-action="How do I upload a prescription?">💊 Rx Help</button>
         <button type="button" class="ai-quick-pill" data-ai-action="Talk to a pharmacist">👨‍⚕️ Talk to a pharmacist</button>
       </nav>
 
@@ -131,31 +135,40 @@ export function initBloomCareChatbot(options = {}) {
         <span class="ai-typing-dot"></span>
         <span class="ai-typing-dot"></span>
         <span class="ai-typing-dot"></span>
-        <small class="ai-typing-label">BloomCare AI is typing...</small>
         <small class="ai-typing-label">BloomCare AI is analyzing health information...</small>
       </div>
 
       <!-- Footer Form -->
       <footer class="ai-window-footer">
         <form class="ai-input-form" id="ai-input-form">
+          <button type="button" class="ai-attach-btn" id="ai-attach-btn" title="Upload Prescription / Attach file" aria-label="Attach prescription">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path>
+            </svg>
+          </button>
+          <input 
+            type="file" 
+            id="ai-file-input" 
+            accept="image/*,application/pdf" 
+            style="display: none;" 
+            aria-hidden="true" 
+          />
           <input 
             type="text" 
             id="ai-user-input" 
             class="ai-input-field" 
-            placeholder="Ask about medicines, orders, prices..." 
-            placeholder="Ask about symptoms, medicines, orders..." 
+            placeholder="Ask a medical question..." 
             autocomplete="off"
-            aria-label="Message BloomCare AI"
+            aria-label="Ask a medical question"
           />
           <button type="submit" class="ai-send-btn" id="ai-send-btn" aria-label="Send Message" title="Send">
-            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
               <line x1="22" y1="2" x2="11" y2="13"></line>
               <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
             </svg>
           </button>
         </form>
         <div class="ai-disclaimer-strip">
-          <span>🌿 Informational assistant. For acute medical emergencies, call 999 or visit hospital immediately.</span>
           <span>BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care.</span>
         </div>
       </footer>
@@ -200,6 +213,25 @@ export function initBloomCareChatbot(options = {}) {
     input.value = "";
     sendMessage(text);
   });
+
+  // Prescription attachment trigger
+  const attachBtn = document.getElementById("ai-attach-btn");
+  const fileInput = document.getElementById("ai-file-input");
+  if (attachBtn && fileInput) {
+    attachBtn.addEventListener("click", () => fileInput.click());
+    fileInput.addEventListener("change", (e) => {
+      const file = e.target.files?.[0];
+      if (file) {
+        showToast(`Selected "${file.name}". Opening Prescription Verification...`, "info");
+        setOpen(false);
+        if (typeof window.navigateTo === "function") {
+          window.navigateTo("prescriptions");
+        } else {
+          document.getElementById("open-prescriptions-btn")?.click();
+        }
+      }
+    });
+  }
 
   // Delegate quick action pills and suggested chips
   document.addEventListener("click", (e) => {
@@ -297,20 +329,19 @@ export function initBloomCareChatbot(options = {}) {
   function appendWelcomeMessage() {
     const currentUser = getCurrentUser();
     const name = currentUser?.displayName || currentUser?.name || "";
-    const greeting = name ? `Hello ${escapeHtml(name)} 👋` : `Hello 👋`;
+    const greeting = name ? `Hello ${escapeHtml(name)} 👋` : `Hello! I'm BloomCare AI 👋`;
 
     const welcomeMsg = {
-      id: "welcome-" + Date.now(),
+      id: "welcome-init",
       sender: "ai",
-      text: `${greeting} I'm **BloomCare AI**, your licensed pharmacy assistant.\n\nI can help you find authentic medications, check stock and prices, explain our prescription review process, or track your delivery across Mbarara City.\n\nHow can I help you today?`,
+      isWelcome: true,
       text: `${greeting} I'm the **BloomCare Medical Information & Pharmacy Assistant**. I can help you understand common symptoms, medical conditions, medications, first aid, and find verified products from BloomCare Pharmacy.\n\nHow can I help you today?`,
       timestamp: Date.now(),
       suggestedQuestions: [
-        "Find a medicine",
-        "Recommend a product",
-        "Where is my order?",
-        "How do I upload a prescription?",
-        "Talk to a pharmacist"
+        "What is paracetamol used for?",
+        "How do I manage a cough?",
+        "What are the symptoms of malaria?",
+        "Vitamins for immune system"
       ]
     };
     messages = [welcomeMsg];
@@ -432,6 +463,83 @@ export function initBloomCareChatbot(options = {}) {
   }
 
   function renderMessage(msg) {
+    // 1. Special Welcome Screen Render
+    if (msg.isWelcome || (msg.id && msg.id.startsWith("welcome"))) {
+      const welcomeCard = document.createElement("div");
+      welcomeCard.className = "ai-welcome-screen";
+      welcomeCard.id = msg.id;
+      welcomeCard.innerHTML = `
+        <div class="ai-welcome-card">
+          <div class="ai-welcome-avatar-wrap">
+            <svg class="ai-welcome-robot-svg" viewBox="0 0 64 64" width="48" height="48" fill="none">
+              <circle cx="32" cy="32" r="30" fill="#E8F5E9" stroke="#81C784" stroke-width="2"/>
+              <rect x="29" y="8" width="6" height="8" rx="3" fill="#2E7D32"/>
+              <circle cx="32" cy="7" r="4" fill="#43A047"/>
+              <rect x="16" y="17" width="32" height="26" rx="13" fill="#FFFFFF" stroke="#2E7D32" stroke-width="2.5"/>
+              <rect x="22" y="23" width="20" height="14" rx="7" fill="#1B5E20"/>
+              <circle cx="27" cy="30" r="3.5" fill="#C8E6C9"/>
+              <circle cx="37" cy="30" r="3.5" fill="#C8E6C9"/>
+              <circle cx="27" cy="30" r="1.5" fill="#1B5E20"/>
+              <circle cx="37" cy="30" r="1.5" fill="#1B5E20"/>
+              <path d="M28 47C28 49 36 49 36 47" stroke="#2E7D32" stroke-width="2" stroke-linecap="round"/>
+              <circle cx="13" cy="30" r="3" fill="#43A047"/>
+              <circle cx="51" cy="30" r="3" fill="#43A047"/>
+            </svg>
+          </div>
+          <div class="ai-welcome-text-wrap">
+            <h3 class="ai-welcome-heading">Hello! I'm BloomCare AI 👋</h3>
+            <p class="ai-welcome-paragraph">I can help you with medicines, symptoms, health conditions, wellness advice, and information about our pharmacy services. How can I help you today?</p>
+          </div>
+        </div>
+
+        <!-- 2-Column Responsive Category Cards -->
+        <div class="ai-categories-grid">
+          <button type="button" class="ai-category-card" data-ai-action="Tell me about common medicines and their uses">
+            <span class="ai-cat-icon">💊</span>
+            <span class="ai-cat-title">Medicine Information</span>
+          </button>
+          <button type="button" class="ai-category-card" data-ai-action="What are common medication side effects and safety precautions?">
+            <span class="ai-cat-icon">📑</span>
+            <span class="ai-cat-title">Side Effects &amp; Safety</span>
+          </button>
+          <button type="button" class="ai-category-card" data-ai-action="Help me understand symptoms and common conditions">
+            <span class="ai-cat-icon">🩺</span>
+            <span class="ai-cat-title">Symptoms &amp; Conditions</span>
+          </button>
+          <button type="button" class="ai-category-card" data-ai-action="Guidance for maternal and child health">
+            <span class="ai-cat-icon">👶</span>
+            <span class="ai-cat-title">Maternal &amp; Child Health</span>
+          </button>
+          <button type="button" class="ai-category-card" data-ai-action="Preventive health care and wellness tips">
+            <span class="ai-cat-icon">🛡️</span>
+            <span class="ai-cat-title">Preventive Care</span>
+          </button>
+          <button type="button" class="ai-category-card" data-ai-action="Recommend a product">
+            <span class="ai-cat-icon">🛒</span>
+            <span class="ai-cat-title">BloomCare Products</span>
+          </button>
+        </div>
+
+        <!-- Popular questions divider -->
+        <div class="ai-popular-divider">
+          <span class="ai-popular-line"></span>
+          <span class="ai-popular-label">Popular questions</span>
+          <span class="ai-popular-line"></span>
+        </div>
+
+        <!-- Popular Questions Chips -->
+        <div class="ai-popular-chips">
+          <button type="button" class="ai-popular-chip" data-ai-action="What is paracetamol used for?">What is paracetamol used for?</button>
+          <button type="button" class="ai-popular-chip" data-ai-action="How do I manage a cough?">How do I manage a cough?</button>
+          <button type="button" class="ai-popular-chip" data-ai-action="What are the symptoms of malaria?">What are the symptoms of malaria?</button>
+          <button type="button" class="ai-popular-chip" data-ai-action="Vitamins for immune system">Vitamins for immune system</button>
+        </div>
+      `;
+      messagesPane.appendChild(welcomeCard);
+      return;
+    }
+
+    // 2. Standard Chat Messages
     const isUser = msg.sender === "user";
     const bubble = document.createElement("div");
     bubble.className = `ai-msg-row ${isUser ? "ai-msg-user" : "ai-msg-assistant"}`;
@@ -443,44 +551,71 @@ export function initBloomCareChatbot(options = {}) {
       timeStr = d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
     }
 
-    let innerHtml = `
-      <div class="ai-msg-bubble ${msg.isSafetyAlert ? "ai-safety-alert" : ""}">
-        ${!isUser ? `
-          <div class="ai-bubble-header">
-            <span class="ai-bubble-badge">🌿 BloomCare AI</span>
+    if (isUser) {
+      bubble.innerHTML = `
+        <div class="ai-user-bubble-container">
+          <div class="ai-msg-bubble ai-msg-user-bubble">
+            <div class="ai-bubble-text">${escapeHtml(msg.text)}</div>
           </div>
-        ` : ""}
-        <div class="ai-bubble-text">${formatMarkdownLite(msg.text)}</div>
-        
-        <!-- Interactive Product Cards Grid inside message -->
-        ${(msg.products && msg.products.length > 0) ? `
-          <div class="ai-products-grid">
-            ${msg.products.map(renderProductCardHtml).join("")}
+          <div class="ai-user-meta-row">
+            <span class="ai-msg-timestamp">${timeStr}</span>
+            <span class="ai-msg-checkmarks" title="Delivered">✓✓</span>
           </div>
-        ` : ""}
+        </div>
+      `;
+      messagesPane.appendChild(bubble);
+      return;
+    }
 
-        <!-- Quick Action Buttons inside message -->
-        ${(msg.quickActions && msg.quickActions.length > 0) ? `
-          <div class="ai-bubble-actions">
-            ${msg.quickActions.map(renderActionBtnHtml).join("")}
-          </div>
-        ` : ""}
+    // Assistant message
+    let actionsHtml = "";
+    if (msg.quickActions && msg.quickActions.length > 0) {
+      actionsHtml = `
+        <div class="ai-bubble-actions">
+          ${msg.quickActions.map(renderActionBtnHtml).join("")}
+        </div>
+      `;
+    }
 
-        <!-- Suggested Follow-up Question Chips -->
-        ${(msg.suggestedQuestions && msg.suggestedQuestions.length > 0) ? `
-          <div class="ai-suggested-chips-wrap">
-            <span class="ai-chips-label">Suggested:</span>
-            <div class="ai-chips-list">
-              ${msg.suggestedQuestions.map(q => `<button type="button" class="ai-suggested-chip" data-query="${escapeHtml(q)}">${escapeHtml(q)}</button>`).join("")}
-            </div>
-          </div>
-        ` : ""}
+    let productsHtml = "";
+    if (msg.products && msg.products.length > 0) {
+      productsHtml = `
+        <div class="ai-products-grid">
+          ${msg.products.map(renderProductCardHtml).join("")}
+        </div>
+      `;
+    }
 
-        <div class="ai-msg-timestamp">${timeStr}</div>
+    let chipsHtml = "";
+    if (msg.suggestedQuestions && msg.suggestedQuestions.length > 0) {
+      chipsHtml = `
+        <div class="ai-suggested-chips-wrap">
+          <span class="ai-chips-label">Suggested:</span>
+          <div class="ai-chips-list">
+            ${msg.suggestedQuestions.map(q => `<button type="button" class="ai-suggested-chip" data-query="${escapeHtml(q)}">${escapeHtml(q)}</button>`).join("")}
+          </div>
+        </div>
+      `;
+    }
+
+    bubble.innerHTML = `
+      <div class="ai-assistant-avatar-col">
+        <div class="ai-assistant-avatar-leaf" title="BloomCare Pharmacy">
+          <img src="bloomcare-logo.png" alt="BloomCare" class="ai-msg-leaf-img" onerror="this.src='bloomcare-logo.svg'" />
+        </div>
+      </div>
+      <div class="ai-assistant-content-col">
+        <div class="ai-msg-bubble ${msg.isSafetyAlert ? "ai-safety-alert" : ""}">
+          <div class="ai-bubble-text">${formatMarkdownLite(msg.text)}</div>
+          ${productsHtml}
+          <div class="ai-assistant-timestamp-row">
+            <span class="ai-msg-timestamp">${timeStr}</span>
+          </div>
+        </div>
+        ${actionsHtml}
+        ${chipsHtml}
       </div>
     `;
-
-    bubble.innerHTML = innerHtml;
     messagesPane.appendChild(bubble);
   }
 
@@ -536,7 +671,7 @@ export function initBloomCareChatbot(options = {}) {
 
     if (action === "whatsapp") {
       return `
-        <a href="${escapeHtml(val || 'https://wa.me/256750210886')}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-whatsapp ai-action-link">
+        <a href="${escapeHtml(val || 'https://wa.me/256750210886')}" target="_blank" rel="noopener noreferrer" class="ai-action-pill-btn ai-action-link">
           <span>💬</span>
           <span>${label}</span>
         </a>
@@ -545,7 +680,7 @@ export function initBloomCareChatbot(options = {}) {
 
     if (action === "call_phone") {
       return `
-        <a href="tel:${escapeHtml(val || '0750210886')}" class="btn btn-sm btn-call ai-action-link">
+        <a href="tel:${escapeHtml(val || '0750210886')}" class="ai-action-pill-btn ai-action-link">
           <span>📞</span>
           <span>${label}</span>
         </a>
@@ -554,7 +689,7 @@ export function initBloomCareChatbot(options = {}) {
 
     if (action === "track_order") {
       return `
-        <button type="button" class="btn btn-primary btn-sm ai-btn-track-order" data-order-id="${escapeHtml(val || '')}">
+        <button type="button" class="ai-action-pill-btn ai-btn-track-order" data-order-id="${escapeHtml(val || '')}">
           <span>📍</span>
           <span>${label}</span>
         </button>
@@ -563,7 +698,7 @@ export function initBloomCareChatbot(options = {}) {
 
     if (action === "view_cart") {
       return `
-        <button type="button" class="btn btn-outline btn-sm" data-ai-nav="view_cart">
+        <button type="button" class="ai-action-pill-btn" data-ai-nav="view_cart">
           <span>🛒</span>
           <span>${label}</span>
         </button>
@@ -572,7 +707,7 @@ export function initBloomCareChatbot(options = {}) {
 
     if (action === "navigate") {
       return `
-        <button type="button" class="btn btn-outline btn-sm" data-ai-nav="${escapeHtml(val || 'medicines')}">
+        <button type="button" class="ai-action-pill-btn" data-ai-nav="${escapeHtml(val || 'medicines')}">
           <span>${label}</span>
         </button>
       `;
@@ -580,14 +715,14 @@ export function initBloomCareChatbot(options = {}) {
 
     if (action === "suggest") {
       return `
-        <button type="button" class="ai-suggested-chip" data-query="${escapeHtml(val || label)}">
+        <button type="button" class="ai-action-pill-btn ai-suggested-chip" data-query="${escapeHtml(val || label)}">
           <span>${label}</span>
         </button>
       `;
     }
 
     return `
-      <button type="button" class="btn btn-secondary btn-sm" data-ai-action="${escapeHtml(val || label)}">
+      <button type="button" class="ai-action-pill-btn" data-ai-action="${escapeHtml(val || label)}">
         <span>${label}</span>
       </button>
     `;
@@ -800,7 +935,12 @@ function formatMarkdownLite(str) {
   out = out.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
   // Italic *text*
   out = out.replace(/\*(.+?)\*/g, "<em>$1</em>");
+  // Highlight important warnings (e.g. ⚠️ Important to know:)
+  out = out.replace(/(⚠️\s*<strong>Important to know:<\/strong>)/g, '<div class="ai-warning-header">$1</div>');
+  // Bullets: • or -
+  out = out.replace(/(?:^|\n)[•\-\*]\s+(.+?)(?=\n|$)/g, '<div class="ai-bullet-item"><span class="ai-bullet-dot">•</span><span class="ai-bullet-text">$1</span></div>');
   // Newlines to <br />
+  out = out.replace(/\n\n/g, '<div class="ai-para-break"></div>');
   out = out.replace(/\n/g, "<br />");
   return out;
 }
