@@ -919,7 +919,6 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
 
     # Intent M: Product Search & Recommendation
     search_keywords = ["do you have", "show me", "recommend", "looking for", "find", "buy", "vitamin", "pain", "paracetamol", "coartem", "baby", "cough", "syrup", "cheapest"]
-    if any(k in msg_lower for k in search_keywords) or len(message.split()) <= 4:
     if any(k in msg_lower for k in search_keywords) or (len(message.split()) <= 4 and not any(w in msg_lower for w in ["why", "what", "how", "when"])):
         clean_query = msg_lower
         for phrase in ["do you have", "show me", "can i get", "i need", "looking for", "please find", "what products do you have for"]:
@@ -1070,8 +1069,6 @@ def call_openai_provider(message: str, history: List[Dict[str, Any]], products: 
     } for p in relevant_products])
 
     system_prompt = (
-        "You are BloomCare AI, official pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
-        "Never diagnose illnesses or bypass prescriptions. Only use actual BloomCare products: " + prod_context
         "You are BloomCare AI, official medical information and pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
         "Never diagnose illnesses or bypass prescriptions. Always provide differential health guidance with structured sections: "
         "**What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "
