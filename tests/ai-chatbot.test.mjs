@@ -121,3 +121,82 @@ test('12. FIRESTORE SECURITY RULES: chatSessions and aiKnowledgeBase access poli
   assert.ok(firestoreRulesContent.includes('match /aiKnowledgeBase/{docId}'), 'firestore.rules must secure /aiKnowledgeBase/{docId}');
 });
 
+test('13. MEDICAL INFORMATION ASSISTANT BRANDING & DISCLAIMER: Required clinical disclaimer strip and welcome messaging present', () => {
+  assert.ok(chatbotJsContent.includes('BloomCare Medical Information & Pharmacy Assistant'), 'Chatbot must introduce itself as Medical Information & Pharmacy Assistant');
+  assert.ok(chatbotJsContent.includes('BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional'), 'Chatbot must render required medical disclaimer');
+  assert.ok(chatbotJsContent.includes('BloomCare AI is analyzing health information...'), 'Chatbot must include clinical analyzing typing indicator');
+  assert.ok(stylesCssContent.includes('.ai-disclaimer-strip'), 'CSS must define .ai-disclaimer-strip');
+  assert.ok(stylesCssContent.includes('.ai-msg-bubble.ai-safety-alert'), 'CSS must define safety alert bubble styling');
+});
+
+test('14. 12 LIFE-THREATENING EMERGENCY CATEGORIES: Python and Vercel engines detect all critical emergencies', () => {
+  const emergencyTriggers = [
+    'shortness of breath',
+    'chest pain',
+    'unconscious',
+    'severe bleeding',
+    'seizure',
+    'stroke',
+    'anaphylaxis',
+    'overdose',
+    'severe trauma',
+    'severe confusion',
+    'severe dehydration',
+    'suicid'
+  ];
+
+  emergencyTriggers.forEach(term => {
+    assert.ok(pythonChatbotContent.toLowerCase().includes(term), `Python engine must detect emergency category: ${term}`);
+    assert.ok(vercelApiContent.toLowerCase().includes(term), `Vercel serverless engine must detect emergency category: ${term}`);
+  });
+});
+
+test('15. NON-DIAGNOSTIC CLINICAL GUIDANCE FORMAT: Responses follow structured differential sections', () => {
+  assert.ok(pythonChatbotContent.includes('What it could mean'), 'Server must use "**What it could mean**" section');
+  assert.ok(pythonChatbotContent.includes('Common symptoms'), 'Server must use "**Common symptoms**" section');
+  assert.ok(pythonChatbotContent.includes('What you can do'), 'Server must use "**What you can do**" section');
+  assert.ok(pythonChatbotContent.includes('When to seek medical care'), 'Server must use "**When to seek medical care**" section');
+  assert.ok(chatbotJsContent.includes('What it could mean'), 'Client must use "**What it could mean**" section');
+});
+
+test('16. CLINICAL FOLLOW-UP QUESTIONS & LAB TESTS: Clarifications for age, duration, pregnancy, and diagnostic tests', () => {
+  assert.ok(pythonChatbotContent.includes('clarificationQuestions') || pythonChatbotContent.includes('suggestedTests'), 'Server must reference clinical questions or tests');
+  assert.ok(pythonChatbotContent.includes('tool_get_lab_test_info'), 'Server must implement tool_get_lab_test_info');
+  assert.ok(medicalKnowledgeContent.includes('clarificationQuestions'), 'medical_knowledge.json must provide clinical clarification questions');
+  assert.ok(medicalKnowledgeContent.includes('malaria_rdt'), 'medical_knowledge.json must define malaria RDT lab test');
+});
+
+test('17. COMPREHENSIVE MEDICINE MONOGRAPHS: Monograph structure contains uses, mechanism, side effects, precautions, interactions, Rx status', () => {
+  assert.ok(pythonChatbotContent.includes('tool_get_medicine_info'), 'Server must implement tool_get_medicine_info');
+  assert.ok(pythonChatbotContent.includes('format_medicine_response'), 'Server must format medicine monograph');
+  assert.ok(medicalKnowledgeContent.includes('paracetamol'), 'medical_knowledge.json must detail Paracetamol');
+  assert.ok(medicalKnowledgeContent.includes('amoxicillin'), 'medical_knowledge.json must detail Amoxicillin');
+  assert.ok(medicalKnowledgeContent.includes('coartem'), 'medical_knowledge.json must detail Coartem');
+  assert.ok(medicalKnowledgeContent.includes('sideEffects'), 'medical_knowledge.json must include sideEffects');
+  assert.ok(medicalKnowledgeContent.includes('prescriptionStatus'), 'medical_knowledge.json must include prescriptionStatus');
+});
+
+test('18. STRICT DOSAGE SAFETY DIRECTIVES: Chatbot refuses prescriptive dosages and explains safety factors', () => {
+  assert.ok(pythonChatbotContent.includes('format_dosage_safety_advisory'), 'Server must implement format_dosage_safety_advisory');
+  assert.ok(pythonChatbotContent.includes('Patient Age & Weight'), 'Dosage advisory must explain age and weight factors');
+  assert.ok(pythonChatbotContent.includes('Pregnancy & Breastfeeding'), 'Dosage advisory must explain pregnancy factors');
+  assert.ok(chatbotJsContent.includes('Medication Dosage & Administration Safety'), 'Client fallback must include dosage safety guidance');
+});
+
+test('19. FIRST AID PROTOCOLS & MEDICAL GLOSSARY: Steps for burns, cuts, nosebleeds, choking and glossary definitions', () => {
+  assert.ok(pythonChatbotContent.includes('tool_get_first_aid_info'), 'Server must implement tool_get_first_aid_info');
+  assert.ok(pythonChatbotContent.includes('tool_get_medical_term'), 'Server must implement tool_get_medical_term');
+  assert.ok(medicalKnowledgeContent.includes('firstAid'), 'medical_knowledge.json must define firstAid protocols');
+  assert.ok(medicalKnowledgeContent.includes('medicalGlossary'), 'medical_knowledge.json must define medicalGlossary');
+  assert.ok(medicalKnowledgeContent.includes('burns'), 'medical_knowledge.json must cover burns first aid');
+  assert.ok(medicalKnowledgeContent.includes('choking'), 'medical_knowledge.json must cover choking first aid');
+});
+
+test('20. ERROR RESILIENCE: Polite healthcare fallback message for offline or failed requests', () => {
+  assert.ok(
+    chatbotJsContent.includes("Sorry, I'm unable to respond right now. Please try again later or contact a qualified healthcare professional."),
+    'Chatbot must provide required polite healthcare error fallback message'
+  );
+});
+
+

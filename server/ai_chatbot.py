@@ -24,6 +24,11 @@ ASSIGNMENTS_FILE = DATA_DIR / "delivery_assignments.json"
 
 # 12 Life-Threatening Emergency Categories
 EMERGENCY_PATTERNS = [
+    re.compile(r"\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing)\b", re.I),
+    re.compile(r"\b(stroke|face\s+droop|slurred\s+speech|sudden\s+paralysis|sudden\s+numbness)\b", re.I),
+    re.compile(r"\b(suicid|kill\s+myself|end\s+my\s+life|self[- ]harm)\b", re.I),
+    re.compile(r"\b(overdose|swallowed\s+poison|poisoning|bleeding\s+uncontrollably)\b", re.I),
+    re.compile(r"\b(anaphylaxis|throat\s+closing|severe\s+allergic\s+reaction)\b", re.I),
     # 1. Difficulty breathing
     re.compile(r"\b(shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|choking|gasping\s+for\s+(air|breath)|struggling\s+to\s+breathe|unable\s+to\s+breathe)\b", re.I),
     # 2. Chest pain / heart attack
@@ -773,6 +778,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
                 ],
             }
 
+    # Intent G: Product Search & Recommendation
     # Intent G: Medication Dosage & Administration Safety
     if any(p.search(message) for p in DOSAGE_PATTERNS) or ("dosage" in msg_lower and not ("buy" in msg_lower or "add" in msg_lower)):
         record_analytics_event("search", message, {"type": "dosage_safety"})
@@ -913,6 +919,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
 
     # Intent M: Product Search & Recommendation
     search_keywords = ["do you have", "show me", "recommend", "looking for", "find", "buy", "vitamin", "pain", "paracetamol", "coartem", "baby", "cough", "syrup", "cheapest"]
+    if any(k in msg_lower for k in search_keywords) or len(message.split()) <= 4:
     if any(k in msg_lower for k in search_keywords) or (len(message.split()) <= 4 and not any(w in msg_lower for w in ["why", "what", "how", "when"])):
         clean_query = msg_lower
         for phrase in ["do you have", "show me", "can i get", "i need", "looking for", "please find", "what products do you have for"]:
@@ -945,6 +952,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
                 ],
             }
 
+    # Intent H: General FAQ Matching
     # Intent N: General FAQ Matching
     faq_match = tool_get_bloomcare_faq(message)
     if faq_match:
@@ -961,6 +969,10 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
     # Default Helpful Response
     return {
         "text": (
+            f"I'm here to help you with anything related to BloomCare Pharmacy! 😊\n\n"
+            f"I can help you **find genuine medicines**, **check real-time stock and prices**, **track your delivery**, "
+            f"or connect you with **Dr. Amina Nanyonga** and our licensed pharmacy team.\n\n"
+            "What would you like to do?"
             f"I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant! 😊\n\n"
             f"I can help you with:\n"
             f"• **Health Guidance:** Understanding symptoms, causes, supportive home care, and warning signs.\n"
@@ -974,6 +986,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
             {"label": "🔎 Find a Medicine", "action": "suggest", "value": "Find a medicine"},
             {"label": "⭐ Recommended Products", "action": "suggest", "value": "Recommend products for me"},
             {"label": "📦 Track Order", "action": "suggest", "value": "Where is my order?"},
+            {"label": "🚚 Delivery Pricing", "action": "suggest", "value": "How much is delivery?"},
             {"label": "💊 Prescription Help", "action": "suggest", "value": "How do I upload a prescription?"},
             {"label": "👨‍⚕️ Speak with Pharmacist", "action": "suggest", "value": "Talk to a pharmacist"},
         ],
@@ -999,6 +1012,11 @@ def call_gemini_provider(message: str, history: List[Dict[str, Any]], products: 
     } for p in relevant_products])
 
     system_prompt = (
+        "You are BloomCare AI, the official pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
+        "Strict clinical safety rules apply: You are NOT a doctor and must NEVER provide medical diagnoses or encourage bypassing prescriptions. "
+        "Strict anti-hallucination rules: Only recommend products present in this real database extract: "
+        f"{prod_context}. "
+        "Never invent prices, stock numbers, or medications. If asked about emergency medical symptoms, urge immediate emergency hospital care."
         "You are BloomCare AI, the authoritative Medical Information and Licensed Pharmacy Assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
         "Strict clinical safety rules: You provide helpful health education and guidance, but you are NOT a substitute for a doctor. "
         "NEVER declare 'You have X' based only on symptoms; always use differential phrasing (e.g., 'Fever can have several causes such as malaria, viral infections, or bacterial infections... A diagnostic test can confirm'). "
@@ -1052,6 +1070,8 @@ def call_openai_provider(message: str, history: List[Dict[str, Any]], products: 
     } for p in relevant_products])
 
     system_prompt = (
+        "You are BloomCare AI, official pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
+        "Never diagnose illnesses or bypass prescriptions. Only use actual BloomCare products: " + prod_context
         "You are BloomCare AI, official medical information and pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
         "Never diagnose illnesses or bypass prescriptions. Always provide differential health guidance with structured sections: "
         "**What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "

@@ -13845,6 +13845,8 @@ dialog,
 }
 
 .ai-typing-dot:nth-child(1) { animation-delay: -0.32s; }
+.ai-typing-dot:nth-child(2) { animation-delay: -0.16s; }
+.ai-typing-dot:nth-child(3) { animation-delay: 0s; }
 .ai-typing-label {
   margin-left: 6px;
   font-size: 11px;
@@ -13852,6 +13854,9 @@ dialog,
   font-weight: 500;
 }
 
+@keyframes aiBounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
 .ai-role-tag {
   font-size: 10px;
   background: rgba(85, 172, 15, 0.25);
