@@ -1,5 +1,15 @@
 [
   {
+    "id": "AUDIT-1789636902726",
+    "timestamp": "2026-09-17 09:21:42 UTC",
+    "admin": "Dr. Admin Mugisha",
+    "adminRole": "admin",
+    "action": "USER_SUSPEND",
+    "affectedUser": "System",
+    "affectedUserId": "",
+    "description": ""
+  },
+  {
     "id": "AUDIT-1789636710701",
     "timestamp": "2026-09-17 09:18:30 UTC",
     "admin": "Dr. Admin Mugisha",
