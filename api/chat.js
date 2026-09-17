@@ -28,19 +28,15 @@ export default async function handler(req, res) {
     const currentUser = payload.currentUser || {};
     const cart = payload.cart || [];
 
-    // Check emergency red-flags
-    const emergencyRegex = /\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|stroke|suicid|kill\s+myself|overdose|poison)\b/i;
     // 1. Check 12 emergency red-flag categories
     const emergencyRegex = /\b(chest\s+pain|heart\s+attack|pressure\s+in\s+(my\s+)?chest|crushing\s+chest|pain\s+radiating\s+to\s+(left\s+)?arm|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|choking|gasping\s+for\s+(air|breath)|struggling\s+to\s+breathe|unconscious|fainted|passed\s+out|unresponsive|collapsed|blacked\s+out|severe\s+bleeding|bleeding\s+uncontrollably|spurting\s+blood|gushing\s+blood|seizure|convulsing|fits|epilepsy\s+attack|stroke|face\s+droop|slurred\s+speech|sudden\s+paralysis|sudden\s+numbness|arm\s+weakness|anaphylaxis|throat\s+closing|severe\s+allergic\s+reaction|tongue\s+swelling|swollen\s+lips\s+and\s+breathing|overdose|swallowed\s+poison|poisoning|drank\s+bleach|ingested\s+chemical|swallowed\s+pills|serious\s+head\s+injury|broken\s+bone\s+protruding|car\s+accident|severe\s+trauma|severe\s+confusion|sudden\s+disorientation|hallucinations|severe\s+dehydration|sunken\s+eyes\s+no\s+tears|no\s+urine\s+for\s+(12|24)\s+hours|suicid|kill\s+myself|end\s+my\s+life|self[- ]harm|want\s+to\s+die)\b/i;
     if (emergencyRegex.test(message)) {
       return res.status(200).json({
         success: true,
-        text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate a serious medical emergency. **BloomCare AI is an online pharmacy assistant and cannot diagnose conditions or manage emergencies.**\n\n🚨 **Immediate Action Required:**\n1. Seek immediate in-person care at the nearest hospital (e.g. Mbarara Regional Referral Hospital).\n2. Contact emergency services or call BloomCare Urgent Support at **0750210886**.",
         text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate a serious or life-threatening medical emergency. **BloomCare AI is an online pharmacy assistant and cannot diagnose conditions or manage emergencies.**\n\n🚨 **Immediate Action Required:**\n1. Please seek immediate in-person emergency care at the nearest hospital (such as **Mbarara Regional Referral Hospital**).\n2. Contact local emergency medical services or call BloomCare Urgent Support at **0750210886**.\n\nDo not wait for an online medicine delivery for severe, sudden, or life-threatening symptoms.",
         products: [],
         isSafetyAlert: true,
         quickActions: [
-          { label: "📞 Call Dispensary", action: "call_phone", value: "0750210886" },
           { label: "🚨 Emergency Contacts", action: "emergency_contacts" },
           { label: "📞 Call Dispensary: 0750210886", action: "call_phone", value: "0750210886" },
           { label: "💬 WhatsApp Care Desk", action: "whatsapp", value: "https://wa.me/256750210886?text=URGENT%20Medical%20Inquiry" }
@@ -48,13 +44,11 @@ export default async function handler(req, res) {
       });
     }
 
-    // Prescription bypass guardrail
     // 2. Prescription bypass guardrail
     const bypassRegex = /\b(without\s+(a\s+)?prescription|bypass\s+prescription|skip\s+prescription|no\s+doctor\s+note|fake\s+prescription)\b/i;
     if (bypassRegex.test(message)) {
       return res.status(200).json({
         success: true,
-        text: "🛡️ **Prescription Verification Policy**\n\nBloomCare Pharmacy strictly complies with National Drug Authority (NDA) Uganda regulations. **Prescription medicines (Rx) cannot be dispensed without a verified prescription.**\n\nPlease add the item to your cart and upload your prescription during checkout for clinical verification.",
         text: "🛡️ **Prescription Verification Policy**\n\nBloomCare Pharmacy strictly complies with National Drug Authority (NDA) Uganda regulations. **Prescription medicines (Rx) cannot be dispensed without a verified, legitimate prescription from a registered medical practitioner.**\n\n**How to order prescription medications:**\n1. Add the medicine to your order.\n2. During checkout, upload a clear photo or PDF scan of your doctor's prescription.\n3. A registered BloomCare pharmacist will clinically review and approve the prescription before dispensing.",
         products: [],
         quickActions: [
@@ -143,18 +137,13 @@ export default async function handler(req, res) {
       });
     }
 
-    // Default response
     // 7. Default response
     return res.status(200).json({
       success: true,
-      text: "Hello! 👋 I'm BloomCare AI, your licensed pharmacy assistant.\n\nI can help you search real medicines, check real-time stock and prices, track your delivery, or connect you with our clinical team.",
       text: "Hello! 👋 I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant.\n\nI can help you understand symptoms, explore medicine uses and precautions, check real-time product stock and prices, track deliveries across Mbarara, or connect you directly with our clinical team.",
       products: [],
       quickActions: [
         { label: "🔎 Find a Medicine", action: "suggest", "value": "Find a medicine" },
-        { label: "📦 Track My Order", action: "suggest", "value": "Where is my order?" },
-        { label: "🚚 Delivery Fee", action: "suggest", "value": "How much is delivery?" },
-        { label: "👨‍⚕️ Talk to Pharmacist", action: "suggest", "value": "Talk to a pharmacist" }
         { label: "⭐ Recommend a Product", action: "suggest", "value": "Recommend a product" },
         { label: "📦 Where is my order?", action: "suggest", "value": "Where is my order?" },
         { label: "💊 How do I upload a prescription?", action: "suggest", "value": "How do I upload a prescription?" },

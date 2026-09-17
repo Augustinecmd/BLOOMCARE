@@ -13857,6 +13857,8 @@ dialog,
 @keyframes aiBounce {
   0%, 80%, 100% { transform: scale(0); }
   40% { transform: scale(1); }
+}
+
 .ai-role-tag {
   font-size: 10px;
   background: rgba(85, 172, 15, 0.25);

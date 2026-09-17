@@ -625,17 +625,13 @@ export function initBloomCareChatbot(options = {}) {
     const lower = text.toLowerCase();
     const userId = currentUser?.uid || currentUser?.email || "";
 
-    // Emergency red-flag
-    if (/\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|stroke|suicid|kill\s+myself|overdose|poison)\b/i.test(text)) {
     // 1. Emergency red-flags (12 life-threatening categories)
     if (/\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing|choking|gasping\s+for\s+(air|breath)|unconscious|fainted|passed\s+out|unresponsive|collapsed|severe\s+bleeding|bleeding\s+uncontrollably|spurting\s+blood|seizure|convulsing|fits|stroke|face\s+droop|slurred\s+speech|sudden\s+paralysis|anaphylaxis|throat\s+closing|severe\s+allergic\s+reaction|overdose|swallowed\s+poison|poisoning|severe\s+confusion|severe\s+dehydration|suicid|kill\s+myself)\b/i.test(text)) {
       return {
-        text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate an urgent medical emergency. **BloomCare AI is an informational pharmacy assistant and cannot diagnose conditions.**\n\n🚨 **Please seek immediate emergency hospital care at Mbarara Regional Referral Hospital or contact urgent services immediately.**",
         text: "⚠️ **MEDICAL EMERGENCY ALERT**\n\nThe symptoms you described may indicate a serious or life-threatening medical emergency. **BloomCare AI is an online pharmacy assistant and cannot diagnose conditions or manage emergencies.**\n\n🚨 **Immediate Action Required:**\n1. Seek immediate in-person emergency hospital care at **Mbarara Regional Referral Hospital**.\n2. Contact local emergency services or call BloomCare Urgent Support at **0750210886**.\n\nDo not wait for an online medicine delivery for severe, sudden, or life-threatening symptoms.",
         products: [],
         isSafetyAlert: true,
         quickActions: [
-          { label: "📞 Call Dispensary", action: "call_phone", value: "0750210886" },
           { label: "🚨 Emergency Contacts", action: "emergency_contacts" },
           { label: "📞 Call Dispensary: 0750210886", action: "call_phone", value: "0750210886" },
           { label: "💬 WhatsApp Care Desk", action: "whatsapp", value: "https://wa.me/256750210886?text=URGENT%20Medical%20Emergency%20Inquiry" }
@@ -775,14 +771,10 @@ export function initBloomCareChatbot(options = {}) {
 
     // Default friendly assistant response
     return {
-      text: "I'm **BloomCare AI**, your pharmacy assistant. I can help you search medicines, check stock and prices, explain prescriptions, or track your orders.\n\nWhat can I assist you with?",
       text: "Hello! 👋 I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant.\n\nI can help you understand symptoms, explore medicine uses and precautions, check real-time product stock and prices, track deliveries across Mbarara, or connect you directly with our clinical team.",
       products: (products || []).filter(p => (p.name || "").toLowerCase().includes("paracetamol")).slice(0, 2),
       quickActions: [
         { label: "🔎 Find a Medicine", action: "suggest", value: "Find a medicine" },
-        { label: "⭐ Recommended Products", action: "suggest", value: "Recommend products for me" },
-        { label: "📦 Track Order", action: "suggest", value: "Where is my order?" },
-        { label: "👨‍⚕️ Speak to Pharmacist", action: "suggest", value: "Talk to a pharmacist" }
         { label: "⭐ Recommend a Product", action: "suggest", value: "Recommend a product" },
         { label: "📦 Where is my order?", action: "suggest", value: "Where is my order?" },
         { label: "💊 How do I upload a prescription?", action: "suggest", value: "How do I upload a prescription?" },

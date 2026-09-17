@@ -131,23 +131,23 @@ test('13. MEDICAL INFORMATION ASSISTANT BRANDING & DISCLAIMER: Required clinical
 
 test('14. 12 LIFE-THREATENING EMERGENCY CATEGORIES: Python and Vercel engines detect all critical emergencies', () => {
   const emergencyTriggers = [
-    'shortness of breath',
-    'chest pain',
-    'unconscious',
-    'severe bleeding',
-    'seizure',
-    'stroke',
-    'anaphylaxis',
-    'overdose',
-    'severe trauma',
-    'severe confusion',
-    'severe dehydration',
-    'suicid'
+    /shortness(\s+|\\s\+)of(\s+|\\s\+)breath/i,
+    /chest(\s+|\\s\+)pain/i,
+    /unconscious/i,
+    /severe(\s+|\\s\+)bleeding/i,
+    /seizure/i,
+    /stroke/i,
+    /anaphylaxis/i,
+    /overdose/i,
+    /severe(\s+|\\s\+)trauma/i,
+    /severe(\s+|\\s\+)confusion/i,
+    /severe(\s+|\\s\+)dehydration/i,
+    /suicid/i
   ];
 
-  emergencyTriggers.forEach(term => {
-    assert.ok(pythonChatbotContent.toLowerCase().includes(term), `Python engine must detect emergency category: ${term}`);
-    assert.ok(vercelApiContent.toLowerCase().includes(term), `Vercel serverless engine must detect emergency category: ${term}`);
+  emergencyTriggers.forEach(pattern => {
+    assert.ok(pattern.test(pythonChatbotContent), `Python engine must detect emergency category matching: ${pattern}`);
+    assert.ok(pattern.test(vercelApiContent), `Vercel serverless engine must detect emergency category matching: ${pattern}`);
   });
 });
 
