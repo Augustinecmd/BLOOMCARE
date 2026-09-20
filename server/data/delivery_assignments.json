@@ -23,8 +23,8 @@
     ],
     "status": "Delivered",
     "deliveryStatus": "Delivered",
-    "assignedAt": "2026-09-17T09:39:32.208206+00:00",
-    "updatedAt": "2026-09-17T09:39:32.285479+00:00",
+    "assignedAt": "2026-09-20T06:17:45.125767+00:00",
+    "updatedAt": "2026-09-20T06:17:45.383464+00:00",
     "assignmentHistory": [
       {
         "timestamp": "2026-09-06T06:29:49.049287+00:00",
@@ -310,6 +310,36 @@
       },
       {
         "timestamp": "2026-09-17T09:39:32.208206+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-17T09:54:54.972545+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-17T10:25:09.614891+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-20T05:21:59.995770+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-20T06:16:15.570672+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-20T06:17:45.125767+00:00",
         "action": "ASSIGNED",
         "deliveryManId": "usr-staff-5",
         "deliveryManName": "Moses Kato"
@@ -725,8 +755,8 @@
     "deliveryManName": null,
     "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
     "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
-    "assignedAt": "2026-09-17T09:39:32.357727+00:00",
-    "updatedAt": "2026-09-17T09:39:32.357727+00:00",
+    "assignedAt": "2026-09-20T06:17:45.494406+00:00",
+    "updatedAt": "2026-09-20T06:17:45.494406+00:00",
     "deliveryArea": "Kiyanja",
     "deliveryDivision": "Kamukuzi",
     "deliveryLocation": "Mbarara City",
@@ -742,7 +772,7 @@
     ],
     "assignmentHistory": [
       {
-        "timestamp": "2026-09-17T09:39:32.357727+00:00",
+        "timestamp": "2026-09-20T06:17:45.494406+00:00",
         "action": "QUEUED_WAITING_FOR_DRIVER",
         "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
       }

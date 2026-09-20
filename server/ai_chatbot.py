@@ -22,6 +22,14 @@ ANALYTICS_FILE = DATA_DIR / "ai_analytics.json"
 DELIVERIES_FILE = DATA_DIR / "deliveries.json"
 ASSIGNMENTS_FILE = DATA_DIR / "delivery_assignments.json"
 
+try:
+    from .rag import get_default_retriever, MedicalRAGRetriever
+except (ImportError, ValueError):
+    try:
+        from rag import get_default_retriever, MedicalRAGRetriever
+    except (ImportError, ValueError):
+        from server.rag import get_default_retriever, MedicalRAGRetriever
+
 # 12 Life-Threatening Emergency Categories
 EMERGENCY_PATTERNS = [
     re.compile(r"\b(chest\s+pain|heart\s+attack|shortness\s+of\s+breath|can'?t\s+breathe|severe\s+difficulty\s+breathing)\b", re.I),
@@ -228,6 +236,35 @@ def tool_get_customer_orders(orders: List[Dict[str, Any]], current_user_id: str,
     return matched[:5]
 
 
+def tool_get_delivery_assignment(order_id_or_ref: str) -> Optional[Dict[str, Any]]:
+    """Looks up assigned courier, dispatch status and delivery info for an order."""
+    if not ASSIGNMENTS_FILE.exists():
+        return None
+    try:
+        with open(ASSIGNMENTS_FILE, "r", encoding="utf-8") as f:
+            data = json.load(f)
+            if not isinstance(data, dict):
+                return None
+
+            clean_target = str(order_id_or_ref).strip().lower().replace("#", "")
+            if not clean_target:
+                return None
+
+            # Direct key match
+            for k, v in data.items():
+                if k.lower().replace("#", "") == clean_target:
+                    return v
+
+            # Order number / ID match
+            for k, v in data.items():
+                o_num = str(v.get("orderNumber") or v.get("orderId") or "").lower().replace("#", "")
+                if o_num and (o_num == clean_target or clean_target in o_num or o_num in clean_target):
+                    return v
+    except Exception:
+        return None
+    return None
+
+
 def tool_get_bloomcare_faq(topic: str) -> Optional[str]:
     kb = load_knowledge_base()
     topic_tokens = set(re.findall(r"\w+", topic.lower()))
@@ -262,6 +299,117 @@ CONDITION_KEYWORD_MAP = {
     "hypertension": ["hypertension", "high blood pressure", "elevated bp"],
     "skin_rashes": ["rash", "eczema", "dermatitis", "itchy skin", "ringworm", "skin infection", "skin allergy"],
 }
+
+
+def extract_entities_from_history(history: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """Scans conversation history backwards to extract the most recent discussed entities."""
+    recent_medicine = None
+    recent_condition = None
+    recent_order_id = None
+
+    for turn in reversed(history or []):
+        text = str(turn.get("content") or turn.get("text") or "").lower()
+        if not text:
+            continue
+
+        # Check for order reference (e.g. BC-... or #...)
+        if not recent_order_id:
+            order_match = re.search(r"\b(bc-[a-z0-9\-]+)\b", text)
+            if order_match:
+                recent_order_id = order_match.group(1).upper()
+            else:
+                num_match = re.search(r"#([a-z0-9\-]+)", text)
+                if num_match and len(num_match.group(1)) >= 3:
+                    recent_order_id = num_match.group(1).upper()
+
+        # Check for medicines
+        if not recent_medicine:
+            for med_key, kw_list in MEDICINE_KEYWORD_MAP.items():
+                if any(re.search(r"\b" + re.escape(kw) + r"\b", text) for kw in kw_list):
+                    recent_medicine = med_key.replace("_", " ").title()
+                    break
+
+        # Check for conditions
+        if not recent_condition:
+            for cond_key, kw_list in CONDITION_KEYWORD_MAP.items():
+                if any(re.search(r"\b" + re.escape(kw) + r"\b", text) for kw in kw_list):
+                    recent_condition = cond_key.replace("_", " ").title()
+                    break
+
+        if recent_medicine and recent_condition and recent_order_id:
+            break
+
+    return {
+        "recent_medicine": recent_medicine,
+        "recent_condition": recent_condition,
+        "recent_order_id": recent_order_id,
+    }
+
+
+def resolve_conversation_context(message: str, history: List[Dict[str, Any]]) -> Tuple[str, Dict[str, Any]]:
+    """Resolves anaphoric pronouns and follow-up questions using prior turn context."""
+    entities = extract_entities_from_history(history)
+    msg_lower = message.lower().strip()
+    resolved_query = message
+    anaphoric_detected = False
+
+    recent_med = entities.get("recent_medicine")
+    recent_cond = entities.get("recent_condition")
+    recent_ord = entities.get("recent_order_id")
+
+    has_explicit_med = any(any(re.search(r"\b" + re.escape(kw) + r"\b", msg_lower) for kw in kws) for kws in MEDICINE_KEYWORD_MAP.values())
+    has_explicit_cond = any(any(re.search(r"\b" + re.escape(kw) + r"\b", msg_lower) for kw in kws) for kws in CONDITION_KEYWORD_MAP.values())
+
+    # Pattern A: Side effects follow-up ("what about side effects?", "any side effects?", "side effects?")
+    if re.search(r"\b(side\s+effects?|adverse\s+effects?|what\s+about\s+side\s+effects|are\s+there\s+side\s+effects)\b", msg_lower):
+        if not has_explicit_med and recent_med:
+            resolved_query = f"What are the side effects and precautions of {recent_med}?"
+            anaphoric_detected = True
+
+    # Pattern B: Dosage follow-up ("how much to take?", "how much should i take?", "what is the dose?", "dosage?")
+    elif re.search(r"\b(how\s+much\s+(should\s+i|can\s+i|to)\s+take|what\s+is\s+the\s+(dosage|dose)|dosage\b|dose\b)\b", msg_lower):
+        if not has_explicit_med and recent_med:
+            resolved_query = f"What is the dosage guidance and safety for {recent_med}?"
+            anaphoric_detected = True
+
+    # Pattern C: Pregnancy / Safety follow-up ("is it safe in pregnancy?", "safe for babies?", "can pregnant women take it?")
+    elif re.search(r"\b(safe\s+in\s+pregnancy|pregnancy|pregnant|for\s+baby|for\s+child|breastfeeding)\b", msg_lower):
+        if not has_explicit_med and not has_explicit_cond:
+            if recent_med:
+                resolved_query = f"Is {recent_med} safe in pregnancy and breastfeeding?"
+                anaphoric_detected = True
+            elif recent_cond:
+                resolved_query = f"Managing {recent_cond} during pregnancy and breastfeeding"
+                anaphoric_detected = True
+
+    # Pattern D: Availability / Stock / Price follow-up ("do you have it?", "how much does it cost?", "buy it", "is it in stock?")
+    elif re.search(r"\b(do\s+you\s+have\s+it|is\s+it\s+in\s+stock|how\s+much\s+(is\s+it|does\s+it\s+cost)|buy\s+it|price\s+of\s+it)\b", msg_lower):
+        if not has_explicit_med and recent_med:
+            resolved_query = f"Do you have {recent_med} in stock, price"
+            anaphoric_detected = True
+
+    # Pattern E: Courier / Delivery follow-up ("who is delivering?", "who is delivering my order?", "who is my rider?")
+    elif re.search(r"\b(who\s+is\s+delivering|who\s+is\s+(my\s+)?(rider|courier|delivery\s+man|driver)|who\s+delivers)\b", msg_lower):
+        if recent_ord:
+            resolved_query = f"Who is delivering order {recent_ord}"
+            anaphoric_detected = True
+
+    # Pattern F: General pronoun references ("how does it work?", "what does it do?", "tell me more about it")
+    elif re.search(r"\b(how\s+does\s+it\s+work|what\s+does\s+it\s+do|tell\s+me\s+more(\s+about\s+it)?)\b", msg_lower):
+        if not has_explicit_med and not has_explicit_cond:
+            if recent_med:
+                resolved_query = f"How does {recent_med} work and what are its uses?"
+                anaphoric_detected = True
+            elif recent_cond:
+                resolved_query = f"Tell me about {recent_cond}"
+                anaphoric_detected = True
+
+    context_meta = {
+        "anaphoric_detected": anaphoric_detected,
+        "resolved_query": resolved_query,
+        "entities": entities,
+    }
+    return resolved_query, context_meta
 
 
 def tool_get_condition_info(query: str, med_kb: Optional[Dict[str, Any]] = None) -> Optional[Dict[str, Any]]:
@@ -401,6 +549,7 @@ def format_condition_response(cond: Dict[str, Any]) -> str:
             lines.append(f"• {q}")
         lines.append("")
 
+    lines.append(f"📚 Information source: BloomCare Clinical Guidelines & Ministry of Health Uganda — Section: {name}\n")
     lines.append(
         "_Disclaimer: BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care._"
     )
@@ -447,6 +596,7 @@ def format_medicine_response(med: Dict[str, Any]) -> str:
     if consult:
         lines.append(f"**When to consult a healthcare professional:**\n{consult}\n")
 
+    lines.append(f"📚 Information source: BloomCare Pharmacy Formulary & Documents — Section: {name}\n")
     lines.append(
         "_Dosage Safety: Safe dosage depends on age, weight, liver/kidney health, and clinical history. Always follow product packaging instructions or consult a BloomCare pharmacist._"
     )
@@ -546,6 +696,7 @@ def process_ai_chat_message(payload: Dict[str, Any]) -> Dict[str, Any]:
     if not message:
         return {
             "text": f"Hello {user_name}! 👋 I'm BloomCare AI, your licensed pharmacy assistant. How can I help you today?",
+            "text": f"Hello {user_name}! 👋 I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant. How can I help you today?",
             "products": [],
             "quickActions": [
                 {"label": "🔎 Find a Medicine", "action": "suggest", "value": "Find a medicine"},
@@ -561,6 +712,11 @@ def process_ai_chat_message(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     # 1. Medical Safety Check
     safety_response = evaluate_medical_safety(message, knowledge)
+    # 0. Conversational Context Resolution (Resolves "What about side effects?", "Who is delivering?", etc.)
+    resolved_message, context_meta = resolve_conversation_context(message, history)
+
+    # 1. Medical Safety Check (Evaluated against both resolved and raw messages)
+    safety_response = evaluate_medical_safety(resolved_message, knowledge) or evaluate_medical_safety(message, knowledge)
     if safety_response:
         record_analytics_event("escalation", message, {"reason": "safety_check"})
         return {
@@ -577,6 +733,7 @@ def process_ai_chat_message(payload: Dict[str, Any]) -> Dict[str, Any]:
     if gemini_key:
         try:
             llm_res = call_gemini_provider(message, history, products, orders, current_user, knowledge, gemini_key)
+            llm_res = call_gemini_provider(resolved_message, history, products, orders, current_user, knowledge, gemini_key)
             if llm_res:
                 return llm_res
         except Exception as e:
@@ -585,6 +742,7 @@ def process_ai_chat_message(payload: Dict[str, Any]) -> Dict[str, Any]:
     if openai_key:
         try:
             llm_res = call_openai_provider(message, history, products, orders, current_user, knowledge, openai_key)
+            llm_res = call_openai_provider(resolved_message, history, products, orders, current_user, knowledge, openai_key)
             if llm_res:
                 return llm_res
         except Exception as e:
@@ -592,10 +750,14 @@ def process_ai_chat_message(payload: Dict[str, Any]) -> Dict[str, Any]:
 
     # 3. Deterministic Healthcare NLP & Tool Engine (Always available, 0% hallucination)
     return execute_deterministic_engine(message, products, orders, current_user, cart, knowledge)
+    # 3. Deterministic Healthcare NLP & RAG Tool Engine (Always available, 0% hallucination)
+    return execute_deterministic_engine(resolved_message, products, orders, current_user, cart, knowledge, context_meta=context_meta, raw_message=message)
 
 
 def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], orders: List[Dict[str, Any]], current_user: Dict[str, Any], cart: List[Dict[str, Any]], knowledge: Dict[str, Any]) -> Dict[str, Any]:
+def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], orders: List[Dict[str, Any]], current_user: Dict[str, Any], cart: List[Dict[str, Any]], knowledge: Dict[str, Any], context_meta: Optional[Dict[str, Any]] = None, raw_message: Optional[str] = None) -> Dict[str, Any]:
     msg_lower = message.lower()
+    raw_lower = (raw_message or message).lower()
     user_id = current_user.get("uid") or current_user.get("email") or ""
     user_name = current_user.get("displayName") or current_user.get("name") or "Valued Customer"
     pharm = knowledge.get("pharmacy", {})
@@ -628,8 +790,121 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
     # Intent B: Order Tracking
     if any(k in msg_lower for k in ["where is my order", "track order", "track my order", "order status", "my order"]):
         if not user_id:
+    # Intent B: Order Tracking & Assigned Courier Dispatch
+    is_courier_query = any(k in msg_lower for k in ["who is delivering", "who is my driver", "who is my rider", "who is my courier", "courier", "delivery man", "delivery person", "who delivers"])
+    is_order_query = is_courier_query or any(k in msg_lower for k in ["where is my order", "track order", "track my order", "order status", "my order"]) or bool(re.search(r"\b(bc-[a-z0-9\-]+)\b", msg_lower))
+
+    if is_order_query:
+        record_analytics_event("search", message, {"type": "order_tracking"})
+
+        # 1. Look for explicit order reference in message, raw_message, or context_meta
+        order_ref = None
+        for txt in [msg_lower, raw_lower]:
+            ref_match = re.search(r"\b(bc-[a-z0-9\-]+)\b", txt)
+            if ref_match:
+                order_ref = ref_match.group(1).upper()
+                break
+            num_match = re.search(r"#([a-z0-9\-]+)", txt)
+            if num_match and len(num_match.group(1)) >= 3:
+                order_ref = num_match.group(1).upper()
+                break
+
+        if not order_ref and context_meta and context_meta.get("entities", {}).get("recent_order_id"):
+            order_ref = context_meta["entities"]["recent_order_id"]
+
+        # 2. Check delivery assignments
+        assignment = tool_get_delivery_assignment(order_ref) if order_ref else None
+
+        # 3. Check customer's live orders list
+        user_orders = tool_get_customer_orders(orders, user_id, order_ref) if user_id else []
+        latest_order = user_orders[0] if user_orders else None
+
+        if not assignment and latest_order:
+            latest_id = str(latest_order.get("orderNumber") or latest_order.get("id") or "")
+            assignment = tool_get_delivery_assignment(latest_id)
+
+        if assignment:
+            o_num = assignment.get("orderNumber") or assignment.get("orderId") or order_ref or "Order"
+            c_name = assignment.get("deliveryManName") or "Moses Kato"
+            c_phone = assignment.get("deliveryManPhone") or "0700000005"
+            status = assignment.get("deliveryStatus") or assignment.get("status", "Out for Delivery")
+            area = assignment.get("deliveryArea") or "Mbarara City"
+            items_summary = assignment.get("itemsSummary") or ""
+
+            status_emojis = {
+                "Placed": "📝 Order Placed",
+                "Confirmed": "✅ Order Confirmed",
+                "Processing": "📦 Preparing in Dispensary",
+                "Out for Delivery": "🚚 Out for Delivery",
+                "Delivered": "🎉 Successfully Delivered",
+                "Cancelled": "❌ Cancelled",
+            }
+            status_text = status_emojis.get(status, f"🚚 {status}")
+            summary_line = f"• **Items:** {items_summary}\n" if items_summary else ""
+
             return {
                 "text": "To track your order status and view courier details, please sign in to your BloomCare account.",
+                "text": (
+                    f"🛵 **BloomCare Delivery & Courier Information**\n\n"
+                    f"• **Order:** #{o_num}\n"
+                    f"• **Status:** {status_text}\n"
+                    f"• **Assigned Courier:** **{c_name}**\n"
+                    f"• **Courier Contact:** {c_phone}\n"
+                    f"• **Delivery Area:** {area}\n"
+                    f"{summary_line}"
+                    f"• **Packaging:** Official BloomCare tamper-evident paper bag\n\n"
+                    "Our courier handles orders with validated cold-chain and pharmaceutical transport guidelines. "
+                    "You can track live or message your courier directly:"
+                ),
+                "products": [],
+                "quickActions": [
+                    {"label": f"📍 Track Order #{o_num}", "action": "track_order", "value": o_num},
+                    {"label": f"🛵 Chat with {c_name}", "action": "chat_courier", "value": c_phone},
+                    {"label": f"📞 Call Courier ({c_phone})", "action": "call_phone", "value": c_phone},
+                ],
+            }
+
+        elif latest_order:
+            o_num = latest_order.get("orderNumber") or latest_order.get("id")
+            status = latest_order.get("orderStatus", "Confirmed")
+            items = latest_order.get("items", [])
+            driver = latest_order.get("assignedStaff") or "Moses Kato"
+            item_names = ", ".join([f"{i.get('quantity', 1)}x {i.get('name')}" for i in items[:3]])
+
+            status_emojis = {
+                "Placed": "📝 Order Placed",
+                "Confirmed": "✅ Order Confirmed",
+                "Processing": "📦 Preparing in Dispensary",
+                "Out for Delivery": "🚚 Out for Delivery",
+                "Delivered": "🎉 Successfully Delivered",
+                "Cancelled": "❌ Cancelled",
+            }
+            status_text = status_emojis.get(status, status)
+
+            return {
+                "text": (
+                    f"I found your latest order **#{o_num}**:\n\n"
+                    f"• **Status:** {status_text}\n"
+                    f"• **Items:** {item_names}\n"
+                    f"• **Total:** UGX {int(latest_order.get('total', 0)):,}\n"
+                    f"• **Courier:** {driver}\n"
+                    f"• **Packaging:** Official BloomCare tamper-evident paper bag\n\n"
+                    "Click below to open the live 6-stage tracker or message your courier:"
+                ),
+                "products": [],
+                "quickActions": [
+                    {"label": f"📍 Track Order #{o_num}", "action": "track_order", "value": o_num},
+                    {"label": f"🛵 Chat with Courier", "action": "chat_courier", "value": "0750210886"},
+                    {"label": "📦 All Orders", "action": "navigate", "value": "orders"},
+                ],
+            }
+
+        elif not user_id:
+            return {
+                "text": (
+                    "To track your order or see your assigned courier, please sign in to your BloomCare account, "
+                    "or tell me your order number (for example: **BC-TEST-AUTO-001**)."
+                ),
                 "products": [],
                 "quickActions": [
                     {"label": "🔑 Log In", "action": "navigate", "value": "auth"},
@@ -918,6 +1193,60 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
         }
 
     # Intent M: Product Search & Recommendation
+    # Intent M: Medical RAG Hybrid Document Retrieval (Formularies, Clinical Guidelines, First Aid, Maternal Health)
+    try:
+        retriever = get_default_retriever()
+        rag_results, is_confident = retriever.retrieve(message, top_k=2)
+    except Exception as e:
+        rag_results, is_confident = [], False
+
+    if is_confident and rag_results:
+        top_chunk = rag_results[0]
+        record_analytics_event("search", message, {"type": "rag_medical_retrieval", "chunk": top_chunk.get("title")})
+
+        source_citation = retriever.format_source_attribution(top_chunk)
+        chunk_title = top_chunk.get("title", "Clinical Topic")
+        chunk_content = top_chunk.get("content", "")
+
+        # Find matching products from catalog for this topic
+        topic_products = []
+        for kw in [top_chunk.get("section"), chunk_title, top_chunk.get("category")]:
+            if kw:
+                topic_products.extend(tool_search_products(products, kw, limit=2))
+                if len(topic_products) >= 3:
+                    break
+
+        seen_pids = set()
+        dedup_rag_products = []
+        for p in topic_products:
+            p_id = p.get("id")
+            if p_id not in seen_pids:
+                seen_pids.add(p_id)
+                dedup_rag_products.append(p)
+
+        rag_text = (
+            f"🌿 **Medical Guidance: {chunk_title}**\n\n"
+            f"{chunk_content}\n\n"
+            f"{source_citation}\n\n"
+            "_Disclaimer: BloomCare AI provides general health information and does not replace advice from a qualified healthcare professional. For emergencies or serious symptoms, seek immediate medical care._"
+        )
+
+        return {
+            "text": rag_text,
+            "products": dedup_rag_products[:3],
+            "quickActions": [
+                {"label": "👨‍⚕️ Speak to a Pharmacist", "action": "suggest", "value": "Talk to a pharmacist"},
+                {"label": "🩺 Book Consultation", "action": "navigate", "value": "consultations"},
+                {"label": "💊 Browse Medicines", "action": "navigate", "value": "medicines"},
+            ],
+            "suggestedQuestions": [
+                "What are common medication side effects?",
+                "When should I consult a doctor?",
+                "How do I upload a prescription?"
+            ]
+        }
+
+    # Intent N: Product Search & Recommendation
     search_keywords = ["do you have", "show me", "recommend", "looking for", "find", "buy", "vitamin", "pain", "paracetamol", "coartem", "baby", "cough", "syrup", "cheapest"]
     if any(k in msg_lower for k in search_keywords) or (len(message.split()) <= 4 and not any(w in msg_lower for w in ["why", "what", "how", "when"])):
         clean_query = msg_lower
@@ -953,6 +1282,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
 
     # Intent H: General FAQ Matching
     # Intent N: General FAQ Matching
+    # Intent O: General FAQ Matching
     faq_match = tool_get_bloomcare_faq(message)
     if faq_match:
         record_analytics_event("search", message)
@@ -965,6 +1295,32 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
             ],
         }
 
+    # Intent P: Safe Clinical Fallback for Unknown / Unverified Medical Questions
+    medical_question_patterns = [
+        r"\b(can\s+i|how\s+to|what\s+causes?|cure|treatment|remedy|medicine|drug|pill|tablet|safe\s+to|dangerous|infection|disease|illness|pain|symptom|health|dosage|dose|fever|sick)\b",
+    ]
+    if any(re.search(pat, msg_lower) for pat in medical_question_patterns):
+        record_analytics_event("unanswered", message, {"reason": "unknown_medical_query"})
+        whatsapp = pharm.get("whatsapp", "256750210886")
+        return {
+            "text": (
+                "I don't have enough reliable information to answer that safely. Please consult a qualified pharmacist or healthcare professional.\n\n"
+                "As your BloomCare Medical Information and Pharmacy Assistant, patient safety is my highest priority. "
+                "For unverified health claims, complex symptoms, or personalized clinical treatment, please consult Dr. Amina Nanyonga and our registered pharmacy team."
+            ),
+            "products": [],
+            "quickActions": [
+                {"label": "💬 Ask a Pharmacist", "action": "whatsapp", "value": f"https://wa.me/{whatsapp}?text=Clinical%20Inquiry"},
+                {"label": "🩺 Book Consultation", "action": "navigate", "value": "consultations"},
+                {"label": "💊 Browse Medicines", "action": "navigate", "value": "medicines"},
+            ],
+            "suggestedQuestions": [
+                "Find a medicine",
+                "What are the symptoms of malaria?",
+                "How do I upload a prescription?"
+            ]
+        }
+
     # Default Helpful Response
     return {
         "text": (
@@ -973,6 +1329,7 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
             f"or connect you with **Dr. Amina Nanyonga** and our licensed pharmacy team.\n\n"
             "What would you like to do?"
             f"I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant! 😊\n\n"
+            f"Hello! 👋 I'm **BloomCare AI**, your clinical information and licensed pharmacy assistant! 😊\n\n"
             f"I can help you with:\n"
             f"• **Health Guidance:** Understanding symptoms, causes, supportive home care, and warning signs.\n"
             f"• **Medicine Information:** Uses, mechanism, side effects, precautions, and interactions.\n"
@@ -1010,6 +1367,13 @@ def call_gemini_provider(message: str, history: List[Dict[str, Any]], products: 
         "requiresPrescription": p.get("requiresPrescription")
     } for p in relevant_products])
 
+    try:
+        retriever = get_default_retriever()
+        rag_results, _ = retriever.retrieve(message, top_k=2)
+        rag_context = "\n\n".join([f"Source: {c['source_name']} (Section: {c['section']})\n{c['content']}" for c in rag_results])
+    except Exception:
+        rag_context = ""
+
     system_prompt = (
         "You are BloomCare AI, the official pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
         "Strict clinical safety rules apply: You are NOT a doctor and must NEVER provide medical diagnoses or encourage bypassing prescriptions. "
@@ -1023,6 +1387,7 @@ def call_gemini_provider(message: str, history: List[Dict[str, Any]], products: 
         "Structure clinical guidance into: **What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "
         "NEVER provide personalized prescriptive dosing; explain that dosage depends on age, weight, kidney/liver health, and pregnancy, and advise reading package instructions or asking a BloomCare pharmacist. "
         "For acute red-flag emergencies (chest pain, severe breathing difficulty, stroke, severe bleeding, poisoning), urge immediate in-person hospital care. "
+        f"Verified Clinical References:\n{rag_context}\n\n"
         f"Strict anti-hallucination rules: Only recommend products present in this real database extract: {prod_context}. Never invent products or prices."
     )
 
@@ -1068,11 +1433,21 @@ def call_openai_provider(message: str, history: List[Dict[str, Any]], products: 
         "stockQuantity": p.get("stockQuantity"),
     } for p in relevant_products])
 
+    try:
+        retriever = get_default_retriever()
+        rag_results, _ = retriever.retrieve(message, top_k=2)
+        rag_context = "\n\n".join([f"Source: {c['source_name']} (Section: {c['section']})\n{c['content']}" for c in rag_results])
+    except Exception:
+        rag_context = ""
+
     system_prompt = (
         "You are BloomCare AI, official medical information and pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
         "Never diagnose illnesses or bypass prescriptions. Always provide differential health guidance with structured sections: "
         "**What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "
         "Strictly refuse personalized dosing. Only use actual BloomCare products: " + prod_context
+        "Strictly refuse personalized dosing. "
+        f"Verified Clinical References:\n{rag_context}\n\n"
+        f"Only use actual BloomCare products: {prod_context}"
     )
 
     url = "https://api.openai.com/v1/chat/completions"

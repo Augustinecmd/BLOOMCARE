@@ -687,6 +687,17 @@ export function initBloomCareChatbot(options = {}) {
       `;
     }
 
+    if (action === "chat_courier") {
+      const raw = String(val || "0750210886").replace(/\D/g, "");
+      const intl = raw.startsWith("0") ? "256" + raw.slice(1) : (raw.startsWith("256") ? raw : "256750210886");
+      return `
+        <a href="https://wa.me/${intl}?text=Hello%2C%20regarding%20my%20BloomCare%20order" target="_blank" rel="noopener noreferrer" class="ai-action-pill-btn ai-action-link">
+          <span>🛵</span>
+          <span>${label}</span>
+        </a>
+      `;
+    }
+
     if (action === "track_order") {
       return `
         <button type="button" class="ai-action-pill-btn ai-btn-track-order" data-order-id="${escapeHtml(val || '')}">

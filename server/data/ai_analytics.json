@@ -1,12 +1,12 @@
 {
-  "totalConversations": 18,
+  "totalConversations": 45,
   "todayConversations": 17,
-  "lastResetDate": "2026-09-17",
-  "productSearches": 14,
-  "successfulRecommendations": 1,
+  "lastResetDate": "2026-09-20",
+  "productSearches": 28,
+  "successfulRecommendations": 2,
   "cartAdditions": 0,
-  "escalationsToPharmacists": 3,
-  "unansweredQuestions": 1,
+  "escalationsToPharmacists": 5,
+  "unansweredQuestions": 7,
   "topAskedQuestions": {
     "hlo": 3,
     "i have chest pain": 2,
@@ -18,261 +18,358 @@
     "what are the symptoms and causes of malaria?": 8,
     "how much paracetamol should i give my 3-month-old infant?": 2,
     "malaria tab": 2,
-    "find a medicine": 2
+    "find a medicine": 2,
+    "tell me about common medicines and their uses": 1,
+    "am sick": 4,
+    "dexa": 2,
+    "durex": 2,
+    "help me understand symptoms and common conditions": 1,
+    "how do i upload a prescription?": 1,
+    "tell me about paracetamol": 4,
+    "what about side effects?": 3,
+    "what are the side effects and precautions of paracetamol?": 3,
+    "who is delivering my order bc-test-auto-001?": 8,
+    "can i cure disease using magic dust?": 4,
+    "what are the symptoms of malaria?": 4,
+    "can you sell me amoxicillin without a prescription?": 4,
+    "how do i cure hypertension using magic crystal stones?": 4,
+    "how can i cure cancer using purple magic quartz?": 2,
+    "how do i manage a cough?": 3
   },
   "recentEvents": [
     {
       "type": "unanswered",
-      "query": "Find a medicine",
-      "timestamp": "2026-09-17T12:32:30.539859",
+      "query": "am sick",
+      "timestamp": "2026-09-20T09:23:25.539569",
       "details": {}
     },
     {
       "type": "conversation",
-      "query": "Find a medicine",
-      "timestamp": "2026-09-17T12:32:30.516768",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "malaria tab",
-      "timestamp": "2026-09-17T12:31:47.642376",
-      "details": {
-        "type": "condition_guidance"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "malaria tab",
-      "timestamp": "2026-09-17T12:31:47.622697",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "How much paracetamol should I give my 3-month-old infant?",
-      "timestamp": "2026-09-17T12:29:44.883174",
-      "details": {
-        "type": "medicine_monograph"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "How much paracetamol should I give my 3-month-old infant?",
-      "timestamp": "2026-09-17T12:29:44.868306",
-      "details": {}
-    },
-    {
-      "type": "escalation",
-      "query": "I have severe chest pain and cannot breathe",
-      "timestamp": "2026-09-17T12:29:19.230534",
-      "details": {
-        "reason": "safety_check"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "I have severe chest pain and cannot breathe",
-      "timestamp": "2026-09-17T12:29:19.222106",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:28:37.400913",
-      "details": {
-        "type": "condition_guidance"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:28:37.389722",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:27:50.297596",
-      "details": {
-        "type": "condition_guidance"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:27:50.286328",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:27:22.542592",
-      "details": {
-        "type": "condition_guidance"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:27:22.528565",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:27:10.033783",
-      "details": {
-        "type": "condition_guidance"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What are the symptoms and causes of malaria?",
-      "timestamp": "2026-09-17T12:27:10.021742",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "First aid for burns",
-      "timestamp": "2026-09-17T11:43:44.451239",
-      "details": {
-        "type": "first_aid"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "First aid for burns",
-      "timestamp": "2026-09-17T11:43:44.442074",
-      "details": {}
-    },
-    {
-      "type": "escalation",
-      "query": "I have severe chest pain and cannot breathe",
-      "timestamp": "2026-09-17T11:43:44.430523",
-      "details": {
-        "reason": "safety_check"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "I have severe chest pain and cannot breathe",
-      "timestamp": "2026-09-17T11:43:44.421985",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What is the dosage for Paracetamol?",
-      "timestamp": "2026-09-17T11:43:44.410943",
-      "details": {
-        "type": "dosage_safety"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What is the dosage for Paracetamol?",
-      "timestamp": "2026-09-17T11:43:44.402231",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What are the side effects of Amoxicillin?",
-      "timestamp": "2026-09-17T11:43:44.391123",
-      "details": {
-        "type": "medicine_monograph"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What are the side effects of Amoxicillin?",
-      "timestamp": "2026-09-17T11:43:44.381031",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "Tell me about malaria symptoms",
-      "timestamp": "2026-09-17T11:43:44.372112",
-      "details": {
-        "type": "condition_guidance"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "Tell me about malaria symptoms",
-      "timestamp": "2026-09-17T11:43:44.359470",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "Tell me about malaria symptoms",
-      "timestamp": "2026-09-17T11:41:52.173689",
-      "details": {
-        "type": "medicine_monograph"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "Tell me about malaria symptoms",
-      "timestamp": "2026-09-17T11:41:52.163700",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "What is the dosage for Paracetamol?",
-      "timestamp": "2026-09-17T11:41:46.287280",
-      "details": {
-        "type": "dosage_safety"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "What is the dosage for Paracetamol?",
-      "timestamp": "2026-09-17T11:41:46.278089",
-      "details": {}
-    },
-    {
-      "type": "search",
-      "query": "Tell me about malaria symptoms",
-      "timestamp": "2026-09-17T11:41:46.268510",
-      "details": {
-        "type": "medicine_monograph"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "Tell me about malaria symptoms",
-      "timestamp": "2026-09-17T11:41:46.255579",
-      "details": {}
-    },
-    {
-      "type": "escalation",
-      "query": "I have chest pain",
-      "timestamp": "2026-09-17T11:41:46.244688",
-      "details": {
-        "reason": "safety_check"
-      }
-    },
-    {
-      "type": "conversation",
-      "query": "I have chest pain",
-      "timestamp": "2026-09-17T11:41:46.237164",
+      "query": "am sick",
+      "timestamp": "2026-09-20T09:23:25.508240",
       "details": {}
     },
     {
       "type": "recommendation",
-      "query": "hlo",
-      "timestamp": "2026-09-14T12:50:43.312259",
+      "query": "How do I manage a cough?",
+      "timestamp": "2026-09-20T09:23:05.058368",
       "details": {}
     },
     {
       "type": "search",
-      "query": "hlo",
-      "timestamp": "2026-09-14T12:50:43.301278",
+      "query": "How do I manage a cough?",
+      "timestamp": "2026-09-20T09:23:05.044931",
       "details": {}
     },
     {
       "type": "conversation",
-      "query": "hlo",
-      "timestamp": "2026-09-14T12:50:43.289806",
+      "query": "How do I manage a cough?",
+      "timestamp": "2026-09-20T09:23:05.024534",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the side effects and precautions of Paracetamol?",
+      "timestamp": "2026-09-20T09:16:52.907566",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What about side effects?",
+      "timestamp": "2026-09-20T09:16:52.893460",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "How can I cure cancer using purple magic quartz?",
+      "timestamp": "2026-09-20T09:16:52.881257",
+      "details": {
+        "reason": "unknown_medical_query"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "How can I cure cancer using purple magic quartz?",
+      "timestamp": "2026-09-20T09:16:52.777265",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-20T09:16:52.757950",
+      "details": {
+        "type": "order_tracking"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-20T09:16:52.736916",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "How do I cure hypertension using magic crystal stones?",
+      "timestamp": "2026-09-20T08:35:52.808614",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "How do I cure hypertension using magic crystal stones?",
+      "timestamp": "2026-09-20T08:35:52.775567",
+      "details": {}
+    },
+    {
+      "type": "escalation",
+      "query": "Can you sell me amoxicillin without a prescription?",
+      "timestamp": "2026-09-20T08:35:52.715715",
+      "details": {
+        "reason": "safety_check"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Can you sell me amoxicillin without a prescription?",
+      "timestamp": "2026-09-20T08:35:52.689886",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-20T08:35:52.628152",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the symptoms of malaria?",
+      "timestamp": "2026-09-20T08:35:43.883104",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the symptoms of malaria?",
+      "timestamp": "2026-09-20T08:35:43.833524",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "How do I cure hypertension using magic crystal stones?",
+      "timestamp": "2026-09-20T08:35:36.427525",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "How do I cure hypertension using magic crystal stones?",
+      "timestamp": "2026-09-20T08:35:36.382441",
+      "details": {}
+    },
+    {
+      "type": "escalation",
+      "query": "Can you sell me amoxicillin without a prescription?",
+      "timestamp": "2026-09-20T08:35:36.337487",
+      "details": {
+        "reason": "safety_check"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Can you sell me amoxicillin without a prescription?",
+      "timestamp": "2026-09-20T08:35:36.308234",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-20T08:35:36.264108",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the symptoms of malaria?",
+      "timestamp": "2026-09-20T08:35:36.182181",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What are the symptoms of malaria?",
+      "timestamp": "2026-09-20T08:35:36.146579",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "Can I cure disease using magic dust?",
+      "timestamp": "2026-09-20T08:07:04.714556",
+      "details": {
+        "reason": "unknown_medical_query"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Can I cure disease using magic dust?",
+      "timestamp": "2026-09-20T08:07:04.661927",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-20T08:07:04.632986",
+      "details": {
+        "type": "order_tracking"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-20T08:07:04.605725",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the side effects and precautions of Paracetamol?",
+      "timestamp": "2026-09-20T08:07:04.580930",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What about side effects?",
+      "timestamp": "2026-09-20T08:07:04.554215",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Tell me about Paracetamol",
+      "timestamp": "2026-09-20T08:07:04.532667",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Tell me about Paracetamol",
+      "timestamp": "2026-09-20T08:07:04.463784",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Can I cure disease using magic dust?",
+      "timestamp": "2026-09-18T18:43:19.162718",
+      "details": {
+        "type": "rag_medical_retrieval",
+        "chunk": "Gastroesophageal Reflux Disease (GERD) & Heartburn - BloomCare Clinical Guidance: Common Diseases & Symptoms"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Can I cure disease using magic dust?",
+      "timestamp": "2026-09-18T18:43:19.094063",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-18T18:43:19.050332",
+      "details": {
+        "type": "order_tracking"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Who is delivering my order BC-TEST-AUTO-001?",
+      "timestamp": "2026-09-18T18:43:19.026180",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What are the side effects and precautions of Paracetamol?",
+      "timestamp": "2026-09-18T18:43:18.998398",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What about side effects?",
+      "timestamp": "2026-09-18T18:43:18.968734",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "Tell me about Paracetamol",
+      "timestamp": "2026-09-18T18:43:18.944709",
+      "details": {
+        "type": "medicine_monograph"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "Tell me about Paracetamol",
+      "timestamp": "2026-09-18T18:43:18.877096",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "How do I upload a prescription?",
+      "timestamp": "2026-09-17T13:07:55.878503",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "Help me understand symptoms and common conditions",
+      "timestamp": "2026-09-17T13:05:57.547373",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "durex",
+      "timestamp": "2026-09-17T13:05:50.311374",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "durex",
+      "timestamp": "2026-09-17T13:05:50.277415",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "dexa",
+      "timestamp": "2026-09-17T13:05:32.788574",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "dexa",
+      "timestamp": "2026-09-17T13:05:32.739734",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "am sick",
+      "timestamp": "2026-09-17T13:04:59.077461",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "am sick",
+      "timestamp": "2026-09-17T13:04:59.050787",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "Tell me about common medicines and their uses",
+      "timestamp": "2026-09-17T13:04:46.526986",
       "details": {}
     }
   ]

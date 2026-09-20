@@ -199,4 +199,49 @@ test('20. ERROR RESILIENCE: Polite healthcare fallback message for offline or fa
   );
 });
 
+test('21. RAG RETRIEVAL SUBSYSTEM & VECTOR RETRIEVER: Document chunking, hybrid vector retrieval, and transparent source citations', () => {
+  const ragDir = path.join(rootDir, 'server', 'rag');
+  const docsDir = path.join(ragDir, 'documents');
+  assert.ok(fs.existsSync(ragDir), 'server/rag must exist');
+  assert.ok(fs.existsSync(path.join(ragDir, 'processor.py')), 'server/rag/processor.py must exist');
+  assert.ok(fs.existsSync(path.join(ragDir, 'retriever.py')), 'server/rag/retriever.py must exist');
+  assert.ok(fs.existsSync(path.join(docsDir, 'medicines.md')), 'medicines.md monograph document must exist');
+  assert.ok(fs.existsSync(path.join(docsDir, 'diseases_and_symptoms.md')), 'diseases_and_symptoms.md document must exist');
+  assert.ok(fs.existsSync(path.join(docsDir, 'first_aid.md')), 'first_aid.md document must exist');
+  assert.ok(fs.existsSync(path.join(docsDir, 'maternal_and_child_health.md')), 'maternal_and_child_health.md document must exist');
+  assert.ok(fs.existsSync(path.join(docsDir, 'preventive_and_nutrition.md')), 'preventive_and_nutrition.md document must exist');
+  assert.ok(fs.existsSync(path.join(docsDir, 'medical_glossary.md')), 'medical_glossary.md document must exist');
+
+  // Verify retriever has format_source_attribution
+  const retrieverCode = fs.readFileSync(path.join(ragDir, 'retriever.py'), 'utf8');
+  assert.ok(retrieverCode.includes('format_source_attribution'), 'Retriever must format transparent source citations');
+  assert.ok(retrieverCode.includes('Information source:'), 'Retriever must include Information source label');
+});
+
+test('22. SMART CONVERSATIONAL CONTEXT MEMORY: Resolving follow-ups and anaphoric queries from prior turns', () => {
+  const freshChatbotContent = fs.readFileSync(pythonChatbotPath, 'utf8');
+  assert.ok(freshChatbotContent.includes('resolve_conversation_context'), 'ai_chatbot.py must define resolve_conversation_context');
+  assert.ok(freshChatbotContent.includes('extract_entities_from_history'), 'ai_chatbot.py must define extract_entities_from_history');
+  assert.ok(freshChatbotContent.includes('recent_medicine'), 'Context resolver must track recent_medicine');
+  assert.ok(freshChatbotContent.includes('recent_order_id'), 'Context resolver must track recent_order_id');
+});
+
+test('23. REAL-TIME COURIER ASSISTANCE & LIVE DISPATCH ACTIONS: Resolves assigned courier, phone, and messaging actions', () => {
+  const freshChatbotContent = fs.readFileSync(pythonChatbotPath, 'utf8');
+  const freshChatbotJs = fs.readFileSync(chatbotJsPath, 'utf8');
+  assert.ok(freshChatbotContent.includes('tool_get_delivery_assignment'), 'Server must implement tool_get_delivery_assignment');
+  assert.ok(freshChatbotContent.includes('chat_courier'), 'Server must output chat_courier action');
+  assert.ok(freshChatbotJs.includes('chat_courier'), 'Client chatbot must handle chat_courier action');
+  assert.ok(freshChatbotContent.includes('Assigned Courier:'), 'Server must display Assigned Courier in response');
+});
+
+test('24. UNKNOWN QUESTION SAFE MEDICAL FALLBACK: Safe clinical directive for unverified or ungrounded health queries', () => {
+  const freshChatbotContent = fs.readFileSync(pythonChatbotPath, 'utf8');
+  const freshVercelContent = fs.readFileSync(vercelApiPath, 'utf8');
+  const requiredFallback = "I don't have enough reliable information to answer that safely. Please consult a qualified pharmacist or healthcare professional.";
+  assert.ok(freshChatbotContent.includes(requiredFallback), 'Python engine must contain exact required safe fallback text');
+  assert.ok(freshVercelContent.includes(requiredFallback), 'Vercel engine must contain exact required safe fallback text');
+});
+
+
 

@@ -14237,3 +14237,70 @@ dialog,
   }
 }
 
+/* ============================================================== */
+/* 20. CUSTOMER LOGOUT CARDS & HIGH-VISIBILITY CONTROLS */
+/* ============================================================== */
+.logout-account-card {
+  background: #fffafa;
+  border: 1px solid #fee2e2;
+  border-radius: var(--radius-md, 12px);
+  padding: 18px 20px;
+  box-shadow: 0 2px 8px rgba(220, 38, 38, 0.04);
+}
+
+.customer-logout-trigger-btn {
+  background: #ffffff;
+  color: #dc2626;
+  border: 1.5px solid #fca5a5;
+  border-radius: 8px;
+  padding: 8px 18px;
+  font-weight: 700;
+  font-size: 13.5px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.customer-logout-trigger-btn:hover {
+  background: #dc2626;
+  color: #ffffff;
+  border-color: #dc2626;
+  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.25);
+  transform: translateY(-1px);
+}
+
+.customer-logout-trigger-btn:active {
+  transform: translateY(0);
+}
+
+/* ============================================================== */
+/* 21. 4K ULTRA-HD & RETINA DISPLAY IMAGE RENDERING OPTIMIZATIONS */
+/* ============================================================== */
+img,
+.pharmacy-hero-img,
+.bloomcare-customer-hero-img,
+.customer-hero-bag-img,
+.pharmacy-avatar-img,
+.product-card-img,
+.pharmacist-avatar-img,
+.consult-card-avatar {
+  image-rendering: -webkit-optimize-contrast;
+  image-rendering: auto;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  max-width: 100%;
+}
+
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi), (min-width: 1920px) {
+  .pharmacy-hero-img,
+  .bloomcare-customer-hero-img,
+  .customer-hero-bag-img,
+  .product-card-img {
+    image-rendering: -webkit-optimize-contrast;
+    image-rendering: crisp-edges;
+  }
+}
+

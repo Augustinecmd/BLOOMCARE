@@ -4389,7 +4389,8 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "contact", icon: ICONS.contact, label: "Contact Us" },
     { route: "customer-chat", icon: ICONS.chat, label: "Messages" },
     { route: "profile", icon: ICONS.profile, label: "My Profile" },
-    { route: "settings", icon: ICONS.settings, label: "Settings" }
+    { route: "settings", icon: ICONS.settings, label: "Settings" },
+    { route: "logout", icon: ICONS.logout, label: "Sign Out", action: "logout" }
   ],
   pharmacist: [
     { route: "pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -4472,6 +4473,9 @@ export function checkRouteAccess(route, user, role = null) {
       redirectRoute: "delivery_person/dashboard",
       reason: "Access Denied: About Us and Contact Us are not available for Delivery Staff."
     };
+  }
+  if (clean === "logout") {
+    return { allowed: true };
   }
   // Universal public browsing routes (accessible to everyone, including visitors and logged-in users)
   const universalBrowseRoutes = ["medicines", "categories", "about", "contact"];
@@ -4783,10 +4787,18 @@ export function getNormalizedRoute() {
 }
 
 export function navigateTo(route) {
+  if (route === "logout" || route === "#logout") {
+    $("#logout-confirm-dialog")?.showModal();
+    return;
+  }
   if (!route) {
     route = ROLE_HOME_ROUTES[STATE.activeRole] || "auth";
   }
   const clean = route.replace(/^#\/?/, "").replace(/^\/+|\/+$/g, "");
+  if (clean === "logout") {
+    $("#logout-confirm-dialog")?.showModal();
+    return;
+  }
   const current = getNormalizedRoute();
   if (current && current !== clean && !STATE.handlingBrowserBack) {
     STATE.routeHistory.push(current);
@@ -4805,6 +4817,10 @@ export function handleRoute() {
   }
 
   let route = getNormalizedRoute();
+  if (route === "logout") {
+    $("#logout-confirm-dialog")?.showModal();
+    return;
+  }
 
   // If visiting root or generic dashboard, resolve to role's primary designated dashboard
   if (!route || route === "dashboard" || route === "home" || route === "overview") {
@@ -6136,6 +6152,7 @@ function renderRoleDashboard() {
             <button class="btn btn-secondary btn-sm" type="button" data-route="prescriptions">Upload Prescription</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="refills">Request Refill</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
+            <button class="btn btn-outline btn-sm customer-logout-trigger-btn" id="btn-cust-dash-logout" type="button" data-action="logout" style="color:#b91c1c; border-color:#fca5a5; font-weight:600;">Sign Out</button>
           </div>
         </div>
         <div class="customer-welcome-right customer-hero-brand-right">
@@ -16907,10 +16924,23 @@ function bindEventListeners() {
   $("#sidebar-auth-action-btn")?.addEventListener("click", handleAuthTrigger);
   $("#sidebar-logout-btn")?.addEventListener("click", handleAuthTrigger);
 
-  // Global Navigation Click Handler for [data-route]
+  // Global Navigation Click Handler for [data-route] and [data-action="logout"]
   document.addEventListener("click", (e) => {
+    const logoutBtn = e.target.closest('[data-action="logout"], .customer-logout-trigger-btn, #btn-profile-logout, #btn-settings-logout, #btn-cust-dash-logout');
+    if (logoutBtn) {
+      e.preventDefault();
+      closeMobileDrawer();
+      $("#logout-confirm-dialog")?.showModal();
+      return;
+    }
     const navBtn = e.target.closest("[data-route]");
     if (navBtn) {
+      if (navBtn.dataset.route === "logout") {
+        e.preventDefault();
+        closeMobileDrawer();
+        $("#logout-confirm-dialog")?.showModal();
+        return;
+      }
       e.preventDefault();
       closeMobileDrawer();
       navigateTo(navBtn.dataset.route);
