@@ -4389,7 +4389,6 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "contact", icon: ICONS.contact, label: "Contact Us" },
     { route: "customer-chat", icon: ICONS.chat, label: "Messages" },
     { route: "profile", icon: ICONS.profile, label: "My Profile" },
-    { route: "settings", icon: ICONS.settings, label: "Settings" }
     { route: "settings", icon: ICONS.settings, label: "Settings" },
     { route: "logout", icon: ICONS.logout, label: "Sign Out", action: "logout" }
   ],
@@ -9992,8 +9991,6 @@ function renderUsersTableOnly() {
                     <strong>${escapeHtml(u.name || u.displayName || "User")}</strong>
                     <span class="user-id-sub">${escapeHtml(uid)}</span>
                   </div>
-              
-... [truncated for diff preview]
                 </div>
               </td>
               <td>

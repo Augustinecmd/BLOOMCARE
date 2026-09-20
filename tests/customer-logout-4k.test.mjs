@@ -64,3 +64,4 @@ test('6. 4K CSS RENDERING OPTIMIZATIONS: Stylesheet includes high-DPI and crisp-
   assert.ok(stylesCssContent.includes('.logout-account-card'), 'CSS must style .logout-account-card');
   assert.ok(stylesCssContent.includes('.customer-logout-trigger-btn'), 'CSS must style .customer-logout-trigger-btn');
 });
+
