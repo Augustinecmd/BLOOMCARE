@@ -1,12 +1,12 @@
 {
-  "totalConversations": 45,
-  "todayConversations": 17,
-  "lastResetDate": "2026-09-20",
-  "productSearches": 28,
+  "totalConversations": 50,
+  "todayConversations": 3,
+  "lastResetDate": "2026-09-22",
+  "productSearches": 31,
   "successfulRecommendations": 2,
   "cartAdditions": 0,
   "escalationsToPharmacists": 5,
-  "unansweredQuestions": 7,
+  "unansweredQuestions": 9,
   "topAskedQuestions": {
     "hlo": 3,
     "i have chest pain": 2,
@@ -34,9 +34,78 @@
     "can you sell me amoxicillin without a prescription?": 4,
     "how do i cure hypertension using magic crystal stones?": 4,
     "how can i cure cancer using purple magic quartz?": 2,
-    "how do i manage a cough?": 3
+    "how do i manage a cough?": 3,
+    "mnbnm .": 2,
+    "b bhjk gbf j": 2,
+    "what medicine do you have for headache?": 6
   },
   "recentEvents": [
+    {
+      "type": "search",
+      "query": "What medicine do you have for headache?",
+      "timestamp": "2026-09-22T13:05:20.473560",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What medicine do you have for headache?",
+      "timestamp": "2026-09-22T13:05:20.404140",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What medicine do you have for headache?",
+      "timestamp": "2026-09-22T13:01:35.755151",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What medicine do you have for headache?",
+      "timestamp": "2026-09-22T13:01:35.656531",
+      "details": {}
+    },
+    {
+      "type": "search",
+      "query": "What medicine do you have for headache?",
+      "timestamp": "2026-09-22T13:01:12.105046",
+      "details": {
+        "type": "condition_guidance"
+      }
+    },
+    {
+      "type": "conversation",
+      "query": "What medicine do you have for headache?",
+      "timestamp": "2026-09-22T13:01:12.036274",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "b bhjk gbf j",
+      "timestamp": "2026-09-20T14:31:28.876946",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "b bhjk gbf j",
+      "timestamp": "2026-09-20T14:31:28.838658",
+      "details": {}
+    },
+    {
+      "type": "unanswered",
+      "query": "mnbnm .",
+      "timestamp": "2026-09-20T14:31:19.656217",
+      "details": {}
+    },
+    {
+      "type": "conversation",
+      "query": "mnbnm .",
+      "timestamp": "2026-09-20T14:31:19.578112",
+      "details": {}
+    },
     {
       "type": "unanswered",
       "query": "am sick",
@@ -311,66 +380,6 @@
       "details": {
         "type": "medicine_monograph"
       }
-    },
-    {
-      "type": "conversation",
-      "query": "Tell me about Paracetamol",
-      "timestamp": "2026-09-18T18:43:18.877096",
-      "details": {}
-    },
-    {
-      "type": "conversation",
-      "query": "How do I upload a prescription?",
-      "timestamp": "2026-09-17T13:07:55.878503",
-      "details": {}
-    },
-    {
-      "type": "conversation",
-      "query": "Help me understand symptoms and common conditions",
-      "timestamp": "2026-09-17T13:05:57.547373",
-      "details": {}
-    },
-    {
-      "type": "unanswered",
-      "query": "durex",
-      "timestamp": "2026-09-17T13:05:50.311374",
-      "details": {}
-    },
-    {
-      "type": "conversation",
-      "query": "durex",
-      "timestamp": "2026-09-17T13:05:50.277415",
-      "details": {}
-    },
-    {
-      "type": "unanswered",
-      "query": "dexa",
-      "timestamp": "2026-09-17T13:05:32.788574",
-      "details": {}
-    },
-    {
-      "type": "conversation",
-      "query": "dexa",
-      "timestamp": "2026-09-17T13:05:32.739734",
-      "details": {}
-    },
-    {
-      "type": "unanswered",
-      "query": "am sick",
-      "timestamp": "2026-09-17T13:04:59.077461",
-      "details": {}
-    },
-    {
-      "type": "conversation",
-      "query": "am sick",
-      "timestamp": "2026-09-17T13:04:59.050787",
-      "details": {}
-    },
-    {
-      "type": "conversation",
-      "query": "Tell me about common medicines and their uses",
-      "timestamp": "2026-09-17T13:04:46.526986",
-      "details": {}
     }
   ]
 }

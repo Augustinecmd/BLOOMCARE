@@ -3542,69 +3542,74 @@ function executePendingAction() {
 // -------------------------------------------------------------
 // APP INITIALIZATION & FIRESTORE DATA SYNCHRONIZATION
 // -------------------------------------------------------------
+let _catalogFetchPromise = null;
+
 async function loadAppData(userId = null) {
   loadWishlistFromStorage(userId);
   loadAddressesFromStorage(userId);
   if (userId && getEffectiveRole() === "customer") {
-    STATE.orders = [];
-    STATE.prescriptions = [];
-    STATE.consultations = [];
-    STATE.refills = [];
     loadCartFromStorage(userId);
     syncUserCartFromFirestore(userId);
     syncUserWishlistFromFirestore(userId);
     syncUserAddressesFromFirestore(userId);
   }
 
-  try {
-    const [fetchedProducts, fetchedCategories, fetchedSettings] = await Promise.all([
+  // Memoize public catalog and settings queries to eliminate duplicate network traffic
+  if (!_catalogFetchPromise) {
+    _catalogFetchPromise = Promise.all([
       getProducts(),
       getCategories(),
       getSystemSettings()
-    ]);
-
-    if (fetchedProducts && fetchedProducts.length > 0) {
-      STATE.products = fetchedProducts.map(fp => {
-        const init = INITIAL_MEDICINES.find(m => m.id === fp.id);
-        if (init && init.imageUrl) {
-          // Synchronize with authoritative packshot image
-          fp.imageUrl = init.imageUrl;
+    ]).then(([fetchedProducts, fetchedCategories, fetchedSettings]) => {
+      if (fetchedProducts && fetchedProducts.length > 0) {
+        STATE.products = fetchedProducts.map(fp => {
+          const init = INITIAL_MEDICINES.find(m => m.id === fp.id);
+          if (init && init.imageUrl) {
+            fp.imageUrl = init.imageUrl;
+          }
+          return fp;
+        });
+        for (const m of INITIAL_MEDICINES) {
+          if (!STATE.products.some(p => p.id === m.id)) {
+            STATE.products.push({ ...m });
+          }
         }
-        return fp;
-      });
-      for (const m of INITIAL_MEDICINES) {
-        if (!STATE.products.some(p => p.id === m.id)) {
-          STATE.products.push({ ...m });
-        }
+      } else if (!STATE.products || STATE.products.length === 0) {
+        STATE.products = deduplicateCatalog([...INITIAL_MEDICINES]);
+        try { seedInitialCatalogIfEmpty(INITIAL_MEDICINES, ESSENTIAL_CATEGORIES); } catch (_) {}
       }
-    } else {
-      STATE.products = deduplicateCatalog([...INITIAL_MEDICINES]);
-      try { seedInitialCatalogIfEmpty(INITIAL_MEDICINES, ESSENTIAL_CATEGORIES); } catch (_) {}
-    }
 
-    // Enforce strict uniqueness and category-level unique images on runtime catalog
-    STATE.products = deduplicateCatalog(STATE.products);
-    STATE.products = enforceCategoryUniqueImages(STATE.products);
+      STATE.products = deduplicateCatalog(STATE.products);
+      STATE.products = enforceCategoryUniqueImages(STATE.products);
 
-    if (fetchedCategories && fetchedCategories.length > 0) {
-      STATE.categories = fetchedCategories;
-    } else {
-      STATE.categories = [...ESSENTIAL_CATEGORIES];
-    }
+      if (fetchedCategories && fetchedCategories.length > 0) {
+        STATE.categories = fetchedCategories;
+      } else if (!STATE.categories || STATE.categories.length === 0) {
+        STATE.categories = [...ESSENTIAL_CATEGORIES];
+      }
 
-    // Dynamically synchronize category counts with actual active products
-    STATE.categories.forEach(c => {
-      const realCount = STATE.products.filter(p => p.category === c.name && p.status === "active").length;
-      if (realCount > 0) c.productCount = realCount;
+      STATE.categories.forEach(c => {
+        const realCount = STATE.products.filter(p => p.category === c.name && p.status === "active").length;
+        if (realCount > 0) c.productCount = realCount;
+      });
+
+      if (fetchedSettings) {
+        STATE.systemSettings = { ...STATE.systemSettings, ...fetchedSettings };
+        syncWhatsAppLinks();
+      }
+      return true;
+    }).catch(err => {
+      console.warn("[BLOOMCARE DATA FLOW] Catalog background fetch notice:", err);
+      _catalogFetchPromise = null;
+      return false;
     });
+  }
 
-    if (fetchedSettings) {
-      STATE.systemSettings = { ...STATE.systemSettings, ...fetchedSettings };
-      syncWhatsAppLinks();
-    }
+  await _catalogFetchPromise;
 
-    if (userId) {
-      const effRole = getEffectiveRole();
+  if (userId) {
+    const effRole = getEffectiveRole();
+    try {
       const [
         userOrders,
         userPrescriptions,
@@ -3684,9 +3689,9 @@ async function loadAppData(userId = null) {
           }
         });
       }
+    } catch (err) {
+      console.warn("[BLOOMCARE DATA FLOW] User data sync notice:", err);
     }
-  } catch (err) {
-    console.warn("[BLOOMCARE DATA FLOW] Using local state with offline safety:", err);
   }
 }
 
@@ -3858,13 +3863,49 @@ function setupGlobalDialogNavigation() {
 }
 
 async function initApp() {
-  // Show Loading Screen Immediately
-  showAuthLoadingScreen("Loading your BloomCare workspace...", "Verifying your account role and access permissions...");
+  // 1. Instantly seed in-memory baseline state for zero-latency initial paint
+  if (!STATE.products || STATE.products.length === 0) {
+    STATE.products = [...INITIAL_MEDICINES];
+  }
+  if (!STATE.categories || STATE.categories.length === 0) {
+    STATE.categories = [...ESSENTIAL_CATEGORIES];
+  }
 
-  // Sync WhatsApp Link
+  // 2. Synchronously resolve current session from localStorage
+  const savedSession = getSavedSessionUser();
+  const savedRole = extractRoleFromProfile(savedSession);
+  if (savedSession && savedRole) {
+    STATE.currentUser = {
+      ...savedSession,
+      role: savedRole
+    };
+    STATE.activeRole = savedRole;
+  } else {
+    // Check URL parameters (e.g. ?login=customer or ?role=admin)
+    let paramRole = null;
+    try {
+      const params = new URLSearchParams(window.location.search);
+      paramRole = params.get("login") || params.get("role");
+    } catch (_) {}
+
+    if (paramRole) {
+      const norm = normalizeRole(paramRole);
+      STATE.currentUser = {
+        uid: `demo-${norm}`,
+        email: `${norm}@bloomcare.com`,
+        displayName: formatRoleName(norm),
+        role: norm
+      };
+      STATE.activeRole = norm;
+      saveSessionUser(STATE.currentUser);
+    } else {
+      STATE.currentUser = null;
+      STATE.activeRole = "visitor";
+    }
+  }
+
+  // 3. Fast sync WhatsApp Link & UI Navigation Icons
   syncWhatsAppLinks();
-
-  // Insert Static Header / Sidebar Icons safely
   if ($("#sidebar-profile-icon")) $("#sidebar-profile-icon").innerHTML = ICONS.profile;
   if ($("#sidebar-settings-icon")) $("#sidebar-settings-icon").innerHTML = ICONS.settings;
   if ($("#sidebar-logout-icon")) $("#sidebar-logout-icon").innerHTML = ICONS.logout;
@@ -3878,54 +3919,59 @@ async function initApp() {
   bindEventListeners();
   setupGlobalDialogNavigation();
 
-  // Initialize BloomCare AI Chatbot Assistant
-  try {
-    initBloomCareChatbot({
-      getProducts: () => STATE.products,
-      getCurrentUser: () => STATE.currentUser,
-      getOrders: () => STATE.orders,
-      addToCart: (productId, quantity) => addToCart(productId, quantity),
-      openProductDetails: (productId) => openProductDetailsModal(productId),
-      openOrderTracking: (orderId) => openOrderTrackingModal(orderId),
-      whatsappPhone: STATE.systemSettings?.whatsappNumber || "256750210886"
-    });
-  } catch (chatErr) {
-    console.warn("[BloomCare AI] Chatbot initialization warning:", chatErr);
-  }
+  // 4. INSTANT INITIAL PAGE RENDER & INTERACTIVITY (Zero network blocking)
+  STATE.authLoading = false;
+  STATE.authInitialized = true;
+  hideAuthLoadingScreen();
+  updateDeveloperPreviewBanner();
+  updateUserPill();
+  renderSidebarNavigation();
+  updateNotifBadge();
+  updateCartBadge();
+  handleRoute();
 
-  // Background Delivery, Notifications & Chat Sync
-  initAppSyncChannel();
-  syncDeliverySystemWithBackend();
-  setInterval(syncDeliverySystemWithBackend, 4000);
+  // 5. DEFERRED BACKGROUND INITIALIZATION (Executes smoothly without blocking first paint)
+  setTimeout(() => {
+    // A. Chatbot Assistant
+    try {
+      initBloomCareChatbot({
+        getProducts: () => STATE.products,
+        getCurrentUser: () => STATE.currentUser,
+        getOrders: () => STATE.orders,
+        addToCart: (productId, quantity) => addToCart(productId, quantity),
+        openProductDetails: (productId) => openProductDetailsModal(productId),
+        openOrderTracking: (orderId) => openOrderTrackingModal(orderId),
+        whatsappPhone: STATE.systemSettings?.whatsappNumber || "256750210886"
+      });
+    } catch (chatErr) {
+      console.warn("[BloomCare AI] Chatbot initialization notice:", chatErr);
+    }
 
-  // Load public catalog and settings in parallel
-  await Promise.all([
-    getCategories().then(cats => { if (cats?.length) STATE.categories = cats; }).catch(() => {}),
-    getProducts().then(prods => { if (prods?.length) STATE.products = prods; }).catch(() => {}),
-    getSystemSettings().then(st => {
-      if (st) {
-        STATE.systemSettings = { ...STATE.systemSettings, ...st };
-        syncWhatsAppLinks();
-      }
-    }).catch(() => {})
-  ]);
+    // B. Delivery Sync Channel & Background Polling
+    initAppSyncChannel();
+    syncDeliverySystemWithBackend();
+    setInterval(syncDeliverySystemWithBackend, 4000);
 
-  // Firebase Auth Listener
+    // C. Non-blocking Background Catalog Refresh
+    loadAppData(STATE.currentUser?.uid || null).then(() => {
+      updateNotifBadge();
+      updateCartBadge();
+    }).catch(() => {});
+  }, 40);
+
+  // 6. Firebase Auth State Listener (Reactively synchronizes server session)
   let initialAuthChecked = false;
   subscribeAuthState(async (user) => {
     if (user) {
-      showAuthLoadingScreen("Loading user profile...", "Fetching your verified role and permissions...");
       let profile = null;
       try {
         profile = await getClientProfile(user.uid);
       } catch (err) {
-        console.warn("[BloomCare Auth] Profile retrieval failed:", err);
+        console.warn("[BloomCare Auth] Profile retrieval notice:", err);
       }
 
       if (!profile && user.email) {
-        try {
-          profile = await getClientProfile(user.email);
-        } catch (_) {}
+        try { profile = await getClientProfile(user.email); } catch (_) {}
       }
 
       if (!profile) {
@@ -3944,7 +3990,6 @@ async function initApp() {
         }
       }
 
-      // Check saved session in storage
       if (!profile) {
         const savedSession = getSavedSessionUser();
         if (savedSession && (savedSession.uid === user.uid || (savedSession.email && user.email && savedSession.email.toLowerCase() === user.email.toLowerCase()))) {
@@ -3952,7 +3997,6 @@ async function initApp() {
         }
       }
 
-      // If still not found, check INITIAL_USERS for any staff account
       if (!profile && user.email) {
         const staffMatch = INITIAL_USERS.find(u => (u.email && user.email && u.email.toLowerCase() === user.email.toLowerCase()) || u.uid === user.uid);
         if (staffMatch) {
@@ -3960,8 +4004,6 @@ async function initApp() {
         }
       }
 
-      // If still not found, user is authenticated via Firebase Auth!
-      // In BloomCare, any newly signed-up or authenticated user who is not a staff member is automatically a verified customer.
       if (!profile) {
         const defaultName = user.displayName || (user.email ? user.email.split("@")[0] : "Customer");
         profile = {
@@ -3976,7 +4018,6 @@ async function initApp() {
           status: "active",
           createdAt: new Date().toISOString()
         };
-        // Persist to local customer cache
         REGISTERED_CUSTOMERS_CACHE.push(profile);
         if (typeof localStorage !== "undefined") {
           try {
@@ -3994,9 +4035,6 @@ async function initApp() {
         clearSavedSessionUser();
         STATE.currentUser = null;
         STATE.activeRole = "visitor";
-        STATE.authLoading = false;
-        STATE.authInitialized = true;
-        hideAuthLoadingScreen();
         updateUserPill();
         renderSidebarNavigation();
         openNotice("Account Suspended", "Your account has been deactivated or suspended. Please contact pharmacy administration.");
@@ -4004,14 +4042,7 @@ async function initApp() {
         return;
       }
 
-      let userRole = extractRoleFromProfile(profile);
-
-      // Safe fallback for authenticated users: in BloomCare, users authenticated via Firebase default to customer
-      if (!userRole) {
-        userRole = "customer";
-        if (profile) profile.role = "customer";
-      }
-
+      let userRole = extractRoleFromProfile(profile) || "customer";
       STATE.currentUser = {
         uid: user.uid,
         email: user.email,
@@ -4021,55 +4052,13 @@ async function initApp() {
       };
       STATE.activeRole = userRole;
       saveSessionUser(STATE.currentUser);
-      await loadAppData(user.uid);
+
+      // Refresh user datasets in background
+      loadAppData(user.uid).then(() => {
+        updateNotifBadge();
+        updateCartBadge();
+      }).catch(() => {});
     } else {
-      const savedSession = getSavedSessionUser();
-      const savedRole = extractRoleFromProfile(savedSession);
-      if (savedSession && savedRole) {
-        STATE.currentUser = {
-          ...savedSession,
-          role: savedRole
-        };
-        STATE.activeRole = savedRole;
-        await loadAppData(savedSession.uid || "local-user");
-      } else {
-        // Check for URL query param auto-login (e.g. ?login=customer or ?role=admin)
-        let paramRole = null;
-        try {
-          const params = new URLSearchParams(window.location.search);
-          paramRole = params.get("login") || params.get("role");
-        } catch (_) {}
-
-        if (paramRole) {
-          await switchActiveRole(paramRole);
-        } else {
-          STATE.currentUser = null;
-          STATE.activeRole = "visitor";
-          STATE.developerPreviewRole = null;
-        }
-      }
-    }
-
-    STATE.authLoading = false;
-    STATE.authInitialized = true;
-    hideAuthLoadingScreen();
-    updateDeveloperPreviewBanner();
-    updateUserPill();
-    renderSidebarNavigation();
-    updateNotifBadge();
-    updateCartBadge();
-
-    if (!initialAuthChecked) {
-      initialAuthChecked = true;
-      handleRoute();
-    } else {
-      handleRoute();
-    }
-  });
-
-  // Fallback safety timeout if Firebase Auth network connection is delayed
-  setTimeout(() => {
-    if (!initialAuthChecked && STATE.authLoading) {
       const savedSession = getSavedSessionUser();
       const savedRole = extractRoleFromProfile(savedSession);
       if (savedSession && savedRole) {
@@ -4081,16 +4070,21 @@ async function initApp() {
       } else {
         STATE.currentUser = null;
         STATE.activeRole = "visitor";
+        STATE.developerPreviewRole = null;
       }
-      STATE.authLoading = false;
-      STATE.authInitialized = true;
-      hideAuthLoadingScreen();
-      updateDeveloperPreviewBanner();
-      updateUserPill();
-      renderSidebarNavigation();
+    }
+
+    updateDeveloperPreviewBanner();
+    updateUserPill();
+    renderSidebarNavigation();
+    updateNotifBadge();
+    updateCartBadge();
+
+    if (!initialAuthChecked) {
+      initialAuthChecked = true;
       handleRoute();
     }
-  }, 4000);
+  });
 }
 
 function updateUserPill() {
@@ -4389,7 +4383,8 @@ export const ROLE_SIDEBAR_CONFIGS = {
     { route: "contact", icon: ICONS.contact, label: "Contact Us" },
     { route: "customer-chat", icon: ICONS.chat, label: "Messages" },
     { route: "profile", icon: ICONS.profile, label: "My Profile" },
-    { route: "settings", icon: ICONS.settings, label: "Settings" }
+    { route: "settings", icon: ICONS.settings, label: "Settings" },
+    { route: "logout", icon: ICONS.logout, label: "Sign Out", action: "logout" }
   ],
   pharmacist: [
     { route: "pharmacist/dashboard", icon: ICONS.dashboard, label: "Dashboard" },
@@ -4472,6 +4467,9 @@ export function checkRouteAccess(route, user, role = null) {
       redirectRoute: "delivery_person/dashboard",
       reason: "Access Denied: About Us and Contact Us are not available for Delivery Staff."
     };
+  }
+  if (clean === "logout") {
+    return { allowed: true };
   }
   // Universal public browsing routes (accessible to everyone, including visitors and logged-in users)
   const universalBrowseRoutes = ["medicines", "categories", "about", "contact"];
@@ -4783,10 +4781,18 @@ export function getNormalizedRoute() {
 }
 
 export function navigateTo(route) {
+  if (route === "logout" || route === "#logout") {
+    $("#logout-confirm-dialog")?.showModal();
+    return;
+  }
   if (!route) {
     route = ROLE_HOME_ROUTES[STATE.activeRole] || "auth";
   }
   const clean = route.replace(/^#\/?/, "").replace(/^\/+|\/+$/g, "");
+  if (clean === "logout") {
+    $("#logout-confirm-dialog")?.showModal();
+    return;
+  }
   const current = getNormalizedRoute();
   if (current && current !== clean && !STATE.handlingBrowserBack) {
     STATE.routeHistory.push(current);
@@ -4805,6 +4811,10 @@ export function handleRoute() {
   }
 
   let route = getNormalizedRoute();
+  if (route === "logout") {
+    $("#logout-confirm-dialog")?.showModal();
+    return;
+  }
 
   // If visiting root or generic dashboard, resolve to role's primary designated dashboard
   if (!route || route === "dashboard" || route === "home" || route === "overview") {
@@ -6136,6 +6146,7 @@ function renderRoleDashboard() {
             <button class="btn btn-secondary btn-sm" type="button" data-route="prescriptions">Upload Prescription</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="refills">Request Refill</button>
             <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
+            <button class="btn btn-outline btn-sm customer-logout-trigger-btn" id="btn-cust-dash-logout" type="button" data-action="logout" style="color:#b91c1c; border-color:#fca5a5; font-weight:600;">Sign Out</button>
           </div>
         </div>
         <div class="customer-welcome-right customer-hero-brand-right">
@@ -14974,7 +14985,16 @@ export async function completeWalkinSale() {
   }[effRole] || "Pharmacy Staff";
 
   const custName = $("#walkin-cust-name")?.value?.trim() || "Walk-in Customer";
-  const custPhone = $("#walkin-cust-phone")?.value?.trim() || "";
+  const rawCustPhone = $("#walkin-cust-phone")?.value?.trim() || "";
+  let custPhone = "";
+  if (rawCustPhone) {
+    const phoneValidation = validateUgandanPhone(rawCustPhone);
+    if (!phoneValidation.valid) {
+      showToast(phoneValidation.message || "Please enter a valid Ugandan phone number.", "error");
+      return;
+    }
+    custPhone = phoneValidation.normalized;
+  }
 
   // Payment validation & processing
   let amountReceived = total;
@@ -15184,7 +15204,7 @@ export async function completeWalkinSale() {
     fulfillmentType: "pickup",
     customerName: custName,
     customerPhone: custPhone || paymentPhone,
-    customerEmail: "walkin@bloomcare.local",
+    customerEmail: "",
     customerId: "walkin-" + Date.now(),
     deliveryAddress: "BloomCare Pharmacy Counter (Dispensary)",
     deliveryCity: "Mbarara City",
@@ -15325,26 +15345,30 @@ export function showReceiptModal(order) {
   // Status Badge
   const statusBadge = $("#rec-status-badge");
   if (statusBadge) {
-    const st = isWalkin ? "Paid" : (order.orderStatus || "Confirmed");
+    const st = isWalkin ? "✓ PAID" : (order.orderStatus || "Confirmed");
     statusBadge.textContent = st;
     statusBadge.className = "receipt-status-pill";
     if (st.toLowerCase().includes("awaiting")) statusBadge.classList.add("status-awaiting");
-    else if (st.toLowerCase().includes("delivered") || st.toLowerCase() === "paid") statusBadge.classList.add("status-delivered");
+    else if (st.toLowerCase().includes("delivered") || st.toLowerCase().includes("paid")) statusBadge.classList.add("status-delivered", "status-paid-verified");
     else statusBadge.classList.add("status-confirmed");
   }
 
   // Staff Attribution
   const staffMetaItem = $("#rec-staff-meta-item");
+  const staffLabelEl = $("#rec-staff-label");
   const staffNameVal = $("#rec-staff-name");
+  if (staffLabelEl) {
+    staffLabelEl.textContent = isWalkin ? "Attended By:" : "Dispensed / Sold By:";
+  }
   if (staffMetaItem && staffNameVal) {
     if (order.staffName) {
       staffMetaItem.style.display = "flex";
-      staffNameVal.textContent = `${order.staffName} (${order.staffRole || "Staff"})`;
+      staffNameVal.textContent = `${order.staffName} (${order.staffRole || "Pharmacist"})`;
     } else if (isWalkin) {
       staffMetaItem.style.display = "flex";
       const u = STATE.currentUser;
-      const fallbackName = u ? (u.displayName || u.name || u.email || "Pharmacist") : "Pharmacist";
-      staffNameVal.textContent = `${fallbackName} (Dispensary)`;
+      const fallbackName = u ? (u.displayName || u.name || u.email || "Dr. Amina Nanyonga") : "Dr. Amina Nanyonga";
+      staffNameVal.textContent = `${order.staffName || fallbackName} (${order.staffRole || "Pharmacist"})`;
     } else {
       staffMetaItem.style.display = "none";
     }
@@ -15365,6 +15389,11 @@ export function showReceiptModal(order) {
   }
 
   // 2. Customer Information
+  const custNameLabel = $("#rec-cust-name-label");
+  if (custNameLabel) custNameLabel.textContent = "Customer:";
+  const custPhoneLabel = $("#rec-cust-phone-label");
+  if (custPhoneLabel) custPhoneLabel.textContent = "Phone:";
+
   const custNameEl = $("#rec-cust-name");
   if (custNameEl) custNameEl.textContent = order.customerName || (isWalkin ? "Walk-in Customer" : "Customer");
 
@@ -15383,7 +15412,7 @@ export function showReceiptModal(order) {
       if (custEmailEl) custEmailEl.textContent = "";
     }
 
-    if (order.customerPhone && order.customerPhone !== "Counter Walk-in") {
+    if (order.customerPhone && order.customerPhone !== "Counter Walk-in" && order.customerPhone !== "Counter Cash") {
       if (custPhoneRow) custPhoneRow.style.display = "flex";
       if (custPhoneEl) custPhoneEl.textContent = order.customerPhone;
     } else {
@@ -15520,10 +15549,20 @@ export function showReceiptModal(order) {
   const rxValEl = $("#rec-rx-verified-val");
   const rxNoteRow = $("#rec-rx-note-row");
   const rxNoteVal = $("#rec-rx-note-val");
-  const hasPrescriptionItems = order.rxVerified || (order.items || []).some(i => i.requiresPrescription);
+  const hasPrescriptionItems = (order.items || []).some(i => i.requiresPrescription);
 
   if (rxSection) {
-    if (hasPrescriptionItems) {
+    if (isWalkin) {
+      rxSection.style.display = "block";
+      if (rxValEl) {
+        if (hasPrescriptionItems) {
+          rxValEl.textContent = (order.rxVerified !== false) ? "RX: Verified ✓" : "RX: Not Verified";
+        } else {
+          rxValEl.textContent = "RX: Not Required";
+        }
+      }
+      if (rxNoteRow) rxNoteRow.style.display = "none";
+    } else if (hasPrescriptionItems || order.rxVerified) {
       rxSection.style.display = "block";
       if (rxValEl) rxValEl.textContent = `✓ Verified by Pharmacist (${order.staffName || "Licensed Staff"})`;
       if (order.rxDoctorNote && rxNoteRow && rxNoteVal) {
@@ -16727,6 +16766,8 @@ export function downloadReceipt(order) {
     .walkin-receipt-mode .receipt-summary-container { margin-top: 8px; }
     .walkin-receipt-mode .receipt-summary-box { width: 250px; padding: 8px 12px; }
     .walkin-receipt-mode .receipt-footer { margin-top: 10px; }
+    .walkin-receipt-mode #rec-cust-email-row { display: none !important; }
+    .walkin-receipt-mode #rec-rx-verified-section { display: block; font-size: 11.5px; }
 
     @media print {
       @page { size: auto; margin: 8mm 10mm; }
@@ -16907,10 +16948,23 @@ function bindEventListeners() {
   $("#sidebar-auth-action-btn")?.addEventListener("click", handleAuthTrigger);
   $("#sidebar-logout-btn")?.addEventListener("click", handleAuthTrigger);
 
-  // Global Navigation Click Handler for [data-route]
+  // Global Navigation Click Handler for [data-route] and [data-action="logout"]
   document.addEventListener("click", (e) => {
+    const logoutBtn = e.target.closest('[data-action="logout"], .customer-logout-trigger-btn, #btn-profile-logout, #btn-settings-logout, #btn-cust-dash-logout');
+    if (logoutBtn) {
+      e.preventDefault();
+      closeMobileDrawer();
+      $("#logout-confirm-dialog")?.showModal();
+      return;
+    }
     const navBtn = e.target.closest("[data-route]");
     if (navBtn) {
+      if (navBtn.dataset.route === "logout") {
+        e.preventDefault();
+        closeMobileDrawer();
+        $("#logout-confirm-dialog")?.showModal();
+        return;
+      }
       e.preventDefault();
       closeMobileDrawer();
       navigateTo(navBtn.dataset.route);

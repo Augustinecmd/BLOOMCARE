@@ -46,6 +46,7 @@
   <!-- 0. AUTHENTICATION & ROLE LOADING SCREEN (ZERO-FLICKER RBAC) -->
   <!-- ============================================================== -->
   <div class="auth-loading-overlay" id="auth-loading-screen" role="alert" aria-busy="true" aria-live="polite">
+  <div class="auth-loading-overlay hidden" id="auth-loading-screen" role="alert" aria-busy="true" aria-live="polite">
     <div class="auth-loading-card" id="auth-loading-card">
       <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
         <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-screen-logo" style="height:44px; width:auto; max-width:140px; object-fit:contain;" />
@@ -114,6 +115,24 @@
 
     <!-- Bottom Actions in Left Sidebar -->
     <div class="sidebar-bottom-panel">
+      <!-- Authenticated User Profile Summary -->
+      <div class="sidebar-user-chip" id="sidebar-user-chip">
+        <div class="sidebar-user-avatar" id="sidebar-avatar-text">G</div>
+        <div class="sidebar-user-meta">
+          <span class="sidebar-user-name" id="sidebar-user-name">Guest Visitor</span>
+          <span class="sidebar-user-role" id="sidebar-user-role">Visitor</span>
+        </div>
+      </div>
+
+      <!-- Dark / Light Mode Toggle -->
+      <button class="sidebar-theme-toggle" id="sidebar-theme-toggle" type="button" aria-label="Toggle Dark or Light Mode">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span id="theme-toggle-icon">🌙</span>
+          <span id="theme-toggle-label">Dark Theme</span>
+        </span>
+        <span class="sidebar-theme-pill" id="theme-toggle-status">Active</span>
+      </button>
+
       <button class="sidebar-bottom-btn" id="sidebar-profile-btn" type="button" data-route="profile" style="display:none;">
         <span class="nav-svg-icon" id="sidebar-profile-icon"></span>
         <span>My Profile</span>
@@ -597,6 +616,23 @@
         </div>
 
         <div class="content-card">
+          <!-- Order Search & Date Filter Bar -->
+          <div class="orders-filter-toolbar">
+            <div class="orders-search-input-wrap">
+              <svg class="orders-search-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+              <input type="text" id="orders-search-input" placeholder="Search by Order ID, Customer Name, or Phone..." />
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <label for="orders-filter-date" style="font-size:12px; font-weight:600; color:var(--muted); margin:0;">Date:</label>
+              <select id="orders-filter-date" class="filter-select" style="padding:7px 12px; font-size:12.5px; border-radius:8px; border:1.5px solid #e2e8f0; background:#fff;">
+                <option value="all">All Dates</option>
+                <option value="today">Today</option>
+                <option value="7days">Last 7 Days</option>
+                <option value="month">This Month</option>
+              </select>
+            </div>
+          </div>
+
           <div class="filter-pills-row" id="orders-status-filter-pills" style="margin-bottom: 12px;">
             <button class="pill-btn active" data-order-filter="all">All Orders</button>
             <button class="pill-btn" data-order-filter="Pending">Pending</button>
@@ -817,18 +853,52 @@
       <!-- MODULE 10: INVENTORY MODULE (#inventory) (Staff/Admin) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-inventory">
-        <div class="page-header-block flex-between">
+        <div class="page-header-block flex-between" style="flex-wrap:wrap; gap:12px;">
           <div>
-            <h1 class="page-title">Inventory</h1>
-            <p class="page-desc">Monitor stock levels, batches and expiry dates.</p>
+            <h1 class="page-title">Inventory &amp; Stock Management</h1>
+            <p class="page-desc">Real-time dispensary stock levels, reorder threshold alerts, and batch audits.</p>
           </div>
-          <div>
-            <button class="btn btn-secondary btn-sm" id="btn-open-stock-adjust" type="button">Adjust Stock</button>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <button class="btn btn-secondary btn-sm" id="btn-open-stock-adjust" type="button" style="display:inline-flex; align-items:center; gap:6px;">
+              <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              <span>Adjust Stock</span>
+            </button>
           </div>
         </div>
 
+        <!-- Inventory KPI Cards Grid (5 Metrics) -->
+        <div class="inventory-kpi-grid" id="inventory-kpi-grid"></div>
+
+        <!-- Dedicated Low-Stock Warning Section -->
+        <div class="inventory-low-stock-section" id="inventory-low-stock-section"></div>
+
         <div class="content-card">
-          <h3>Current Stock Status</h3>
+          <div class="flex-between" style="flex-wrap:wrap; gap:10px; margin-bottom:14px;">
+            <div>
+              <h3 style="margin:0;">Dispensary Stock Register</h3>
+              <p class="muted" style="font-size:12.5px; margin:2px 0 0;">Filter medications by current status, batch, or clinical category.</p>
+            </div>
+          </div>
+
+          <!-- Inventory Filter & Search Controls -->
+          <div class="inventory-search-filter-bar">
+            <div class="search-input-wrap">
+              <input type="text" id="inventory-search-input" class="search-input" placeholder="Search medicines by name, batch number, or category..." />
+            </div>
+            <div class="filter-controls-group">
+              <select id="inventory-category-filter" class="filter-select">
+                <option value="all">All Categories</option>
+              </select>
+              <select id="inventory-status-filter" class="filter-select">
+                <option value="all">All Stock Statuses</option>
+                <option value="in_stock">In Stock (&gt; 10)</option>
+                <option value="low_stock">Low Stock (&le; 10)</option>
+                <option value="out_of_stock">Out of Stock (0)</option>
+              </select>
+              <button class="btn btn-outline btn-sm" id="btn-inventory-reset-filters" type="button">Reset</button>
+            </div>
+          </div>
+
           <div class="table-responsive" id="inventory-table-box"></div>
         </div>
 
@@ -2424,14 +2494,33 @@
     </div>
 
     <h4 style="margin-top:10px;">3. Order Review &amp; Payment</h4>
-    <label>Payment Method
-      <select id="chk-payment-method" required>
-        <option value="MTN MoMo">MTN Mobile Money (*165#)</option>
-        <option value="Airtel Money">Airtel Money (*185#)</option>
-        <option value="Cash on Delivery">Cash on Doorstep Delivery</option>
-      </select>
+    <label style="font-size:12px; font-weight:700; display:block; margin-bottom:6px;">Select Payment Method</label>
+    <div class="checkout-payment-cards-grid" id="chk-payment-cards-grid" style="display:grid; grid-template-columns:repeat(3, 1fr); gap:8px; margin-bottom:10px;">
+      <div class="checkout-payment-card active-mtn" data-method="MTN MoMo" style="border:2px solid #eab308; background:#fefce8; border-radius:8px; padding:10px 8px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+        <div style="font-size:16px;">📱</div>
+        <strong style="font-size:12px; display:block; color:#854d0e; margin-top:2px;">MTN MoMo</strong>
+        <small style="font-size:10px; color:#a16207;">*165#</small>
+      </div>
+      <div class="checkout-payment-card" data-method="Airtel Money" style="border:1px solid var(--border-color); background:var(--bg-card); border-radius:8px; padding:10px 8px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+        <div style="font-size:16px;">📲</div>
+        <strong style="font-size:12px; display:block; color:#991b1b; margin-top:2px;">Airtel Money</strong>
+        <small style="font-size:10px; color:#b91c1c;">*185#</small>
+      </div>
+      <div class="checkout-payment-card" data-method="Cash on Delivery" style="border:1px solid var(--border-color); background:var(--bg-card); border-radius:8px; padding:10px 8px; text-align:center; cursor:pointer; transition:all 0.2s ease;">
+        <div style="font-size:16px;">💵</div>
+        <strong style="font-size:12px; display:block; color:#166534; margin-top:2px;">Cash</strong>
+        <small style="font-size:10px; color:#15803d;">On Delivery</small>
+      </div>
+    </div>
+    <select id="chk-payment-method" style="display:none;" required>
+      <option value="MTN MoMo" selected>MTN Mobile Money (*165#)</option>
+      <option value="Airtel Money">Airtel Money (*185#)</option>
+      <option value="Cash on Delivery">Cash on Doorstep Delivery</option>
+    </select>
+    <label>Payment Phone Number
+      <input type="tel" id="chk-phone" placeholder="0772 123 456" required />
+      <div id="chk-phone-valid-hint" class="phone-valid-hint" style="margin-top:4px;"></div>
     </label>
-    <label>Payment Phone Number<input type="tel" id="chk-phone" placeholder="0772 123 456" required /></label>
 
     <div id="checkout-rx-notice" class="rx-checkout-notice hidden" role="status">
       <strong>Prescription required for verification before this medicine can be dispensed.</strong>
@@ -2816,6 +2905,25 @@
           </div>
         </div>
 
+        <!-- Customer Information (Optional) -->
+        <div class="pos-customer-section" id="pos-customer-input-section">
+          <div class="pos-section-subhead">
+            <span>CUSTOMER INFORMATION</span>
+            <small class="muted" style="font-size:10px; font-weight:normal; text-transform:none;">(Optional)</small>
+          </div>
+          <div class="pos-customer-fields">
+            <div class="pos-field-group">
+              <label class="pos-field-label" for="walkin-cust-name" style="display:block; font-size:11px; font-weight:600; color:#475569; margin-bottom:3px;">Customer Name</label>
+              <input type="text" id="walkin-cust-name" class="pos-input-sm" placeholder="Enter customer name" autocomplete="off" />
+            </div>
+            <div class="pos-field-group">
+              <label class="pos-field-label" for="walkin-cust-phone" style="display:block; font-size:11px; font-weight:600; color:#475569; margin-bottom:3px;">Phone Number</label>
+              <input type="tel" id="walkin-cust-phone" class="pos-input-sm" placeholder="Enter phone number (e.g. 0772...)" autocomplete="off" />
+            </div>
+          </div>
+          <div class="pos-field-error-msg hidden" id="walkin-cust-phone-error" style="color:#dc2626; font-size:11px; font-weight:600; margin-top:4px;"></div>
+        </div>
+
         <!-- Prescription Clinical Safety Gate -->
         <div class="pos-rx-warning-banner hidden" id="walkin-rx-gate-banner">
           <div class="pos-rx-badge">Rx PRESCRIPTION REQUIRED</div>
@@ -2839,12 +2947,6 @@
           <div class="pos-cart-list" id="walkin-cart-list">
             <!-- Dynamically populated cart items with line totals -->
           </div>
-        </div>
-
-        <!-- Customer Details (Preserved for compatibility, hidden to prioritize live calculator) -->
-        <div class="pos-customer-section hidden" style="display:none;" aria-hidden="true">
-          <input type="text" id="walkin-cust-name" value="Walk-in Customer" />
-          <input type="tel" id="walkin-cust-phone" />
         </div>
 
         <!-- Automatic Sales Calculation & Large Total Display -->
@@ -3779,6 +3881,63 @@
   <p id="notice-msg"></p>
   <div class="dialog-action-right">
     <button class="btn btn-primary btn-sm" id="notice-confirm-btn" type="button">OK</button>
+  </div>
+<!-- 13B. Floating AI Assistant Launcher & Modal -->
+<div id="ai-assistant-fab-wrap" class="ai-assistant-fab-container" style="position:fixed; bottom:24px; right:24px; z-index:999;">
+  <button id="btn-toggle-ai-assistant" type="button" class="btn-ai-fab" style="display:flex; align-items:center; gap:8px; background:linear-gradient(135deg, #0f766e, #0d9488); color:#ffffff; border:none; padding:10px 18px; border-radius:999px; font-weight:700; font-size:13px; box-shadow:0 8px 20px rgba(15,118,110,0.35); cursor:pointer; transition:transform 0.2s, box-shadow 0.2s;">
+    <span style="font-size:18px;">🤖</span>
+    <span>Ask BloomCare AI</span>
+  </button>
+</div>
+
+<dialog id="ai-assistant-dialog" class="ai-assistant-modal" style="width:100%; max-width:440px; border-radius:14px; border:1px solid var(--border-color); padding:0; box-shadow:0 20px 40px rgba(0,0,0,0.18); overflow:hidden;">
+  <div class="ai-modal-header" style="background:linear-gradient(135deg, #0f766e, #115e59); color:#fff; padding:14px 16px; display:flex; justify-content:space-between; align-items:center;">
+    <div style="display:flex; align-items:center; gap:10px;">
+      <div style="width:36px; height:36px; border-radius:50%; background:rgba(255,255,255,0.2); display:grid; place-items:center; font-size:18px;">🤖</div>
+      <div>
+        <h3 style="margin:0; font-size:15px; font-weight:700; color:#fff;">BloomCare Clinical AI</h3>
+        <span style="font-size:11px; opacity:0.9; display:inline-flex; align-items:center; gap:4px;">
+          <span style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#4ade80;"></span>
+          Online • MOH &amp; NDA Certified Guidance
+        </span>
+      </div>
+    </div>
+    <button type="button" id="close-ai-assistant-modal" style="background:none; border:none; color:#fff; font-size:20px; cursor:pointer; padding:4px 8px;">&times;</button>
+  </div>
+
+  <div class="ai-modal-body" style="display:flex; flex-direction:column; height:460px; background:#f8fafc;">
+    <!-- Suggested Query Chips -->
+    <div class="ai-query-chips-bar" id="ai-query-chips-bar" style="padding:10px 12px; display:flex; gap:6px; overflow-x:auto; background:#fff; border-bottom:1px solid #e2e8f0; flex-shrink:0;">
+      <button type="button" class="ai-query-chip" data-query="What medicine do you recommend for tension headache?" style="white-space:nowrap; font-size:11.5px; font-weight:600; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; padding:5px 10px; border-radius:14px; cursor:pointer;">💊 Headache Relief</button>
+      <button type="button" class="ai-query-chip" data-query="What is safe for infant fever?" style="white-space:nowrap; font-size:11.5px; font-weight:600; background:#eff6ff; color:#1e40af; border:1px solid #bfdbfe; padding:5px 10px; border-radius:14px; cursor:pointer;">👶 Infant Fever</button>
+      <button type="button" class="ai-query-chip" data-query="How should Amoxicillin 500mg be taken?" style="white-space:nowrap; font-size:11.5px; font-weight:600; background:#faf5ff; color:#6b21a8; border:1px solid #e9d5ff; padding:5px 10px; border-radius:14px; cursor:pointer;">⏰ How to Take Meds</button>
+      <button type="button" class="ai-query-chip" data-query="Where is my order?" style="white-space:nowrap; font-size:11.5px; font-weight:600; background:#fefce8; color:#854d0e; border:1px solid #fef08a; padding:5px 10px; border-radius:14px; cursor:pointer;">🛵 Track Order</button>
+    </div>
+
+    <!-- Messages Stream -->
+    <div class="ai-chat-stream" id="ai-chat-stream" style="flex:1; overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px;">
+      <!-- Welcome Message -->
+      <div class="chat-message-row incoming" style="align-self:flex-start; max-width:88%;">
+        <span class="chat-bubble-sender" style="font-size:11px; color:#64748b; margin-bottom:2px; display:block;">BloomCare AI</span>
+        <div class="chat-bubble" style="background:#fff; border:1px solid #e2e8f0; border-radius:12px 12px 12px 2px; padding:10px 12px; font-size:13px; line-height:1.45; color:#1e293b; box-shadow:0 1px 2px rgba(0,0,0,0.04);">
+          Hello! 👋 I am your BloomCare Clinical Assistant. How can I assist you with your health, medications, or delivery today?
+        </div>
+      </div>
+    </div>
+
+    <!-- Typing Indicator -->
+    <div class="ai-typing-indicator hidden" id="ai-typing-indicator" style="padding:6px 16px; font-size:12px; color:#64748b; display:flex; align-items:center; gap:6px;">
+      <span class="typing-dot" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#0f766e;"></span>
+      <span class="typing-dot" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#0f766e;"></span>
+      <span class="typing-dot" style="display:inline-block; width:6px; height:6px; border-radius:50%; background:#0f766e;"></span>
+      <span style="font-style:italic;">BloomCare AI is checking clinical guidelines...</span>
+    </div>
+
+    <!-- Chat Input Form -->
+    <form id="ai-assistant-input-form" style="padding:10px 12px; background:#fff; border-top:1px solid #e2e8f0; display:flex; gap:8px;">
+      <input type="text" id="ai-assistant-input" placeholder="Ask about medicines, dosage, or order status..." style="flex:1; border:1px solid #cbd5e1; border-radius:20px; padding:8px 14px; font-size:13px; outline:none;" autocomplete="off" />
+      <button type="submit" class="btn btn-primary btn-sm" style="border-radius:20px; padding:8px 16px; font-weight:700;">Send</button>
+    </form>
   </div>
 </dialog>
 

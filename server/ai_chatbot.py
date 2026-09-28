@@ -748,13 +748,10 @@ def process_ai_chat_message(payload: Dict[str, Any]) -> Dict[str, Any]:
         except Exception as e:
             print(f"[BloomCare AI] OpenAI provider error: {e}")
 
-    # 3. Deterministic Healthcare NLP & Tool Engine (Always available, 0% hallucination)
-    return execute_deterministic_engine(message, products, orders, current_user, cart, knowledge)
     # 3. Deterministic Healthcare NLP & RAG Tool Engine (Always available, 0% hallucination)
     return execute_deterministic_engine(resolved_message, products, orders, current_user, cart, knowledge, context_meta=context_meta, raw_message=message)
 
 
-def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], orders: List[Dict[str, Any]], current_user: Dict[str, Any], cart: List[Dict[str, Any]], knowledge: Dict[str, Any]) -> Dict[str, Any]:
 def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], orders: List[Dict[str, Any]], current_user: Dict[str, Any], cart: List[Dict[str, Any]], knowledge: Dict[str, Any], context_meta: Optional[Dict[str, Any]] = None, raw_message: Optional[str] = None) -> Dict[str, Any]:
     msg_lower = message.lower()
     raw_lower = (raw_message or message).lower()
@@ -787,9 +784,6 @@ def execute_deterministic_engine(message: str, products: List[Dict[str, Any]], o
             ],
         }
 
-    # Intent B: Order Tracking
-    if any(k in msg_lower for k in ["where is my order", "track order", "track my order", "order status", "my order"]):
-        if not user_id:
     # Intent B: Order Tracking & Assigned Courier Dispatch
     is_courier_query = any(k in msg_lower for k in ["who is delivering", "who is my driver", "who is my rider", "who is my courier", "courier", "delivery man", "delivery person", "who delivers"])
     is_order_query = is_courier_query or any(k in msg_lower for k in ["where is my order", "track order", "track my order", "order status", "my order"]) or bool(re.search(r"\b(bc-[a-z0-9\-]+)\b", msg_lower))
@@ -1444,8 +1438,7 @@ def call_openai_provider(message: str, history: List[Dict[str, Any]], products: 
         "You are BloomCare AI, official medical information and pharmacy assistant for BloomCare Pharmacy in Mbarara City, Uganda. "
         "Never diagnose illnesses or bypass prescriptions. Always provide differential health guidance with structured sections: "
         "**What it could mean**, **Common symptoms**, **What you can do**, and **When to seek medical care**. "
-        "Strictly refuse personalized dosing. Only use actual BloomCare products: " + prod_context
-        "Strictly refuse personalized dosing. "
+        "Strictly refuse personalized dosing.\n"
         f"Verified Clinical References:\n{rag_context}\n\n"
         f"Only use actual BloomCare products: {prod_context}"
     )
