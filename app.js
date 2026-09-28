@@ -3548,150 +3548,153 @@ async function loadAppData(userId = null) {
   loadWishlistFromStorage(userId);
   loadAddressesFromStorage(userId);
   if (userId && getEffectiveRole() === "customer") {
+    STATE.orders = [];
+    STATE.prescriptions = [];
+    STATE.consultations = [];
+    STATE.refills = [];
     loadCartFromStorage(userId);
     syncUserCartFromFirestore(userId);
     syncUserWishlistFromFirestore(userId);
     syncUserAddressesFromFirestore(userId);
   }
 
-  // Memoize public catalog and settings queries to eliminate duplicate network traffic
-  if (!_catalogFetchPromise) {
-    _catalogFetchPromise = Promise.all([
-      getProducts(),
-      getCategories(),
-      getSystemSettings()
-    ]).then(([fetchedProducts, fetchedCategories, fetchedSettings]) => {
-      if (fetchedProducts && fetchedProducts.length > 0) {
-        STATE.products = fetchedProducts.map(fp => {
-          const init = INITIAL_MEDICINES.find(m => m.id === fp.id);
-          if (init && init.imageUrl) {
-            fp.imageUrl = init.imageUrl;
-          }
-          return fp;
-        });
-        for (const m of INITIAL_MEDICINES) {
-          if (!STATE.products.some(p => p.id === m.id)) {
-            STATE.products.push({ ...m });
-          }
-        }
-      } else if (!STATE.products || STATE.products.length === 0) {
-        STATE.products = deduplicateCatalog([...INITIAL_MEDICINES]);
-        try { seedInitialCatalogIfEmpty(INITIAL_MEDICINES, ESSENTIAL_CATEGORIES); } catch (_) {}
-      }
-
-      STATE.products = deduplicateCatalog(STATE.products);
-      STATE.products = enforceCategoryUniqueImages(STATE.products);
-
-      if (fetchedCategories && fetchedCategories.length > 0) {
-        STATE.categories = fetchedCategories;
-      } else if (!STATE.categories || STATE.categories.length === 0) {
-        STATE.categories = [...ESSENTIAL_CATEGORIES];
-      }
-
-      STATE.categories.forEach(c => {
-        const realCount = STATE.products.filter(p => p.category === c.name && p.status === "active").length;
-        if (realCount > 0) c.productCount = realCount;
-      });
-
-      if (fetchedSettings) {
-        STATE.systemSettings = { ...STATE.systemSettings, ...fetchedSettings };
-        syncWhatsAppLinks();
-      }
-      return true;
-    }).catch(err => {
-      console.warn("[BLOOMCARE DATA FLOW] Catalog background fetch notice:", err);
-      _catalogFetchPromise = null;
-      return false;
-    });
-  }
-
-  await _catalogFetchPromise;
-
-  if (userId) {
-    const effRole = getEffectiveRole();
-    try {
-      const [
-        userOrders,
-        userPrescriptions,
-        userConsultations,
-        userRefills,
-        userDeliveries,
-        userConversations,
-        userNotifications
-      ] = await Promise.all([
-        getOrders(userId, effRole),
-        getPrescriptions(userId, effRole),
-        getConsultations(userId, effRole),
-        getRefills(userId, effRole),
-        getDeliveries(userId, effRole),
-        getDeliveryConversationsForUser(userId, effRole),
-        getNotifications(userId, effRole)
+  try {
+    if (!_catalogFetchPromise) {
+      _catalogFetchPromise = Promise.all([
+        getProducts(),
+        getCategories(),
+        getSystemSettings()
       ]);
-
-      const isCustomer = effRole === "customer";
-      const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff";
-      if (isCustomer || isDelivery || userOrders?.length) STATE.orders = userOrders || [];
-      if (isCustomer || userPrescriptions?.length) STATE.prescriptions = userPrescriptions || [];
-      if (isCustomer || userConsultations?.length) STATE.consultations = userConsultations || [];
-      if (isCustomer || userRefills?.length) STATE.refills = userRefills || [];
-
-      if (userDeliveries && userDeliveries.length > 0) {
-        userDeliveries.forEach(ud => {
-          const idx = STATE.deliveries.findIndex(d => d.id === ud.id || d.orderId === ud.orderId || d.orderNumber === ud.orderNumber);
-          if (idx >= 0) STATE.deliveries[idx] = { ...STATE.deliveries[idx], ...ud };
-          else STATE.deliveries.unshift(ud);
-        });
-      }
-
-      if (userConversations && userConversations.length > 0) {
-        userConversations.forEach(uc => {
-          const convId = uc.id || uc.conversationId || `CHAT-${uc.orderId || uc.orderNumber}`;
-          const idx = STATE.conversations.findIndex(c => c.id === convId || c.conversationId === convId || c.orderId === uc.orderId);
-          if (idx >= 0) STATE.conversations[idx] = { ...STATE.conversations[idx], ...uc, id: convId, conversationId: convId };
-          else STATE.conversations.unshift({ ...uc, id: convId, conversationId: convId });
-        });
-        saveConversationsToStorage();
-      }
-
-      if (userNotifications && userNotifications.length > 0) {
-        userNotifications.forEach(un => {
-          if (!STATE.notifications.some(n => n.id === un.id)) {
-            STATE.notifications.unshift(un);
-          }
-        });
-      }
-
-      if (isDelivery && Array.isArray(STATE.orders)) {
-        STATE.orders.forEach(ord => {
-          if (ord.fulfillmentType === "delivery" || ord.deliveryAddress) {
-            const hasDel = STATE.deliveries.some(d => d.orderId === ord.id || d.orderNumber === (ord.orderNumber || ord.id));
-            if (!hasDel) {
-              STATE.deliveries.unshift({
-                id: "DEL-" + (ord.orderNumber || ord.id),
-                orderId: ord.id,
-                orderNumber: ord.orderNumber || ord.id,
-                customerName: ord.customerName,
-                phone: ord.customerPhone,
-                address: ord.deliveryAddress,
-                deliveryDivision: ord.deliveryDivision || "",
-                deliveryArea: ord.deliveryArea || "",
-                specificLocation: ord.specificLocation || ord.deliveryAddress,
-                landmark: ord.landmark || ord.specificLocation || "",
-                deliveryInstructions: ord.deliveryInstructions || ord.deliveryNotes || "",
-                itemsSummary: Array.isArray(ord.items) ? ord.items.map(i => `${i.quantity}x ${i.name}`).join(", ") : "",
-                deliveryManId: ord.deliveryManId || userId,
-                deliveryStaffId: ord.deliveryStaffId || ord.deliveryManId || userId,
-                deliveryStaffName: ord.deliveryManName || ord.assignedStaff || "Moses Kato",
-                status: ord.orderStatus === "Delivered" ? "Delivered" : (ord.orderStatus === "Out for Delivery" ? "Out for Delivery" : "Assigned"),
-                createdAt: (ord.createdAt || new Date().toISOString()).slice(0, 10)
-              });
-            }
-          }
-        });
-      }
-    } catch (err) {
-      console.warn("[BLOOMCARE DATA FLOW] User data sync notice:", err);
     }
+    const [fetchedProducts, fetchedCategories, fetchedSettings] = await _catalogFetchPromise;
+
+    if (fetchedProducts && fetchedProducts.length > 0) {
+      STATE.products = fetchedProducts.map(fp => {
+        const init = INITIAL_MEDICINES.find(m => m.id === fp.id);
+        if (init && init.imageUrl) {
+          fp.imageUrl = init.imageUrl;
+        }
+        return fp;
+      });
+      for (const m of INITIAL_MEDICINES) {
+        if (!STATE.products.some(p => p.id === m.id)) {
+          STATE.products.push({ ...m });
+        }
+      }
+    } else if (!STATE.products || STATE.products.length === 0) {
+      STATE.products = deduplicateCatalog([...INITIAL_MEDICINES]);
+      try { seedInitialCatalogIfEmpty(INITIAL_MEDICINES, ESSENTIAL_CATEGORIES); } catch (_) {}
+    }
+
+    // Enforce strict uniqueness and category-level unique images on runtime catalog
+    STATE.products = deduplicateCatalog(STATE.products);
+    STATE.products = enforceCategoryUniqueImages(STATE.products);
+
+    if (fetchedCategories && fetchedCategories.length > 0) {
+      STATE.categories = fetchedCategories;
+    } else if (!STATE.categories || STATE.categories.length === 0) {
+      STATE.categories = [...ESSENTIAL_CATEGORIES];
+    }
+
+    // Dynamically synchronize category counts with actual active products
+    STATE.categories.forEach(c => {
+      const realCount = STATE.products.filter(p => p.category === c.name && p.status === "active").length;
+      if (realCount > 0) c.productCount = realCount;
+    });
+
+    if (fetchedSettings) {
+      STATE.systemSettings = { ...STATE.systemSettings, ...fetchedSettings };
+      syncWhatsAppLinks();
+    }
+
+    if (userId) {
+      const effRole = getEffectiveRole();
+      try {
+        const [
+          userOrders,
+          userPrescriptions,
+          userConsultations,
+          userRefills,
+          userDeliveries,
+          userConversations,
+          userNotifications
+        ] = await Promise.all([
+          getOrders(userId, effRole),
+          getPrescriptions(userId, effRole),
+          getConsultations(userId, effRole),
+          getRefills(userId, effRole),
+          getDeliveries(userId, effRole),
+          getDeliveryConversationsForUser(userId, effRole),
+          getNotifications(userId, effRole)
+        ]);
+
+        const isCustomer = effRole === "customer";
+        const isDelivery = effRole === "delivery_person" || effRole === "deliveryStaff";
+        if (isCustomer || isDelivery || userOrders?.length) STATE.orders = userOrders || [];
+        if (isCustomer || userPrescriptions?.length) STATE.prescriptions = userPrescriptions || [];
+        if (isCustomer || userConsultations?.length) STATE.consultations = userConsultations || [];
+        if (isCustomer || userRefills?.length) STATE.refills = userRefills || [];
+
+        if (userDeliveries && userDeliveries.length > 0) {
+          userDeliveries.forEach(ud => {
+            const idx = STATE.deliveries.findIndex(d => d.id === ud.id || d.orderId === ud.orderId || d.orderNumber === ud.orderNumber);
+            if (idx >= 0) STATE.deliveries[idx] = { ...STATE.deliveries[idx], ...ud };
+            else STATE.deliveries.unshift(ud);
+          });
+        }
+
+        if (userConversations && userConversations.length > 0) {
+          userConversations.forEach(uc => {
+            const convId = uc.id || uc.conversationId || `CHAT-${uc.orderId || uc.orderNumber}`;
+            const idx = STATE.conversations.findIndex(c => c.id === convId || c.conversationId === convId || c.orderId === uc.orderId);
+            if (idx >= 0) STATE.conversations[idx] = { ...STATE.conversations[idx], ...uc, id: convId, conversationId: convId };
+            else STATE.conversations.unshift({ ...uc, id: convId, conversationId: convId });
+          });
+          saveConversationsToStorage();
+        }
+
+        if (userNotifications && userNotifications.length > 0) {
+          userNotifications.forEach(un => {
+            if (!STATE.notifications.some(n => n.id === un.id)) {
+              STATE.notifications.unshift(un);
+            }
+          });
+        }
+
+        if (isDelivery && Array.isArray(STATE.orders)) {
+          STATE.orders.forEach(ord => {
+            if (ord.fulfillmentType === "delivery" || ord.deliveryAddress) {
+              const hasDel = STATE.deliveries.some(d => d.orderId === ord.id || d.orderNumber === (ord.orderNumber || ord.id));
+              if (!hasDel) {
+                STATE.deliveries.unshift({
+                  id: "DEL-" + (ord.orderNumber || ord.id),
+                  orderId: ord.id,
+                  orderNumber: ord.orderNumber || ord.id,
+                  customerName: ord.customerName,
+                  phone: ord.customerPhone,
+                  address: ord.deliveryAddress,
+                  deliveryDivision: ord.deliveryDivision || "",
+                  deliveryArea: ord.deliveryArea || "",
+                  specificLocation: ord.specificLocation || ord.deliveryAddress,
+                  landmark: ord.landmark || ord.specificLocation || "",
+                  deliveryInstructions: ord.deliveryInstructions || ord.deliveryNotes || "",
+                  itemsSummary: Array.isArray(ord.items) ? ord.items.map(i => `${i.quantity}x ${i.name}`).join(", ") : "",
+                  deliveryManId: ord.deliveryManId || userId,
+                  deliveryStaffId: ord.deliveryStaffId || ord.deliveryManId || userId,
+                  deliveryStaffName: ord.deliveryManName || ord.assignedStaff || "Moses Kato",
+                  status: ord.orderStatus === "Delivered" ? "Delivered" : (ord.orderStatus === "Out for Delivery" ? "Out for Delivery" : "Assigned"),
+                  createdAt: (ord.createdAt || new Date().toISOString()).slice(0, 10)
+                });
+              }
+            }
+          });
+        }
+      } catch (err) {
+        console.warn("[BLOOMCARE DATA FLOW] User data fetch warning:", err);
+      }
+    }
+  } catch (err) {
+    console.warn("[BLOOMCARE DATA FLOW] Using local state with offline safety:", err);
   }
 }
 
@@ -3863,6 +3866,14 @@ function setupGlobalDialogNavigation() {
 }
 
 async function initApp() {
+  // Ensure Light Mode is permanently enforced
+  if (typeof localStorage !== "undefined") {
+    try { localStorage.removeItem("bloomcare_theme"); } catch (_) {}
+  }
+  if (typeof document !== "undefined" && document.body) {
+    document.body.classList.remove("theme-dark");
+  }
+
   // 1. Instantly seed in-memory baseline state for zero-latency initial paint
   if (!STATE.products || STATE.products.length === 0) {
     STATE.products = [...INITIAL_MEDICINES];
@@ -3881,7 +3892,6 @@ async function initApp() {
     };
     STATE.activeRole = savedRole;
   } else {
-    // Check URL parameters (e.g. ?login=customer or ?role=admin)
     let paramRole = null;
     try {
       const params = new URLSearchParams(window.location.search);
@@ -3906,6 +3916,7 @@ async function initApp() {
 
   // 3. Fast sync WhatsApp Link & UI Navigation Icons
   syncWhatsAppLinks();
+
   if ($("#sidebar-profile-icon")) $("#sidebar-profile-icon").innerHTML = ICONS.profile;
   if ($("#sidebar-settings-icon")) $("#sidebar-settings-icon").innerHTML = ICONS.settings;
   if ($("#sidebar-logout-icon")) $("#sidebar-logout-icon").innerHTML = ICONS.logout;
@@ -3930,9 +3941,8 @@ async function initApp() {
   updateCartBadge();
   handleRoute();
 
-  // 5. DEFERRED BACKGROUND INITIALIZATION (Executes smoothly without blocking first paint)
+  // 5. DEFERRED BACKGROUND INITIALIZATION (Executes smoothly after first paint)
   setTimeout(() => {
-    // A. Chatbot Assistant
     try {
       initBloomCareChatbot({
         getProducts: () => STATE.products,
@@ -3947,12 +3957,10 @@ async function initApp() {
       console.warn("[BloomCare AI] Chatbot initialization notice:", chatErr);
     }
 
-    // B. Delivery Sync Channel & Background Polling
     initAppSyncChannel();
     syncDeliverySystemWithBackend();
     setInterval(syncDeliverySystemWithBackend, 4000);
 
-    // C. Non-blocking Background Catalog Refresh
     loadAppData(STATE.currentUser?.uid || null).then(() => {
       updateNotifBadge();
       updateCartBadge();
@@ -3960,7 +3968,6 @@ async function initApp() {
   }, 40);
 
   // 6. Firebase Auth State Listener (Reactively synchronizes server session)
-  let initialAuthChecked = false;
   subscribeAuthState(async (user) => {
     if (user) {
       let profile = null;
@@ -4035,6 +4042,9 @@ async function initApp() {
         clearSavedSessionUser();
         STATE.currentUser = null;
         STATE.activeRole = "visitor";
+        STATE.authLoading = false;
+        STATE.authInitialized = true;
+        hideAuthLoadingScreen();
         updateUserPill();
         renderSidebarNavigation();
         openNotice("Account Suspended", "Your account has been deactivated or suspended. Please contact pharmacy administration.");
@@ -4042,7 +4052,7 @@ async function initApp() {
         return;
       }
 
-      let userRole = extractRoleFromProfile(profile) || "customer";
+      const userRole = extractRoleFromProfile(profile) || "customer";
       STATE.currentUser = {
         uid: user.uid,
         email: user.email,
@@ -4053,7 +4063,6 @@ async function initApp() {
       STATE.activeRole = userRole;
       saveSessionUser(STATE.currentUser);
 
-      // Refresh user datasets in background
       loadAppData(user.uid).then(() => {
         updateNotifBadge();
         updateCartBadge();
@@ -4074,18 +4083,17 @@ async function initApp() {
       }
     }
 
+    STATE.authLoading = false;
+    STATE.authInitialized = true;
+    hideAuthLoadingScreen();
     updateDeveloperPreviewBanner();
     updateUserPill();
     renderSidebarNavigation();
     updateNotifBadge();
     updateCartBadge();
-
-    if (!initialAuthChecked) {
-      initialAuthChecked = true;
-      handleRoute();
-    }
   });
 }
+
 
 function updateUserPill() {
   const roleBox = $("#sidebar-role-container");
@@ -9708,6 +9716,7 @@ function renderCustomersView() {
   `;
 }
 
+// ------
 // -------------------------------------------------------------
 // -------------------------------------------------------------
 // MODULE 12: ADMIN USER MANAGEMENT & AUDIT TRAIL ENGINE
