@@ -6,56 +6,7 @@
 
 :root {
   /* ==============================================================
-     MODERN DARK ANALYTICS UI THEME (DEFAULT)
-     Inspired by modern SaaS healthcare analytics dashboards
-     ============================================================== */
-  --primary: #10B981;
-  --primary-dark: #059669;
-  --primary-deep: #047857;
-  --primary-light: rgba(16, 185, 129, 0.15);
-  --secondary: #34D399;
-  --secondary-dark: #10B981;
-  --secondary-light: rgba(52, 211, 153, 0.15);
-  --brand-primary: #10B981;
-  --brand-lime: #34D399;
-  --danger: #EF4444;
-  --danger-light: rgba(239, 68, 68, 0.15);
-  --warning: #F59E0B;
-  --warning-light: rgba(245, 158, 11, 0.15);
-  --success: #10B981;
-  --success-light: rgba(16, 185, 129, 0.15);
-  --info: #3B82F6;
-  --info-light: rgba(59, 130, 246, 0.15);
-  --purple: #8B5CF6;
-  --purple-light: rgba(139, 92, 246, 0.15);
-  
-  --ink: #F8FAFC;
-  --ink-light: #CBD5E1;
-  --muted: #94A3B8;
-  --line: #222F44;
-  --line-strong: #334155;
-  --bg-page: #0B0F17;
-  --bg-card: #151D2C;
-  --bg-card-hover: #1C273A;
-  --bg-sidebar: #0E1522;
-  --bg-topbar: #0E1522;
-  --bg-modal: #151D2C;
-  
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.25);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.35);
-  --shadow-lg: 0 16px 36px rgba(0, 0, 0, 0.45);
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-full: 9999px;
-
-  --sidebar-width: 250px;
-  --topbar-height: 60px;
-}
-
-body.theme-light {
-  /* ==============================================================
-     LIGHT MODE PALETTE OVERRIDE (STORED IN LOCALSTORAGE)
+     BLOOMCARE HEALTHCARE LIGHT THEME (PERMANENT)
      ============================================================== */
   --primary: #059669;
   --primary-dark: #047857;
@@ -92,6 +43,13 @@ body.theme-light {
   --shadow-sm: 0 2px 8px rgba(38, 50, 56, 0.06);
   --shadow-md: 0 8px 22px rgba(38, 50, 56, 0.10);
   --shadow-lg: 0 16px 36px rgba(38, 50, 56, 0.14);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-full: 9999px;
+
+  --sidebar-width: 250px;
+  --topbar-height: 60px;
 }
 
 /* Reset & Base */
@@ -15621,13 +15579,10 @@ img,
 }
 .analytics-tab-group {
   display: inline-flex;
-  background: rgba(255, 255, 255, 0.05);
+  background: #F1F5F9;
   border: 1px solid var(--line);
   border-radius: 8px;
   padding: 2px;
-}
-body.theme-light .analytics-tab-group {
-  background: #f1f5f9;
 }
 .analytics-tab-btn {
   background: transparent;
@@ -15905,10 +15860,7 @@ body.theme-light .analytics-tab-group {
 .dark-modern-table td {
   padding: 12px;
   color: var(--ink-light);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-}
-body.theme-light .dark-modern-table td {
-  border-bottom-color: #f1f5f9;
+  border-bottom: 1px solid #F1F5F9;
 }
 .dark-modern-table tr:hover td {
   background: var(--bg-card-hover);
