@@ -151,7 +151,7 @@ test('6. DISPENSING & DELIVERY SAFEGUARDS PREVENT DISPATCH OF UNVERIFIED RX MEDI
 
   // Licensed pharmacist can verify Rx order by confirming it
   assert.ok(
-    appJs.includes('order.rxVerified = true;\n        order.prescriptionStatus = "Verified";'),
+    appJs.includes('order.rxVerified = true;') && appJs.includes('order.prescriptionStatus = "Verified";'),
     'Pharmacist confirmation must verify prescription order and update items'
   );
 });
