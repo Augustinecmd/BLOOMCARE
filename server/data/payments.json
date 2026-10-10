@@ -8376,5 +8376,51 @@
       ]
     },
     "dispensedBy": "BloomCare Pharmacy Kampala"
+  },
+  "BC-CNS-20261010-DECA3B8F": {
+    "reference": "BC-CNS-20261010-DECA3B8F",
+    "receiptNumber": "RCP-20261010-3EEE2B",
+    "provider": "Airtel Money",
+    "paymentType": "consultation",
+    "phone": "0751234567",
+    "amount": 15000,
+    "currency": "UGX",
+    "status": "SUCCESSFUL",
+    "createdAt": "2026-10-10T07:52:09.956744+00:00",
+    "verifiedAt": "2026-10-10T07:52:10.081614+00:00",
+    "transactionId": "MM-UGX-D84C2868DF8C",
+    "details": {
+      "pharmacist": "Dr. Amina Nanyonga",
+      "date": "2026-09-10",
+      "time": "11:00 AM",
+      "patientName": "Grace Nakato",
+      "patientPhone": "0751234567"
+    },
+    "dispensedBy": "BloomCare Pharmacy Kampala"
+  },
+  "BC-20261010-B7069A11": {
+    "reference": "BC-20261010-B7069A11",
+    "receiptNumber": "RCP-20261010-FEBEB6",
+    "provider": "MTN MoMo",
+    "paymentType": "order",
+    "phone": "0772123456",
+    "amount": 26500,
+    "currency": "UGX",
+    "status": "SUCCESSFUL",
+    "createdAt": "2026-10-10T07:52:10.114022+00:00",
+    "verifiedAt": "2026-10-10T07:52:10.222194+00:00",
+    "transactionId": "MM-UGX-F7B5B55BD6E2",
+    "details": {
+      "orderNumber": "BC-ORD-2026-9999",
+      "customerName": "Grace Nakato",
+      "items": [
+        {
+          "name": "Panadol Extra",
+          "quantity": 2,
+          "price": 6500
+        }
+      ]
+    },
+    "dispensedBy": "BloomCare Pharmacy Kampala"
   }
 }

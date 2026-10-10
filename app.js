@@ -13623,8 +13623,6 @@ function openCheckoutDialog() {
   const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * i.quantity), 0);
   const fee = STATE.fulfillmentOption === "pickup" ? 0 : STATE.deliveryFee;
   const total = subtotal + fee;
-  const checkoutHasRx = STATE.cart.some(item => Boolean(item.requiresPrescription || item.product?.requiresPrescription));
-  $("#checkout-rx-notice")?.classList.toggle("hidden", !checkoutHasRx);
   $("#chk-total-val").textContent = formatUGX(total);
 
   if (STATE.currentUser) {
@@ -14030,13 +14028,15 @@ async function handleCheckoutOrder(e) {
     deliveryAddressDetails: addressObj,
     items: [...STATE.cart.map(i => {
       const pPrice = i.price ?? i.product?.price ?? 0;
+      const isRx = Boolean(i.requiresPrescription || i.product?.requiresPrescription);
       return {
         productId: i.productId || i.product?.id,
         name: i.name || i.product?.name,
         quantity: i.quantity,
         price: pPrice,
         subtotal: pPrice * i.quantity,
-        requiresPrescription: Boolean(i.requiresPrescription || i.product?.requiresPrescription),
+        requiresPrescription: isRx,
+        rxStatus: isRx ? "Pending Prescription Verification" : "Not Required",
         image: i.image || (i.product ? getProductImage(i.product) : "")
       };
     })],
@@ -14049,7 +14049,7 @@ async function handleCheckoutOrder(e) {
     paymentReference: paymentMethod === "Cash on Delivery" ? "COD-" + orderRef : "BC-PAY-" + orderRef,
     orderStatus: orderInitialStatus,
     deliveryStatus: assignedDriverId ? "ASSIGNED" : (fulfillmentType === "pickup" ? "READY_FOR_PICKUP" : "awaiting_assignment"),
-    prescriptionStatus: hasRx ? "Required" : "Not Required",
+    prescriptionStatus: hasRx ? "Pending Prescription Verification" : "Not Required",
     rxVerified: false,
     assignedStaff: assignedDriverId ? assignedDriverName : "Pending Assignment",
     deliveryManId: assignedDriverId || null,
@@ -14229,7 +14229,11 @@ async function handleCheckoutOrder(e) {
   renderRoleDashboard();
 
   if (hasRx) {
-    openNotice("Prescription Verification Note", `Order <strong>${orderRef}</strong> contains prescription medications and has been marked <strong>Awaiting Prescription Review</strong> on your order confirmation.`);
+    const hasNormal = newOrder.items.some(i => !i.requiresPrescription);
+    const msg = hasNormal
+      ? `Order <strong>${orderRef}</strong> placed successfully. Normal non-prescription medicines are processed for fulfillment, while prescription-only items are marked <strong>Pending Prescription Verification</strong> awaiting pharmacist clinical review.`
+      : `Order <strong>${orderRef}</strong> placed successfully. Prescription-only medicines are marked <strong>Pending Prescription Verification</strong> and will be reviewed by an authorized pharmacist before dispensing.`;
+    openNotice("Prescription Verification Note", msg);
   }
 } catch (err) {
   console.error("[BloomCare Checkout Error]:", err);
@@ -16071,12 +16075,24 @@ export function showOrderConfirmationModal(order) {
 
   const itemsListEl = $("#confirm-items-list");
   if (itemsListEl) {
-    itemsListEl.innerHTML = (order.items || []).map(item => `
-      <div class="confirm-item-row">
-        <span>${item.quantity}x ${escapeHtml(item.name)}</span>
-        <strong>${formatUGX(item.subtotal || (item.price * item.quantity))}</strong>
-      </div>
-    `).join("");
+    itemsListEl.innerHTML = (order.items || []).map(item => {
+      const isRx = Boolean(item.requiresPrescription);
+      const isVerified = Boolean(order.rxVerified || item.rxStatus === "Verified");
+      const rxBadge = isRx
+        ? (isVerified
+            ? `<span class="rx-pill" style="margin-left:6px; font-size:10px; padding:2px 6px; border-radius:10px; background:#dcfce7; color:#15803d; border:1px solid #86efac; font-weight:700;">Rx: Verified</span>`
+            : `<span class="rx-pill" style="margin-left:6px; font-size:10px; padding:2px 6px; border-radius:10px; background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5; font-weight:700;">Rx: Pending Prescription Verification</span>`)
+        : `<span class="otc-pill" style="margin-left:6px; font-size:10px; padding:2px 6px; border-radius:10px; background:#f0fdf4; color:#166534; border:1px solid #bbf7d0; font-weight:600;">OTC / Normal</span>`;
+      return `
+        <div class="confirm-item-row" style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid var(--border-color, #e5e7eb);">
+          <div style="display:flex; align-items:center; flex-wrap:wrap; gap:4px;">
+            <span>${item.quantity}x ${escapeHtml(item.name)}</span>
+            ${rxBadge}
+          </div>
+          <strong>${formatUGX(item.subtotal || (item.price * item.quantity))}</strong>
+        </div>
+      `;
+    }).join("");
   }
 
   const totalValEl = $("#confirm-total-val");
@@ -17524,10 +17540,14 @@ function bindEventListeners() {
         }
         const d = STATE.deliveries.find(item => item.id === id);
         if (d) {
-          d.status = "Out for Delivery";
-          recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Out for Delivery");
           const orderRef = d.orderNumber || d.orderId || d.id;
           const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
+          if (order && (order.items || []).some(i => i.requiresPrescription) && !order.rxVerified) {
+            openNotice("Prescription Verification Required", "This order contains prescription-only items marked <strong>Pending Prescription Verification</strong>. It cannot be dispatched for delivery until verified by an authorized pharmacist.");
+            return;
+          }
+          d.status = "Out for Delivery";
+          recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Out for Delivery");
           if (order) {
             order.deliveryStatus = "OUT_FOR_DELIVERY";
             order.orderStatus = "Out for Delivery";
@@ -17570,10 +17590,14 @@ function bindEventListeners() {
         }
         const d = STATE.deliveries.find(item => item.id === id);
         if (d) {
-          d.status = "Delivered";
-          recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Delivered");
           const orderRef = d.orderNumber || d.orderId || d.id;
           const order = STATE.orders.find(o => o.id === orderRef || o.orderNumber === orderRef);
+          if (order && (order.items || []).some(i => i.requiresPrescription) && !order.rxVerified) {
+            openNotice("Prescription Verification Required", "This order contains prescription-only items marked <strong>Pending Prescription Verification</strong>. It cannot be marked delivered until verified by an authorized pharmacist.");
+            return;
+          }
+          d.status = "Delivered";
+          recordStaffAudit("UPDATE_DELIVERY_STATUS", "deliveries", id, "Delivery marked Delivered");
           if (order) {
             order.deliveryStatus = "DELIVERED";
             order.orderStatus = "Delivered";
@@ -18510,6 +18534,18 @@ function bindEventListeners() {
           openNotice("Workflow Rule Violation", transitionCheck.reason);
           return;
         }
+      }
+      const hasUnverifiedRx = (order.items || []).some(i => i.requiresPrescription) && !order.rxVerified;
+      if (hasUnverifiedRx && (status === "Ready for Pickup" || status === "Out for Delivery" || status === "Delivered")) {
+        openNotice("Prescription Verification Required", "This order contains prescription-only items marked <strong>Pending Prescription Verification</strong>. An authorized pharmacist must verify the prescription before dispensing or delivery.");
+        return;
+      }
+      if ((status === "Confirmed" || status === "Processing") && (effRole === "pharmacist" || effRole === "admin" || effRole === "developer")) {
+        order.rxVerified = true;
+        order.prescriptionStatus = "Verified";
+        (order.items || []).forEach(i => {
+          if (i.requiresPrescription) i.rxStatus = "Verified";
+        });
       }
       order.orderStatus = status;
       order.assignedStaff = driver;
