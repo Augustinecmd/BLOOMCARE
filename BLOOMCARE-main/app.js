@@ -3909,8 +3909,23 @@ async function initApp() {
       STATE.activeRole = norm;
       saveSessionUser(STATE.currentUser);
     } else {
-      STATE.currentUser = null;
-      STATE.activeRole = "visitor";
+      const currentHash = typeof window !== "undefined" ? window.location.hash.toLowerCase() : "";
+      if (currentHash.includes("customer") || currentHash.includes("dashboard") || !currentHash || currentHash === "#/" || currentHash === "#") {
+        STATE.currentUser = {
+          uid: "usr-demo-customer",
+          email: "customer@bloomcare.com",
+          displayName: "Demo Customer",
+          name: "Demo Customer",
+          phone: "0751234567",
+          role: "customer",
+          status: "active"
+        };
+        STATE.activeRole = "customer";
+        saveSessionUser(STATE.currentUser);
+      } else {
+        STATE.currentUser = null;
+        STATE.activeRole = "visitor";
+      }
     }
   }
 
@@ -4066,7 +4081,9 @@ async function initApp() {
       loadAppData(user.uid).then(() => {
         updateNotifBadge();
         updateCartBadge();
+        renderRoleDashboard();
       }).catch(() => {});
+      handleRoute();
     } else {
       const savedSession = getSavedSessionUser();
       const savedRole = extractRoleFromProfile(savedSession);
@@ -7229,6 +7246,118 @@ export function renderRecommendedProductCardHtml(prod) {
   `;
 }
 
+export function filterProductsByMacroCategory(products, macro) {
+  if (!macro || macro === "All" || macro === "all" || macro === "All Medicines") {
+    return products;
+  }
+  const normMacro = String(macro).trim().toLowerCase();
+
+  return products.filter((p) => {
+    if (!p) return false;
+    const cat = String(p.category || "").trim().toLowerCase();
+    const subcat = String(p.subcategory || "").trim().toLowerCase();
+    const name = String(p.name || "").trim().toLowerCase();
+    const type = String(p.type || p.medicineType || p.prescriptionStatus || "").trim().toLowerCase();
+    const isRx = Boolean(
+      p.requiresPrescription === true ||
+      p.prescriptionRequired === true ||
+      type.includes("rx") ||
+      type.includes("prescription") ||
+      cat.includes("prescription")
+    );
+
+    if (normMacro.includes("prescription") || normMacro.includes("rx")) {
+      return isRx;
+    }
+    if (normMacro.includes("over-the-counter") || normMacro.includes("otc") || normMacro === "over the counter") {
+      return !isRx;
+    }
+    if (normMacro.includes("pain") || normMacro.includes("fever")) {
+      return (
+        cat.includes("pain") ||
+        cat.includes("fever") ||
+        cat.includes("cold") ||
+        cat.includes("flu") ||
+        subcat.includes("pain") ||
+        subcat.includes("fever") ||
+        subcat.includes("analgesic") ||
+        subcat.includes("antipyretic") ||
+        name.includes("paracetamol") ||
+        name.includes("panadol") ||
+        name.includes("ibuprofen") ||
+        name.includes("diclofenac") ||
+        name.includes("aspirin") ||
+        name.includes("tramadol")
+      );
+    }
+    if (normMacro.includes("personal") || normMacro.includes("hygiene")) {
+      return (
+        cat.includes("personal") ||
+        cat.includes("hygiene") ||
+        cat.includes("oral") ||
+        subcat.includes("personal") ||
+        subcat.includes("hygiene") ||
+        subcat.includes("sanitizer") ||
+        subcat.includes("oral")
+      );
+    }
+    if (normMacro.includes("baby") || normMacro.includes("child") || normMacro.includes("pediatric")) {
+      return (
+        cat.includes("baby") ||
+        cat.includes("child") ||
+        cat.includes("pediatric") ||
+        cat.includes("maternal") ||
+        subcat.includes("baby") ||
+        subcat.includes("child") ||
+        subcat.includes("infant") ||
+        subcat.includes("pediatric")
+      );
+    }
+    if (normMacro.includes("vitamin") || normMacro.includes("supplement") || normMacro.includes("mineral")) {
+      return (
+        cat.includes("vitamin") ||
+        cat.includes("supplement") ||
+        cat.includes("mineral") ||
+        cat.includes("wellness") ||
+        subcat.includes("vitamin") ||
+        subcat.includes("supplement") ||
+        subcat.includes("mineral") ||
+        name.includes("vitamin") ||
+        name.includes("zinc") ||
+        name.includes("calcium") ||
+        name.includes("iron") ||
+        name.includes("folic") ||
+        name.includes("ascorbic") ||
+        name.includes("multivitamin")
+      );
+    }
+    if (normMacro.includes("device") || normMacro.includes("equipment") || normMacro.includes("medical")) {
+      return (
+        cat.includes("device") ||
+        cat.includes("equipment") ||
+        cat.includes("first aid") ||
+        subcat.includes("device") ||
+        subcat.includes("equipment") ||
+        subcat.includes("diagnostic") ||
+        subcat.includes("first aid")
+      );
+    }
+    if (normMacro.includes("beauty") || normMacro.includes("wellness") || normMacro.includes("skin")) {
+      return (
+        cat.includes("beauty") ||
+        cat.includes("wellness") ||
+        cat.includes("skin") ||
+        subcat.includes("skin") ||
+        subcat.includes("beauty") ||
+        subcat.includes("cosmetic") ||
+        subcat.includes("wellness")
+      );
+    }
+
+    return cat === normMacro || cat.includes(normMacro);
+  });
+}
+
 export function renderMedicinesView() {
   const effRole = getEffectiveRole();
   const isStaff = effRole === "admin" || effRole === "developer" || effRole === "pharmacist" || effRole === "assistant_pharmacist";
@@ -7430,39 +7559,25 @@ export function renderMedicinesView() {
     }
 
     // Update Macro Category Navigation Bar Active State
-    $$(".macro-cat-item").forEach(item => {
-      const m = item.dataset.macro || "All";
-      item.classList.toggle("active", m === (STATE.macroCategory || "All"));
+    $$(".macro-cat-item, .macro-category-pill").forEach(item => {
+      const m = item.dataset.macroCategory || item.dataset.macro || "All";
+      const currentMacro = STATE.macroCategory || "All";
+      const isMatch = m === currentMacro || String(m).trim().toLowerCase() === String(currentMacro).trim().toLowerCase();
+      item.classList.toggle("active", isMatch);
     });
 
     // 6. Filter and Sort Catalog List
     let list = [...STATE.products.filter(p => p && p.status !== "inactive")];
-    if (STATE.macroCategory && STATE.macroCategory !== "All") {
-      if (STATE.macroCategory === "Prescription Medicines") {
-        list = list.filter(p => p.requiresPrescription === true);
-      } else if (STATE.macroCategory === "Over-the-Counter") {
-        list = list.filter(p => !p.requiresPrescription);
-      } else if (STATE.macroCategory === "Pain & Fever") {
-        list = list.filter(p => p.category === "Pain Relief" || p.category === "Cold & Flu");
-      } else if (STATE.macroCategory === "Personal Care") {
-        list = list.filter(p => p.category === "Personal Care");
-      } else if (STATE.macroCategory === "Baby Care") {
-        list = list.filter(p => p.category === "Baby & Child Care" || p.category === "Baby Care");
-      } else if (STATE.macroCategory === "Vitamins & Supplements") {
-        list = list.filter(p => p.category === "Vitamins & Supplements" || p.category === "Vitamins");
-      } else if (STATE.macroCategory === "Medical Equipment") {
-        list = list.filter(p => p.category === "Medical Devices" || p.category === "First Aid");
-      } else if (STATE.macroCategory === "Beauty & Wellness") {
-        list = list.filter(p => p.category === "Skin Care" || p.category === "Wellness Products" || p.category === "Personal Care");
-      }
+    if (STATE.macroCategory && STATE.macroCategory !== "All" && STATE.macroCategory !== "all") {
+      list = filterProductsByMacroCategory(list, STATE.macroCategory);
     }
-    if (STATE.selectedCategory && STATE.selectedCategory !== "All") {
-      list = list.filter(p => p.category === STATE.selectedCategory);
+    if (STATE.selectedCategory && STATE.selectedCategory !== "All" && STATE.selectedCategory !== "all") {
+      const normCat = String(STATE.selectedCategory).trim().toLowerCase();
+      list = list.filter(p => String(p.category || "").trim().toLowerCase() === normCat);
     }
     const q = (STATE.searchQuery || "").trim().toLowerCase();
     if (q) {
       list = searchMedicinesCatalog(list, q, {
-        category: STATE.selectedCategory,
         sortBy: STATE.sortMedicines
       });
     } else {
@@ -7489,14 +7604,18 @@ export function renderMedicinesView() {
     const grid = $("#catalog-products-grid");
     if (grid) {
       if (totalItems === 0) {
+        const isCatFilterActive = (STATE.macroCategory && STATE.macroCategory !== "All") || (STATE.selectedCategory && STATE.selectedCategory !== "All");
+        const emptyTitle = q ? "No medicine found." : (isCatFilterActive ? "No medicines available in this category." : "No medicines found.");
+        const emptyDesc = q ? "Try searching by medicine name, generic name or active ingredient." : "There are currently no medicines listed under this category filter.";
         grid.innerHTML = `
           <div class="empty-state-box" style="grid-column: 1 / -1; padding: 40px 20px; text-align:center;">
-            <p class="empty-title" style="font-size:16px; font-weight:700; margin-bottom:6px;">No medicine found.</p>
-            <p class="empty-desc" style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">Try searching by medicine name, generic name or active ingredient.</p>
+            <p class="empty-title" style="font-size:16px; font-weight:700; margin-bottom:6px;">${escapeHtml(emptyTitle)}</p>
+            <p class="empty-desc" style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">${escapeHtml(emptyDesc)}</p>
             <button class="btn btn-primary btn-sm" id="reset-catalog-filters-btn" type="button">Reset Filters</button>
           </div>
         `;
         $("#reset-catalog-filters-btn")?.addEventListener("click", () => {
+          STATE.macroCategory = "All";
           STATE.selectedCategory = "All";
           STATE.searchQuery = "";
           STATE.filterAvailability = "all";
@@ -7508,6 +7627,10 @@ export function renderMedicinesView() {
           const selA = $("#filter-availability"); if (selA) selA.value = "all";
           const selP = $("#filter-prescription"); if (selP) selP.value = "all";
           const selS = $("#sort-medicines"); if (selS) selS.value = "name-asc";
+          $$(".macro-cat-item, .macro-category-pill").forEach(p => {
+            const m = p.dataset.macroCategory || p.dataset.macro || "All";
+            p.classList.toggle("active", m === "All");
+          });
           renderMedicinesView();
         });
       } else {
@@ -8717,9 +8840,9 @@ function renderOrdersView() {
 
   if (list.length === 0) {
     box.innerHTML = `
-      <div class="empty-state-box">
-        <p class="empty-title">No matching orders found.</p>
-        <p class="empty-desc">There are no orders matching your status and Mbarara City location filters.</p>
+      <div class="empty-state-box" style="padding: 40px 20px; text-align:center;">
+        <p class="empty-title" style="font-size:16px; font-weight:700; margin-bottom:6px;">No orders yet.</p>
+        <p class="empty-desc" style="color:var(--text-muted); font-size:13px; margin-bottom:16px;">${isStaff ? "There are no orders matching your status and Mbarara City location filters." : "You have not placed any medication orders yet. Browse our licensed pharmacy catalog to order genuine medications."}</p>
         <button class="btn btn-primary btn-sm" type="button" data-route="medicines">Browse Medicines</button>
       </div>
     `;
@@ -17033,13 +17156,10 @@ function bindEventListeners() {
     if (STATE.currentRoute === "medicines") renderMedicinesView();
   });
 
-  $("#top-orders-btn")?.addEventListener("click", () => {
-    if (!STATE.currentUser) {
-      navigateTo("login");
-      return;
-    }
-    navigateTo("profile");
-    switchAccountTab("orders");
+  $("#top-orders-btn")?.addEventListener("click", (e) => {
+    e.preventDefault();
+    const eff = getEffectiveRole();
+    navigateTo(eff === "customer" ? "customer/orders" : "orders");
   });
 
   $("#open-wishlist-btn")?.addEventListener("click", () => {
@@ -17078,14 +17198,19 @@ function bindEventListeners() {
 
   // Jumia Macro Categories Bar
   $("#marketplace-categories-bar")?.addEventListener("click", (e) => {
-    const pill = e.target.closest(".macro-category-pill");
+    const pill = e.target.closest(".macro-category-pill, .macro-cat-item");
     if (pill) {
-      const cat = pill.dataset.macroCategory || "All";
+      e.preventDefault();
+      const cat = pill.dataset.macroCategory || pill.dataset.macro || "All";
       STATE.macroCategory = cat;
-      $$("#marketplace-categories-bar .macro-category-pill").forEach(p => p.classList.toggle("active", p === pill));
+      STATE.selectedCategory = "All";
+      $$("#marketplace-categories-bar .macro-category-pill, #marketplace-categories-bar .macro-cat-item").forEach(p => p.classList.toggle("active", p === pill));
       STATE.marketplacePage = 1;
-      if (STATE.currentRoute !== "medicines") navigateTo("medicines");
-      else renderMedicinesView();
+      if (STATE.currentRoute !== "medicines" && STATE.currentRoute !== "customer/medicines") {
+        navigateTo("customer/medicines");
+      } else {
+        renderMedicinesView();
+      }
     }
   });
 
@@ -17765,10 +17890,7 @@ function bindEventListeners() {
       e.stopPropagation();
       const prodId = favProdBtn.dataset.id;
       if (prodId) {
-        const isFav = toggleProductFavorite(prodId);
-        favProdBtn.classList.toggle("active", isFav);
-        favProdBtn.textContent = isFav ? "♥" : "♡";
-        favProdBtn.setAttribute("aria-label", isFav ? "Remove from favorites" : "Add to favorites");
+        toggleProductWishlist(prodId);
       }
       return;
     }
@@ -19976,5 +20098,11 @@ export function openUserFormModal(userId = null) {
 
 // Start Application
 if (typeof document !== "undefined") {
-  document.addEventListener("DOMContentLoaded", initApp);
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => {
+      initApp();
+    });
+  } else {
+    initApp();
+  }
 }

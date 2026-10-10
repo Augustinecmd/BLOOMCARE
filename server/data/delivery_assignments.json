@@ -23,8 +23,8 @@
     ],
     "status": "Delivered",
     "deliveryStatus": "Delivered",
-    "assignedAt": "2026-09-28T11:08:04.119963+00:00",
-    "updatedAt": "2026-09-28T11:08:04.312681+00:00",
+    "assignedAt": "2026-10-10T07:18:46.227396+00:00",
+    "updatedAt": "2026-10-10T07:18:46.406222+00:00",
     "assignmentHistory": [
       {
         "timestamp": "2026-09-06T06:29:49.049287+00:00",
@@ -412,6 +412,30 @@
       },
       {
         "timestamp": "2026-09-28T11:08:04.119963+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-30T14:33:59.782148+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-09-30T15:13:52.611733+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-10-05T07:16:28.512239+00:00",
+        "action": "ASSIGNED",
+        "deliveryManId": "usr-staff-5",
+        "deliveryManName": "Moses Kato"
+      },
+      {
+        "timestamp": "2026-10-10T07:18:46.227396+00:00",
         "action": "ASSIGNED",
         "deliveryManId": "usr-staff-5",
         "deliveryManName": "Moses Kato"
@@ -827,8 +851,8 @@
     "deliveryManName": null,
     "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
     "deliveryStatus": "WAITING_FOR_AVAILABLE_DELIVERY_MAN",
-    "assignedAt": "2026-09-28T11:08:04.444763+00:00",
-    "updatedAt": "2026-09-28T11:08:04.444763+00:00",
+    "assignedAt": "2026-10-10T07:18:46.512006+00:00",
+    "updatedAt": "2026-10-10T07:18:46.512006+00:00",
     "deliveryArea": "Kiyanja",
     "deliveryDivision": "Kamukuzi",
     "deliveryLocation": "Mbarara City",
@@ -844,7 +868,7 @@
     ],
     "assignmentHistory": [
       {
-        "timestamp": "2026-09-28T11:08:04.444763+00:00",
+        "timestamp": "2026-10-10T07:18:46.512006+00:00",
         "action": "QUEUED_WAITING_FOR_DRIVER",
         "status": "WAITING_FOR_AVAILABLE_DELIVERY_MAN"
       }

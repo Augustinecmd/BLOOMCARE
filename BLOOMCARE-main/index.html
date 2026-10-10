@@ -45,7 +45,6 @@
   <!-- ============================================================== -->
   <!-- 0. AUTHENTICATION & ROLE LOADING SCREEN (ZERO-FLICKER RBAC) -->
   <!-- ============================================================== -->
-  <div class="auth-loading-overlay" id="auth-loading-screen" role="alert" aria-busy="true" aria-live="polite">
   <div class="auth-loading-overlay hidden" id="auth-loading-screen" role="alert" aria-busy="true" aria-live="polite">
     <div class="auth-loading-card" id="auth-loading-card">
       <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
@@ -318,8 +317,156 @@
       <!-- ========================================================== -->
       <section class="page-pane" id="view-dashboard">
         <!-- Premium BloomCare Pharmacy Welcome Hero (Shared for ALL Authenticated Roles) -->
-        <div id="bloomcare-dashboard-hero"></div>
-        <div id="role-dashboard-container"></div>
+        <div id="bloomcare-dashboard-hero">
+          <div class="bloomcare-hero-card">
+            <div class="bloomcare-hero-glow-1" aria-hidden="true"></div>
+            <div class="bloomcare-hero-glow-2" aria-hidden="true"></div>
+
+            <div class="bloomcare-hero-layout">
+              <!-- LEFT COLUMN: WELCOME & BRAND STORY -->
+              <div class="bloomcare-hero-content">
+                <div class="bloomcare-hero-badge-row">
+                  <span class="bloomcare-hero-badge">
+                    <svg class="bloomcare-leaf-svg" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/>
+                      <path d="M2 21c0-3 1.85-5.36 5.08-6C9.5 14.52 12 13 13 12"/>
+                    </svg>
+                    <span>BLOOMCARE PHARMACY</span>
+                  </span>
+                </div>
+
+                <div class="bloomcare-hero-welcome-msg">
+                  Welcome back, <strong class="bloomcare-user-highlight">Valued Customer</strong>
+                </div>
+
+                <h1 class="bloomcare-hero-headline">
+                  Care That Goes<br />
+                  <span class="bloomcare-hero-gradient-text">Beyond Medicine.</span>
+                </h1>
+
+                <p class="bloomcare-hero-support-text">
+                  Quality medicines, trusted healthcare and a healthier community — all in one place.
+                </p>
+
+                <div class="bloomcare-hero-features">
+                  <div class="bloomcare-feature-chip">
+                    <span class="bloomcare-feature-check">✓</span>
+                    <span>Quality Medicines</span>
+                  </div>
+                  <div class="bloomcare-feature-chip">
+                    <span class="bloomcare-feature-check">✓</span>
+                    <span>Trusted Healthcare</span>
+                  </div>
+                  <div class="bloomcare-feature-chip">
+                    <span class="bloomcare-feature-check">✓</span>
+                    <span>Better Community</span>
+                  </div>
+                </div>
+
+                <div class="bloomcare-hero-actions">
+                  <button class="btn btn-primary bloomcare-hero-cta-btn" id="btn-hero-explore" type="button">
+                    <span>Explore BloomCare</span>
+                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                      <polyline points="12 5 19 12 12 19"></polyline>
+                    </svg>
+                  </button>
+                  <span class="bloomcare-hero-tagline">"Your Health, Our Priority"</span>
+                </div>
+              </div>
+
+              <!-- RIGHT COLUMN: OFFICIAL CUSTOMER PHOTO -->
+              <div class="bloomcare-hero-media">
+                <div class="bloomcare-hero-img-container" id="bloomcare-hero-img-container" title="Click to view full image" role="button" tabindex="0" aria-label="View BloomCare customer image in full size">
+                  <div class="bloomcare-hero-img-glow" aria-hidden="true"></div>
+                  <img src="bloomcare-customer-hero.png" alt="BloomCare Pharmacy Customer with branded bag and pharmacist" class="bloomcare-customer-hero-img" loading="eager" />
+                  <div class="bloomcare-hero-zoom-badge">
+                    <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      <line x1="11" y1="8" x2="11" y2="14"></line>
+                      <line x1="8" y1="11" x2="14" y2="11"></line>
+                    </svg>
+                    <span>Click to expand</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="role-dashboard-container">
+          <!-- Customer Welcome Card Pre-rendered Skeleton -->
+          <div class="customer-welcome-card customer-hero-brand-card">
+            <div class="customer-welcome-left">
+              <div class="customer-hero-motto-pill" style="display:inline-flex; align-items:center; gap:6px; background:rgba(15,118,110,0.1); color:#0f766e; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; margin-bottom:8px; letter-spacing:0.3px;">
+                <span>🌿</span>
+                <span>Your Health, Our Priority</span>
+              </div>
+              <h1 class="page-title" style="font-size:22px; margin-bottom:4px;">Welcome, Customer</h1>
+              <p class="page-desc" style="font-size:13.5px; color:var(--text-muted, #64748b); margin-bottom:10px; max-width:520px; line-height:1.45;">
+                Your trusted licensed pharmacy in Mbarara City for genuine <strong>Medicines</strong>, comprehensive <strong>Wellness</strong>, essential <strong>Personal Care</strong>, and professional <strong>Health Advice</strong>.
+              </p>
+              <div class="customer-service-tags" style="display:flex; flex-wrap:wrap; gap:6px; margin-bottom:14px;">
+                <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">💊 Medicines</span>
+                <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">🌿 Wellness</span>
+                <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">🧴 Personal Care</span>
+                <span class="service-micro-tag" style="background:#f1f5f9; color:#334155; font-size:11px; font-weight:600; padding:3px 8px; border-radius:4px; border:1px solid #e2e8f0;">🩺 Health Advice</span>
+              </div>
+              <div class="customer-welcome-actions">
+                <button class="btn btn-primary btn-sm" type="button" data-route="medicines">Browse Medicines</button>
+                <button class="btn btn-secondary btn-sm" type="button" data-route="prescriptions">Upload Prescription</button>
+                <button class="btn btn-secondary btn-sm" type="button" data-route="refills">Request Refill</button>
+                <button class="btn btn-secondary btn-sm" type="button" data-route="consultations">Consult Pharmacist</button>
+              </div>
+            </div>
+            <div class="customer-welcome-right customer-hero-brand-right">
+              <div class="customer-hero-badge-row" style="margin-bottom:8px;">
+                <span class="customer-badge-pill">✓ Verified Customer Account</span>
+              </div>
+              <div class="customer-hero-bag-wrapper" style="text-align:center;">
+                <img 
+                  src="bloomcare-paper-bag.jpg" 
+                  alt="BloomCare Pharmacy branded paper bag" 
+                  class="customer-hero-bag-img" 
+                  loading="lazy" 
+                  decoding="async" 
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- Customer Summary KPI Cards -->
+          <div class="kpi-grid-4">
+            <div class="kpi-card" data-route="orders">
+              <div class="kpi-icon-wrap">📦</div>
+              <div>
+                <strong class="kpi-value">0</strong>
+                <span class="kpi-label">Active Orders</span>
+              </div>
+            </div>
+            <div class="kpi-card" data-route="prescriptions">
+              <div class="kpi-icon-wrap">📋</div>
+              <div>
+                <strong class="kpi-value">0</strong>
+                <span class="kpi-label">Pending Prescriptions</span>
+              </div>
+            </div>
+            <div class="kpi-card" data-route="refills">
+              <div class="kpi-icon-wrap">🔄</div>
+              <div>
+                <strong class="kpi-value">0</strong>
+                <span class="kpi-label">Pending Refills</span>
+              </div>
+            </div>
+            <div class="kpi-card" data-route="consultations">
+              <div class="kpi-icon-wrap">🩺</div>
+              <div>
+                <strong class="kpi-value">0</strong>
+                <span class="kpi-label">Upcoming Consultations</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       <!-- ========================================================== -->
