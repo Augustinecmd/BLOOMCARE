@@ -4881,7 +4881,16 @@ export function handleRoute() {
     if (displayReason && displayReason !== "Already authenticated as Customer.") {
       openNotice("Access Denied", displayReason);
     }
-    const redirectTarget = access.redirectRoute || ROLE_HOME_ROUTES[effRole] || "auth";
+    let redirectTarget = access.redirectRoute || ROLE_HOME_ROUTES[effRole] || "auth";
+    if (redirectTarget === "auth" && (!STATE.currentUser || effRole === "visitor")) {
+      const isStaffPath = route.startsWith("admin") || route.startsWith("pharmacist") ||
+        route.startsWith("assistant_pharmacist") || route.startsWith("assistant-pharmacist") ||
+        route.startsWith("delivery") || route.startsWith("developer") || route.startsWith("staff") ||
+        ["inventory", "users", "deliveries", "payments", "reports", "audit", "admin-audit"].includes(route);
+      if (isStaffPath) {
+        redirectTarget = "staff-login";
+      }
+    }
     if (window.location.hash !== `#${redirectTarget}`) {
       window.location.hash = redirectTarget;
     }
@@ -4894,16 +4903,21 @@ export function handleRoute() {
     $("#register-card")?.classList.add("hidden");
     $("#login-card")?.classList.add("hidden");
     $("#staff-login-card")?.classList.remove("hidden");
+    document.body.classList.add("staff-login-layout");
   } else if (route === "register") {
     route = "auth";
     $("#login-card")?.classList.add("hidden");
     $("#staff-login-card")?.classList.add("hidden");
     $("#register-card")?.classList.remove("hidden");
+    document.body.classList.remove("staff-login-layout");
   } else if (route === "login" || route === "auth") {
     route = "auth";
     $("#register-card")?.classList.add("hidden");
     $("#staff-login-card")?.classList.add("hidden");
     $("#login-card")?.classList.remove("hidden");
+    document.body.classList.remove("staff-login-layout");
+  } else {
+    document.body.classList.remove("staff-login-layout");
   }
 
   // Level 2 Security Check: Verify Role-Based Route Access
@@ -4921,9 +4935,20 @@ export function handleRoute() {
       window.location.hash = redirectTarget;
     }
     route = redirectTarget;
+    if (route === "staff-login" || route === "staff" || route === "staff/login") {
+      route = "auth";
+      $("#register-card")?.classList.add("hidden");
+      $("#login-card")?.classList.add("hidden");
+      $("#staff-login-card")?.classList.remove("hidden");
+      document.body.classList.add("staff-login-layout");
+    } else {
+      document.body.classList.remove("staff-login-layout");
+    }
   }
 
   STATE.currentRoute = route;
+  const isCurrentlyStaffLogin = Boolean(!$("#staff-login-card")?.classList.contains("hidden") && (window.location.hash === "#staff-login" || window.location.hash === "#staff" || window.location.hash === "#staff/login"));
+  document.body.classList.toggle("staff-login-layout", isCurrentlyStaffLogin);
   closeMobileDrawer();
 
   const pageNavigation = $("#global-page-navigation");
@@ -17077,10 +17102,13 @@ function bindEventListeners() {
     STATE.currentUser = null;
     STATE.activeRole = "visitor";
     STATE.developerPreviewRole = null;
+    STATE.routeHistory = [];
     hideAuthLoadingScreen();
     if (prevRole === "customer" || prevRole === "visitor") {
+      window.history.replaceState(null, "", "#auth");
       navigateTo("auth");
     } else {
+      window.history.replaceState(null, "", "#staff-login");
       navigateTo("staff-login");
     }
   });
@@ -19053,9 +19081,12 @@ function bindEventListeners() {
     renderSidebarNavigation();
     hideAuthLoadingScreen();
     openNotice("Signed Out", "You have signed out of BloomCare Pharmacy.");
+    STATE.routeHistory = [];
     if (prevRole === "customer" || prevRole === "visitor") {
+      window.history.replaceState(null, "", "#auth");
       navigateTo("auth");
     } else {
+      window.history.replaceState(null, "", "#staff-login");
       navigateTo("staff-login");
     }
   });
@@ -19731,11 +19762,63 @@ function bindEventListeners() {
     }
   });
 
+  // Dedicated Staff Portal Password Toggle
+  $("#toggle-staff-password-btn")?.addEventListener("click", () => {
+    const passInput = $("#staff-login-password");
+    if (!passInput) return;
+    const isPass = passInput.type === "password";
+    passInput.type = isPass ? "text" : "password";
+    const toggleBtn = $("#toggle-staff-password-btn");
+    if (toggleBtn) {
+      toggleBtn.setAttribute("aria-label", isPass ? "Hide password" : "Show password");
+      toggleBtn.setAttribute("title", isPass ? "Hide password" : "Show password");
+      toggleBtn.innerHTML = isPass ? '<span class="eye-icon" aria-hidden="true">🙈</span>' : '<span class="eye-icon" aria-hidden="true">👁️</span>';
+    }
+  });
+
+  // Dedicated Staff Portal Forgot Password
+  $("#staff-forgot-password-link")?.addEventListener("click", () => {
+    const staffEmail = $("#staff-login-email")?.value.trim();
+    if (staffEmail && $("#forgot-email")) {
+      $("#forgot-email").value = staffEmail;
+    }
+    $("#forgot-password-dialog")?.showModal();
+  });
+
   // Dedicated Staff Portal Login Form (#staff-login)
   $("#staff-login-form")?.addEventListener("submit", async (e) => {
     e.preventDefault();
     const email = $("#staff-login-email").value.trim();
     const password = $("#staff-login-password").value;
+
+    const staffErrEl = $("#staff-login-error");
+    if (staffErrEl) {
+      staffErrEl.textContent = "";
+      staffErrEl.classList.add("hidden");
+    }
+
+    const submitBtn = $("#staff-login-submit-btn");
+    const spinner = $("#staff-login-spinner");
+    const btnLabel = $("#staff-login-btn-label");
+    if (submitBtn) submitBtn.disabled = true;
+    if (spinner) spinner.classList.remove("hidden");
+    if (btnLabel) btnLabel.textContent = "Verifying Credentials...";
+
+    const resetSubmitBtn = () => {
+      if (submitBtn) submitBtn.disabled = false;
+      if (spinner) spinner.classList.add("hidden");
+      if (btnLabel) btnLabel.textContent = "Log In";
+      hideAuthLoadingScreen();
+    };
+
+    const showStaffError = (msg) => {
+      resetSubmitBtn();
+      if (staffErrEl) {
+        staffErrEl.textContent = msg;
+        staffErrEl.classList.remove("hidden");
+      }
+      openNotice("Staff Sign In Failed", msg);
+    };
 
     showAuthLoadingScreen("Staff Authentication...", "Verifying staff credentials and access permissions...");
 
@@ -19765,24 +19848,21 @@ function bindEventListeners() {
       if (profile && (profile.status === "inactive" || profile.status === "suspended")) {
         try { await signOutUser(); } catch (_) {}
         clearSavedSessionUser();
-        hideAuthLoadingScreen();
-        openNotice("Access Denied", "Your staff account has been deactivated or suspended. Please contact the administrator.");
+        showStaffError("Your staff account has been deactivated or suspended. Please contact the administrator.");
         return;
       }
 
       const staffRole = extractRoleFromProfile(profile);
 
       if (!staffRole) {
-        hideAuthLoadingScreen();
-        openNotice("Role Verification Failed", "Your account role could not be verified in the BloomCare staff database. Please contact administrator.");
+        showStaffError("Your account role could not be verified in the BloomCare staff database. Please contact administrator.");
         return;
       }
 
       if (staffRole === "customer") {
         try { await signOutUser(); } catch (_) {}
         clearSavedSessionUser();
-        hideAuthLoadingScreen();
-        openNotice("Access Denied", "Customer accounts cannot sign in through the Staff Portal. Please use the Customer Login.");
+        showStaffError("Customer accounts cannot sign in through the Staff Portal. Please use the Customer Login.");
         return;
       }
 
@@ -19798,8 +19878,7 @@ function bindEventListeners() {
       if (localStaff && (password === "Password123!" || password === "password" || password.length >= 6)) {
         const staffRole = extractRoleFromProfile(localStaff);
         if (staffRole === "customer") {
-          hideAuthLoadingScreen();
-          openNotice("Access Denied", "Customer accounts cannot sign in through the Staff Portal. Please use the Customer Login.");
+          showStaffError("Customer accounts cannot sign in through the Staff Portal. Please use the Customer Login.");
           return;
         }
         STATE.currentUser = {
@@ -19810,17 +19889,16 @@ function bindEventListeners() {
           role: staffRole
         };
       } else {
-        hideAuthLoadingScreen();
-        openNotice("Staff Sign In Failed", "Invalid staff credentials. Please check your email and password.");
+        showStaffError("Invalid staff credentials. Please check your email and password.");
         return;
       }
     }
 
+    resetSubmitBtn();
     STATE.activeRole = STATE.currentUser.role;
     STATE.developerPreviewRole = null;
     saveSessionUser(STATE.currentUser);
     await loadAppData(STATE.currentUser.uid);
-    hideAuthLoadingScreen();
     updateDeveloperPreviewBanner();
     updateUserPill();
     renderSidebarNavigation();
@@ -19833,6 +19911,7 @@ function bindEventListeners() {
   $("#back-to-customer-login-btn")?.addEventListener("click", () => {
     $("#staff-login-card")?.classList.add("hidden");
     $("#login-card")?.classList.remove("hidden");
+    document.body.classList.remove("staff-login-layout");
   });
 
   // Top Bar Role Switcher Listener

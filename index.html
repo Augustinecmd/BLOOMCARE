@@ -123,6 +123,15 @@
         </div>
       </div>
 
+      <!-- Dark / Light Mode Toggle -->
+      <button class="sidebar-theme-toggle" id="sidebar-theme-toggle" type="button" aria-label="Toggle Dark or Light Mode">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <span id="theme-toggle-icon">🌙</span>
+          <span id="theme-toggle-label">Dark Theme</span>
+        </span>
+        <span class="sidebar-theme-pill" id="theme-toggle-status">Active</span>
+      </button>
+
       <button class="sidebar-bottom-btn" id="sidebar-profile-btn" type="button" data-route="profile" style="display:none;">
         <span class="nav-svg-icon" id="sidebar-profile-icon"></span>
         <span>My Profile</span>
@@ -1918,23 +1927,38 @@
           </div>
 
           <!-- Dedicated Staff Portal Login Screen (Separate Route #staff-login) -->
-          <div class="auth-card hidden" id="staff-login-card">
+          <div class="auth-card hidden staff-portal-login-card" id="staff-login-card">
             <div class="auth-card-head">
-              <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:12px;">
-                <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-card-logo" style="height:50px; width:auto; max-width:160px; object-fit:contain;" />
+              <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:16px;">
+                <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-card-logo" style="height:54px; width:auto; max-width:180px; object-fit:contain;" />
               </div>
-              <h2>BloomCare Clinical &amp; Staff Portal</h2>
-              <p class="muted">Pharmacy Staff &amp; Administrator Sign In</p>
+              <h1 class="staff-portal-title" style="font-size:1.45rem; font-weight:700; color:#0f766e; margin:0 0 6px 0; text-align:center;">BloomCare Staff Portal<span class="sr-only" style="display:none;" aria-hidden="true"> Clinical &amp; Staff Portal</span></h1>
+              <p class="staff-portal-subtitle muted" style="margin:0 0 16px 0; font-size:0.92rem; text-align:center; color:#64748b;">Authorized Pharmacy Staff &amp; Administrator Access</p>
             </div>
+            <div class="staff-auth-error-alert hidden" id="staff-login-error" role="alert" aria-live="assertive"></div>
             <form id="staff-login-form" class="standard-form">
-              <label>Staff Email Address<input type="email" id="staff-login-email" placeholder="staff@bloomcare.com" autocomplete="username" required /></label>
-              <label>Staff Password<input type="password" id="staff-login-password" placeholder="Password" autocomplete="current-password" required /></label>
-              <div class="form-actions-row">
-                <button class="btn btn-primary" type="submit">Log In to Staff Portal</button>
-                <button class="text-link" id="staff-forgot-password-link" type="button">Forgot Password?</button>
+              <label for="staff-login-email">Staff Email Address
+                <input type="email" id="staff-login-email" placeholder="staff@bloomcare.com" autocomplete="username" required />
+              </label>
+              <label for="staff-login-password">Staff Password
+                <div class="password-input-wrapper">
+                  <input type="password" id="staff-login-password" placeholder="Enter your password" autocomplete="current-password" required />
+                  <button type="button" class="btn-password-toggle" id="toggle-staff-password-btn" aria-label="Show password" title="Toggle password visibility">
+                    <span class="eye-icon" aria-hidden="true">👁️</span>
+                  </button>
+                </div>
+              </label>
+              <div class="form-actions-row" style="margin-top:14px; display:flex; justify-content:space-between; align-items:center;">
+                <button class="text-link" id="staff-forgot-password-link" type="button" style="font-size:0.88rem;">Forgot Password?</button>
+              </div>
+              <div style="margin-top:16px;">
+                <button class="btn btn-primary btn-block staff-login-btn" id="staff-login-submit-btn" type="submit" style="background:#0f766e; border-color:#0f766e; font-weight:600; padding:11px 18px; border-radius:8px; width:100%;">
+                  <span class="btn-spinner hidden" id="staff-login-spinner" aria-hidden="true"></span>
+                  <span class="btn-label" id="staff-login-btn-label">Log In</span>
+                </button>
               </div>
             </form>
-            <div class="demo-auth-help-box">
+            <div class="demo-auth-help-box hidden" style="display:none !important;" aria-hidden="true">
               <span class="demo-help-tag">One-Click Staff Sign-In (Demo Profiles)</span>
               <div class="demo-roles-btn-grid" style="grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));">
                 <button class="btn btn-outline btn-sm demo-staff-btn" data-role="developer" type="button" style="border-color:var(--amber); color:var(--amber);">Developer (Console)</button>
@@ -1944,7 +1968,10 @@
                 <button class="btn btn-outline btn-sm demo-staff-btn" data-role="delivery_person" type="button">Delivery Person</button>
               </div>
             </div>
-            <p class="auth-switch-text" style="margin-top:16px;"><button class="text-link" id="back-to-customer-login-btn" type="button">&larr; Return to Customer Login</button></p>
+            <p class="auth-switch-text" style="margin-top:20px; text-align:center;">
+              <a href="#medicines" class="text-link" id="staff-back-to-store-link">&larr; Return to Pharmacy Storefront</a>
+              <button class="text-link" id="back-to-customer-login-btn" type="button" style="display:none;" aria-hidden="true">&larr; Return to Customer Login</button>
+            </p>
           </div>
         </div>
       </section>
