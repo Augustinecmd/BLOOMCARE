@@ -4916,6 +4916,13 @@ export function handleRoute() {
     $("#staff-login-card")?.classList.add("hidden");
     $("#login-card")?.classList.remove("hidden");
     document.body.classList.remove("staff-login-layout");
+    try {
+      const savedIdent = localStorage.getItem("bloomcare_saved_identifier");
+      const emailInput = $("#login-email");
+      if (savedIdent && emailInput && !emailInput.value) {
+        emailInput.value = savedIdent;
+      }
+    } catch (_) {}
   } else {
     document.body.classList.remove("staff-login-layout");
   }
@@ -19735,11 +19742,24 @@ function bindEventListeners() {
     e.preventDefault();
     const identifier = ($("#login-email")?.value || "").trim();
     const password = ($("#login-password")?.value || "").trim();
+    const rememberMe = $("#login-remember-me")?.checked ?? true;
     const errorEl = $("#login-error-msg");
     const successEl = $("#login-success-msg");
     if (successEl) successEl.classList.add("hidden");
 
+    const submitBtn = $("#customer-login-submit-btn");
+    const spinner = $("#customer-login-spinner");
+    const btnLabel = $("#customer-login-btn-label");
+
+    const setFormPending = (isPending) => {
+      if (submitBtn) submitBtn.disabled = isPending;
+      if (spinner) spinner.classList.toggle("hidden", !isPending);
+      if (btnLabel) btnLabel.textContent = isPending ? "Signing In..." : "Sign In";
+    };
+
     const showError = (msg) => {
+      setFormPending(false);
+      hideAuthLoadingScreen();
       if (errorEl) {
         errorEl.textContent = msg;
         errorEl.classList.remove("hidden");
@@ -19752,39 +19772,64 @@ function bindEventListeners() {
       errorEl.classList.add("hidden");
     }
 
-    const loginRes = await loginUser({ identifier, password });
-    if (!loginRes.success) {
-      showError(loginRes.message);
+    if (!identifier) {
+      showError("Please enter your email address or Ugandan phone number.");
       return;
     }
 
-    showAuthLoadingScreen("Signing in...", "Verifying your credentials and profile...");
+    if (!password) {
+      showError("Please enter your 6-digit password or PIN.");
+      return;
+    }
+
+    setFormPending(true);
 
     try {
-      if (loginRes.user?.email && loginRes.user.email.includes("@")) {
-        try {
-          const fbUser = await signInUser(loginRes.user.email, password);
-          if (fbUser && fbUser.uid) {
-            STATE.currentUser.uid = fbUser.uid;
-            STATE.currentUser.id = fbUser.uid;
-            saveSessionUser(STATE.currentUser);
-          }
-        } catch (_) {}
+      const loginRes = await loginUser({ identifier, password });
+      if (!loginRes.success) {
+        showError(loginRes.message);
+        return;
       }
-    } catch (_) {}
 
-    await loadAppData(STATE.currentUser.uid);
-    hideAuthLoadingScreen();
-    updateDeveloperPreviewBanner();
-    updateUserPill();
-    renderSidebarNavigation();
+      if (rememberMe) {
+        try { localStorage.setItem("bloomcare_saved_identifier", identifier); } catch (_) {}
+      } else {
+        try { localStorage.removeItem("bloomcare_saved_identifier"); } catch (_) {}
+      }
 
-    openNotice("Welcome Back", `Signed in as <strong>${escapeHtml(STATE.currentUser.displayName)}</strong>.`);
+      showAuthLoadingScreen("Signing in...", "Verifying your credentials and profile...");
 
-    if (STATE.pendingAction) {
-      executePendingAction();
-    } else {
-      navigateTo(loginRes.redirectRoute || "customer/dashboard");
+      try {
+        if (loginRes.user?.email && loginRes.user.email.includes("@")) {
+          try {
+            const fbUser = await signInUser(loginRes.user.email, password);
+            if (fbUser && fbUser.uid) {
+              STATE.currentUser.uid = fbUser.uid;
+              STATE.currentUser.id = fbUser.uid;
+              saveSessionUser(STATE.currentUser);
+            }
+          } catch (_) {}
+        }
+      } catch (_) {}
+
+      await loadAppData(STATE.currentUser.uid);
+      setFormPending(false);
+      hideAuthLoadingScreen();
+      updateDeveloperPreviewBanner();
+      updateUserPill();
+      renderSidebarNavigation();
+
+      openNotice("Welcome Back", `Signed in as <strong>${escapeHtml(STATE.currentUser.displayName)}</strong>.`);
+
+      if (STATE.pendingAction) {
+        executePendingAction();
+      } else {
+        navigateTo(loginRes.redirectRoute || "customer/dashboard");
+      }
+    } catch (err) {
+      showError(err?.message || "An unexpected error occurred during authentication. Please try again.");
+    } finally {
+      setFormPending(false);
     }
   });
 
