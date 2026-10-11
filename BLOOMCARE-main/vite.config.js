@@ -30,10 +30,18 @@ export default defineConfig({
     },
   ],
   build: {
+    target: "es2020",
+    cssCodeSplit: true,
+    chunkSizeWarningLimit: 800,
     rollupOptions: {
       output: {
-        manualChunks: {
-          firebase: ["firebase/app", "firebase/auth", "firebase/firestore", "firebase/storage"],
+        manualChunks(id) {
+          if (id.includes("firebase")) {
+            return "firebase";
+          }
+          if (id.includes("medicines-catalog.js")) {
+            return "catalog";
+          }
         },
       },
     },

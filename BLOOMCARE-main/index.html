@@ -378,8 +378,10 @@
               <!-- RIGHT COLUMN: OFFICIAL CUSTOMER PHOTO -->
               <div class="bloomcare-hero-media">
                 <div class="bloomcare-hero-img-container" id="bloomcare-hero-img-container" title="Click to view full image" role="button" tabindex="0" aria-label="View BloomCare customer image in full size">
-                  <div class="bloomcare-hero-img-glow" aria-hidden="true"></div>
-                  <img src="bloomcare-customer-hero.png" alt="BloomCare Pharmacy Customer with branded bag and pharmacist" class="bloomcare-customer-hero-img" loading="eager" />
+                  <picture>
+                    <source srcset="bloomcare-customer-hero.webp" type="image/webp">
+                    <img src="bloomcare-customer-hero.png" alt="BloomCare Pharmacy Customer with branded bag and pharmacist" class="bloomcare-customer-hero-img" width="1200" height="700" fetchpriority="high" decoding="async" />
+                  </picture>
                   <div class="bloomcare-hero-zoom-badge">
                     <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
                       <circle cx="11" cy="11" r="8"></circle>
@@ -424,13 +426,18 @@
                 <span class="customer-badge-pill">✓ Verified Customer Account</span>
               </div>
               <div class="customer-hero-bag-wrapper" style="text-align:center;">
-                <img 
-                  src="bloomcare-paper-bag.jpg" 
-                  alt="BloomCare Pharmacy branded paper bag" 
-                  class="customer-hero-bag-img" 
-                  loading="lazy" 
-                  decoding="async" 
-                />
+                <picture>
+                  <source srcset="bloomcare-paper-bag.webp" type="image/webp">
+                  <img 
+                    src="bloomcare-paper-bag.jpg" 
+                    alt="BloomCare Pharmacy branded paper bag" 
+                    class="customer-hero-bag-img" 
+                    loading="lazy" 
+                    decoding="async" 
+                    width="400"
+                    height="400"
+                  />
+                </picture>
               </div>
             </div>
           </div>
@@ -892,7 +899,10 @@
         <!-- Available Pharmacists Cards -->
         <div class="pharmacists-cards-grid" id="available-pharmacists-grid">
           <div class="pharmacist-profile-card">
-            <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga" class="pharm-photo-avatar" />
+            <picture>
+              <source srcset="pharmacist-amina.webp" type="image/webp">
+              <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga" class="pharm-photo-avatar" width="90" height="90" loading="lazy" decoding="async" />
+            </picture>
             <h4>Dr. Amina Nanyonga</h4>
             <p class="pharm-role">Lead Clinical Pharmacist (B.Pharm, MUK)</p>
             <p class="pharm-spec">Specialty: General Medicine &amp; Pediatric Therapy</p>
@@ -900,7 +910,10 @@
             <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Dr. Amina Nanyonga">Select Pharmacist</button>
           </div>
           <div class="pharmacist-profile-card">
-            <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa" class="pharm-photo-avatar" />
+            <picture>
+              <source srcset="pharmacist-david.webp" type="image/webp">
+              <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa" class="pharm-photo-avatar" width="90" height="90" loading="lazy" decoding="async" />
+            </picture>
             <h4>Pharm. David Mukasa</h4>
             <p class="pharm-role">Senior Dispensing Pharmacist</p>
             <p class="pharm-spec">Specialty: Chronic Illness &amp; Hypertension Care</p>
@@ -908,7 +921,10 @@
             <button class="btn btn-secondary btn-sm select-pharm-btn" data-pharmacist="Pharm. David Mukasa">Select Pharmacist</button>
           </div>
           <div class="pharmacist-profile-card">
-            <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke" class="pharm-photo-avatar" />
+            <picture>
+              <source srcset="pharmacist-sarah.webp" type="image/webp">
+              <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke" class="pharm-photo-avatar" width="90" height="90" loading="lazy" decoding="async" />
+            </picture>
             <h4>Pharm. Sarah Namusoke</h4>
             <p class="pharm-role">Clinical Counseling Specialist</p>
             <p class="pharm-spec">Specialty: Diabetes Management &amp; Dietary Supplements</p>
@@ -1600,7 +1616,10 @@
 
           <div class="about-hero-media">
             <div class="about-hero-img-wrap">
-              <img src="pharmacy-hero.jpg" alt="BloomCare Modern Flagship Pharmacy & Dispensary" class="about-hero-img" loading="eager" />
+              <picture>
+                <source srcset="pharmacy-hero.webp" type="image/webp">
+                <img src="pharmacy-hero.jpg" alt="BloomCare Modern Flagship Pharmacy &amp; Dispensary" class="about-hero-img" width="1200" height="600" loading="lazy" decoding="async" />
+              </picture>
               <div class="about-hero-overlay">
                 <div class="about-hero-pill">
                   <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -1653,7 +1672,10 @@
 
           <div class="about-dispensary-card">
             <div class="about-dispensary-img-wrap">
-              <img src="pharmacy-cold-chain.jpg" alt="BloomCare Certified Cold-Chain Climate Storage Facility" class="about-dispensary-img" loading="lazy" />
+              <picture>
+                <source srcset="pharmacy-cold-chain.webp" type="image/webp">
+                <img src="pharmacy-cold-chain.jpg" alt="BloomCare Certified Cold-Chain Climate Storage Facility" class="about-dispensary-img" width="800" height="500" loading="lazy" decoding="async" />
+              </picture>
               <div class="about-dispensary-badge">
                 <span class="about-temp-dot"></span>
                 <span>2°C – 8°C Digital Telemetry Validated</span>
@@ -1680,7 +1702,10 @@
             <!-- Pharmacist 1: Dr. Amina Nanyonga -->
             <div class="about-team-card">
               <div class="about-team-img-wrap">
-                <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga - Lead Clinical Pharmacist" class="about-team-img" loading="lazy" />
+                <picture>
+                  <source srcset="pharmacist-amina.webp" type="image/webp">
+                  <img src="pharmacist-amina.jpg" alt="Dr. Amina Nanyonga - Lead Clinical Pharmacist" class="about-team-img" width="300" height="300" loading="lazy" decoding="async" />
+                </picture>
                 <span class="about-team-badge">Lead Pharmacist</span>
               </div>
               <div class="about-team-body">
@@ -1700,7 +1725,10 @@
             <!-- Pharmacist 2: Pharm. David Mukasa -->
             <div class="about-team-card">
               <div class="about-team-img-wrap">
-                <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa - Senior Clinical Specialist" class="about-team-img" loading="lazy" />
+                <picture>
+                  <source srcset="pharmacist-david.webp" type="image/webp">
+                  <img src="pharmacist-david.jpg" alt="Pharm. David Mukasa - Senior Clinical Specialist" class="about-team-img" width="300" height="300" loading="lazy" decoding="async" />
+                </picture>
                 <span class="about-team-badge">Senior Pharmacist</span>
               </div>
               <div class="about-team-body">
@@ -1720,7 +1748,10 @@
             <!-- Pharmacist 3: Pharm. Sarah Namusoke -->
             <div class="about-team-card">
               <div class="about-team-img-wrap">
-                <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke - Patient Wellness Lead" class="about-team-img" loading="lazy" />
+                <picture>
+                  <source srcset="pharmacist-sarah.webp" type="image/webp">
+                  <img src="pharmacist-sarah.jpg" alt="Pharm. Sarah Namusoke - Patient Wellness Lead" class="about-team-img" width="300" height="300" loading="lazy" decoding="async" />
+                </picture>
                 <span class="about-team-badge">Wellness Lead</span>
               </div>
               <div class="about-team-body">

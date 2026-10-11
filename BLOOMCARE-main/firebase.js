@@ -673,175 +673,127 @@ export async function toggleUserStatus(userId, status) {
 // -------------------------------------------------------------
 
 // 3. PRODUCTS & CATEGORIES
-
 // -------------------------------------------------------------
+const CACHE_TTL_MS = 60 * 1000 * 3; // 3-minute TTL
+let _cachedProducts = null;
+let _cachedProductsTime = 0;
+let _cachedCategories = null;
+let _cachedCategoriesTime = 0;
 
-export async function getProducts() {
-
-    try {
-
-        const snap = await getDocs(collection(db, "products"));
-
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    } catch (e) {
-
-        return [];
-
-    }
-
+export function invalidateProductsCache() {
+    _cachedProducts = null;
+    _cachedProductsTime = 0;
 }
 
+export function invalidateCategoriesCache() {
+    _cachedCategories = null;
+    _cachedCategoriesTime = 0;
+}
 
+export async function getProducts(forceRefresh = false) {
+    if (!forceRefresh && _cachedProducts && (Date.now() - _cachedProductsTime < CACHE_TTL_MS)) {
+        return _cachedProducts;
+    }
+    try {
+        const snap = await getDocs(collection(db, "products"));
+        const products = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (products.length > 0) {
+            _cachedProducts = products;
+            _cachedProductsTime = Date.now();
+        }
+        return products;
+    } catch (e) {
+        return _cachedProducts || [];
+    }
+}
 
 export async function getProductById(productId) {
-
     try {
-
         const snap = await getDoc(doc(db, "products", productId));
-
         return snap.exists() ? { id: snap.id, ...snap.data() } : null;
-
     } catch (_) {
-
         return null;
-
     }
-
 }
-
-
 
 export async function saveProduct(productData) {
-
     const id = productData.id || "DEMO-MED-" + Date.now().toString().slice(-4);
-
     const data = {
-
         name: productData.name,
-
         genericName: productData.genericName || "",
-
         strength: productData.strength || "",
-
         brandName: productData.brandName || "",
-
         category: productData.category || "Pain Relief",
-
         description: productData.description || "",
-
         dosageForm: productData.dosageForm || "Pack of 20 Tablets",
-
         price: Number(productData.price) || 0,
-
         stockQuantity: Number(productData.stockQuantity) || 0,
-
         reorderLevel: Number(productData.reorderLevel) || 10,
-
         batchNumber: productData.batchNumber || "DEMO-2026-" + Math.floor(1000 + Math.random() * 9000),
-
         expiryDate: productData.expiryDate || "2028-12-31",
-
         manufacturer: productData.manufacturer || "BloomCare Pharma",
-
         requiresPrescription: Boolean(productData.requiresPrescription),
-
         status: productData.status || "active",
-
         imageUrl: productData.imageUrl || "",
-
         updatedAt: new Date().toISOString()
-
     };
-
     await setDoc(doc(db, "products", id), data, { merge: true });
-
+    invalidateProductsCache();
     return { id, ...data };
-
 }
 
-
-
 export async function updateProductStock(productId, deltaQuantity, reason = "adjustment", performedBy = "system") {
-
     const prod = await getProductById(productId);
-
     if (!prod) return;
-
     const newStock = Math.max(0, (prod.stockQuantity || 0) + deltaQuantity);
-
     await updateDoc(doc(db, "products", productId), {
-
         stockQuantity: newStock,
-
         updatedAt: new Date().toISOString()
-
     });
 
     // Record inventory log
-
     await addDoc(collection(db, "inventoryLogs"), {
-
         productId,
-
         productName: prod.name,
-
         type: deltaQuantity >= 0 ? "stock_in" : "stock_out",
-
         quantity: Math.abs(deltaQuantity),
-
         previousStock: prod.stockQuantity || 0,
-
         newStock,
-
         reason,
-
         performedBy,
-
         timestamp: new Date().toISOString()
-
     });
-
+    invalidateProductsCache();
     return newStock;
-
 }
-
-
 
 export async function deleteProduct(productId) {
-
     await deleteDoc(doc(db, "products", productId));
-
+    invalidateProductsCache();
 }
 
-
-
-export async function getCategories() {
-
-    try {
-
-        const snap = await getDocs(collection(db, "categories"));
-
-        return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-
-    } catch (e) {
-
-        return [];
-
+export async function getCategories(forceRefresh = false) {
+    if (!forceRefresh && _cachedCategories && (Date.now() - _cachedCategoriesTime < CACHE_TTL_MS)) {
+        return _cachedCategories;
     }
-
+    try {
+        const snap = await getDocs(collection(db, "categories"));
+        const categories = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        if (categories.length > 0) {
+            _cachedCategories = categories;
+            _cachedCategoriesTime = Date.now();
+        }
+        return categories;
+    } catch (e) {
+        return _cachedCategories || [];
+    }
 }
-
-
 
 export async function saveCategory(categoryData) {
-
     const id = categoryData.id || "cat-" + Date.now();
-
     await setDoc(doc(db, "categories", id), { ...categoryData, updatedAt: new Date().toISOString() }, { merge: true });
-
+    invalidateCategoriesCache();
     return { id, ...categoryData };
-
 }
 
 

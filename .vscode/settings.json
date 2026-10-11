@@ -3,6 +3,7 @@
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.scrollback": 5000,
   "antigravity.terminal.autoExecution": "always-proceed",
-  "antigravity.permissions.autoApproveTrusted": true
+  "antigravity.permissions.autoApproveTrusted": true,
+  "python-envs.defaultEnvManager": "ms-python.python:system"
 }
 

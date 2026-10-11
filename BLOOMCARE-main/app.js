@@ -5057,6 +5057,12 @@ export function handleRoute() {
   else if (basePane === "about") renderAboutView();
   else if (basePane === "contact") renderContactView();
 
+  if (basePane !== "customer-chat" && basePane !== "chat" && STATE.activeChatMessagesUnsubscribe) {
+    try { STATE.activeChatMessagesUnsubscribe(); } catch (_) {}
+    STATE.activeChatMessagesUnsubscribe = null;
+    STATE.activeChatSubscriptionId = null;
+  }
+
   window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
@@ -5484,7 +5490,7 @@ function renderRoleDashboard() {
     // Compile Recent Operational Activity (chronological 4-5 items from real state)
     const activityList = [];
 
-    (STATE.orders || []).forEach(o => {
+    (STATE.orders || []).slice(0, 15).forEach(o => {
       activityList.push({
         title: `Order #${o.orderNumber || o.id} placed by ${o.customerName || "Customer"}`,
         meta: `${formatUGX(o.total)} • Doorstep Delivery`,
@@ -5498,7 +5504,7 @@ function renderRoleDashboard() {
       });
     });
 
-    (STATE.consultations || []).forEach(c => {
+    (STATE.consultations || []).slice(0, 15).forEach(c => {
       activityList.push({
         title: `Consultation: ${c.patientPhone || c.userName || "Patient"} with Dr. ${c.pharmacistName || "Sarah Nakato"}`,
         meta: `Fee: UGX 15,000 • ${c.timeSlot || "Scheduled Session"}`,
@@ -8610,9 +8616,18 @@ export function setupAutocompleteSearch({ inputId, dropdownId, onSelect, getCont
     }
   }
 
-  // Input event: Instant search with 0ms delay
+  // Input event: Debounced search (120ms) to prevent unnecessary CPU/DOM churn while typing
+  let searchDebounceTimer = null;
   input.addEventListener("input", (e) => {
-    renderSuggestions(e.target.value);
+    clearTimeout(searchDebounceTimer);
+    const val = e.target.value;
+    if (!val || val.length === 0) {
+      renderSuggestions("");
+      return;
+    }
+    searchDebounceTimer = setTimeout(() => {
+      renderSuggestions(val);
+    }, 120);
   });
 
   input.addEventListener("focus", () => {
@@ -17180,12 +17195,23 @@ function bindEventListeners() {
     onSelect: (prod) => handleProductSelection(prod)
   });
 
+  let topSearchDebounce = null;
   $("#top-search-input")?.addEventListener("input", (e) => {
-    STATE.searchQuery = e.target.value;
-    STATE.marketplacePage = 1;
-    $("#top-search-clear")?.classList.toggle("hidden", !e.target.value);
-    if (STATE.currentRoute !== "medicines") navigateTo("medicines");
-    else renderMedicinesView();
+    const val = e.target.value;
+    $("#top-search-clear")?.classList.toggle("hidden", !val);
+    clearTimeout(topSearchDebounce);
+    if (!val) {
+      STATE.searchQuery = "";
+      STATE.marketplacePage = 1;
+      if (STATE.currentRoute === "medicines") renderMedicinesView();
+      return;
+    }
+    topSearchDebounce = setTimeout(() => {
+      STATE.searchQuery = val;
+      STATE.marketplacePage = 1;
+      if (STATE.currentRoute !== "medicines") navigateTo("medicines");
+      else renderMedicinesView();
+    }, 150);
   });
   $("#top-search-clear")?.addEventListener("click", () => {
     const input = $("#top-search-input");
