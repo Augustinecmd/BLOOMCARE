@@ -1860,6 +1860,26 @@
       <!-- MODULE 22: AUTHENTICATION MODULE (#auth / #login / #register) -->
       <!-- ========================================================== -->
       <section class="page-pane hidden" id="view-auth">
+        <!-- Dedicated Authentication Header (Back to Store, Logo & Theme) -->
+        <header class="auth-top-navbar" id="auth-top-navbar">
+          <div class="auth-top-navbar-inner">
+            <a href="#medicines" class="auth-nav-brand" title="BloomCare Pharmacy Storefront">
+              <picture>
+                <source srcset="bloomcare-logo.webp" type="image/webp" />
+                <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-nav-logo" width="130" height="38" />
+              </picture>
+            </a>
+            <div class="auth-nav-actions">
+              <button type="button" class="auth-theme-toggle" id="auth-theme-toggle" aria-label="Toggle Dark / Light Theme" title="Toggle Theme">
+                <span class="theme-icon" aria-hidden="true">🌙</span>
+              </button>
+              <a href="#medicines" class="auth-nav-back-link">
+                <span aria-hidden="true">&larr;</span> Back to Store
+              </a>
+            </div>
+          </div>
+        </header>
+
         <div class="auth-container-centered">
           <!-- Register Screen (Default First Page for Clients) -->
           <!-- Register Screen (Create Customer Account) -->
@@ -1918,202 +1938,130 @@
             <p class="auth-switch-text" style="margin-top:14px;">Already have an account? <button class="text-link" id="switch-to-login-btn" type="button">Log In</button></p>
           </div>
 
-          <!-- Customer Login Screen (Split-Screen Modern Healthcare Experience) -->
-          <div class="auth-card modern-login-split-card" id="login-card">
-            <div class="modern-login-split-grid">
+          <!-- Customer Login Screen (Centered Modern Premium Experience) -->
+          <div class="auth-card modern-auth-card" id="login-card">
+            <div class="modern-auth-head">
+              <div class="auth-card-logo-wrap" style="text-align:center; margin-bottom:14px;">
+                <picture>
+                  <source srcset="bloomcare-logo.webp" type="image/webp" />
+                  <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="auth-card-logo" width="160" height="48" style="height:48px; width:auto; max-width:160px; object-fit:contain;" />
+                </picture>
+              </div>
+              <h1 class="modern-auth-title" style="font-size:1.65rem; font-weight:800; color:#0f766e; margin:0 0 6px 0; text-align:center;">Welcome Back</h1>
+              <p class="modern-auth-subtitle muted" style="margin:0 0 18px 0; font-size:0.92rem; text-align:center; color:#64748b;">Sign in to your BloomCare account.</p>
+            </div>
+
+            <div id="login-success-msg" class="auth-success-msg hidden" role="status"></div>
+            <div id="login-error-msg" class="auth-error-msg hidden" role="alert"></div>
+
+            <form id="login-form" class="standard-form modern-auth-form" novalidate>
               
-              <!-- LEFT SECTION: Brand Experience -->
-              <div class="login-brand-panel">
-                <div class="login-brand-header">
-                  <picture>
-                    <source srcset="bloomcare-logo.webp" type="image/webp" />
-                    <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="login-brand-logo" width="160" height="48" />
-                  </picture>
-                  <span class="brand-portal-pill">Customer Portal</span>
-                </div>
-
-                <div class="login-brand-content">
-                  <h1 class="login-brand-headline">Your Health, Our Priority.</h1>
-                  <p class="login-brand-desc">
-                    Access your pharmacy account to manage orders, discover healthcare products, and enjoy a seamless shopping experience.
-                  </p>
-
-                  <div class="login-hero-visual-card">
-                    <div class="visual-badge-overlay">
-                      <span class="badge-icon-pill">🛡️ NDA Certified</span>
-                      <span class="badge-icon-pill">⚡ Express Refills</span>
-                    </div>
-                    <picture>
-                      <source srcset="bloomcare-paper-bag.webp" type="image/webp" />
-                      <img src="bloomcare-paper-bag.jpg" alt="BloomCare Pharmacy Care Packaging" class="login-hero-img" width="340" height="200" loading="lazy" />
-                    </picture>
-                  </div>
-
-                  <div class="login-trust-highlights">
-                    <div class="trust-item">
-                      <span class="trust-icon" aria-hidden="true">💊</span>
-                      <div class="trust-text">
-                        <strong>100% Genuine Medicines</strong>
-                        <small>Direct pharmaceutical cold-chain dispensing</small>
-                      </div>
-                    </div>
-                    <div class="trust-item">
-                      <span class="trust-icon" aria-hidden="true">🩺</span>
-                      <div class="trust-text">
-                        <strong>Clinical Pharmacist Review</strong>
-                        <small>Verified dosage &amp; interaction checks</small>
-                      </div>
-                    </div>
-                    <div class="trust-item">
-                      <span class="trust-icon" aria-hidden="true">📱</span>
-                      <div class="trust-text">
-                        <strong>MTN &amp; Airtel Mobile Money</strong>
-                        <small>Instant, encrypted payment verification</small>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="login-brand-footer">
-                  <span>Licensed by Uganda National Drug Authority (#NDA/UG/PHARM/2026/894)</span>
+              <div class="form-field-group">
+                <label for="login-email" class="field-label">
+                  <span class="label-text">Email Address or Phone Number</span>
+                </label>
+                <div class="input-with-icon-wrap">
+                  <span class="input-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
+                  </span>
+                  <input 
+                    type="text" 
+                    id="login-email" 
+                    name="email"
+                    placeholder="you@example.com or 0751234567" 
+                    autocomplete="username" 
+                    autocorrect="off"
+                    autocapitalize="none"
+                    required 
+                  />
                 </div>
               </div>
 
-              <!-- RIGHT SECTION: Login Form Panel -->
-              <div class="login-form-panel">
-                <!-- Mobile-Only Brand Header (Shows on mobile when left panel is hidden) -->
-                <div class="login-mobile-brand-header">
-                  <picture>
-                    <source srcset="bloomcare-logo.webp" type="image/webp" />
-                    <img src="bloomcare-logo.png" alt="BloomCare Pharmacy" class="mobile-login-logo" width="140" height="42" />
-                  </picture>
-                  <span class="mobile-portal-badge">Customer Portal</span>
-                </div>
-
-                <div class="login-form-heading-area">
-                  <h2 class="login-form-title">Welcome Back</h2>
-                  <p class="login-form-subtitle">Sign in to your BloomCare account.</p>
-                </div>
-
-                <div id="login-success-msg" class="auth-success-msg hidden" role="status"></div>
-                <div id="login-error-msg" class="auth-error-msg hidden" role="alert"></div>
-
-                <form id="login-form" class="standard-form modern-auth-form" novalidate>
-                  
-                  <div class="form-field-group">
-                    <label for="login-email" class="field-label">
-                      <span class="label-text">Email Address or Phone Number</span>
-                    </label>
-                    <div class="input-with-icon-wrap">
-                      <span class="input-icon" aria-hidden="true">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="16" x="2" y="4" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
-                      </span>
-                      <input 
-                        type="text" 
-                        id="login-email" 
-                        name="email"
-                        placeholder="you@example.com or 0751234567" 
-                        autocomplete="username" 
-                        autocorrect="off"
-                        autocapitalize="none"
-                        required 
-                      />
-                    </div>
-                  </div>
-
-                  <div class="form-field-group">
-                    <label for="login-password" class="field-label">
-                      <span class="label-text">Password / 6-Digit PIN</span>
-                    </label>
-                    <div class="input-with-icon-wrap password-input-wrapper">
-                      <span class="input-icon" aria-hidden="true">
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-                      </span>
-                      <input 
-                        type="password" 
-                        id="login-password" 
-                        name="password"
-                        inputmode="numeric" 
-                        pattern="[0-9]*" 
-                        maxlength="6" 
-                        placeholder="Enter 6-digit password" 
-                        autocomplete="current-password" 
-                        required 
-                        enterkeyhint="done"
-                      />
-                      <button 
-                        type="button" 
-                        class="btn-toggle-pwd" 
-                        id="toggle-customer-password-btn" 
-                        data-target="login-password" 
-                        aria-label="Toggle password visibility" 
-                        title="Show/Hide Password"
-                      >
-                        👁️
-                      </button>
-                    </div>
-                    <small class="field-hint">Enter your 6-digit account PIN or demo password</small>
-                  </div>
-
-                  <div class="form-meta-row">
-                    <label class="checkbox-label remember-me-control" for="login-remember-me">
-                      <input type="checkbox" id="login-remember-me" checked />
-                      <span>Remember Me</span>
-                    </label>
-                    <button type="button" class="text-link forgot-link-btn" id="forgot-password-link">
-                      Forgot Password?
-                    </button>
-                  </div>
-
-                  <div class="form-submit-row">
-                    <button class="btn btn-primary btn-block modern-signin-btn" type="submit" id="customer-login-submit-btn">
-                      <span class="btn-spinner hidden" id="customer-login-spinner" aria-hidden="true"></span>
-                      <span class="btn-label" id="customer-login-btn-label">Sign In</span>
-                    </button>
-                  </div>
-
-                </form>
-
-                <div class="auth-create-account-bar">
-                  <span>Don't have an account?</span>
-                  <button class="text-link create-account-link" id="switch-to-register-btn" type="button">
-                    Create Account
+              <div class="form-field-group">
+                <label for="login-password" class="field-label">
+                  <span class="label-text">Password</span>
+                </label>
+                <div class="input-with-icon-wrap password-input-wrapper">
+                  <span class="input-icon" aria-hidden="true">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </span>
+                  <input 
+                    type="password" 
+                    id="login-password" 
+                    name="password"
+                    placeholder="Enter your password" 
+                    autocomplete="current-password" 
+                    required 
+                    enterkeyhint="done"
+                  />
+                  <button 
+                    type="button" 
+                    class="btn-toggle-pwd" 
+                    id="toggle-customer-password-btn" 
+                    data-target="login-password" 
+                    aria-label="Toggle password visibility" 
+                    title="Show/Hide Password"
+                  >
+                    👁️
                   </button>
                 </div>
-
-                <div class="auth-divider"><span>or try demo</span></div>
-
-                <div class="demo-customer-box">
-                  <div class="demo-customer-credentials">
-                    <strong>Demo Customer:</strong> customer@example.com &bull; PIN: 123456
-                  </div>
-                  <button class="btn btn-accent btn-sm btn-block demo-sign-in-btn" id="demo-customer-login-btn" type="button">
-                    Instant Demo Customer Sign In
-                  </button>
-                </div>
-
-                <div class="staff-portal-shortcut-card">
-                  <div class="staff-shortcut-inner">
-                    <span class="staff-shortcut-icon" aria-hidden="true">🩺</span>
-                    <div class="staff-shortcut-info">
-                      <span class="staff-shortcut-title">Pharmacy Team &amp; Clinical Staff?</span>
-                      <button class="text-link staff-link-action" id="switch-to-staff-login-btn" type="button">
-                        Access Staff Portal &rarr;
-                      </button>
-                    </div>
-                  </div>
-                </div>
-
-                <div class="login-footer-legal-links">
-                  <a href="#terms" class="legal-link">Terms of Service</a>
-                  <span class="legal-divider" aria-hidden="true">&bull;</span>
-                  <a href="#privacy" class="legal-link">Privacy Policy</a>
-                  <span class="legal-divider" aria-hidden="true">&bull;</span>
-                  <a href="#contact" class="legal-link">Need Help?</a>
-                </div>
-
               </div>
 
+              <div class="form-meta-row">
+                <label class="checkbox-label remember-me-control" for="login-remember-me">
+                  <input type="checkbox" id="login-remember-me" checked />
+                  <span>Remember Me</span>
+                </label>
+                <button type="button" class="text-link forgot-link-btn" id="forgot-password-link">
+                  Forgot Password?
+                </button>
+              </div>
+
+              <div class="form-submit-row">
+                <button class="btn btn-primary btn-block modern-signin-btn" type="submit" id="customer-login-submit-btn">
+                  <span class="btn-spinner hidden" id="customer-login-spinner" aria-hidden="true"></span>
+                  <span class="btn-label" id="customer-login-btn-label">Sign In</span>
+                </button>
+              </div>
+
+            </form>
+
+            <div class="auth-create-account-bar">
+              <span>Don't have an account?</span>
+              <button class="text-link create-account-link" id="switch-to-register-btn" type="button">
+                Create Customer Account
+              </button>
+            </div>
+
+            <div class="auth-divider"><span>or</span></div>
+
+            <div class="demo-customer-box">
+              <div class="demo-customer-credentials">
+                <strong>Demo Customer:</strong> customer@example.com &bull; PIN: 123456
+              </div>
+              <button class="btn btn-accent btn-sm btn-block demo-sign-in-btn" id="demo-customer-login-btn" type="button">
+                Log In as Demo Customer
+              </button>
+            </div>
+
+            <div class="staff-portal-shortcut-card">
+              <div class="staff-shortcut-inner">
+                <span class="staff-shortcut-icon" aria-hidden="true">🩺</span>
+                <div class="staff-shortcut-info">
+                  <span class="staff-shortcut-title">Pharmacy Staff &amp; Administrator Portal</span>
+                  <button class="text-link staff-link-action" id="switch-to-staff-login-btn" type="button">
+                    Staff Portal Sign In &rarr;
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <div class="login-footer-legal-links">
+              <a href="#terms" class="legal-link">Terms of Service</a>
+              <span class="legal-divider" aria-hidden="true">&bull;</span>
+              <a href="#privacy" class="legal-link">Privacy Policy</a>
+              <span class="legal-divider" aria-hidden="true">&bull;</span>
+              <a href="#contact" class="legal-link">Need Help?</a>
             </div>
           </div>
 

@@ -3866,12 +3866,16 @@ function setupGlobalDialogNavigation() {
 }
 
 async function initApp() {
-  // Ensure Light Mode is permanently enforced
-  if (typeof localStorage !== "undefined") {
-    try { localStorage.removeItem("bloomcare_theme"); } catch (_) {}
-  }
-  if (typeof document !== "undefined" && document.body) {
-    document.body.classList.remove("theme-dark");
+  // Initialize theme mode from saved preference (default: light)
+  if (typeof localStorage !== "undefined" && typeof document !== "undefined" && document.body) {
+    try {
+      const savedTheme = localStorage.getItem("bloomcare_theme");
+      if (savedTheme === "dark") {
+        document.body.classList.add("theme-dark");
+      } else {
+        document.body.classList.remove("theme-dark");
+      }
+    } catch (_) {}
   }
 
   // 1. Instantly seed in-memory baseline state for zero-latency initial paint
@@ -4956,6 +4960,9 @@ export function handleRoute() {
   STATE.currentRoute = route;
   const isCurrentlyStaffLogin = Boolean(!$("#staff-login-card")?.classList.contains("hidden") && (window.location.hash === "#staff-login" || window.location.hash === "#staff" || window.location.hash === "#staff/login"));
   document.body.classList.toggle("staff-login-layout", isCurrentlyStaffLogin);
+
+  const isAuthPage = route === "auth" || route === "login" || route === "register" || route === "staff-login" || route.startsWith("auth") || window.location.hash === "#auth" || window.location.hash === "#login" || window.location.hash === "#register" || window.location.hash === "#staff-login";
+  document.body.classList.toggle("auth-page-layout", isAuthPage);
   closeMobileDrawer();
 
   const pageNavigation = $("#global-page-navigation");
@@ -20121,9 +20128,27 @@ function bindEventListeners() {
     }
   });
 
-  $("#login-password")?.addEventListener("input", (e) => {
-    e.target.value = e.target.value.replace(/\D/g, "").slice(0, 6);
-  });
+  // Theme Toggle Handlers (Light / Dark mode)
+  const handleAppThemeToggle = () => {
+    const isDark = document.body.classList.toggle("theme-dark");
+    try {
+      localStorage.setItem("bloomcare_theme", isDark ? "dark" : "light");
+    } catch (_) {}
+    const themeIcon = isDark ? "☀️" : "🌙";
+    const themeLabel = isDark ? "Light Mode" : "Dark Mode";
+    const statusText = isDark ? "Dark Active" : "Light Active";
+    const authThemeIcon = $("#auth-theme-toggle .theme-icon");
+    if (authThemeIcon) authThemeIcon.textContent = themeIcon;
+    const sidebarThemeIcon = $("#sidebar-theme-toggle #theme-toggle-icon");
+    if (sidebarThemeIcon) sidebarThemeIcon.textContent = themeIcon;
+    const sidebarThemeLabel = $("#sidebar-theme-toggle #theme-toggle-label");
+    if (sidebarThemeLabel) sidebarThemeLabel.textContent = themeLabel;
+    const sidebarThemeStatus = $("#theme-toggle-status");
+    if (sidebarThemeStatus) sidebarThemeStatus.textContent = statusText;
+  };
+
+  $("#auth-theme-toggle")?.addEventListener("click", handleAppThemeToggle);
+  $("#sidebar-theme-toggle")?.addEventListener("click", handleAppThemeToggle);
 
   // Toggle password visibility buttons
   document.querySelectorAll(".btn-toggle-pwd").forEach((btn) => {

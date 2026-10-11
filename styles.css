@@ -16141,39 +16141,187 @@ body.staff-login-layout .auth-grid {
 }
 
 /* ==========================================================================
-   MODULE 23: MODERN SPLIT-SCREEN AUTHENTICATION SYSTEM (#login-card)
+   MODULE 23: DEDICATED AUTHENTICATION LAYOUT & MODERN LOGIN SYSTEM
    ========================================================================== */
 
-/* Dynamic container sizing when login-card is active */
-#view-auth .auth-container-centered {
-  max-width: 520px;
-  margin: 36px auto;
-  padding: 0 16px;
-  transition: max-width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+/* 1. HIDE ALL SHOPPING CHROME ON AUTHENTICATION ROUTES */
+body.auth-page-layout #app-left-sidebar,
+body.auth-page-layout .main-top-announcement,
+body.auth-page-layout #app-top-header,
+body.auth-page-layout #marketplace-categories-bar,
+body.auth-page-layout #global-page-navigation,
+body.auth-page-layout #main-bottom-footer,
+body.auth-page-layout #ai-assistant-fab-wrap,
+body.auth-page-layout #ai-assistant-dialog,
+body.auth-page-layout .mobile-bottom-nav,
+body.auth-page-layout #developer-preview-banner,
+body.auth-page-layout .app-brand-bar,
+body.auth-page-layout .auth-hero,
+body.auth-page-layout .storefront-hero-banner,
+body.auth-page-layout .customer-support-floating-widget {
+  display: none !important;
 }
 
-#view-auth:has(#login-card:not(.hidden)) .auth-container-centered,
-.auth-container-centered:has(#login-card:not(.hidden)) {
-  max-width: 1040px;
+body.auth-page-layout {
+  background: #f8fafc !important;
+  min-height: 100vh !important;
+  overflow-x: hidden !important;
+}
+
+body.auth-page-layout .app-layout-sidebar-root,
+body.auth-page-layout .app-main-viewport-container {
+  margin-left: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: 100vh !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  background: #f8fafc !important;
+}
+
+body.auth-page-layout #main-app-content {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  box-sizing: border-box !important;
+}
+
+body.auth-page-layout #view-auth {
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  min-height: 100vh !important;
+}
+
+/* Hide dedicated customer auth navbar when on dedicated staff portal */
+body.staff-login-layout #auth-top-navbar {
+  display: none !important;
+}
+
+/* 2. DEDICATED AUTHENTICATION TOP NAVBAR */
+.auth-top-navbar {
   width: 100%;
+  height: 60px;
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(15, 118, 110, 0.12);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  box-sizing: border-box;
 }
 
-/* Modern Split Login Card Container */
-.modern-login-split-card {
+.auth-top-navbar-inner {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.auth-nav-brand {
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+}
+
+.auth-nav-logo {
+  height: 36px;
+  width: auto;
+  object-fit: contain;
+  display: block;
+}
+
+.auth-nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.auth-theme-toggle {
+  background: #f1f5f9;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+  user-select: none;
+}
+
+.auth-theme-toggle:hover {
+  background: #e2e8f0;
+  border-color: #94a3b8;
+}
+
+.auth-nav-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: #0f766e;
+  text-decoration: none;
+  padding: 7px 14px;
+  border-radius: 8px;
+  background: rgba(15, 118, 110, 0.08);
+  border: 1px solid rgba(15, 118, 110, 0.15);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.auth-nav-back-link:hover {
+  background: rgba(15, 118, 110, 0.15);
+  color: #115e59;
+}
+
+/* 3. CENTERED AUTH CONTAINER */
+body.auth-page-layout .auth-container-centered {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 480px;
+  box-sizing: border-box;
+}
+
+/* 4. MODERN CENTERED AUTH CARD */
+.modern-auth-card {
   background: #ffffff !important;
   border: 1px solid rgba(15, 118, 110, 0.14) !important;
-  border-radius: 24px !important;
-  padding: 0 !important;
-  box-shadow: 0 20px 48px -12px rgba(15, 118, 110, 0.12), 0 0 0 1px rgba(15, 118, 110, 0.04) !important;
-  overflow: hidden;
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  animation: authCardFadeIn 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  border-radius: 20px !important;
+  padding: 36px 32px !important;
+  box-shadow: 0 20px 48px -12px rgba(15, 118, 110, 0.10), 0 0 0 1px rgba(15, 118, 110, 0.04) !important;
+  width: 100%;
+  box-sizing: border-box;
+  animation: authCardFadeIn 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 @keyframes authCardFadeIn {
   from {
     opacity: 0;
-    transform: translateY(14px) scale(0.99);
+    transform: translateY(12px) scale(0.99);
   }
   to {
     opacity: 1;
@@ -16181,271 +16329,26 @@ body.staff-login-layout .auth-grid {
   }
 }
 
-.modern-login-split-grid {
-  display: grid;
-  grid-template-columns: 1.12fr 1fr;
-  min-height: 640px;
-}
-
-/* -------------------------------------------------------------
-   LEFT BRAND PANEL (Brand Experience)
-   ------------------------------------------------------------- */
-.login-brand-panel {
-  position: relative;
-  background: linear-gradient(150deg, #f0fdf4 0%, #ecfdf5 45%, #e6fffa 100%);
-  padding: 44px 40px;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  border-right: 1px solid rgba(15, 118, 110, 0.1);
-  overflow: hidden;
-}
-
-/* Decorative ambient background rings */
-.login-brand-panel::before {
-  content: "";
-  position: absolute;
-  top: -80px;
-  right: -80px;
-  width: 260px;
-  height: 260px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(20, 184, 166, 0.16) 0%, rgba(20, 184, 166, 0) 70%);
-  pointer-events: none;
-}
-
-.login-brand-panel::after {
-  content: "";
-  position: absolute;
-  bottom: -60px;
-  left: -60px;
-  width: 240px;
-  height: 240px;
-  border-radius: 50%;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.14) 0%, rgba(16, 185, 129, 0) 70%);
-  pointer-events: none;
-}
-
-.login-brand-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 24px;
-  position: relative;
-  z-index: 1;
-}
-
-.login-brand-logo {
-  height: 46px;
-  width: auto;
-  max-width: 160px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 6px rgba(15, 118, 110, 0.1));
-}
-
-.brand-portal-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 5px 14px;
-  background: rgba(15, 118, 110, 0.08);
-  border: 1px solid rgba(15, 118, 110, 0.22);
-  color: #0f766e;
-  font-size: 0.8rem;
-  font-weight: 700;
-  border-radius: 999px;
-  letter-spacing: 0.02em;
-}
-
-.login-brand-content {
-  position: relative;
-  z-index: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 18px;
-}
-
-.login-brand-headline {
-  font-size: 2rem;
-  font-weight: 800;
-  color: #0f766e;
-  line-height: 1.22;
-  margin: 0;
-  letter-spacing: -0.025em;
-}
-
-.login-brand-desc {
-  font-size: 0.96rem;
-  color: #475569;
-  line-height: 1.55;
-  margin: 0;
-}
-
-/* Hero visual packaging card */
-.login-hero-visual-card {
-  position: relative;
-  border-radius: 16px;
-  overflow: hidden;
-  box-shadow: 0 12px 28px -6px rgba(15, 118, 110, 0.16), 0 0 0 1px rgba(15, 118, 110, 0.08);
-  background: #ffffff;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  margin: 4px 0;
-}
-
-.login-hero-img {
-  width: 100%;
-  height: 190px;
-  object-fit: cover;
-  display: block;
-  transition: transform 0.4s ease;
-}
-
-.login-hero-visual-card:hover .login-hero-img {
-  transform: scale(1.02);
-}
-
-.visual-badge-overlay {
-  position: absolute;
-  bottom: 10px;
-  left: 10px;
-  right: 10px;
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
-  z-index: 2;
-}
-
-.badge-icon-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  background: rgba(255, 255, 255, 0.94);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
-  border: 1px solid rgba(15, 118, 110, 0.18);
-  color: #0f766e;
-  font-size: 0.76rem;
-  font-weight: 700;
-  padding: 4px 10px;
-  border-radius: 999px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
-}
-
-/* Trust highlights */
-.login-trust-highlights {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  margin-top: 2px;
-}
-
-.trust-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 9px 12px;
-  background: rgba(255, 255, 255, 0.78);
-  border: 1px solid rgba(15, 118, 110, 0.12);
-  border-radius: 12px;
-  backdrop-filter: blur(4px);
-  transition: background 0.15s ease, transform 0.15s ease;
-}
-
-.trust-item:hover {
-  background: rgba(255, 255, 255, 0.96);
-  transform: translateX(3px);
-}
-
-.trust-icon {
-  font-size: 1.25rem;
-  flex-shrink: 0;
-}
-
-.trust-text {
-  display: flex;
-  flex-direction: column;
-}
-
-.trust-text strong {
-  font-size: 0.86rem;
-  color: #1e293b;
-  font-weight: 600;
-}
-
-.trust-text small {
-  font-size: 0.76rem;
-  color: #64748b;
-}
-
-.login-brand-footer {
-  position: relative;
-  z-index: 1;
-  margin-top: 20px;
-  padding-top: 14px;
-  border-top: 1px dashed rgba(15, 118, 110, 0.2);
-  font-size: 0.76rem;
-  color: #0f766e;
-  font-weight: 500;
+.modern-auth-head {
   text-align: center;
+  margin-bottom: 20px;
 }
 
-/* -------------------------------------------------------------
-   RIGHT FORM PANEL (Login Form)
-   ------------------------------------------------------------- */
-.login-form-panel {
-  padding: 44px 42px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  background: #ffffff;
-}
-
-/* Mobile brand header */
-.login-mobile-brand-header {
-  display: none;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 22px;
-}
-
-.mobile-login-logo {
-  height: 40px;
-  width: auto;
-  object-fit: contain;
-}
-
-.mobile-portal-badge {
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: #0f766e;
-  background: #f0fdf4;
-  border: 1px solid rgba(15, 118, 110, 0.2);
-  padding: 4px 10px;
-  border-radius: 999px;
-}
-
-.login-form-heading-area {
-  margin-bottom: 22px;
-}
-
-.login-form-title {
-  font-size: 1.75rem;
+.modern-auth-title {
+  font-size: 1.65rem;
   font-weight: 800;
-  color: #0f172a;
+  color: #0f766e;
   margin: 0 0 6px 0;
   letter-spacing: -0.02em;
 }
 
-.login-form-subtitle {
-  font-size: 0.94rem;
+.modern-auth-subtitle {
+  font-size: 0.92rem;
   color: #64748b;
   margin: 0;
 }
 
-/* Form controls styling */
+/* 5. FORM CONTROLS */
 .modern-auth-form {
   display: flex;
   flex-direction: column;
@@ -16493,11 +16396,11 @@ body.staff-login-layout .auth-grid {
 
 .input-with-icon-wrap input {
   width: 100%;
-  height: 48px;
-  padding: 12px 14px 12px 42px !important;
+  height: 46px;
+  padding: 10px 14px 10px 42px !important;
   border: 1.5px solid #e2e8f0;
-  border-radius: 12px;
-  font-size: 0.95rem;
+  border-radius: 10px;
+  font-size: 0.94rem;
   color: #0f172a;
   background: #f8fafc;
   transition: border-color 0.15s ease, background-color 0.15s ease, box-shadow 0.15s ease;
@@ -16522,12 +16425,12 @@ body.staff-login-layout .auth-grid {
 }
 
 .input-with-icon-wrap.password-input-wrapper input {
-  padding-right: 48px !important;
+  padding-right: 46px !important;
 }
 
 .input-with-icon-wrap .btn-toggle-pwd {
   position: absolute;
-  right: 12px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   background: transparent;
@@ -16545,7 +16448,7 @@ body.staff-login-layout .auth-grid {
   color: #0f766e;
 }
 
-/* Meta row: Remember me & Forgot Password */
+/* Meta row: Remember Me & Forgot Password */
 .form-meta-row {
   display: flex;
   align-items: center;
@@ -16562,8 +16465,8 @@ body.staff-login-layout .auth-grid {
 }
 
 .remember-me-control input[type="checkbox"] {
-  width: 17px;
-  height: 17px;
+  width: 16px;
+  height: 16px;
   border: 1.5px solid #cbd5e1;
   border-radius: 4px;
   accent-color: #0f766e;
@@ -16571,7 +16474,7 @@ body.staff-login-layout .auth-grid {
 }
 
 .remember-me-control span {
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   color: #475569;
   font-weight: 500;
 }
@@ -16580,7 +16483,7 @@ body.staff-login-layout .auth-grid {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 600;
   color: #0f766e;
   cursor: pointer;
@@ -16595,14 +16498,14 @@ body.staff-login-layout .auth-grid {
 /* Submit button */
 .modern-signin-btn {
   height: 48px;
-  border-radius: 12px;
+  border-radius: 10px;
   background: linear-gradient(135deg, #0f766e 0%, #0d9488 100%) !important;
   border: 1px solid #0f766e !important;
   color: #ffffff !important;
   font-size: 1rem !important;
   font-weight: 700 !important;
   letter-spacing: 0.01em;
-  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 4px 14px rgba(15, 118, 110, 0.22);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -16614,7 +16517,7 @@ body.staff-login-layout .auth-grid {
 
 .modern-signin-btn:hover:not(:disabled) {
   background: linear-gradient(135deg, #115e59 0%, #0f766e 100%) !important;
-  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.32);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.30);
   transform: translateY(-1px);
 }
 
@@ -16638,14 +16541,14 @@ body.staff-login-layout .auth-grid {
   animation: spin 0.8s linear infinite;
 }
 
-/* Create account bar */
+/* 6. CREATE ACCOUNT & DEMO ACTIONS */
 .auth-create-account-bar {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   margin-top: 14px;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   color: #64748b;
 }
 
@@ -16653,7 +16556,7 @@ body.staff-login-layout .auth-grid {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.92rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: #0f766e;
   cursor: pointer;
@@ -16672,10 +16575,10 @@ body.staff-login-layout .auth-grid {
 /* Staff shortcut card */
 .staff-portal-shortcut-card {
   margin-top: 14px;
-  padding: 12px 14px;
+  padding: 11px 14px;
   background: #f8fafc;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 10px;
   transition: background 0.15s ease, border-color 0.15s ease;
 }
 
@@ -16691,7 +16594,7 @@ body.staff-login-layout .auth-grid {
 }
 
 .staff-shortcut-icon {
-  font-size: 1.35rem;
+  font-size: 1.3rem;
   flex-shrink: 0;
 }
 
@@ -16702,7 +16605,7 @@ body.staff-login-layout .auth-grid {
 }
 
 .staff-shortcut-title {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #64748b;
   font-weight: 500;
 }
@@ -16711,7 +16614,7 @@ body.staff-login-layout .auth-grid {
   background: none;
   border: none;
   padding: 0;
-  font-size: 0.88rem;
+  font-size: 0.86rem;
   font-weight: 700;
   color: #0f766e;
   text-align: left;
@@ -16728,9 +16631,9 @@ body.staff-login-layout .auth-grid {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 10px;
-  margin-top: 20px;
-  font-size: 0.78rem;
+  gap: 8px;
+  margin-top: 18px;
+  font-size: 0.76rem;
   color: #94a3b8;
 }
 
@@ -16749,60 +16652,142 @@ body.staff-login-layout .auth-grid {
   color: #cbd5e1;
 }
 
-/* -------------------------------------------------------------
-   RESPONSIVE DESIGN (Tablets & Mobile)
-   ------------------------------------------------------------- */
-@media (max-width: 899px) {
-  #view-auth:has(#login-card:not(.hidden)) .auth-container-centered,
-  .auth-container-centered:has(#login-card:not(.hidden)) {
-    max-width: 480px;
-  }
-
-  .modern-login-split-card {
-    border-radius: 18px !important;
-    margin: 0 auto;
-  }
-
-  .modern-login-split-grid {
-    grid-template-columns: 1fr;
-    min-height: auto;
-  }
-
-  .login-brand-panel {
-    display: none; /* Collapses artwork on smaller screens to prioritize fast form entry */
-  }
-
-  .login-mobile-brand-header {
-    display: flex; /* Displays clean mobile hero branding directly above form */
-  }
-
-  .login-form-panel {
-    padding: 32px 24px;
-  }
-
-  .login-form-title {
-    font-size: 1.55rem;
-  }
-
-  .login-form-subtitle {
-    font-size: 0.9rem;
-  }
+/* 7. DARK MODE STYLES (Light / Dark Mode Harmony) */
+body.theme-dark {
+  background: #0f172a !important;
+  color: #f1f5f9 !important;
 }
 
+body.theme-dark.auth-page-layout,
+body.theme-dark.auth-page-layout .app-main-viewport-container {
+  background: #0f172a !important;
+}
+
+body.theme-dark .auth-top-navbar {
+  background: rgba(15, 23, 42, 0.95) !important;
+  border-bottom-color: #1e293b !important;
+}
+
+body.theme-dark .auth-theme-toggle {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  color: #f1f5f9 !important;
+}
+
+body.theme-dark .auth-nav-back-link {
+  background: rgba(20, 184, 166, 0.12) !important;
+  border-color: rgba(20, 184, 166, 0.25) !important;
+  color: #2dd4bf !important;
+}
+
+body.theme-dark .modern-auth-card,
+body.theme-dark .auth-card {
+  background: #1e293b !important;
+  border-color: #334155 !important;
+  box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.5) !important;
+  color: #f1f5f9 !important;
+}
+
+body.theme-dark .modern-auth-title {
+  color: #2dd4bf !important;
+}
+
+body.theme-dark .modern-auth-subtitle {
+  color: #94a3b8 !important;
+}
+
+body.theme-dark .field-label .label-text {
+  color: #cbd5e1 !important;
+}
+
+body.theme-dark .input-with-icon-wrap input {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+  color: #f8fafc !important;
+}
+
+body.theme-dark .input-with-icon-wrap input:hover {
+  border-color: #475569 !important;
+}
+
+body.theme-dark .input-with-icon-wrap input:focus {
+  background: #0f172a !important;
+  border-color: #14b8a6 !important;
+  box-shadow: 0 0 0 3.5px rgba(20, 184, 166, 0.25) !important;
+}
+
+body.theme-dark .input-with-icon-wrap .input-icon {
+  color: #64748b !important;
+}
+
+body.theme-dark .input-with-icon-wrap .btn-toggle-pwd {
+  color: #94a3b8 !important;
+}
+
+body.theme-dark .remember-me-control span {
+  color: #94a3b8 !important;
+}
+
+body.theme-dark .forgot-link-btn {
+  color: #2dd4bf !important;
+}
+
+body.theme-dark .auth-create-account-bar {
+  color: #94a3b8 !important;
+}
+
+body.theme-dark .create-account-link,
+body.theme-dark .staff-link-action {
+  color: #2dd4bf !important;
+}
+
+body.theme-dark .demo-customer-box,
+body.theme-dark .staff-portal-shortcut-card {
+  background: #0f172a !important;
+  border-color: #334155 !important;
+}
+
+body.theme-dark .demo-customer-credentials {
+  color: #94a3b8 !important;
+}
+
+body.theme-dark .legal-link {
+  color: #64748b !important;
+}
+
+body.theme-dark .legal-link:hover {
+  color: #2dd4bf !important;
+}
+
+/* 8. RESPONSIVE BREAKPOINTS (Mobile & Small Tablets) */
 @media (max-width: 480px) {
-  #view-auth .auth-container-centered {
-    margin: 16px auto;
+  body.auth-page-layout .auth-container-centered {
+    padding: 16px 12px;
+  }
+
+  .modern-auth-card {
+    padding: 24px 18px !important;
+    border-radius: 16px !important;
+    box-shadow: 0 10px 25px -5px rgba(15, 118, 110, 0.08) !important;
+  }
+
+  .modern-auth-title {
+    font-size: 1.45rem;
+  }
+
+  .auth-top-navbar-inner {
     padding: 0 12px;
   }
 
-  .modern-login-split-card {
-    border-radius: 16px !important;
-    box-shadow: 0 8px 24px -4px rgba(15, 118, 110, 0.08) !important;
+  .auth-nav-logo {
+    height: 30px;
   }
 
-  .login-form-panel {
-    padding: 24px 16px;
+  .auth-nav-back-link {
+    padding: 5px 10px;
+    font-size: 0.82rem;
   }
 }
+
 
 
