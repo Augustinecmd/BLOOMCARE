@@ -3357,6 +3357,72 @@ dialog,
   letter-spacing: 0.3px;
 }
 
+/* Customer Dashboard Quick Controls Bar */
+.customer-quick-controls-bar {
+  background: #ffffff;
+  border: 1px solid var(--line, #e2e8f0);
+  border-radius: var(--radius-md, 12px);
+  padding: 12px 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+.quick-controls-left,
+.quick-controls-right {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+.cust-dash-cart-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(15, 118, 110, 0.08);
+  border: 1px solid rgba(15, 118, 110, 0.22);
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--primary, #0f766e);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.cust-dash-cart-pill:hover {
+  background: rgba(15, 118, 110, 0.14);
+  border-color: var(--primary, #0f766e);
+}
+.rec-scroll-track {
+  display: flex;
+  gap: 14px;
+  overflow-x: auto;
+  padding-bottom: 12px;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+}
+.rec-scroll-track > * {
+  scroll-snap-align: start;
+}
+.rec-scroll-track::-webkit-scrollbar {
+  height: 6px;
+}
+.rec-scroll-track::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+.rec-scroll-track::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+.rec-scroll-track::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
 /* Active Order Tracking Stepper Card */
 .active-tracking-box {
   background: #ffffff;

@@ -6193,6 +6193,14 @@ function renderRoleDashboard() {
     const hasHistory = (STATE.orders || []).some(o => (o.customerId === custId || o.customerEmail === custId) && isValidCompletedOrder(o));
     const dashCategories = STATE.categories || [];
 
+    const curHour = new Date().getHours();
+    const timeGreeting = curHour < 12 ? "Good morning" : curHour < 17 ? "Good afternoon" : "Good evening";
+    const custDisplayName = STATE.currentUser?.displayName || (STATE.currentUser?.email ? STATE.currentUser.email.split("@")[0] : "Valued Customer");
+    const cartItemCount = (STATE.cart || []).reduce((sum, i) => sum + (i.quantity || 1), 0);
+    const cartSubtotal = (STATE.cart || []).reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * (i.quantity || 1)), 0);
+    const wishlistCount = Array.isArray(STATE.wishlist) ? STATE.wishlist.length : (getFavoriteProductIds ? getFavoriteProductIds().length : 0);
+    const unreadNotifs = (STATE.notifications || []).filter(n => !n.read).length;
+
     container.innerHTML = `
       <!-- 1. Customer Dashboard Hero & Brand Showcase -->
       <div class="customer-welcome-card customer-hero-brand-card">
@@ -6201,7 +6209,7 @@ function renderRoleDashboard() {
             <span>🌿</span>
             <span>Your Health, Our Priority</span>
           </div>
-          <h1 class="page-title" style="font-size:22px; margin-bottom:4px;">Welcome, ${escapeHtml(STATE.currentUser?.displayName || "Customer")}</h1>
+          <h1 class="page-title" style="font-size:22px; margin-bottom:4px;">${timeGreeting}, ${escapeHtml(custDisplayName)}! 👋</h1>
           <p class="page-desc" style="font-size:13.5px; color:var(--text-muted, #64748b); margin-bottom:10px; max-width:520px; line-height:1.45;">
             Your trusted licensed pharmacy in Mbarara City for genuine <strong>Medicines</strong>, comprehensive <strong>Wellness</strong>, essential <strong>Personal Care</strong>, and professional <strong>Health Advice</strong>.
           </p>
@@ -6232,6 +6240,56 @@ function renderRoleDashboard() {
               decoding="async" 
             />
           </div>
+        </div>
+      </div>
+
+      <!-- 1B. Customer Quick Shopping Controls & Live Cart Bar -->
+      <div class="customer-quick-controls-bar">
+        <div class="quick-controls-left">
+          <!-- Cart Pill / Checkout Trigger -->
+          <div class="cust-dash-cart-pill" id="cust-dash-quick-cart-pill" title="Click to view cart and checkout">
+            <span style="font-size:15px;">🛒</span>
+            <span id="cust-dash-cart-status-text">
+              ${cartItemCount > 0 ? `Cart: <strong>${cartItemCount}</strong> item${cartItemCount > 1 ? 's' : ''} (${formatUGX(cartSubtotal)})` : 'Cart is empty'}
+            </span>
+            ${cartItemCount > 0 ? `
+              <button type="button" class="btn btn-primary btn-xs" id="cust-dash-quick-checkout-btn" style="padding:2px 8px; font-size:11px; margin-left:4px; font-weight:700;">
+                Checkout &rarr;
+              </button>
+            ` : ''}
+          </div>
+
+          <!-- Wishlist Indicator -->
+          <button type="button" class="btn btn-outline btn-xs" id="cust-dash-quick-wishlist-btn" style="display:inline-flex; align-items:center; gap:5px; padding:5px 12px; font-size:12px; border-radius:999px;">
+            <span style="color:#ef4444;">♥</span>
+            <span>Saved Items (${wishlistCount})</span>
+          </button>
+
+          <!-- Notifications Indicator -->
+          <button type="button" class="btn btn-outline btn-xs" id="cust-dash-quick-notifs-btn" style="display:inline-flex; align-items:center; gap:5px; padding:5px 12px; font-size:12px; border-radius:999px;">
+            <span>🔔</span>
+            <span>Alerts ${unreadNotifs > 0 ? `<span class="badge-mini" style="background:#dc2626; color:#fff; border-radius:10px; padding:1px 6px; font-size:10px; font-weight:700;">${unreadNotifs}</span>` : '(0)'}</span>
+          </button>
+        </div>
+
+        <div class="quick-controls-right">
+          <!-- AI Health Assistant Shortcut -->
+          <button type="button" class="btn btn-secondary btn-xs" id="cust-dash-open-ai-chat-btn" style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; font-size:12px; border-radius:999px; background:#f0fdf4; color:#065f46; border:1px solid #bbf7d0; font-weight:600;">
+            <span>🤖</span>
+            <span>Ask BloomCare AI</span>
+          </button>
+
+          <!-- Care Desk WhatsApp Link -->
+          <a href="https://wa.me/256750210886" target="_blank" rel="noopener noreferrer" class="btn btn-outline btn-xs" style="display:inline-flex; align-items:center; gap:6px; padding:5px 12px; font-size:12px; border-radius:999px; color:#15803d; border-color:#86efac; text-decoration:none; font-weight:600;">
+            <span>💬</span>
+            <span>Care Desk (0750210886)</span>
+          </a>
+
+          <!-- Saved Location Shortcut -->
+          <button type="button" class="btn btn-outline btn-xs" id="cust-dash-quick-loc-btn" style="display:inline-flex; align-items:center; gap:5px; padding:5px 10px; font-size:11.5px; border-radius:999px; color:#475569;">
+            <span>📍</span>
+            <span>${savedLoc ? `${escapeHtml(savedLoc.deliveryDivision || savedLoc.division || "Mbarara")}, ${escapeHtml(savedLoc.deliveryArea || savedLoc.area || "")}` : 'Set Delivery Location'}</span>
+          </button>
         </div>
       </div>
 
@@ -6488,7 +6546,7 @@ function renderRoleDashboard() {
                 <span class="cat-pill-count">(${activeProducts.length})</span>
               </span>
             </button>
-            ${(dashCategories.length ? dashCategories : ESSENTIAL_CATEGORIES).filter(c => c.status !== "inactive").slice(0, 8).map(c => {
+            ${(dashCategories.length ? dashCategories : ESSENTIAL_CATEGORIES).filter(c => c.status !== "inactive").slice(0, 12).map(c => {
               const count = activeProducts.filter(p => {
                 const pCat = (p.category || p.categoryId || "").toLowerCase().trim();
                 return pCat === (c.name || "").toLowerCase().trim() || pCat === (c.id || "").toLowerCase().trim();
@@ -6518,6 +6576,11 @@ function renderRoleDashboard() {
           </div>
           <div class="products-grid" id="cust-dash-products-grid">
             ${activeProducts.slice(0, 12).map(renderProductCardHtml).join("")}
+          </div>
+          <div style="margin-top:16px; text-align:center;">
+            <button class="btn btn-outline btn-sm" type="button" data-route="customer/medicines" style="padding:8px 22px; font-weight:700; border-radius:999px;">
+              💊 View Full Medicine Catalog (${activeProducts.length} Products) &rarr;
+            </button>
           </div>
         </div>
       </section>
@@ -6834,6 +6897,28 @@ function renderRoleDashboard() {
       </div>
     `;
 
+    // Customer Dashboard Quick Controls Listeners
+    container.querySelector("#cust-dash-quick-checkout-btn")?.addEventListener("click", () => {
+      openCartDialog();
+    });
+    container.querySelector("#cust-dash-quick-cart-pill")?.addEventListener("click", () => {
+      openCartDialog();
+    });
+    container.querySelector("#cust-dash-quick-wishlist-btn")?.addEventListener("click", () => {
+      $("#open-wishlist-btn")?.click();
+    });
+    container.querySelector("#cust-dash-quick-notifs-btn")?.addEventListener("click", () => {
+      $("#open-notif-btn")?.click();
+    });
+    container.querySelector("#cust-dash-open-ai-chat-btn")?.addEventListener("click", () => {
+      $("#btn-toggle-ai-assistant")?.click();
+    });
+    container.querySelector("#cust-dash-quick-loc-btn")?.addEventListener("click", () => {
+      STATE.isEditingCustLocation = true;
+      renderRoleDashboard();
+      container.querySelector(".customer-delivery-location-section")?.scrollIntoView({ behavior: "smooth" });
+    });
+
     // Attach Customer Dashboard Location Listeners
     const toggleEditBtn = container.querySelector("#cust-dash-toggle-edit-loc");
     const editLocBtn = container.querySelector("#cust-dash-edit-loc-btn");
@@ -6997,8 +7082,12 @@ function renderRoleDashboard() {
       }
     }
 
+    let dashSearchTimer = null;
     if (searchInput) {
-      searchInput.addEventListener("input", filterCustomerDashProducts);
+      searchInput.addEventListener("input", () => {
+        clearTimeout(dashSearchTimer);
+        dashSearchTimer = setTimeout(filterCustomerDashProducts, 160);
+      });
     }
 
     categoryPills.forEach(pill => {
@@ -13551,6 +13640,15 @@ export function updateCartBadge() {
   if (mobileBadge) {
     mobileBadge.textContent = String(total);
     mobileBadge.classList.toggle("hidden", total === 0);
+  }
+  const custDashStatus = $("#cust-dash-cart-status-text");
+  if (custDashStatus) {
+    const subtotal = STATE.cart.reduce((sum, i) => sum + ((i.price ?? i.product?.price ?? 0) * (i.quantity || 1)), 0);
+    custDashStatus.innerHTML = total > 0 ? `Cart: <strong>${total}</strong> item${total > 1 ? 's' : ''} (${formatUGX(subtotal)})` : 'Cart is empty';
+  }
+  const checkoutBtn = $("#cust-dash-quick-checkout-btn");
+  if (checkoutBtn) {
+    checkoutBtn.style.display = total > 0 ? "inline-block" : "none";
   }
 }
 
